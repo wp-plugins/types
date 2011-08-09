@@ -92,6 +92,7 @@ function wpcf_fields_email_editor_callback_js() {
  * Editor callback form.
  */
 function wpcf_fields_email_editor_callback() {
+    $last_settings = wpcf_admin_fields_get_field_last_settings($_GET['field_id']);
     $form = array();
     $form['#form']['callback'] = 'wpcf_fields_email_editor_submit';
     $form['title'] = array(
@@ -99,6 +100,7 @@ function wpcf_fields_email_editor_callback() {
         '#title' => __('Title', 'wpcf'),
         '#description' => __('If set, this text will be displayed instead of raw data'),
         '#name' => 'title',
+        '#value' => isset($last_settings['title']) ? $last_settings['title'] : '',
     );
     $form['submit'] = array(
         '#type' => 'markup',
@@ -123,6 +125,7 @@ function wpcf_fields_email_editor_submit() {
     $field = wpcf_admin_fields_get_field($_GET['field_id']);
     if (!empty($field)) {
         $shortcode = wpcf_fields_get_shortcode($field, $add);
+        wpcf_admin_fields_save_field_last_settings($_GET['field_id'], $_POST);
         echo wpcf_admin_fields_popup_insert_shortcode_js($shortcode);
         die();
     }

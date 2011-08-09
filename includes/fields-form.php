@@ -82,16 +82,18 @@ function wpcf_admin_save_fields_groups_submit($form) {
     if (isset($_POST['group-id'])) {
         $_POST['wpcf']['group']['id'] = $_POST['group-id'];
     }
-    
+
     $group_id = wpcf_admin_fields_save_group($_POST['wpcf']['group']);
 
     // Set open fieldsets
     if ($new_group && !empty($group_id)) {
-        $open_fieldsets = get_option('wpcf-group-form-toggle', array());
-        if (isset($open_fieldsets[get_current_user_id()][-1])) {
-            $open_fieldsets[get_current_user_id()][$group_id] = $open_fieldsets[get_current_user_id()][-1];
-            unset($open_fieldsets[get_current_user_id()][-1]);
-            update_option('wpcf-group-form-toggle', $open_fieldsets);
+        $open_fieldsets = get_user_meta(get_current_user_id(),
+                'wpcf-group-form-toggle', true);
+        if (isset($open_fieldsets[-1])) {
+            $open_fieldsets[$group_id] = $open_fieldsets[-1];
+            unset($open_fieldsets[-1]);
+            update_user_meta(get_current_user_id(), 'wpcf-group-form-toggle',
+                    $open_fieldsets);
         }
     }
 
@@ -122,10 +124,13 @@ function wpcf_admin_fields_form() {
         $update = wpcf_admin_fields_get_group($_GET['group_id']);
         if (empty($update)) {
             $update = false;
+            // @todo BUG
             wpcf_admin_message(sprintf(__("Group with ID %d don't exist", 'wpcf'),
                             intval($_GET['group_id'])));
         } else {
             $update['fields'] = wpcf_admin_fields_get_fields_by_group($_GET['group_id']);
+            $update['post_types'] = wpcf_admin_get_post_types_by_group($_GET['group_id']);
+            $update['taxonomies'] = wpcf_admin_get_taxonomies_by_group($_GET['group_id']);
         }
     }
 
@@ -214,12 +219,10 @@ function wpcf_admin_fields_form() {
     $post_types = get_post_types('', 'objects');
     $options = array();
 
-    if ($update && !empty($update['post_types'])) {
-        $update['post_types'] = explode(',', trim($update['post_types'], ','));
-    }
     foreach ($post_types as $post_type_slug => $post_type) {
         if (in_array($post_type_slug,
-                        array('attachment', 'revision', 'nav_menu_item'))) {
+                        array('attachment', 'revision', 'nav_menu_item',
+                            'view', 'view-template'))) {
             continue;
         }
         $options[$post_type_slug]['#name'] = 'wpcf[group][supports][' . $post_type_slug . ']';
@@ -261,9 +264,6 @@ function wpcf_admin_fields_form() {
         '#collapsed' => wpcf_admin_fields_form_fieldset_is_collapsed('taxonomies'),
     );
 
-    if ($update && !empty($update['taxonomies'])) {
-        $update['taxonomies'] = explode(',', trim($update['taxonomies'], ','));
-    }
     foreach ($taxonomies as $category_slug => $category) {
         if ($category_slug == 'nav_menu' || $category_slug == 'link_category'
                 || $category_slug == 'post_format') {
@@ -274,11 +274,16 @@ function wpcf_admin_fields_form() {
         if (!empty($terms)) {
             $add_title = '<div class="taxonomy-title">' . $category->labels->name . '</div>';
             foreach ($terms as $term) {
+                $checked = 0;
+                if ($update && !empty($update['taxonomies']) && array_key_exists($category_slug, $update['taxonomies'])) {
+                    if (array_key_exists($term->term_id, $update['taxonomies'][$category_slug])) {
+                        $checked = 1;
+                    }
+                }
                 $options[$term->term_id]['#name'] = 'wpcf[group][taxonomies]['
                         . $category_slug . '][' . $term->term_id . ']';
                 $options[$term->term_id]['#title'] = $term->name;
-                $options[$term->term_id]['#default_value'] = ($update && !empty($update['taxonomies']) && (in_array($term->term_id,
-                                $update['taxonomies']))) ? 1 : 0;
+                $options[$term->term_id]['#default_value'] = $checked;
                 $options[$term->term_id]['#value'] = $term->term_id;
                 $options[$term->term_id]['#inline'] = TRUE;
                 $options[$term->term_id]['#prefix'] = $add_title;
@@ -410,8 +415,8 @@ function wpcf_fields_get_field_form($type, $form_data = array()) {
     $form = wpcf_fields_get_field_form_data($type, $form_data);
     if ($form) {
         return '<div class="ui-draggable">'
-        . wpcf_form_simple($form)
-        . '</div>';
+                . wpcf_form_simple($form)
+                . '</div>';
     }
     return '<div>' . __('Wrong field requested', 'wpcf') . '</div>';
 }
@@ -425,12 +430,9 @@ function wpcf_fields_get_field_form($type, $form_data = array()) {
  */
 function wpcf_fields_get_field_form_data($type, $form_data = array()) {
 
-    // Get open fieldsets
-    $open_fieldsets = get_option('wpcf-group-form-toggle', array());
-    
     // Get field type data
     $filename = WPCF_INC_ABSPATH . '/fields/' . $type . '.php';
-    
+
     if (file_exists($filename)) {
         require_once $filename;
         $form = array();
@@ -463,10 +465,7 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
         $collapsed = wpcf_admin_fields_form_fieldset_is_collapsed('fieldset-' . $id);
         // Set collapsed on AJAX call (insert)
         $collapsed = defined('DOING_AJAX') ? false : $collapsed;
-        // Save as open fieldset
-        if (defined('DOING_AJAX')) {
-//            wpcf_admin_fields_form_save_open_fieldset('open', 'fieldset-' . $id, wpcf_admin_get_var_from_referer('group_id'));
-        }
+
         // Set title
         $title = !empty($form_data['name']) ? $form_data['name'] : __('Untitled');
         $title = '<span class="wpcf-legend-update">' . $title . '</span> - '
@@ -630,17 +629,18 @@ function wpcf_admin_fields_form_js_validation() {
  */
 function wpcf_admin_fields_form_save_open_fieldset($action, $fieldset,
         $group_id = false) {
-    $data = get_option('wpcf-group-form-toggle', array());
+    $data = get_user_meta(get_current_user_id(), 'wpcf-group-form-toggle',
+            true);
     if ($group_id && $action == 'open') {
-        $data[get_current_user_id()][intval($group_id)][$fieldset] = 1;
+        $data[intval($group_id)][$fieldset] = 1;
     } else if ($group_id && $action == 'close') {
-        unset($data[get_current_user_id()][intval($group_id)][$fieldset]);
+        unset($data[intval($group_id)][$fieldset]);
     } else if ($action == 'open') {
-        $data[get_current_user_id()][-1][$fieldset] = 1;
+        $data[-1][$fieldset] = 1;
     } else if ($action == 'close') {
-        unset($data[get_current_user_id()][-1][$fieldset]);
+        unset($data[-1][$fieldset]);
     }
-    update_option('wpcf-group-form-toggle', $data);
+    update_user_meta(get_current_user_id(), 'wpcf-group-form-toggle', $data);
 }
 
 /**
@@ -656,9 +656,10 @@ function wpcf_admin_fields_form_fieldset_is_collapsed($fieldset) {
     } else {
         $group_id = -1;
     }
-    $data = get_option('wpcf-group-form-toggle', array());
-    if (!isset($data[get_current_user_id()][$group_id])) {
+    $data = get_user_meta(get_current_user_id(), 'wpcf-group-form-toggle',
+            true);
+    if (!isset($data[$group_id])) {
         return true;
     }
-    return array_key_exists($fieldset, $data[get_current_user_id()][$group_id]) ? false : true;
+    return array_key_exists($fieldset, $data[$group_id]) ? false : true;
 }

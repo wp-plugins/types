@@ -118,9 +118,11 @@ function wpcf_fields_image_editor_callback() {
             global $wpdb;
             $attachment_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM {$wpdb->posts}
     WHERE post_type = 'attachment' AND guid=%s",
-                                    $image));
+                            $image));
         }
     }
+
+    $last_settings = wpcf_admin_fields_get_field_last_settings($_GET['field_id']);
 
     $form = array();
     $form['#form']['callback'] = 'wpcf_fields_image_editor_submit';
@@ -136,18 +138,20 @@ function wpcf_fields_image_editor_callback() {
         '#title' => __('Image title', 'wpcf'),
         '#description' => __('Title text for the image, e.g. &#8220;The Mona Lisa&#8221;'),
         '#name' => 'title',
+        '#value' => isset($last_settings['title']) ? $last_settings['title'] : '',
     );
     $form['alt'] = array(
         '#type' => 'textfield',
         '#title' => __('Alternate Text'),
         '#description' => __('Alt text for the image, e.g. &#8220;The Mona Lisa&#8221;'),
         '#name' => 'alt',
+        '#value' => isset($last_settings['alt']) ? $last_settings['alt'] : '',
     );
     $form['alignment'] = array(
         '#type' => 'radios',
         '#title' => __('Alignment'),
         '#name' => 'alignment',
-        '#default_value' => 'none',
+        '#default_value' => isset($last_settings['alignment']) ? $last_settings['alignment'] : 'none',
         '#options' => array(
             __('None') => 'none',
             __('Left') => 'left',
@@ -155,33 +159,19 @@ function wpcf_fields_image_editor_callback() {
             __('Right') => 'right',
         ),
     );
-    if ($attachment_id) {
-        $sizes = image_size_input_fields(get_post($attachment_id));
-        $form['size'] = array(
-            '#type' => 'markup',
-            '#markup' => '<div class="wpcf-form-item">'
-            . '<label class="wpcf-form-label wpcf-form-textfield-label">'
-            . __('Pre-defined sizes', 'wpcf') . '</label>' . $sizes['html']
-            . '<input id="wpcf-custom" type="radio" name="attachments['
-            . $attachment_id . '][image-size]" value="wpcf-custom" />'
-            . '<label for="wpcf-custom">' . __('Custom size', 'wpcf') . '</label>'
-            . '</div>',
-        );
-    } else {
-        $form['size'] = array(
-            '#type' => 'radios',
-            '#title' => __('Pre-defined sizes', 'wpcf'),
-            '#name' => 'attachments[0][image-size]',
-            '#default_value' => 'thumbnail',
-            '#options' => array(
-                __('Thumbnail') => 'thumbnail',
-                __('Medium') => 'medium',
-                __('Large') => 'large',
-                __('Full Size') => 'full',
-                __('Custom size', 'wpcf') => 'wpcf-custom',
-            ),
-        );
-    }
+    $form['size'] = array(
+        '#type' => 'radios',
+        '#title' => __('Pre-defined sizes', 'wpcf'),
+        '#name' => 'image-size',
+        '#default_value' => isset($last_settings['image-size']) ? $last_settings['image-size'] : 'thumbnail',
+        '#options' => array(
+            __('Thumbnail') => 'thumbnail',
+            __('Medium') => 'medium',
+            __('Large') => 'large',
+            __('Full Size') => 'full',
+            __('Custom size', 'wpcf') => 'wpcf-custom',
+        ),
+    );
     $form['toggle-open'] = array(
         '#type' => 'markup',
         '#markup' => '<div id="wpcf-toggle" style="display:none;">',
@@ -191,12 +181,16 @@ function wpcf_fields_image_editor_callback() {
         '#title' => __('Width'),
         '#description' => __('Specify custom width', 'wpcf'),
         '#name' => 'width',
+        '#value' => isset($last_settings['width']) ? $last_settings['width'] : '',
+        '#suffix' => '&nbsp;px',
     );
     $form['height'] = array(
         '#type' => 'textfield',
         '#title' => __('Height'),
         '#description' => __('Specify custom height', 'wpcf'),
         '#name' => 'height',
+        '#value' => isset($last_settings['height']) ? $last_settings['height'] : '',
+        '#suffix' => '&nbsp;px',
     );
     $form['proportional'] = array(
         '#type' => 'checkbox',
@@ -229,14 +223,14 @@ function wpcf_fields_image_editor_callback() {
     <script type="text/javascript">
         //<![CDATA[
         jQuery(document).ready(function(){
-            jQuery('input:radio[name*="attachments"]').change(function(){
+            jQuery('input:radio[name="image-size"]').change(function(){
                 if (jQuery(this).val() == 'wpcf-custom') {
                     jQuery('#wpcf-toggle').slideDown();
                 } else {
                     jQuery('#wpcf-toggle').slideUp();
                 }
             });
-            if (jQuery('input:radio[name*="attachments"]').val() == 'wpcf-custom') {
+            if (jQuery('input:radio[name="image-size"]:checked').val() == 'wpcf-custom') {
                 jQuery('#wpcf-toggle').show();
             }
         });
@@ -257,22 +251,19 @@ function wpcf_fields_image_editor_submit() {
     if (!empty($_POST['title'])) {
         $add .= ' title="' . strval($_POST['title']) . '"';
     }
-    if (isset($_POST['attachments'])) {
-        $size = array_shift($_POST['attachments']);
-        $size = $size['image-size'];
-        if ($size == 'wpcf-custom') {
-            if (!empty($_POST['width'])) {
-                $add .= ' width="' . $_POST['width'] . '"';
-            }
-            if (!empty($_POST['height'])) {
-                $add .= ' height="' . $_POST['height'] . '"';
-            }
-            if (!empty($_POST['proportional'])) {
-                $add .= ' proportional="true"';
-            }
-        } else {
-            $add .= ' size="' . $size . '"';
+    $size = $size['image-size'];
+    if ($size == 'wpcf-custom') {
+        if (!empty($_POST['width'])) {
+            $add .= ' width="' . $_POST['width'] . '"';
         }
+        if (!empty($_POST['height'])) {
+            $add .= ' height="' . $_POST['height'] . '"';
+        }
+        if (!empty($_POST['proportional'])) {
+            $add .= ' proportional="true"';
+        }
+    } else {
+        $add .= ' size="' . $size . '"';
     }
     if (!empty($_POST['alignment'])) {
         $add .= ' align="' . $_POST['alignment'] . '"';
@@ -280,6 +271,7 @@ function wpcf_fields_image_editor_submit() {
     $field = wpcf_admin_fields_get_field($_GET['field_id']);
     if (!empty($field)) {
         $shortcode = wpcf_fields_get_shortcode($field, $add);
+        wpcf_admin_fields_save_field_last_settings($_GET['field_id'], $_POST);
         echo wpcf_admin_fields_popup_insert_shortcode_js($shortcode);
         die();
     }
@@ -298,7 +290,7 @@ function wpcf_fields_image_view($params) {
     global $wpdb;
     $attachment_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM {$wpdb->posts}
     WHERE post_type = 'attachment' AND guid=%s",
-                            $params['field_value']));
+                    $params['field_value']));
 
     // Set alt
     if (!empty($params['alt'])) {

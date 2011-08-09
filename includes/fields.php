@@ -12,7 +12,7 @@
 function wpcf_admin_fields_get_groups() {
     global $wpdb;
     return $wpdb->get_results("SELECT * FROM {$wpdb->prefix}wpcf_groups",
-            ARRAY_A);
+                    ARRAY_A);
 }
 
 /**
@@ -25,7 +25,7 @@ function wpcf_admin_fields_get_groups() {
 function wpcf_admin_fields_get_group($group_id) {
     global $wpdb;
     return $wpdb->get_row("SELECT * FROM {$wpdb->prefix}wpcf_groups WHERE id="
-            . intval($group_id), ARRAY_A);
+                    . intval($group_id), ARRAY_A);
 }
 
 /**
@@ -38,7 +38,7 @@ function wpcf_admin_fields_get_group($group_id) {
  * @return type 
  */
 function wpcf_admin_get_groups_by_post_type($post_type, $fetch_empty = true,
-        $only_active = true) {
+        $terms = null, $only_active = true) {
     global $wpdb;
     $sql_type = $fetch_empty ? "((r.type='post_type' AND r.value=%s) OR (r.type='post_type' AND r.value IS NULL))" : "r.type='post_type' AND r.value=%s";
     $add = '';
@@ -47,7 +47,22 @@ function wpcf_admin_get_groups_by_post_type($post_type, $fetch_empty = true,
             FROM {$wpdb->prefix}wpcf_groups g
     JOIN {$wpdb->prefix}wpcf_relationships r
     ON g.id=r.group_id WHERE $sql_type" . $add,
-                            $post_type), ARRAY_A);
+                    $post_type), ARRAY_A);
+    // Distinct terms
+    if (!is_null($terms)) {
+        if (!empty($terms)) {
+            $search = '(' . implode(' OR value=', $terms) . ')';
+        } else {
+            $search = ' value IS NULL';
+        }
+        foreach ($results as $k => $v) {
+            $keep = $wpdb->get_var("SELECT value FROM {$wpdb->prefix}
+            WHERE group_id=%d AND $search", $v['id']);
+            if (empty($keep)) {
+                unset($results[$k]);
+            }
+        }
+    }
     return $results;
 }
 
@@ -63,7 +78,7 @@ function wpcf_admin_get_post_types_by_group($group_id) {
     $post_types = $wpdb->get_results($wpdb->prepare("SELECT value
             FROM {$wpdb->prefix}wpcf_relationships
             WHERE group_id=%d AND type='post_type' AND value IS NOT NULL",
-                            intval($group_id)), ARRAY_A);
+                    intval($group_id)), ARRAY_A);
     $results = array();
     foreach ($post_types as $post_type) {
         $results[] = $post_type['value'];
@@ -83,7 +98,7 @@ function wpcf_admin_get_taxonomies_by_group($group_id) {
     $terms = $wpdb->get_results($wpdb->prepare("SELECT value
             FROM {$wpdb->prefix}wpcf_relationships
             WHERE group_id=%d AND type='term' AND value IS NOT NULL",
-                            intval($group_id)), ARRAY_A);
+                    intval($group_id)), ARRAY_A);
     $taxonomies = array();
     if (!empty($terms)) {
         foreach ($terms as $term) {
@@ -92,7 +107,7 @@ function wpcf_admin_get_taxonomies_by_group($group_id) {
                     FROM {$wpdb->prefix}term_taxonomy tt
             JOIN {$wpdb->prefix}terms t
             WHERE t.term_id = tt.term_id AND tt.term_id="
-                            . intval($term['value']), ARRAY_A);
+                    . intval($term['value']), ARRAY_A);
             if (!empty($term)) {
                 $taxonomies[$term['taxonomy']][$term['term_id']] = $term;
             }
@@ -113,7 +128,7 @@ function wpcf_admin_get_taxonomies_by_group($group_id) {
  * @return type 
  */
 function wpcf_admin_fields_get_groups_by_term($term_id = false,
-        $fetch_empty = true, $only_active = true) {
+        $fetch_empty = true, $post_type = false, $only_active = true) {
     global $wpdb;
     if ($term_id) {
         $sql_term = $fetch_empty ? "((r.type='term' AND r.value=%s) OR (r.type='term' AND r.value IS NULL))" : "r.type='term' AND r.value=%s";
@@ -126,7 +141,18 @@ function wpcf_admin_fields_get_groups_by_term($term_id = false,
             FROM {$wpdb->prefix}wpcf_groups g
     JOIN {$wpdb->prefix}wpcf_relationships r
     ON g.id=r.group_id WHERE $sql_term" . $add,
-                            $term_id), ARRAY_A);
+                    $term_id), ARRAY_A);
+    // Distinct post type
+    if ($post_type) {
+        foreach ($results as $k => $v) {
+            $keep = $wpdb->get_var($wpdb->prepare("SELECT value FROM {$wpdb->prefix}wpcf_relationships
+        WHERE type='post_type' AND (value=%s OR value IS NULL) AND group_id=%d",
+                            $post_type, $v['id']));
+            if (empty($keep)) {
+                unset($results[$k]);
+            }
+        }
+    }
     return $results;
 }
 
@@ -146,7 +172,7 @@ function wpcf_admin_fields_get_fields_by_group($group_id, $key = 'slug',
     $fields = $wpdb->get_results($wpdb->prepare("SELECT value
             FROM {$wpdb->prefix}wpcf_relationships
             WHERE group_id=%d AND type='field' ORDER BY id",
-                            intval($group_id)), ARRAY_A);
+                    intval($group_id)), ARRAY_A);
     foreach ($fields as $field) {
         $temp = wpcf_admin_fields_get_field($field['value'], $only_active);
         if (!empty($temp)) {
@@ -173,7 +199,7 @@ function wpcf_admin_fields_get_field($field_id, $only_active = true) {
     $add = $only_active ? ' AND is_active=1' : '';
     $field = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}wpcf_fields
     WHERE id=" . intval($field_id) . $add,
-                    ARRAY_A);
+            ARRAY_A);
     if (!empty($field)) {
         $field['data'] = unserialize($field['data']);
     }
@@ -191,7 +217,7 @@ function wpcf_fields_get_field_by_slug($slug) {
     global $wpdb;
     $field = $wpdb->get_row($wpdb->prepare("SELECT * FROM
         {$wpdb->prefix}wpcf_fields WHERE slug='%s'",
-                            strval($slug)), ARRAY_A);
+                    strval($slug)), ARRAY_A);
     if (!empty($field)) {
         $field['data'] = unserialize($field['data']);
     }
@@ -208,7 +234,7 @@ function wpcf_admin_fields_get_fields() {
     global $wpdb;
     $fields = $wpdb->get_results("SELECT * FROM
         {$wpdb->prefix}wpcf_fields",
-                    ARRAY_A);
+            ARRAY_A);
     if (!empty($fields)) {
         foreach ($fields as $key => $field) {
             $fields[$key]['data'] = unserialize($field['data']);
@@ -227,7 +253,7 @@ function wpcf_admin_fields_get_fields() {
 function wpcf_admin_fields_activate_group($group_id) {
     global $wpdb;
     return $wpdb->update($wpdb->prefix . 'wpcf_groups', array('is_active' => 1),
-            array('id' => intval($group_id)), array('%d'), array('%d')
+                    array('id' => intval($group_id)), array('%d'), array('%d')
     );
 }
 
@@ -241,7 +267,7 @@ function wpcf_admin_fields_activate_group($group_id) {
 function wpcf_admin_fields_deactivate_group($group_id) {
     global $wpdb;
     return $wpdb->update($wpdb->prefix . 'wpcf_groups', array('is_active' => 0),
-            array('id' => intval($group_id)), array('%d'), array('%d')
+                    array('id' => intval($group_id)), array('%d'), array('%d')
     );
 }
 
@@ -258,7 +284,7 @@ function wpcf_admin_fields_remove_field_from_group($group_id, $field_id) {
     global $wpdb;
     $id = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}wpcf_relationships
     WHERE group_id=%d AND type='field' AND value=%d",
-                            intval($group_id), intval($field_id)));
+                    intval($group_id), intval($field_id)));
     if (empty($id)) {
         return false;
     }
@@ -322,14 +348,14 @@ function wpcf_admin_fields_save_group($group) {
         );
     } else {
         $success = $wpdb->insert($wpdb->prefix . 'wpcf_groups',
-                        array(
-                    'slug' => $group['slug'],
-                    'name' => $group['name'], // @todo Sanitize?
-                    'description' => $group['description'],
-                    'meta_box_context' => $group['meta_box_context'],
-                    'meta_box_priority' => $group['meta_box_priority'],
-                    'user_id' => get_current_user_id(),
-                        ), array('%s', '%s', '%s', '%s', '%s', '%d')
+                array(
+            'slug' => $group['slug'],
+            'name' => $group['name'], // @todo Sanitize?
+            'description' => $group['description'],
+            'meta_box_context' => $group['meta_box_context'],
+            'meta_box_priority' => $group['meta_box_priority'],
+            'user_id' => get_current_user_id(),
+                ), array('%s', '%s', '%s', '%s', '%s', '%d')
         );
         if (empty($success)) {
             return false;
@@ -360,7 +386,7 @@ function wpcf_admin_fields_save_field($field) {
     unset($field['data']['type'], $field['data']['slug'],
             $field['data']['name'], $field['data']['description'],
             $field['data']['user_id']);
-    
+
     $field['data'] = apply_filters('wpcf_fields_' . $field['type'] . '_meta_data',
             $field['data'], $field);
 
@@ -384,15 +410,15 @@ function wpcf_admin_fields_save_field($field) {
                 ), array('id' => $field_id), array('%s', '%s'), array('%d'));
     } else {
         $success = $wpdb->insert($wpdb->prefix . 'wpcf_fields',
-                        array(
-                    'type' => $field['type'],
-                    'slug' => $field['slug'],
-                    'name' => $field['name'], // @todo Sanitize?
-                    'data' => serialize($field['data']),
-                    'user_id' => get_current_user_id(),
-                        ),
-                        array(
-                    '%s', '%s', '%s', '%s', '%d'
+                array(
+            'type' => $field['type'],
+            'slug' => $field['slug'],
+            'name' => $field['name'], // @todo Sanitize?
+            'data' => serialize($field['data']),
+            'user_id' => get_current_user_id(),
+                ),
+                array(
+            '%s', '%s', '%s', '%s', '%d'
                 ));
         if (empty($success)) {
             return false;
@@ -498,10 +524,10 @@ function wpcf_admin_fields_save_group_terms($group_id, $terms) {
  */
 function wpcf_admin_fields_get_ajax_activation_link($group_id) {
     return '<a href="' . admin_url('admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=activate_group&amp;group_id='
-            . $group_id . '&amp;wpcf_ajax_update=wpcf_list_ajax_response_'
-            . $group_id) . '" class="wpcf-ajax-link" id="wpcf-list-activate-'
-    . $group_id . '">'
-    . __('Activate') . '</a>';
+                    . $group_id . '&amp;wpcf_ajax_update=wpcf_list_ajax_response_'
+                    . $group_id) . '" class="wpcf-ajax-link" id="wpcf-list-activate-'
+            . $group_id . '">'
+            . __('Activate') . '</a>';
 }
 
 /**
@@ -511,10 +537,10 @@ function wpcf_admin_fields_get_ajax_activation_link($group_id) {
  */
 function wpcf_admin_fields_get_ajax_deactivation_link($group_id) {
     return '<a href="' . admin_url('admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=deactivate_group&amp;group_id='
-            . $group_id . '&amp;wpcf_ajax_update=wpcf_list_ajax_response_'
-            . $group_id) . '" class="wpcf-ajax-link" id="wpcf-list-activate-'
-    . $group_id . '">'
-    . __('Deactivate') . '</a>';
+                    . $group_id . '&amp;wpcf_ajax_update=wpcf_list_ajax_response_'
+                    . $group_id) . '" class="wpcf-ajax-link" id="wpcf-list-activate-'
+            . $group_id . '">'
+            . __('Deactivate') . '</a>';
 }
 
 /**
@@ -548,11 +574,13 @@ function wpcf_fields_type_action($type, $func = '', $args = array()) {
  */
 function wpcf_fields_get_shortcode($field, $add = '') {
     $shortcode = '[';
-    $shortcode .= 'types field="' . $field['slug'] .'"' . $add;
+    $shortcode .= 'types field="' . $field['slug'] . '"' . $add;
     $shortcode .= ']';
     $shortcode = apply_filters('wpcf_fields_shortcode', $shortcode, $field);
-    $shortcode = apply_filters('wpcf_fields_shortcode_type_' . $field['type'], $shortcode, $field);
-    $shortcode = apply_filters('wpcf_fields_shortcode_slug_' . $field['slug'], $shortcode, $field);
+    $shortcode = apply_filters('wpcf_fields_shortcode_type_' . $field['type'],
+            $shortcode, $field);
+    $shortcode = apply_filters('wpcf_fields_shortcode_slug_' . $field['slug'],
+            $shortcode, $field);
     return $shortcode;
 }
 
@@ -562,7 +590,7 @@ function wpcf_fields_get_shortcode($field, $add = '') {
  * @param type $shortcode 
  */
 function wpcf_admin_fields_popup_insert_shortcode_js($shortcode) {
-    
+
     ?>
     <script type="text/javascript">
         //<![CDATA[
@@ -571,4 +599,29 @@ function wpcf_admin_fields_popup_insert_shortcode_js($shortcode) {
         //]]>
     </script>
     <?php
+}
+
+/**
+ * Saves last field settings when inserting from toolbar.
+ * 
+ * @param type $field_id
+ * @param type $settings 
+ */
+function wpcf_admin_fields_save_field_last_settings($field_id, $settings) {
+    $data = get_user_meta(get_current_user_id(), 'wpcf-field-settings', true);
+    $data[$field_id] = $settings;
+    update_user_meta(get_current_user_id(), 'wpcf-field-settings', $data);
+}
+
+/**
+ * Gets last field settings when inserting from toolbar.
+ * 
+ * @param type $field_id
+ */
+function wpcf_admin_fields_get_field_last_settings($field_id) {
+    $data = get_user_meta(get_current_user_id(), 'wpcf-field-settings', true);
+    if (isset($data[$field_id])) {
+        return $data[$field_id];
+    }
+    return array();
 }

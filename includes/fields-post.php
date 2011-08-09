@@ -23,6 +23,11 @@ function wpcf_admin_post_init($post = false) {
             return false;
         }
     }
+    
+    // Never show on 'Views' and 'View Templates'
+    if (in_array($post_type, array('view', 'view-template'))) {
+        return false;
+    }
 
     // Get groups
     $groups = wpcf_admin_post_get_post_groups_fields($post);
@@ -357,26 +362,32 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
  * @return type 
  */
 function wpcf_admin_post_get_post_groups_fields($post = false) {
-    $post_type = get_post_type();
-    $groups = array();
-
-    // Get by post_type
-    $groups_by_post_type = wpcf_admin_get_groups_by_post_type($post_type, true);
-    if (!empty($groups_by_post_type)) {
-        foreach ($groups_by_post_type as $key => $group) {
-            $groups[$group['id']] = $group;
-            $groups[$group['id']]['fields'] = wpcf_admin_fields_get_fields_by_group($group['id']);
+    
+    // Get post_type
+    if ($post) {
+        $post_type = get_post_type($post);
+    } else {
+        if (!isset($_GET['post_type'])) {
+            $post_type = 'post';
+        } else if (in_array($_GET['post_type'],
+                        get_post_types(array('show_ui' => true)))) {
+            $post_type = $_GET['post_type'];
+        } else {
+            return false;
         }
     }
+    
+    $groups = array();
 
     // Get by taxonomy
+    $distinct_terms = array();
     if ($post) {
         $taxonomies = get_taxonomies('', 'objects');
         foreach ($taxonomies as $tax_slug => $tax) {
             $terms = wp_get_post_terms($post->ID, $tax_slug,
                     array('fields' => 'ids'));
             foreach ($terms as $term_id) {
-                $groups_by_term = wpcf_admin_fields_get_groups_by_term($term_id);
+                $groups_by_term = wpcf_admin_fields_get_groups_by_term($term_id, true, $post_type);
                 if (!empty($groups_by_term)) {
                     foreach ($groups_by_term as $group) {
                         if (!isset($groups[$group['id']])) {
@@ -385,10 +396,11 @@ function wpcf_admin_post_get_post_groups_fields($post = false) {
                         }
                     }
                 }
+                $distinct_terms[] = $term_id;
             }
         }
     } else {
-        $groups_by_term = wpcf_admin_fields_get_groups_by_term();
+        $groups_by_term = wpcf_admin_fields_get_groups_by_term(false, true, $post_type);
         if (!empty($groups_by_term)) {
             foreach ($groups_by_term as $group) {
                 if (!isset($groups[$group['id']])) {
@@ -396,6 +408,15 @@ function wpcf_admin_post_get_post_groups_fields($post = false) {
                     $groups[$group['id']]['fields'] = wpcf_admin_fields_get_fields_by_group($group['id']);
                 }
             }
+        }
+    }
+    
+    // Get by post_type
+    $groups_by_post_type = wpcf_admin_get_groups_by_post_type($post_type, true, $distinct_terms);
+    if (!empty($groups_by_post_type)) {
+        foreach ($groups_by_post_type as $key => $group) {
+            $groups[$group['id']] = $group;
+            $groups[$group['id']]['fields'] = wpcf_admin_fields_get_fields_by_group($group['id']);
         }
     }
 

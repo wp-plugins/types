@@ -39,8 +39,6 @@ function wpcf_fields_date() {
  * @param type $field 
  */
 function wpcf_fields_date_meta_box_form($field) {
-//    $field['wp_editor_callback'] = 'wpcfFieldsDateEditorCallback(' . $field['id'] . ')';
-//    wpcf_admin_post_add_to_editor($field);
     return array(
         '#type' => 'textfield',
         '#title' => $field['name'],
@@ -385,6 +383,7 @@ function wpcf_fields_date_get_calendar($params, $initial = true, $echo = true) {
  * TinyMCE editor form.
  */
 function wpcf_fields_date_editor_callback() {
+    $last_settings = wpcf_admin_fields_get_field_last_settings($_GET['field_id']);
     $form = array();
     $form['#form']['callback'] = 'wpcf_fields_date_editor_form_submit';
     $form['style'] = array(
@@ -394,7 +393,7 @@ function wpcf_fields_date_editor_callback() {
             __('Show as calendar', 'wpcf') => 'calendar',
             __('Show as text', 'wpcf') => 'text',
         ),
-        '#default_value' => 'text',
+        '#default_value' => isset($last_settings['style']) ? $last_settings['style'] : 'text',
         '#after' => '<br />',
     );
     $date_formats = apply_filters('date_formats',
@@ -412,25 +411,34 @@ function wpcf_fields_date_editor_callback() {
         $field['#value'] = $format;
         $options[] = $field;
     }
+    $custom_format = isset($last_settings['format-custom']) ? $last_settings['format-custom'] : get_option('date_format');
     $options[] = array(
         '#title' => __('Custom'),
-        '#value' => get_option('date_format'),
+        '#value' => 'custom',
         '#suffix' => wpcf_form_simple(array('custom' => array(
                 '#name' => 'wpcf[format-custom]',
                 '#type' => 'textfield',
-                '#value' => get_option('date_format'),
-                '#suffix' => '&nbsp;' . date(get_option('date_format'), time()),
+                '#value' => $custom_format,
+                '#suffix' => '&nbsp;' . date($custom_format, time()),
                 '#inline' => true,
                 ))
         ),
+    );
+    $form['toggle-open'] = array(
+        '#type' => 'markup',
+        '#markup' => '<div id="wpcf-toggle" style="display:none;">',
     );
     $form['format'] = array(
         '#type' => 'radios',
         '#name' => 'wpcf[format]',
         '#options' => $options,
-        '#default_value' => get_option('date_format'),
+        '#default_value' => isset($last_settings['format']) ? $last_settings['format'] : get_option('date_format'),
         '#after' => '<a href="http://codex.wordpress.org/Formatting_Date_and_Time" target="_blank">'
         . __('Documentation on date and time formatting') . '</a>',
+    );
+    $form['toggle-close'] = array(
+        '#type' => 'markup',
+        '#markup' => '</div>',
     );
     $form['field_id'] = array(
         '#type' => 'hidden',
@@ -459,13 +467,16 @@ function wpcf_fields_date_editor_form_script() {
     <script type="text/javascript">
         // <![CDATA[
         jQuery(document).ready(function(){
-            jQuery('input[name|="wpcf[style]"]').click(function(){
+            jQuery('input[name|="wpcf[style]"]').change(function(){
                 if (jQuery(this).val() == 'text') {
-                    jQuery('#radios-2-wrapper').slideDown();
+                    jQuery('#wpcf-toggle').slideDown();
                 } else {
-                    jQuery('#radios-2-wrapper').slideUp();
+                    jQuery('#wpcf-toggle').slideUp();
                 }
             });
+            if (jQuery('input:radio[name="wpcf[style]"]:checked').val() == 'text') {
+                jQuery('#wpcf-toggle').show();
+            }
         });
         // ]]>
     </script>
@@ -492,7 +503,7 @@ function wpcf_fields_date_editor_form_submit() {
     $format = '';
     if ($style == 'text') {
         if ($_POST['wpcf']['format'] == 'custom') {
-            $format = ' format="' . $_POST['wpcf']['format-custom'];
+            $format = $_POST['wpcf']['format-custom'];
         } else {
             $format = $_POST['wpcf']['format'];
         }
@@ -502,6 +513,13 @@ function wpcf_fields_date_editor_form_submit() {
         $add .= ' format="' . $format . '"';
     }
     $shortcode = wpcf_fields_get_shortcode($field, $add);
+    wpcf_admin_fields_save_field_last_settings($_POST['wpcf']['field_id'],
+            array(
+        'style' => $style,
+        'format' => $_POST['wpcf']['format'],
+        'format-custom' => $_POST['wpcf']['format-custom'],
+            )
+    );
     wpcf_admin_fields_popup_insert_shortcode_js($shortcode);
     die();
 }

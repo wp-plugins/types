@@ -235,6 +235,8 @@ function wpcf_fields_file_editor_callback() {
         }
     }
 
+    $last_settings = wpcf_admin_fields_get_field_last_settings($_GET['field_id']);
+    
     $form = array();
     $form['#form']['callback'] = 'wpcf_fields_file_editor_submit';
     if ($attachment_id) {
@@ -248,11 +250,13 @@ function wpcf_fields_file_editor_callback() {
         '#type' => 'checkbox',
         '#title' => __('Display as link'),
         '#name' => 'link',
+        '#default_value' => isset($last_settings['link']) ? $last_settings['link'] : 1,
     );
     $form['title'] = array(
         '#type' => 'textfield',
         '#title' => __('Link title', 'wpcf'),
         '#name' => 'title',
+        '#value' => isset($last_settings['title']) ? $last_settings['title'] : '',
     );
     $form['submit'] = array(
         '#type' => 'markup',
@@ -280,6 +284,7 @@ function wpcf_fields_file_editor_submit() {
     $field = wpcf_admin_fields_get_field($_GET['field_id']);
     if (!empty($field)) {
         $shortcode = wpcf_fields_get_shortcode($field, $add);
+        wpcf_admin_fields_save_field_last_settings($_GET['field_id'], $_POST);
         echo wpcf_admin_fields_popup_insert_shortcode_js($shortcode);
         die();
     }

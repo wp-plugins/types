@@ -478,6 +478,7 @@ function wpcf_admin_ajax_head($title) {
             ?>
         </body>
     </html>
+
     <?php
 }
 
@@ -622,7 +623,8 @@ function wpcf_ajax() {
             $group_id = $_GET['group_id'];
             $action = $_GET['toggle'];
             $fieldset = $_GET['id'];
-            wpcf_admin_fields_form_save_open_fieldset($action, $fieldset, $group_id);
+            wpcf_admin_fields_form_save_open_fieldset($action, $fieldset,
+                    $group_id);
             break;
 
         default:

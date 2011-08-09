@@ -9,6 +9,7 @@ jQuery(document).ready(function(){
             success: function(data) {
                 jQuery('#wpcf-ajax-response').removeClass('wpcf-ajax-loading');
                 jQuery('#wpcf-fields-sortable').append(data);
+                jQuery('#wpcf-fields-sortable .ui-draggable:last').find('input:first').focus();
             }
         });
         return false;
