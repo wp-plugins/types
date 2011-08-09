@@ -1,5 +1,5 @@
 === Types ===
-Contributors: brucepearson, amirhelzer
+Contributors: brucepearson, AmirHelzer, jozik, mihaimihai
 Donate link: 
 Tags: custom, field, custom field, types
 Requires at least: 3.0
