@@ -322,6 +322,7 @@ function wpcf_admin_validation_messages($method = false) {
         'email' => __('Please enter a valid email address', 'wpcf'),
         'url' => __('Please enter a valid email address', 'wpcf'),
         'date' => __('Please enter a valid date', 'wpcf'),
+        'digits' => __('Please enter numeric data', 'wpcf'),
     );
     if ($method) {
         return isset($messages[$method]) ? $messages[$method] : '';

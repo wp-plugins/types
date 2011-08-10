@@ -23,7 +23,7 @@ function wpcf_admin_post_init($post = false) {
             return false;
         }
     }
-    
+
     // Never show on 'Views' and 'View Templates'
     if (in_array($post_type, array('view', 'view-template'))) {
         return false;
@@ -41,8 +41,7 @@ function wpcf_admin_post_init($post = false) {
         }
         // Add meta boxes
         add_meta_box($group['slug'], $group['name'], 'wpcf_admin_post_meta_box',
-                $post_type, $group['meta_box_context'],
-                $group['meta_box_priority'], $group);
+                $post_type, $group['meta_box_context'], 'high', $group);
     }
 
     // Activate scripts
@@ -272,7 +271,7 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
                 '#type' => isset($field_init_data['inherited_field_type']) ? $field_init_data['inherited_field_type'] : $field['type'],
                 '#id' => $field_id,
                 '#title' => $field['name'],
-                '#description' => $field['description'],
+                '#description' => wpautop($field['description']),
                 '#name' => 'wpcf[' . $field['slug'] . ']',
                 '#value' => isset($field['value']) ? $field['value'] : '',
                 'wpcf-id' => $field['id'],
@@ -289,9 +288,17 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
                         . $field['type'] . '_meta_box_form', $field);
                 // Check if it's single
                 if (isset($element_specific['#type'])) {
+                    // Format description
+                    if (!empty($element_specific['#description'])) {
+                        $element_specific['#description'] = wpautop($element_specific['#description']);
+                    }
                     $element = array_merge($element, $element_specific);
                 } else { // More fields, loop all
                     foreach ($element_specific as $element_specific_fields_key => $element_specific_fields_value) {
+                        // Format description
+                        if (!empty($element_specific_fields_value['#description'])) {
+                            $element_specific_fields_value['#description'] = wpautop($element_specific_fields_value['#description']);
+                        }
                         // If no ID
                         if (!isset($element_specific_fields_value['#id'])) {
                             $element_specific_fields_value['#id'] = 'wpcf-'
@@ -362,7 +369,7 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
  * @return type 
  */
 function wpcf_admin_post_get_post_groups_fields($post = false) {
-    
+
     // Get post_type
     if ($post) {
         $post_type = get_post_type($post);
@@ -376,7 +383,7 @@ function wpcf_admin_post_get_post_groups_fields($post = false) {
             return false;
         }
     }
-    
+
     $groups = array();
 
     // Get by taxonomy
@@ -387,7 +394,8 @@ function wpcf_admin_post_get_post_groups_fields($post = false) {
             $terms = wp_get_post_terms($post->ID, $tax_slug,
                     array('fields' => 'ids'));
             foreach ($terms as $term_id) {
-                $groups_by_term = wpcf_admin_fields_get_groups_by_term($term_id, true, $post_type);
+                $groups_by_term = wpcf_admin_fields_get_groups_by_term($term_id,
+                        true, $post_type);
                 if (!empty($groups_by_term)) {
                     foreach ($groups_by_term as $group) {
                         if (!isset($groups[$group['id']])) {
@@ -400,7 +408,8 @@ function wpcf_admin_post_get_post_groups_fields($post = false) {
             }
         }
     } else {
-        $groups_by_term = wpcf_admin_fields_get_groups_by_term(false, true, $post_type);
+        $groups_by_term = wpcf_admin_fields_get_groups_by_term(false, true,
+                $post_type);
         if (!empty($groups_by_term)) {
             foreach ($groups_by_term as $group) {
                 if (!isset($groups[$group['id']])) {
@@ -410,9 +419,10 @@ function wpcf_admin_post_get_post_groups_fields($post = false) {
             }
         }
     }
-    
+
     // Get by post_type
-    $groups_by_post_type = wpcf_admin_get_groups_by_post_type($post_type, true, $distinct_terms);
+    $groups_by_post_type = wpcf_admin_get_groups_by_post_type($post_type, true,
+            $distinct_terms);
     if (!empty($groups_by_post_type)) {
         foreach ($groups_by_post_type as $key => $group) {
             $groups[$group['id']] = $group;

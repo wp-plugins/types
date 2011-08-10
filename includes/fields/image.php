@@ -89,6 +89,7 @@ function wpcf_fields_image_editor_callback_js() {
 function wpcf_fields_image_editor_callback() {
     wp_enqueue_style('wpcf-fields-image', WPCF_RES_RELPATH . '/css/basic.css',
             array(), WPCF_VERSION);
+    wp_enqueue_script('jquery');
 
     // Get field
     $field = wpcf_admin_fields_get_field($_GET['field_id']);
@@ -251,7 +252,7 @@ function wpcf_fields_image_editor_submit() {
     if (!empty($_POST['title'])) {
         $add .= ' title="' . strval($_POST['title']) . '"';
     }
-    $size = $size['image-size'];
+    $size = $_POST['image-size'];
     if ($size == 'wpcf-custom') {
         if (!empty($_POST['width'])) {
             $add .= ' width="' . $_POST['width'] . '"';

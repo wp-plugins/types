@@ -79,8 +79,7 @@ function wpcf_fields_file_meta_box_form($field, $image = false) {
     }
 
     // Set form
-    $form = array();
-    $form['value'] = array(
+    $form = array(
         '#type' => 'textfield',
         '#id' => 'wpcf-fields-' . $field['slug'] . '-upload-holder',
         '#name' => 'wpcf[' . $field['slug'] . ']',

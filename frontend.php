@@ -50,6 +50,9 @@ function types_render_field($field, $params) {
     if (empty($value)) {
         return '';
     }
+    
+    // Load type
+    $type = wpcf_fields_type_action($field['type']);
 
     // Apply filters to field value
     $value = apply_filters('wpcf_fields_value_display', $value);

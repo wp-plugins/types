@@ -56,6 +56,15 @@ function wpcf_fields_radio_insert_form($form_data = array(), $parent_name = '') 
     } else {
         $form = $form + wpcf_fields_radio_get_option();
     }
+    
+    $form['options-no-default'] = array(
+        '#type' => 'radio',
+        '#inline' => true,
+        '#title' => __('No Default', 'wpcf'),
+        '#name' => '[options][default]',
+        '#value' => 'no-default',
+        '#default_value' => isset($form_data['data']['options']['default']) ? $form_data['data']['options']['default'] : null,
+    );
 
     $form['options-markup-close'] = array(
         '#type' => 'markup',
@@ -71,6 +80,13 @@ function wpcf_fields_radio_insert_form($form_data = array(), $parent_name = '') 
     return $form;
 }
 
+/**
+ * Returns form data for radio.
+ * 
+ * @param type $parent_name Used for AJAX adding options
+ * @param type $form_data
+ * @return type 
+ */
 function wpcf_fields_radio_get_option($parent_name = '', $form_data = array()) {
     $id = isset($form_data['key']) ? $form_data['key'] : 'wpcf-fields-radio-option-' . mt_rand();
     $form = array();

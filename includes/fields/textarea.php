@@ -1,4 +1,6 @@
 <?php
+add_filter('wpcf_fields_type_textarea_value_display',
+        'wpcf_fields_textarea_value_display_filter');
 /**
  * Register data (called automatically).
  * 
@@ -50,16 +52,11 @@ function wpcf_fields_textarea_insert_form() {
 }
 
 /**
- * Form data for post edit page.
- * 
- * @param type $field 
+ * Formats display data.
  */
-function wpcf_fields_textarea_meta_box_form($field) {
-    return array(
-        '#type' => 'textarea',
-        '#title' => $field['name'],
-        '#description' => $field['description'],
-        '#name' => 'wpcf[' . $field['slug'] . ']',
-        '#value' => isset($field['value']) ? $field['value'] : '',
-    );
+function wpcf_fields_textarea_value_display_filter($value) {
+    if (!empty($value)) {
+        $value = wpautop($value);
+    }
+    return $value;
 }

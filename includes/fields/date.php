@@ -41,11 +41,7 @@ function wpcf_fields_date() {
 function wpcf_fields_date_meta_box_form($field) {
     return array(
         '#type' => 'textfield',
-        '#title' => $field['name'],
-        '#description' => $field['description'],
-        '#name' => 'wpcf[' . $field['slug'] . ']',
         '#attributes' => array('class' => 'wpcf-datepicker'),
-        '#value' => isset($field['value']) ? $field['value'] : '',
     );
 }
 

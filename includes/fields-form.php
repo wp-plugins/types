@@ -222,7 +222,7 @@ function wpcf_admin_fields_form() {
     foreach ($post_types as $post_type_slug => $post_type) {
         if (in_array($post_type_slug,
                         array('attachment', 'revision', 'nav_menu_item',
-                            'view', 'view-template'))) {
+                    'view', 'view-template'))) {
             continue;
         }
         $options[$post_type_slug]['#name'] = 'wpcf[group][supports][' . $post_type_slug . ']';
@@ -269,14 +269,16 @@ function wpcf_admin_fields_form() {
                 || $category_slug == 'post_format') {
             continue;
         }
-        $terms = get_terms($category_slug);
+        $terms = get_terms($category_slug, array('hide_empty' => false));
         $options = array();
         if (!empty($terms)) {
             $add_title = '<div class="taxonomy-title">' . $category->labels->name . '</div>';
             foreach ($terms as $term) {
                 $checked = 0;
-                if ($update && !empty($update['taxonomies']) && array_key_exists($category_slug, $update['taxonomies'])) {
-                    if (array_key_exists($term->term_id, $update['taxonomies'][$category_slug])) {
+                if ($update && !empty($update['taxonomies']) && array_key_exists($category_slug,
+                                $update['taxonomies'])) {
+                    if (array_key_exists($term->term_id,
+                                    $update['taxonomies'][$category_slug])) {
                         $checked = 1;
                     }
                 }
@@ -582,7 +584,14 @@ function wpcf_admin_fields_form_validation($name, $field, $form_data = array()) 
     if (isset($field['validate'])) {
 
         // Process methods
-        foreach ($field['validate'] as $method) {
+        foreach ($field['validate'] as $k => $method) {
+            
+            // Set additional method data
+            // @todo Re-think about it
+            if (is_array($method)) {
+                $form_data['data']['validate'][$k]['method_data'] = $method;
+                $method = $k;
+            }
 
             // Get method form data
             if (Wpcf_Validate::canValidate($method)
@@ -629,8 +638,7 @@ function wpcf_admin_fields_form_js_validation() {
  */
 function wpcf_admin_fields_form_save_open_fieldset($action, $fieldset,
         $group_id = false) {
-    $data = get_user_meta(get_current_user_id(), 'wpcf-group-form-toggle',
-            true);
+    $data = get_user_meta(get_current_user_id(), 'wpcf-group-form-toggle', true);
     if ($group_id && $action == 'open') {
         $data[intval($group_id)][$fieldset] = 1;
     } else if ($group_id && $action == 'close') {
@@ -656,8 +664,7 @@ function wpcf_admin_fields_form_fieldset_is_collapsed($fieldset) {
     } else {
         $group_id = -1;
     }
-    $data = get_user_meta(get_current_user_id(), 'wpcf-group-form-toggle',
-            true);
+    $data = get_user_meta(get_current_user_id(), 'wpcf-group-form-toggle', true);
     if (!isset($data[$group_id])) {
         return true;
     }

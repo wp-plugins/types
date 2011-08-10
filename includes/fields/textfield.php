@@ -38,18 +38,3 @@ function wpcf_fields_textfield_insert_form() {
     );
     return $form;
 }
-
-/**
- * Form data for post edit page.
- * 
- * @param type $field 
- */
-function wpcf_fields_textfield_meta_box_form($field) {
-    return array(
-        '#type' => 'textfield',
-        '#title' => $field['name'],
-        '#description' => $field['description'],
-        '#name' => 'wpcf[' . $field['slug'] . ']',
-        '#value' => isset($field['value']) ? $field['value'] : '',
-    );
-}

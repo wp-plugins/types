@@ -19,6 +19,7 @@ class Wpcf_Validate
      * @var type 
      */
     private static $_cake_aliases = array(
+        'digits' => 'numeric',
     );
     /**
      * Current validation has 'required' method.
@@ -293,6 +294,40 @@ class Wpcf_Validate
         );
         $form['url-message'] = self::get_custom_message($field,
                         self::get_message('date'), $data);
+        return $form;
+    }
+    
+    /**
+     * Returns form data.
+     * 
+     * @param type $field
+     * @param type $data
+     * @return array
+     */
+    public static function digits_form($field, $data = array())
+    {
+        $form = array();
+        $attributes = array();
+        $default_value = isset($data['active']) ? 1 : 0;
+        if (!empty($data['method_data']['forced'])) {
+            $attributes = array(
+                'readonly' => 'readonly',
+                'onclick' => 'jQuery(this).attr(\'checked\', \'checked\');'
+                );
+            $default_value = 1;
+        }
+        $form['digits-checkbox'] = array(
+            '#type' => 'checkbox',
+            '#title' => __('Numeric', 'wpcf'),
+            '#name' => $field['#name'] . '[active]',
+            '#default_value' => $default_value,
+            '#inline' => true,
+            '#suffix' => '<br />',
+            '#attributes' => $attributes,
+        );
+
+        $form['digits-message'] = self::get_custom_message($field,
+                        self::get_message('digits'), $data);
         return $form;
     }
 

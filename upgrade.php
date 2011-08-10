@@ -68,7 +68,7 @@ function wpcf_install() {
       name varchar(20) NOT NULL,
       description varchar(255) NOT NULL,
       meta_box_context varchar(20) NOT NULL DEFAULT 'normal',
-      meta_box_priority varchar(20) NOT NULL DEFAULT 'default',
+      meta_box_priority varchar(20) NOT NULL DEFAULT 'high',
       is_active tinyint(1) NOT NULL DEFAULT '1',
       user_id bigint(20) NOT NULL,
 	  PRIMARY KEY (id),

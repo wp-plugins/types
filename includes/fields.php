@@ -51,13 +51,19 @@ function wpcf_admin_get_groups_by_post_type($post_type, $fetch_empty = true,
     // Distinct terms
     if (!is_null($terms)) {
         if (!empty($terms)) {
-            $search = '(' . implode(' OR value=', $terms) . ')';
+            $fetch_empty = $fetch_empty ? ' OR value IS NULL' : '';
+            if (sizeof($terms) == 1) {
+                $search = '(value=\'' . $terms[0] . '\'' . $fetch_empty . ')';
+            } else {
+                $search = '(value=\'' . implode('\' OR value=\'', $terms) . '\'' . $fetch_empty . ')';
+            }
         } else {
-            $search = ' value IS NULL';
+            $search = 'value IS NULL';
         }
         foreach ($results as $k => $v) {
-            $keep = $wpdb->get_var("SELECT value FROM {$wpdb->prefix}
-            WHERE group_id=%d AND $search", $v['id']);
+            $keep = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}wpcf_relationships
+            WHERE group_id=%d AND type='term' AND $search",
+                            $v['id']));
             if (empty($keep)) {
                 unset($results[$k]);
             }
@@ -144,9 +150,10 @@ function wpcf_admin_fields_get_groups_by_term($term_id = false,
                     $term_id), ARRAY_A);
     // Distinct post type
     if ($post_type) {
+        $search = $fetch_empty ? '(value=%s OR value IS NULL)' : 'value=%s';
         foreach ($results as $k => $v) {
             $keep = $wpdb->get_var($wpdb->prepare("SELECT value FROM {$wpdb->prefix}wpcf_relationships
-        WHERE type='post_type' AND (value=%s OR value IS NULL) AND group_id=%d",
+        WHERE type='post_type' AND $search AND group_id=%d",
                             $post_type, $v['id']));
             if (empty($keep)) {
                 unset($results[$k]);
@@ -304,7 +311,7 @@ function wpcf_admin_fields_delete_group($group_id) {
     $wpdb->query("DELETE FROM {$wpdb->prefix}wpcf_groups
     WHERE id=" . intval($group_id));
     $wpdb->query("DELETE FROM {$wpdb->prefix}wpcf_relationships
-    WHERE id=" . intval($group_id));
+    WHERE group_id=" . intval($group_id));
 }
 
 /**
