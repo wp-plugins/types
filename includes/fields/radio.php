@@ -20,7 +20,7 @@ function wpcf_fields_radio() {
  * @return type 
  */
 function wpcf_fields_radio_insert_form($form_data = array(), $parent_name = '') {
-    $id = 'wpcf-feilds-radio-' . mt_rand();
+    $id = 'wpcf-fields-radio-' . mt_rand();
     $form['name'] = array(
         '#type' => 'textfield',
         '#title' => __('Name of custom field', 'wpcf'),
@@ -41,7 +41,7 @@ function wpcf_fields_radio_insert_form($form_data = array(), $parent_name = '') 
         '#type' => 'markup',
         '#markup' => '<strong>' . __('Options', 'wpcf')
         . '</strong><br /><br /><div id="' . $id . '-sortable"'
-        . ' class="wpcf-fields-radio-sortable">',
+        . ' class="wpcf-fields-radio-sortable wpcf-compare-unique-value-wrapper">',
     );
 
     if (!empty($form_data['data']['options'])) {
@@ -56,6 +56,11 @@ function wpcf_fields_radio_insert_form($form_data = array(), $parent_name = '') 
     } else {
         $form = $form + wpcf_fields_radio_get_option();
     }
+
+    $form['options-response-close'] = array(
+        '#type' => 'markup',
+        '#markup' => '</div>',
+    );
     
     $form['options-no-default'] = array(
         '#type' => 'radio',
@@ -65,14 +70,15 @@ function wpcf_fields_radio_insert_form($form_data = array(), $parent_name = '') 
         '#value' => 'no-default',
         '#default_value' => isset($form_data['data']['options']['default']) ? $form_data['data']['options']['default'] : null,
     );
-
+    
     $form['options-markup-close'] = array(
         '#type' => 'markup',
-        '#markup' => '</div><div id="'
+        '#markup' => '<div id="'
         . $id . '-add-option"></div><br /><a href="' . admin_url('admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=add_radio_option&amp;wpcf_ajax_update_add=' . $id . '-sortable&amp;parent_name=' . urlencode($parent_name)) . '"'
         . ' class="button-secondary wpcf-ajax-link">'
         . __('Add option', 'wpcf') . '</a>',
     );
+    
     $form['options-close'] = array(
         '#type' => 'markup',
         '#markup' => '<br /><br />',
@@ -115,7 +121,10 @@ function wpcf_fields_radio_get_option($parent_name = '', $form_data = array()) {
         '#name' => $parent_name . '[options][' . $id . '][value]',
         '#value' => $value,
         '#inline' => true,
-        '#attributes' => array('style' => 'width:80px;'),
+        '#attributes' => array(
+            'style' => 'width:80px;',
+            'class' => 'wpcf-compare-unique-value',
+        ),
     );
     $form[$id . '-default'] = array(
         '#type' => 'radio',
@@ -137,7 +146,7 @@ function wpcf_fields_radio_get_option($parent_name = '', $form_data = array()) {
 function wpcf_fields_radio_meta_box_form($field) {
     $options = array();
     $default_value = null;
-    
+
     if (!empty($field['data']['options'])) {
         foreach ($field['data']['options'] as $option_key => $option) {
             // Skip default value record

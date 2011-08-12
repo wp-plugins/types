@@ -20,7 +20,7 @@ function wpcf_fields_select() {
  * @return type 
  */
 function wpcf_fields_select_insert_form($form_data = array(), $parent_name = '') {
-    $id = 'wpcf-feilds-select-' . mt_rand();
+    $id = 'wpcf-fields-select-' . mt_rand();
     $form['name'] = array(
         '#type' => 'textfield',
         '#title' => __('Name of custom field', 'wpcf'),
@@ -41,7 +41,7 @@ function wpcf_fields_select_insert_form($form_data = array(), $parent_name = '')
         '#type' => 'markup',
         '#markup' => '<strong>' . __('Options', 'wpcf')
         . '</strong><br /><br /><div id="' . $id . '-sortable"'
-        . ' class="wpcf-fields-select-sortable">',
+        . ' class="wpcf-fields-select-sortable wpcf-compare-unique-value-wrapper">',
     );
     if (!empty($form_data['data']['options'])) {
         foreach ($form_data['data']['options'] as $option_key => $option) {
@@ -96,7 +96,10 @@ function wpcf_fields_select_get_option($parent_name = '', $form_data = array()) 
         '#value' => isset($form_data['value']) ? $form_data['value'] : __('Option value',
                         'wpcf'),
         '#inline' => true,
-        '#attributes' => array('style' => 'width:80px;'),
+        '#attributes' => array(
+            'style' => 'width:80px;',
+            'class' => 'wpcf-compare-unique-value',
+        ),
     );
     $form[$id . '-default'] = array(
         '#type' => 'radio',

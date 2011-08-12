@@ -20,6 +20,7 @@ class Wpcf_Validate
      */
     private static $_cake_aliases = array(
         'digits' => 'numeric',
+        'number' => 'numeric',
     );
     /**
      * Current validation has 'required' method.
@@ -309,14 +310,35 @@ class Wpcf_Validate
         $form = array();
         $attributes = array();
         $default_value = isset($data['active']) ? 1 : 0;
-        if (!empty($data['method_data']['forced'])) {
-            $attributes = array(
-                'readonly' => 'readonly',
-                'onclick' => 'jQuery(this).attr(\'checked\', \'checked\');'
-                );
-            $default_value = 1;
-        }
         $form['digits-checkbox'] = array(
+            '#type' => 'checkbox',
+            '#title' => __('Digits', 'wpcf'),
+            '#name' => $field['#name'] . '[active]',
+            '#default_value' => $default_value,
+            '#inline' => true,
+            '#suffix' => '<br />',
+            '#attributes' => $attributes,
+        );
+        $form['digits-checkbox'] = self::setForced($form['digits-checkbox'], $field, $data);
+
+        $form['digits-message'] = self::get_custom_message($field,
+                        self::get_message('digits'), $data);
+        return $form;
+    }
+    
+    /**
+     * Returns form data.
+     * 
+     * @param type $field
+     * @param type $data
+     * @return array
+     */
+    public static function number_form($field, $data = array())
+    {
+        $form = array();
+        $attributes = array();
+        $default_value = isset($data['active']) ? 1 : 0;
+        $form['number-checkbox'] = array(
             '#type' => 'checkbox',
             '#title' => __('Numeric', 'wpcf'),
             '#name' => $field['#name'] . '[active]',
@@ -325,10 +347,26 @@ class Wpcf_Validate
             '#suffix' => '<br />',
             '#attributes' => $attributes,
         );
+        $form['number-checkbox'] = self::setForced($form['number-checkbox'], $field, $data);
 
-        $form['digits-message'] = self::get_custom_message($field,
-                        self::get_message('digits'), $data);
+        $form['number-message'] = self::get_custom_message($field,
+                        self::get_message('number'), $data);
         return $form;
+    }
+    
+    public static function setForced($element, $field, $data = array())
+    {
+        $attributes = array();
+        $default_value = isset($data['active']) ? 1 : 0;
+        if (!empty($data['method_data']['forced'])) {
+            if (!isset($element['#attributes'])) {
+                $element['#attributes'] = array();
+            }
+            $element['#attributes']['readonly'] = 'readonly';
+            $element['#attributes']['onclick'] = 'jQuery(this).attr(\'checked\', \'checked\');';
+            $element['#default_value'] = 1;
+        }
+        return $element;
     }
 
     /**

@@ -21,6 +21,9 @@ function wpcf_admin_init_hook() {
 
     // Render messages
     wpcf_show_admin_messages();
+    
+    // Render JS settings
+    add_action('admin_head', 'wpcf_admin_render_js_settings');
 
     // @todo No auto hooks for this yet
     if (isset($_GET['wpcf-fields-media-insert'])
@@ -163,12 +166,6 @@ function wpcf_form($id, $form = array()) {
     }
     require_once WPCF_ABSPATH . '/classes/forms.php';
     $new_form = new Enlimbo_Forms_Wpcf();
-    // Moved to forms.php
-    // Auto-add wpnonce (checked in Enlimbo_Forms_Wpcf::autoHandle())
-//    $form['_wpnonce'] = array(
-//        '#type' => 'markup',
-//        '#markup' => wp_nonce_field($id, '_wpnonce_wpcf', true, false)
-//    );
     $new_form->autoHandle($id, $form);
     $wpcf_forms[$id] = $new_form;
     return $wpcf_forms[$id];
@@ -310,6 +307,39 @@ function wpcf_form_render_js_validation($form = '.wpcf-form-validate') {
     . '</script>' . "\r\n";
 }
 
+function wpcf_admin_add_js_settings($id, $setting = '') {
+    static $settings = array();
+    if ($id == 'get') {
+        $temp = $settings;
+        $settings = array();
+        return $temp;
+    }
+    $settings[$id] = $setting;
+}
+
+function wpcf_admin_render_js_settings() {
+    $settings = wpcf_admin_add_js_settings('get');
+    $settings = array_merge(array(
+        'wpcfFormUniqueValuesCheckText' => '\'' . __('Warning: same values selected', 'wpcf') . '\'',
+    ), $settings);
+    if (empty($settings)) {
+        return '';
+    }
+
+    ?>
+    <script type="text/javascript">
+        //<![CDATA[
+    <?php
+    foreach ($settings as $id => $setting) {
+        echo 'var ' . $id . ' = ' . $setting . ';' . "\r\n";
+    }
+
+    ?>
+            //]]>
+    </script>
+    <?php
+}
+
 /**
  * Holds validation messages.
  * 
@@ -323,6 +353,7 @@ function wpcf_admin_validation_messages($method = false) {
         'url' => __('Please enter a valid email address', 'wpcf'),
         'date' => __('Please enter a valid date', 'wpcf'),
         'digits' => __('Please enter numeric data', 'wpcf'),
+        'number' => __('Please enter numeric data', 'wpcf'),
     );
     if ($method) {
         return isset($messages[$method]) ? $messages[$method] : '';
@@ -632,43 +663,4 @@ function wpcf_ajax() {
             break;
     }
     die();
-}
-
-/////////////////////////////////////////////////
-
-
-if (is_admin()) {
-    global $pagenow;
-
-    if ($pagenow == 'post.php' || $pagenow == 'post-new.php') {
-//		add_action('admin_head', 'wpcf_post_edit_tinymce');
-    }
-}
-
-function wpcf_post_edit_tinymce() {
-    ///////////////////////////////////////
-    add_thickbox();
-    $editor_addon = new Editor_addon('types',
-                    'Insert Types Shortcode',
-                    WPCF_RES_RELPATH . '/js/types_editor_plugin.js');
-    $editor_addon->add_insert_shortcode_menu("testing", 'testing', '');
-    $editor_addon->add_insert_shortcode_menu("text", 'next', '');
-    $editor_addon->add_insert_shortcode_menu("more", 'more', 'menu');
-
-    $editor_addon->add_insert_shortcode_menu('<a href=\"admin_ajax.php\" class=\"thickbox\">popup</a>',
-            'date', '', 'wpcf_popup_date');
-
-    $editor_addon->render_js();
-
-    ?>
-    <script type="text/javascript">
-        function wpcf_popup_date( ) {
-            //		alert('Demonstrate a simple popup.');
-            var answer = confirm('insert');
-            if (answer) {
-                tinyMCE.activeEditor.execCommand('mceInsertContent', false, 'some_text_to_insert');
-            }
-        }
-    </script>
-    <?php
 }

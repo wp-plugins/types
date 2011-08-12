@@ -255,10 +255,10 @@ function wpcf_fields_image_editor_submit() {
     $size = $_POST['image-size'];
     if ($size == 'wpcf-custom') {
         if (!empty($_POST['width'])) {
-            $add .= ' width="' . $_POST['width'] . '"';
+            $add .= ' width="' . intval($_POST['width']) . '"';
         }
         if (!empty($_POST['height'])) {
-            $add .= ' height="' . $_POST['height'] . '"';
+            $add .= ' height="' . intval($_POST['height']) . '"';
         }
         if (!empty($_POST['proportional'])) {
             $add .= ' proportional="true"';
@@ -326,9 +326,9 @@ function wpcf_fields_image_view($params) {
         $output = wpcf_frontend_wrap_field_value($params['field'], $output);
         $output = wpcf_frontend_wrap_field($params['field'], $output, $params);
     } else { // Custom size
-        $width = !empty($params['width']) ? $params['width'] : null;
-        $height = !empty($params['height']) ? $params['height'] : null;
-        $crop = !empty($params['proportional']) ? false : true;
+        $width = !empty($params['width']) ? intval($params['width']) : null;
+        $height = !empty($params['height']) ? intval($params['height']) : null;
+        $crop = (!empty($params['proportional']) && $params['proportional'] == 'true') ? false : true;
         $resized_image = wpcf_fields_image_resize_image(
                 $params['field_value'], $width, $height, 'relpath', false, $crop
         );
@@ -362,19 +362,22 @@ function wpcf_fields_image_view($params) {
  * @return array
  */
 function wpcf_fields_image_resize_image($url_path, $width = 300, $height = 200,
-        $return = 'relpath', $refresh = FALSE, $crop = TRUE, $suffix = NULL,
+        $return = 'relpath', $refresh = FALSE, $crop = TRUE, $suffix = '',
         $dest_path = NULL, $quality = 75) {
     if (empty($url_path)) {
         return $url_path;
     }
     static $cached = array();
-    $cache_key = md5($url_path . $width . $height);
+    $cache_key = md5($url_path . $width . $height . intval($crop) . $suffix . $destpath);
 
     // Check if cached in this call
     if (!$refresh && isset($cached[$cache_key])) {
         return $cached[$cache_key];
     }
 
+    $width = intval($width);
+    $height = intval($height);
+    
     $info = pathinfo($url_path);
     $upload_dir = wp_upload_dir();
 
@@ -401,7 +404,7 @@ function wpcf_fields_image_resize_image($url_path, $width = 300, $height = 200,
     list($dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h) = $dims;
 
     // Set suffix
-    if (is_null($suffix)) {
+    if (empty($suffix)) {
         $suffix = 'wpcf_' . $dst_w . 'x' . $dst_h;
     } else {
         $suffix .= '_wpcf_' . $dst_w . 'x' . $dst_h;

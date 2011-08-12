@@ -5,9 +5,9 @@
   Description: A flexible GUI for managing custom fields on different content types. Allows grouping fields together, includes a drag-and-drop interface for arranging fields, data validation and placement selection.
   Author: ICanLocalize
   Author URI: http://wpml.org
-  Version: 0.0.3
+  Version: 0.0.4
  */
-define('WPCF_VERSION', '0.0.3');
+define('WPCF_VERSION', '0.0.4');
 define('WPCF_ABSPATH', dirname(__FILE__));
 define('WPCF_RELPATH', plugins_url() . '/' . basename(WPCF_ABSPATH));
 define('WPCF_INC_ABSPATH', WPCF_ABSPATH . '/includes');
@@ -50,4 +50,20 @@ function wpcf_translate($name, $string) {
         return $string;
     }
     return icl_translate('plugin Types', $name, $string);
+}
+
+
+/**
+ * Returns meta_key type for specific field type.
+ * 
+ * @param type $type
+ * @return type 
+ */
+function types_get_field_type($type) {
+    require_once WPCF_INC_ABSPATH . '/fields.php';
+    $data = wpcf_fields_type_action($type);
+    if (!empty($data['meta_key_type'])) {
+        return $data['meta_key_type'];
+    }
+    return 'CHAR';
 }

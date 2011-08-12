@@ -75,6 +75,36 @@ jQuery(document).ready(function(){
         }
     });
     
+    // Check radio and select if same values
+    jQuery('.wpcf-fields-form').submit(function(){
+        var passed = true;
+        var checkedArr = new Array();
+        jQuery('.wpcf-compare-unique-value-wrapper').each(function(index){
+            var childID = jQuery(this).attr('id');
+            checkedArr[childID] = new Array();
+            jQuery(this).find('.wpcf-compare-unique-value').each(function(index, value){
+                var parentID = jQuery(this).parents('.wpcf-compare-unique-value-wrapper').first().attr('id');
+                var currentValue = jQuery(this).val();
+                if (jQuery.inArray(currentValue, checkedArr[parentID]) > -1) {
+                    passed = false;
+                    jQuery('#'+parentID).children('.wpcf-form-error-unique-value').remove();
+                    jQuery('#'+parentID).append('<div class="wpcf-form-error-unique-value wpcf-form-error">'+wpcfFormUniqueValuesCheckText+'</div>');
+                    jQuery(this).focus();
+                }
+                checkedArr[parentID].push(currentValue);
+            });
+        });
+        // Bind message fade out
+        jQuery('.wpcf-compare-unique-value').live('keyup', function(){
+            jQuery(this).parents('.wpcf-compare-unique-value-wrapper').find('.wpcf-form-error-unique-value').fadeOut(function(){
+                jQuery(this).remove();
+            });
+        });
+        if (passed == false) {
+            return false;
+        }
+    });
+    
     /*
      * Generic AJAX call (link). Parameters can be used.
      */

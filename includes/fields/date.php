@@ -30,6 +30,7 @@ function wpcf_fields_date() {
             ),
         ),
         'inherited_field_type' => 'textfield',
+        'meta_key_type' => 'TIME',
     );
 }
 
