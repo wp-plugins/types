@@ -66,24 +66,6 @@ function wpcf_fields_image_meta_box_js_inline() {
 }
 
 /**
- * Editor callback JS function
- * @todo REMOVE
- */
-function wpcf_fields_image_editor_callback_js() {
-
-    ?>
-    <script type="text/javascript">
-        //<![CDATA[
-        function wpcfFieldsImageEditorCallback(field_id) {
-            tb_show('<?php _e('Insert image',
-            'wpcf'); ?>', 'media-upload.php?type=image&wpcf-fields-media-insert-editor=1&TB_iframe=true');
-                }
-                //]]>
-    </script>
-    <?php
-}
-
-/**
  * Editor callback form.
  */
 function wpcf_fields_image_editor_callback() {
@@ -134,19 +116,34 @@ function wpcf_fields_image_editor_callback() {
             . wp_get_attachment_image($attachment_id, 'thumbnail') . '</div>',
         );
     }
+    $alt = '';
+    $title = '';
+    if ($attachment_id) {
+        $alt = trim(strip_tags(get_post_meta($attachment_id,
+                                '_wp_attachment_image_alt', true)));
+        $attachment_post = get_post($attachment_id);
+        if (!empty($attachment_post)) {
+            $title = trim(strip_tags($attachment_post->post_title));
+        } else if (!empty($alt)) {
+            $title = $alt;
+        }
+        if (empty($alt)) {
+            $alt = $title;
+        }
+    }
     $form['title'] = array(
         '#type' => 'textfield',
         '#title' => __('Image title', 'wpcf'),
         '#description' => __('Title text for the image, e.g. &#8220;The Mona Lisa&#8221;'),
         '#name' => 'title',
-        '#value' => isset($last_settings['title']) ? $last_settings['title'] : '',
+        '#value' => $title,
     );
     $form['alt'] = array(
         '#type' => 'textfield',
         '#title' => __('Alternate Text'),
         '#description' => __('Alt text for the image, e.g. &#8220;The Mona Lisa&#8221;'),
         '#name' => 'alt',
-        '#value' => isset($last_settings['alt']) ? $last_settings['alt'] : '',
+        '#value' => $alt,
     );
     $form['alignment'] = array(
         '#type' => 'radios',
@@ -335,9 +332,13 @@ function wpcf_fields_image_view($params) {
         if (!$resized_image) {
             $resized_image = $params['field_value'];
         }
-        $output = '<img alt="' . $alt . '" title="' . $title . '" '
-                . 'class="' . implode(' ', $class)
-                . '" src="' . $resized_image . '" />';
+        $output = '<img alt="';
+        $output .=!empty($alt) ? $alt : $resized_image;
+        $output .= '" title="';
+        $output .=!empty($title) ? $title : $resized_image;
+        $output .= '"';
+        $output .=!empty($class) ? ' class="' . implode(' ', $class) . '"' : '';
+        $output .= ' src="' . $resized_image . '" />';
         $output = wpcf_frontend_wrap_field_value($params['field'], $output);
         $output = wpcf_frontend_wrap_field($params['field'], $output, $params);
     }
@@ -377,7 +378,7 @@ function wpcf_fields_image_resize_image($url_path, $width = 300, $height = 200,
 
     $width = intval($width);
     $height = intval($height);
-    
+
     $info = pathinfo($url_path);
     $upload_dir = wp_upload_dir();
 

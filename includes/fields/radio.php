@@ -61,7 +61,7 @@ function wpcf_fields_radio_insert_form($form_data = array(), $parent_name = '') 
         '#type' => 'markup',
         '#markup' => '</div>',
     );
-    
+
     $form['options-no-default'] = array(
         '#type' => 'radio',
         '#inline' => true,
@@ -70,7 +70,7 @@ function wpcf_fields_radio_insert_form($form_data = array(), $parent_name = '') 
         '#value' => 'no-default',
         '#default_value' => isset($form_data['data']['options']['default']) ? $form_data['data']['options']['default'] : null,
     );
-    
+
     $form['options-markup-close'] = array(
         '#type' => 'markup',
         '#markup' => '<div id="'
@@ -78,7 +78,7 @@ function wpcf_fields_radio_insert_form($form_data = array(), $parent_name = '') 
         . ' class="button-secondary wpcf-ajax-link">'
         . __('Add option', 'wpcf') . '</a>',
     );
-    
+
     $form['options-close'] = array(
         '#type' => 'markup',
         '#markup' => '<br /><br />',
@@ -158,7 +158,11 @@ function wpcf_fields_radio_meta_box_form($field) {
                     && $option_key == $field['data']['options']['default']) {
                 $default_value = $option['value'];
             }
-            $options[$option['title']] = $option['value'];
+            $options[$option['title']] = array(
+                '#value' => $option['value'],
+                '#title' => wpcf_translate('field ' . $field['id'] . ' option '
+                        . $option_key . ' title', $option['title']),
+            );
         }
     }
 
@@ -185,10 +189,11 @@ function wpcf_fields_radio_view($params) {
     $field = wpcf_fields_get_field_by_slug($params['field']['slug']);
     $output = '';
     if (!empty($field['data']['options'])) {
-        foreach ($field['data']['options'] as $option) {
+        foreach ($field['data']['options'] as $option_key => $option) {
             if (isset($option['value'])
                     && $option['value'] == $params['field_value']) {
-                $field_value = $option['title'];
+                $field_value = wpcf_translate('field ' . $params['field']['id'] . ' option '
+                        . $option_key . ' title', $option['title']);
             }
         }
         $field_value = wpcf_frontend_wrap_field_value($params['field'],

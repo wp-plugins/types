@@ -369,6 +369,15 @@ function wpcf_admin_fields_save_group($group) {
         }
         $group_id = $wpdb->insert_id;
     }
+
+    // WPML register strings
+    if (function_exists('icl_register_string')) {
+        icl_register_string('plugin Types', 'group ' . $group_id . ' name',
+                $group['name']);
+        icl_register_string('plugin Types',
+                'group ' . $group_id . ' description', $group['description']);
+    }
+
     return $group_id;
 }
 
@@ -421,17 +430,57 @@ function wpcf_admin_fields_save_field($field) {
             'type' => $field['type'],
             'slug' => $field['slug'],
             'name' => $field['name'], // @todo Sanitize?
+            'description' => $field['description'],
             'data' => serialize($field['data']),
             'user_id' => get_current_user_id(),
                 ),
                 array(
-            '%s', '%s', '%s', '%s', '%d'
+            '%s', '%s', '%s', '%s', '%s', '%d'
                 ));
         if (empty($success)) {
             return false;
         }
         $field_id = $wpdb->insert_id;
     }
+
+    // WPML register strings
+    if (function_exists('icl_register_string')) {
+        icl_register_string('plugin Types', 'field ' . $field_id . ' name',
+                $field['name']);
+        icl_register_string('plugin Types',
+                'field ' . $field_id . ' description', $field['description']);
+
+        // For radios or select
+        if (!empty($field['data']['options'])) {
+            foreach ($field['data']['options'] as $name => $option) {
+                if ($name == 'default') {
+                    continue;
+                }
+                icl_register_string('plugin Types',
+                        'field ' . $field_id . ' option ' . $name . ' title',
+                        $option['title']);
+                icl_register_string('plugin Types',
+                        'field ' . $field_id . ' option ' . $name . ' value',
+                        $option['value']);
+            }
+        }
+
+        // Validation message
+        if (!empty($field['data']['validate'])) {
+            foreach ($field['data']['validate'] as $method => $validation) {
+                if (!empty($validation['message'])) {
+                    // Skip if it's same as default
+                    $default_message = wpcf_admin_validation_messages($method);
+                    if ($validation['message'] != $default_message) {
+                        icl_register_string('plugin Types',
+                                'field ' . $field_id . ' validation message ' . $method,
+                                $validation['message']);
+                    }
+                }
+            }
+        }
+    }
+
     return $field_id;
 }
 

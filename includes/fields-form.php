@@ -379,6 +379,10 @@ function wpcf_admin_fields_form() {
     );
 
     $form = apply_filters('wpcf_form_fields', $form);
+    
+    // Add JS settings
+    wpcf_admin_add_js_settings('wpcfFormUniqueValuesCheckText',
+            '\'' . __('Warning: same values selected', 'wpcf') . '\'');
 
     return $form;
 }

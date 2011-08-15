@@ -107,10 +107,6 @@ function wpcf_fields_date_value_save_filter($value) {
  * @param type $params 
  */
 function wpcf_fields_date_view($params) {
-    if (empty($params['field_value'])) {
-        return '';
-    }
-    $value = $params['field_value'];
     $defaults = array(
         'format' => get_option('date_format'),
     );
@@ -123,20 +119,8 @@ function wpcf_fields_date_view($params) {
 
         default:
             $field_name = '';
-            if ($params['show_name'] == 'true') {
-                $field_name = '<span class="wpcf-field-'
-                        . $params['field']['type'] . '-name wpcf-field-'
-                        . $params['field']['slug'] . '-name">'
-                        . $params['field']['name'] . ':</span> ';
-            }
-            $output .= '<div id="wpcf-field-' . $params['field']['slug'] . '"'
-                    . ' class="wpcf-field-date wpcf-field-'
-                    . $params['field']['slug'] . '"'
-                    . '>' . $field_name
-                    . '<span class="wpcf-field-date-value wpcf-field-'
-                    . $params['field']['slug'] . '-value">'
-                    . date($params['format'], intval($params['field_value']))
-                    . '</span></div>';
+            $field_value = wpcf_frontend_wrap_field_value($params['field'], date($params['format'], intval($params['field_value'])));
+            $output = wpcf_frontend_wrap_field($field, $field_value, $params);
             break;
     }
 

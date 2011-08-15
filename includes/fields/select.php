@@ -133,7 +133,11 @@ function wpcf_fields_select_meta_box_form($field) {
                     && $option_key == $field['data']['options']['default']) {
                 $default_value = $option['value'];
             }
-            $options[$option['title']] = $option['value'];
+            $options[$option['title']] = array(
+                '#value' => $option['value'],
+                '#title' => wpcf_translate('field ' . $field['id'] . ' option '
+                        . $option_key . ' title', $option['title']),
+            );
         }
     }
 
@@ -160,10 +164,11 @@ function wpcf_fields_select_view($params) {
     $field = wpcf_fields_get_field_by_slug($params['field']['slug']);
     $output = '';
     if (!empty($field['data']['options'])) {
-        foreach ($field['data']['options'] as $option) {
+        foreach ($field['data']['options'] as $option_key => $option) {
             if (isset($option['value'])
                     && $option['value'] == $params['field_value']) {
-                $field_value = $option['title'];
+                $field_value = wpcf_translate('field ' . $params['field']['id'] . ' option '
+                        . $option_key . ' title', $option['title']);
             }
         }
         $field_value = wpcf_frontend_wrap_field_value($params['field'],

@@ -273,7 +273,7 @@ function wpcf_form_render_js_validation($form = '.wpcf-form-validate') {
 		},
         unhighlight: function(element, errorClass, validClass) {
 			jQuery("input#publish").removeClass("button-primary-disabled");
-            jQuery.validator.defaults.unhighlight(element, errorClass, validClass);
+//            jQuery.validator.defaults.unhighlight(element, errorClass, validClass);
 		},
     });' . "\r\n";
     foreach ($elements as $id => $element) {
@@ -319,9 +319,6 @@ function wpcf_admin_add_js_settings($id, $setting = '') {
 
 function wpcf_admin_render_js_settings() {
     $settings = wpcf_admin_add_js_settings('get');
-    $settings = array_merge(array(
-        'wpcfFormUniqueValuesCheckText' => '\'' . __('Warning: same values selected', 'wpcf') . '\'',
-    ), $settings);
     if (empty($settings)) {
         return '';
     }

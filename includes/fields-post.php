@@ -270,8 +270,8 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
             $element = array_merge(array(
                 '#type' => isset($field_init_data['inherited_field_type']) ? $field_init_data['inherited_field_type'] : $field['type'],
                 '#id' => $field_id,
-                '#title' => $field['name'],
-                '#description' => wpautop($field['description']),
+                '#title' => wpcf_translate('field ' . $field['id'] . ' name', $field['name']),
+                '#description' => wpautop(wpcf_translate('field ' . $field['id'] . ' description', $field['description'])),
                 '#name' => 'wpcf[' . $field['slug'] . ']',
                 '#value' => isset($field['value']) ? $field['value'] : '',
                 'wpcf-id' => $field['id'],

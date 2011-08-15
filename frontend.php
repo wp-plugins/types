@@ -62,6 +62,9 @@ function types_render_field($field, $params) {
             $value);
 
     // Set values
+    // @todo WPML check
+    $field['name'] = wpcf_translate('field ' . $field['id'] . ' name', $field['name']);
+    $value = wpcf_translate('field ' . $field['id'] . ' value', $value);
     $params['field'] = $field;
     $params['post'] = $post;
     $params['field_value'] = $value;
@@ -89,11 +92,12 @@ function types_render_field($field, $params) {
                     $field['type'], $field['slug'], $field['name'], $params));
 
     // Add count
-    if (isset($count[$field['slug']]) && intval($count[$field['slug']]) > 1) {
-        $add = '-' . intval($count[$field['slug']]);
-        $output = str_replace('id="wpcf-field-' . $field['slug'] . '"',
-                'id="wpcf-field-' . $field['slug'] . $add . '"', $output);
-    }
+    // @todo Reconsider
+//    if (isset($count[$field['slug']]) && intval($count[$field['slug']]) > 1) {
+//        $add = '-' . intval($count[$field['slug']]);
+//        $output = str_replace('id="wpcf-field-' . $field['slug'] . '"',
+//                'id="wpcf-field-' . $field['slug'] . $add . '"', $output);
+//    }
 
     return $output;
 }
@@ -106,6 +110,13 @@ function types_render_field($field, $params) {
  * @return type 
  */
 function wpcf_frontend_wrap_field($field, $content, $params = array()) {
+    // @todo Reconsider
+    if (isset($params['show_name']) && $params['show_name'] == 'true'
+            && strpos($content, $field['name']) === false) {
+        $content = wpcf_frontend_wrap_field_name($field, $params['field']['name']) . $content;
+    }
+    return $content;
+    
     // Add name if needed
     if (isset($params['show_name']) && $params['show_name'] == 'true'
             && strpos($content,
@@ -126,6 +137,8 @@ function wpcf_frontend_wrap_field($field, $content, $params = array()) {
  * @return type 
  */
 function wpcf_frontend_wrap_field_name($field, $content) {
+    // @todo Reconsider
+    return $content . ': ';
     return '<span class="wpcf-field-' . $field['type'] . ' wpcf-field-'
     . $field['slug'] . '-name">' . $content . ':</span> ';
 }
@@ -138,6 +151,8 @@ function wpcf_frontend_wrap_field_name($field, $content) {
  * @return type 
  */
 function wpcf_frontend_wrap_field_value($field, $content) {
+    // @todo Reconsider
+    return $content;
     return '<span class="wpcf-field-' . $field['type'] . '-value wpcf-field-'
     . $field['slug'] . '-value">' . $content . '</span>';
 }

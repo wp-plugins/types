@@ -192,7 +192,7 @@ class Wpcf_Validate
         );
         $form['required-value'] = array(
             '#type' => 'hidden',
-            '#value' => 1,
+            '#value' => 'true',
             '#name' => $field['#name'] . '[value]',
         );
         $form['required-message'] = self::get_custom_message($field,

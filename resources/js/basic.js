@@ -89,18 +89,20 @@ jQuery(document).ready(function(){
                     passed = false;
                     jQuery('#'+parentID).children('.wpcf-form-error-unique-value').remove();
                     jQuery('#'+parentID).append('<div class="wpcf-form-error-unique-value wpcf-form-error">'+wpcfFormUniqueValuesCheckText+'</div>');
+                    jQuery(this).parents('fieldset').children('.fieldset-wrapper').slideDown();
                     jQuery(this).focus();
+                    
                 }
                 checkedArr[parentID].push(currentValue);
             });
         });
-        // Bind message fade out
-        jQuery('.wpcf-compare-unique-value').live('keyup', function(){
-            jQuery(this).parents('.wpcf-compare-unique-value-wrapper').find('.wpcf-form-error-unique-value').fadeOut(function(){
-                jQuery(this).remove();
-            });
-        });
         if (passed == false) {
+            // Bind message fade out
+            jQuery('.wpcf-compare-unique-value').live('keyup', function(){
+                jQuery(this).parents('.wpcf-compare-unique-value-wrapper').find('.wpcf-form-error-unique-value').fadeOut(function(){
+                    jQuery(this).remove();
+                });
+            });
             return false;
         }
     });

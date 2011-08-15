@@ -54,10 +54,6 @@ function wpcf_fields_skype_meta_box_form($field) {
         '#value' => isset($field['value']['style']) ? $field['value']['style'] : 'btn2',
         '#name' => 'wpcf[' . $field['slug'] . '][style]',
         '#id' => 'wpcf-fields-skype-' . $field['slug'] . '-style',
-//        '#title' => '',
-//        '#description' => '',
-//        '#inline' => true,
-//        '#suffix' => '&nbsp;' . __('Button style', 'wpcf'),
     );
     
     $form['skypename'] = array(
@@ -66,10 +62,9 @@ function wpcf_fields_skype_meta_box_form($field) {
         '#name' => 'wpcf[' . $field['slug'] . '][skypename]',
         '#id' => 'wpcf-fields-skype-' . $field['slug'] . '-skypename',
         '#inline' => true,
-//        '#title' => '',
         '#suffix' => '&nbsp;' . __('Skype name', 'wpcf'),
         '#description' => '',
-        '#prefix' => !empty($field['description']) ? $field['description']
+        '#prefix' => !empty($field['description']) ? wpcf_translate('field ' . $field['id'] . ' description', $field['description'])
         . '<br />' : '',
     );
     
