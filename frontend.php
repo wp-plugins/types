@@ -64,7 +64,7 @@ function types_render_field($field, $params) {
     // Set values
     // @todo WPML check
     $field['name'] = wpcf_translate('field ' . $field['id'] . ' name', $field['name']);
-    $value = wpcf_translate('field ' . $field['id'] . ' value', $value);
+//    $value = wpcf_translate('field ' . $field['id'] . ' value', $value);
     $params['field'] = $field;
     $params['post'] = $post;
     $params['field_value'] = $value;

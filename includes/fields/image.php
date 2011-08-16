@@ -47,6 +47,7 @@ function wpcf_fields_image_meta_box_form($field) {
  * Renders inline JS.
  */
 function wpcf_fields_image_meta_box_js_inline() {
+    global $post;
 
     ?>
     <script type="text/javascript">
@@ -56,7 +57,7 @@ function wpcf_fields_image_meta_box_js_inline() {
             jQuery('.wpcf-fields-image-upload-link').click(function() {
                 wpcf_formfield = '#'+jQuery(this).attr('id')+'-holder';
                 tb_show('<?php _e('Upload image',
-            'wpcf'); ?>', 'media-upload.php?type=image&wpcf-fields-media-insert=1&TB_iframe=true');
+            'wpcf'); ?>', 'media-upload.php?post_id=<?php echo $post->ID; ?>&type=image&wpcf-fields-media-insert=1&TB_iframe=true');
                         return false;
                     }); 
                 });

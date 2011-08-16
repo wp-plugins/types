@@ -21,7 +21,7 @@ function wpcf_admin_init_hook() {
 
     // Render messages
     wpcf_show_admin_messages();
-    
+
     // Render JS settings
     add_action('admin_head', 'wpcf_admin_render_js_settings');
 
@@ -30,9 +30,14 @@ function wpcf_admin_init_hook() {
             || (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'],
                     'wpcf-fields-media-insert=1'))) {
         require_once WPCF_INC_ABSPATH . '/fields/file.php';
+        // Add types button
         add_filter('attachment_fields_to_edit',
                 'wpcf_fields_file_attachment_fields_to_edit_filter', 10, 2);
+        // Add JS
         add_action('admin_head', 'wpcf_fields_file_media_admin_head');
+        // Filter media TABs
+        add_filter('media_upload_tabs',
+                'wpcf_fields_file_media_upload_tabs_filter');
     }
 }
 
@@ -58,10 +63,23 @@ function wpcf_admin_menu_hook() {
             __('Groups and Fields', 'wpcf'), 'manage_options', 'wpcf',
             'wpcf_admin_menu_summary');
     add_action('load-' . $hook, 'wpcf_admin_menu_summary_hook');
-    $hook = add_submenu_page('wpcf', __('Add New', 'wpcf'),
-            __('Add New', 'wpcf'), 'manage_options', 'wpcf-edit',
+    $hook = add_submenu_page('wpcf', __('Add New Group', 'wpcf'),
+            __('Add New Group', 'wpcf'), 'manage_options', 'wpcf-edit',
             'wpcf_admin_menu_edit_fields');
     add_action('load-' . $hook, 'wpcf_admin_menu_edit_fields_hook');
+    // Custom types and tax
+    $hook = add_submenu_page('wpcf', __('Custom Types and Taxonomies', 'wpcf'),
+            __('Custom Types and Taxonomies', 'wpcf'), 'manage_options', 'wpcf-ctt',
+            'wpcf_admin_menu_summary_ctt');
+    add_action('load-' . $hook, 'wpcf_admin_menu_summary_ctt_hook');
+    $hook = add_submenu_page('wpcf', __('Add New Type', 'wpcf'),
+            __('Add New Type', 'wpcf'), 'manage_options', 'wpcf-edit-type',
+            'wpcf_admin_menu_edit_type');
+    add_action('load-' . $hook, 'wpcf_admin_menu_edit_type_hook');
+    $hook = add_submenu_page('wpcf', __('Add New Taxonomy', 'wpcf'),
+            __('Add New Taxonomy', 'wpcf'), 'manage_options', 'wpcf-edit-tax',
+            'wpcf_admin_menu_edit_tax');
+    add_action('load-' . $hook, 'wpcf_admin_menu_edit_tax_hook');
 }
 
 /**
@@ -145,6 +163,44 @@ function wpcf_admin_menu_edit_fields() {
     echo wpcf_add_admin_header($title);
     $form = wpcf_form('wpcf_form_fields');
     echo '<br /><form method="post" action="" class="wpcf-fields-form '
+    . 'wpcf-form-validate">';
+    echo $form->renderForm();
+    echo '</form>';
+    echo wpcf_add_admin_footer();
+}
+
+/**
+ * Menu page hook.
+ */
+function wpcf_admin_menu_edit_type_hook() {
+    wp_enqueue_script('wpcf-fields-edit', WPCF_RES_RELPATH . '/js/basic.js',
+            array('jquery', 'jquery-ui-sortable', 'jquery-ui-draggable'),
+            WPCF_VERSION);
+    wp_enqueue_style('wpcf-type-edit', WPCF_RES_RELPATH . '/css/basic.css',
+            array(), WPCF_VERSION);
+    wp_enqueue_script('wpcf-form-validation',
+            WPCF_RES_RELPATH . '/js/'
+            . 'jquery-form-validation/jquery.validate.min.js', array('jquery'),
+            WPCF_VERSION);
+    add_action('admin_footer', 'wpcf_admin_types_form_js_validation');
+    require_once WPCF_INC_ABSPATH . '/custom-types.php';
+    require_once WPCF_INC_ABSPATH . '/custom-types-form.php';
+    $form =  wpcf_admin_custom_types_form();
+    wpcf_form('wpcf_form_types', $form);
+}
+
+/**
+ * Menu page display.
+ */
+function wpcf_admin_menu_edit_type() {
+    if (isset($_GET['type_id'])) {
+        $title = __('Edit Type', 'wpcf');
+    } else {
+        $title = __('Add New Type', 'wpcf');
+    }
+    echo wpcf_add_admin_header($title);
+    $form = wpcf_form('wpcf_form_types');
+    echo '<br /><form method="post" action="" class="wpcf-types-form '
     . 'wpcf-form-validate">';
     echo $form->renderForm();
     echo '</form>';
@@ -332,7 +388,7 @@ function wpcf_admin_render_js_settings() {
     }
 
     ?>
-            //]]>
+        //]]>
     </script>
     <?php
 }

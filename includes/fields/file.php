@@ -62,7 +62,7 @@ function wpcf_fields_file_meta_box_form($field, $image = false) {
     global $wpdb;
     $attachment_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM {$wpdb->posts}
     WHERE post_type = 'attachment' AND guid=%s",
-                            $field['value']));
+                    $field['value']));
 
     // Set preview
     $preview = '';
@@ -98,6 +98,7 @@ function wpcf_fields_file_meta_box_form($field, $image = false) {
  * Renders inline JS.
  */
 function wpcf_fields_file_meta_box_js_inline() {
+    global $post;
 
     ?>
     <script type="text/javascript">
@@ -107,7 +108,7 @@ function wpcf_fields_file_meta_box_js_inline() {
             jQuery('.wpcf-fields-file-upload-link').click(function() {
                 window.wpcf_formfield = '#'+jQuery(this).attr('id')+'-holder';
                 tb_show('<?php _e('Upload file',
-            'wpcf'); ?>', 'media-upload.php?type=file&wpcf-fields-media-insert=1&TB_iframe=true');
+            'wpcf'); ?>', 'media-upload.php?post_id=<?php echo $post->ID; ?>&type=file&wpcf-fields-media-insert=1&TB_iframe=true');
                         return false;
                     });
                 });
@@ -188,7 +189,7 @@ function wpcf_fields_file_view($params) {
     } else {
         $output = $params['field_value'];
     }
-    
+
     $output = wpcf_frontend_wrap_field_value($params['field'], $output);
     $output = wpcf_frontend_wrap_field($params['field'], $output, $params);
 
@@ -230,12 +231,12 @@ function wpcf_fields_file_editor_callback() {
             global $wpdb;
             $attachment_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM {$wpdb->posts}
     WHERE post_type = 'attachment' AND guid=%s",
-                                    $file));
+                            $file));
         }
     }
 
     $last_settings = wpcf_admin_fields_get_field_last_settings($_GET['field_id']);
-    
+
     $form = array();
     $form['#form']['callback'] = 'wpcf_fields_file_editor_submit';
     if ($attachment_id) {
@@ -287,4 +288,15 @@ function wpcf_fields_file_editor_submit() {
         echo wpcf_admin_fields_popup_insert_shortcode_js($shortcode);
         die();
     }
+}
+
+/**
+ * Filters media TABs.
+ * 
+ * @param type $tabs
+ * @return type 
+ */
+function wpcf_fields_file_media_upload_tabs_filter($tabs) {
+    unset($tabs['type_url']);
+    return $tabs;
 }
