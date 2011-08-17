@@ -5,9 +5,9 @@
   Description: A flexible GUI for managing custom fields on different content types. Allows grouping fields together, includes a drag-and-drop interface for arranging fields, data validation and placement selection.
   Author: ICanLocalize
   Author URI: http://wpml.org
-  Version: 0.0.6
+  Version: 0.0.7
  */
-define('WPCF_VERSION', '0.0.6');
+define('WPCF_VERSION', '0.0.7');
 define('WPCF_ABSPATH', dirname(__FILE__));
 define('WPCF_RELPATH', plugins_url() . '/' . basename(WPCF_ABSPATH));
 define('WPCF_INC_ABSPATH', WPCF_ABSPATH . '/includes');

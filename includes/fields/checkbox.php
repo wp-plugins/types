@@ -10,6 +10,7 @@ function wpcf_fields_checkbox() {
         'title' => __('Checkbox', 'wpcf'),
         'description' => __('Checkbox', 'wpcf'),
         'validate' => array('required'),
+        'meta_key_type' => 'BINARY',
     );
 }
 

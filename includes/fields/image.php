@@ -370,7 +370,7 @@ function wpcf_fields_image_resize_image($url_path, $width = 300, $height = 200,
         return $url_path;
     }
     static $cached = array();
-    $cache_key = md5($url_path . $width . $height . intval($crop) . $suffix . $destpath);
+    $cache_key = md5($url_path . $width . $height . intval($crop) . $suffix . $dest_path);
 
     // Check if cached in this call
     if (!$refresh && isset($cached[$cache_key])) {
@@ -385,7 +385,8 @@ function wpcf_fields_image_resize_image($url_path, $width = 300, $height = 200,
 
     // Do this to enable different subdomains with same upload path
     $path = parse_url($url_path);
-    $info['dirname'] = get_option('siteurl') . dirname($path['path']);
+    $temp = parse_url(get_option('siteurl'));
+    $info['dirname'] = $temp['scheme'] . '://' . $temp['host'] . dirname($path['path']);
     $abspath = str_replace(
             $upload_dir['baseurl'], $upload_dir['basedir'], $info['dirname']
     );
