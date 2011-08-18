@@ -5,9 +5,9 @@
   Description: A flexible GUI for managing custom fields on different content types. Allows grouping fields together, includes a drag-and-drop interface for arranging fields, data validation and placement selection.
   Author: ICanLocalize
   Author URI: http://wpml.org
-  Version: 0.0.7
+  Version: 0.0.8
  */
-define('WPCF_VERSION', '0.0.7');
+define('WPCF_VERSION', '0.0.8');
 define('WPCF_ABSPATH', dirname(__FILE__));
 define('WPCF_RELPATH', plugins_url() . '/' . basename(WPCF_ABSPATH));
 define('WPCF_INC_ABSPATH', WPCF_ABSPATH . '/includes');
@@ -27,6 +27,19 @@ function wpcf_init() {
         require_once WPCF_ABSPATH . '/admin.php';
     } else {
         require_once WPCF_ABSPATH . '/frontend.php';
+    }
+    // Init custom types
+    add_action('init', 'wpcf_init_custom_types');
+}
+
+/**
+ * Inits custom types.
+ */
+function wpcf_init_custom_types() {
+    $custom_types = get_option('wpcf-custom-types', array());
+    if (!empty($custom_types)) {
+        require_once WPCF_INC_ABSPATH . '/custom-types.php';
+        wpcf_custom_types_init();
     }
 }
 
