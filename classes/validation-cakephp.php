@@ -162,6 +162,22 @@ class Wpcf_Cake_Validation  {
 		$_this->regex = '/^[\p{Ll}\p{Lm}\p{Lo}\p{Lt}\p{Lu}\p{Nd}]+$/mu';
 		return $_this->_check();
 	}
+    
+    function alphaNumericWhitespaces($check) {
+		$_this =& Wpcf_Cake_Validation::getInstance();
+		$_this->__reset();
+		$_this->check = $check;
+
+		if (is_array($check)) {
+			$_this->_extract($check);
+		}
+
+		if (empty($_this->check) && $_this->check != '0') {
+			return false;
+		}
+		$_this->regex = '/^[\p{Ll}\p{Lm}\p{Lo}\p{Lt}\p{Lu}\p{Nd}\s]+$/mu';
+		return $_this->_check();
+	}
 
 /**
  * Checks that a string length is within s specified range.

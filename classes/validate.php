@@ -21,6 +21,7 @@ class Wpcf_Validate
     private static $_cake_aliases = array(
         'digits' => 'numeric',
         'number' => 'numeric',
+        'alphanumeric' => 'alphaNumericWhitespaces',
     );
     /**
      * Current validation has 'required' method.

@@ -69,8 +69,8 @@ function wpcf_admin_menu_hook() {
     add_action('load-' . $hook, 'wpcf_admin_menu_edit_fields_hook');
     // Custom types and tax
     $hook = add_submenu_page('wpcf', __('Custom Types and Taxonomies', 'wpcf'),
-            __('Custom Types and Taxonomies', 'wpcf'), 'manage_options', 'wpcf-ctt',
-            'wpcf_admin_menu_summary_ctt');
+            __('Custom Types and Taxonomies', 'wpcf'), 'manage_options',
+            'wpcf-ctt', 'wpcf_admin_menu_summary_ctt');
     add_action('load-' . $hook, 'wpcf_admin_menu_summary_ctt_hook');
     $hook = add_submenu_page('wpcf', __('Add New Type', 'wpcf'),
             __('Add New Type', 'wpcf'), 'manage_options', 'wpcf-edit-type',
@@ -144,6 +144,10 @@ function wpcf_admin_menu_edit_fields_hook() {
             WPCF_RES_RELPATH . '/js/'
             . 'jquery-form-validation/jquery.validate.min.js', array('jquery'),
             WPCF_VERSION);
+    wp_enqueue_script('wpcf-form-validation-additional',
+            WPCF_RES_RELPATH . '/js/'
+            . 'jquery-form-validation/additional-methods.min.js',
+            array('jquery'), WPCF_VERSION);
     add_action('admin_footer', 'wpcf_admin_fields_form_js_validation');
     require_once WPCF_INC_ABSPATH . '/fields.php';
     require_once WPCF_INC_ABSPATH . '/fields-form.php';
@@ -172,6 +176,28 @@ function wpcf_admin_menu_edit_fields() {
 /**
  * Menu page hook.
  */
+function wpcf_admin_menu_summary_ctt_hook() {
+    wp_enqueue_script('wpcf-ctt', WPCF_RES_RELPATH . '/js/basic.js',
+            array('jquery', 'jquery-ui-sortable', 'jquery-ui-draggable'),
+            WPCF_VERSION);
+    wp_enqueue_style('wpcf-ctt', WPCF_RES_RELPATH . '/css/basic.css', array(),
+            WPCF_VERSION);
+    require_once WPCF_INC_ABSPATH . '/custom-types.php';
+    require_once WPCF_INC_ABSPATH . '/custom-types-taxonomies-list.php';
+}
+
+/**
+ * Menu page display.
+ */
+function wpcf_admin_menu_summary_ctt() {
+    echo wpcf_add_admin_header(__('Custom Types and Taxonomies', 'wpcf'));
+    wpcf_admin_ctt_list();
+    echo wpcf_add_admin_footer();
+}
+
+/**
+ * Menu page hook.
+ */
 function wpcf_admin_menu_edit_type_hook() {
     wp_enqueue_script('wpcf-fields-edit', WPCF_RES_RELPATH . '/js/basic.js',
             array('jquery', 'jquery-ui-sortable', 'jquery-ui-draggable'),
@@ -182,10 +208,14 @@ function wpcf_admin_menu_edit_type_hook() {
             WPCF_RES_RELPATH . '/js/'
             . 'jquery-form-validation/jquery.validate.min.js', array('jquery'),
             WPCF_VERSION);
+    wp_enqueue_script('wpcf-form-validation-additional',
+            WPCF_RES_RELPATH . '/js/'
+            . 'jquery-form-validation/additional-methods.min.js',
+            array('jquery'), WPCF_VERSION);
     add_action('admin_footer', 'wpcf_admin_types_form_js_validation');
     require_once WPCF_INC_ABSPATH . '/custom-types.php';
     require_once WPCF_INC_ABSPATH . '/custom-types-form.php';
-    $form =  wpcf_admin_custom_types_form();
+    $form = wpcf_admin_custom_types_form();
     wpcf_form('wpcf_form_types', $form);
 }
 
@@ -407,6 +437,8 @@ function wpcf_admin_validation_messages($method = false) {
         'date' => __('Please enter a valid date', 'wpcf'),
         'digits' => __('Please enter numeric data', 'wpcf'),
         'number' => __('Please enter numeric data', 'wpcf'),
+        'alphanumeric' => __('Letters, numbers, spaces or underscores only please',
+                'wpcf'),
     );
     if ($method) {
         return isset($messages[$method]) ? $messages[$method] : '';
@@ -587,6 +619,37 @@ function wpcf_admin_get_var_from_referer($var) {
 }
 
 /**
+ * Saves open fieldsets.
+ * 
+ * @param type $action
+ * @param type $fieldset
+ */
+function wpcf_admin_form_fieldset_save_toggle($action, $fieldset) {
+    $data = get_user_meta(get_current_user_id(), 'wpcf-form-fieldsets-toggle',
+            true);
+    if ($action == 'open') {
+        $data[$fieldset] = 1;
+    } else if ($action == 'close') {
+        unset($data[$fieldset]);
+    }
+    update_user_meta(get_current_user_id(), 'wpcf-form-fieldsets-toggle', $data);
+}
+
+/**
+ * Check if fieldset is saved as open.
+ * 
+ * @param type $fieldset
+ */
+function wpcf_admin_form_fieldset_is_collapsed($fieldset) {
+    $data = get_user_meta(get_current_user_id(), 'wpcf-form-fieldsets-toggle',
+            true);
+    if (empty($data)) {
+        return true;
+    }
+    return array_key_exists($fieldset, $data) ? false : true;
+}
+
+/**
  * All AJAX calls go here.
  */
 function wpcf_ajax() {
@@ -660,6 +723,69 @@ function wpcf_ajax() {
             ));
             break;
 
+        case 'deactivate_post_type':
+            if (!isset($_GET['wpcf-post-type'])) {
+                die();
+            }
+            require_once WPCF_INC_ABSPATH . '/custom-types.php';
+            $custom_types = get_option('wpcf-custom-types', array());
+            if (isset($custom_types[$_GET['wpcf-post-type']])) {
+                $custom_types[$_GET['wpcf-post-type']]['disabled'] = 1;
+                update_option('wpcf-custom-types', $custom_types);
+                echo json_encode(array(
+                    'output' => __('Post type deactivated', 'wpcf'),
+                    'execute' => 'jQuery("#wpcf-list-activate-'
+                    . $_GET['wpcf-post-type'] . '").replaceWith(\''
+                    . wpcf_admin_custom_types_get_ajax_activation_link($_GET['wpcf-post-type'])
+                    . '\');jQuery(".wpcf-table-column-active-'
+                    . $_GET['wpcf-post-type'] . '").html("' . __('No') . '");',
+                ));
+            } else {
+                echo json_encode(array(
+                    'output' => __('Error occured', 'wpcf')
+                ));
+            }
+            break;
+
+        case 'activate_post_type':
+            if (!isset($_GET['wpcf-post-type'])) {
+                die();
+            }
+            require_once WPCF_INC_ABSPATH . '/custom-types.php';
+            $custom_types = get_option('wpcf-custom-types', array());
+            if (isset($custom_types[$_GET['wpcf-post-type']])) {
+                $custom_types[$_GET['wpcf-post-type']]['disabled'] = 0;
+                update_option('wpcf-custom-types', $custom_types);
+                echo json_encode(array(
+                    'output' => __('Post type activated', 'wpcf'),
+                    'execute' => 'jQuery("#wpcf-list-activate-'
+                    . $_GET['wpcf-post-type'] . '").replaceWith(\''
+                    . wpcf_admin_custom_types_get_ajax_deactivation_link($_GET['wpcf-post-type'])
+                    . '\');jQuery(".wpcf-table-column-active-'
+                    . $_GET['wpcf-post-type'] . '").html("' . __('Yes') . '");',
+                ));
+            } else {
+                echo json_encode(array(
+                    'output' => __('Error occured', 'wpcf')
+                ));
+            }
+            break;
+
+        case 'delete_post_type':
+            if (!isset($_GET['wpcf-post-type'])) {
+                die();
+            }
+            $custom_types = get_option('wpcf-custom-types', array());
+            unset($custom_types[$_GET['wpcf-post-type']]);
+            update_option('wpcf-custom-types', $custom_types);
+            echo json_encode(array(
+                'output' => '',
+                'execute' => 'jQuery("#wpcf-list-activate-'
+                . $_GET['wpcf-post-type']
+                . '").parents("tr").css("background-color", "#FF0000").fadeOut();',
+            ));
+            break;
+
         case 'add_radio_option':
             require_once WPCF_INC_ABSPATH . '/fields/radio.php';
             $element = wpcf_fields_radio_get_option(
@@ -710,6 +836,12 @@ function wpcf_ajax() {
             $fieldset = $_GET['id'];
             wpcf_admin_fields_form_save_open_fieldset($action, $fieldset,
                     $group_id);
+            break;
+
+        case 'form_fieldset_toggle':
+            $action = $_GET['toggle'];
+            $fieldset = $_GET['id'];
+            wpcf_admin_form_fieldset_save_toggle($action, $fieldset);
             break;
 
         default:

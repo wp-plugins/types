@@ -87,7 +87,7 @@ class Enlimbo_Forms_Wpcf
                             &$this);
                     if (!isset($form['#form']['redirection'])) {
                         header('Location: ' . $_SERVER['REQUEST_URI']);
-                    } else {
+                    } else if ($form['#form']['redirection'] != false) {
                         header('Location: ' . $form['#form']['redirection']);
                     }
                 }
@@ -124,10 +124,17 @@ class Enlimbo_Forms_Wpcf
                 continue;
             }
             if ($element['#type'] != 'fieldset') {
-                if (isset($element['#value'])
+                if (isset($element['#name'])
                         && !in_array($element['#type'], array('submit', 'reset'))) {
                     // Set submitted data
-                    $element['#value'] = $this->getSubmittedData($element);
+                    if (!in_array($element['#type'], array('checkboxes'))) {
+                        $element['#value'] = $this->getSubmittedData($element);
+                    } else if (!empty($element['#options'])) {
+                        foreach ($element['#options'] as $option_key => $option) {
+                            $option['#type'] = 'checkbox';
+                            $element['#options'][$option_key]['#value'] = $this->getSubmittedData($option);
+                        }
+                    }
                 }
                 // Validate
                 if (isset($element['#validate'])) {
@@ -532,10 +539,10 @@ class Enlimbo_Forms_Wpcf
         $element['_render']['element'] .=
                 isset($element['#value']) ? $element['#value'] : 1;
         $element['_render']['element'] .= '"' . $element['_attributes_string'];
-        $element['_render']['element'] .= ( isset($element['#default_value'])
-                && $element['#default_value']
+        $element['_render']['element'] .= ((!$this->isSubmitted()
+                && !empty($element['#default_value']))
                 || ($this->isSubmitted()
-                && $element['#value'])) ? ' checked="checked"' : '';
+                && !empty($element['#value']))) ? ' checked="checked"' : '';
         $element['_render']['element'] .= ' />';
         $pattern = isset($element['#pattern']) ? $element['#pattern'] : '<BEFORE><PREFIX><ELEMENT>&nbsp;<LABEL><ERROR><SUFFIX><DESCRIPTION><AFTER>';
         $output = $this->_pattern($pattern, $element);

@@ -23,6 +23,10 @@ function wpcf_admin_custom_types_form() {
         if (isset($custom_types[$id])) {
             $ct = $custom_types[$id];
             $update = true;
+            // Set rewrite if needed
+            if (isset($_GET['wpcf-rewrite'])) {
+                flush_rewrite_rules();
+            }
         } else {
             wpcf_admin_message(__('Wrong custom type specified', 'wpcf'),
                     'error');
@@ -34,6 +38,7 @@ function wpcf_admin_custom_types_form() {
 
     $form = array();
     $form['#form']['callback'] = 'wpcf_admin_custom_types_form_submit';
+    $form['#form']['redirection'] = false;
 
     if ($update) {
         $form['id'] = array(
@@ -54,7 +59,7 @@ function wpcf_admin_custom_types_form() {
         '#value' => isset($ct['labels']['name']) ? $ct['labels']['name'] : '',
         '#validate' => array(
             'required' => array('value' => true),
-//            'alphanumericWhitespace' => array('value' => true),
+            'alphanumeric' => array('value' => true),
         ),
     );
     $form['name-singular'] = array(
@@ -63,12 +68,13 @@ function wpcf_admin_custom_types_form() {
         '#title' => __('Custom type name singular', 'wpcf') . ' (' . __('required',
                 'wpcf') . ')',
         '#description' => '<strong>' . __('Enter in singular!', 'wpcf')
-        . '</strong><br />' . __('Alphanumeric with whitespaces only', 'wpcf')
+        . '</strong><br />'
+        . __('Alphanumeric with whitespaces only', 'wpcf')
         . '.',
         '#value' => isset($ct['labels']['singular_name']) ? $ct['labels']['singular_name'] : '',
         '#validate' => array(
             'required' => array('value' => true),
-//            'alphanumericWhitespace' => array('value' => true),
+            'alphanumeric' => array('value' => true),
         ),
     );
     $form['slug'] = array(
@@ -94,7 +100,6 @@ function wpcf_admin_custom_types_form() {
     );
     $form['public'] = array(
         '#type' => 'checkbox',
-//        '#force_boolean' => true,
         '#name' => 'ct[public]',
         '#title' => __('Public'),
         '#description' => __('Make this type visible to visitors.', 'wpcf'),
@@ -103,7 +108,7 @@ function wpcf_admin_custom_types_form() {
     );
 //    $form['capabilities'] = array(
 //        '#type' => 'checkbox',
-//        '#force_boolean' => TRUE,
+//        '#force_boolean' => true,
 //        '#name' => 'ct[capabilities]',
 //        '#title' => __('Enable capabilities'),
 //        '#description' => '<a href="javascript:void(0);" onclick="jQuery(\'#roles\').slideToggle();"><strong>' . __("Edit capabilities by roles", 'wpcf') . '</strong></a>',
@@ -179,7 +184,7 @@ function wpcf_admin_custom_types_form() {
         '#name' => 'ct[menu_icon]',
         '#title' => __('Menu icon', 'wpcf'),
         '#description' => __('The url to the icon to be used for this menu. Default: null - defaults to the posts icon.',
-                        'wpcf'),
+                'wpcf'),
         '#value' => isset($ct['menu_icon']) ? $ct['menu_icon'] : '',
     );
 
@@ -193,8 +198,8 @@ function wpcf_admin_custom_types_form() {
         }
         $options[$category_slug]['#name'] = 'ct[taxonomies][' . $category_slug . ']';
         $options[$category_slug]['#title'] = $category->labels->name;
-        $options[$category_slug]['#default_value'] = isset($ct['taxonomies'][$category_slug]) ? $ct['taxonomies'][$category_slug] : 0;
-        $options[$category_slug]['#inline'] = TRUE;
+        $options[$category_slug]['#default_value'] = !empty($ct['taxonomies'][$category_slug]);
+        $options[$category_slug]['#inline'] = true;
         $options[$category_slug]['#after'] = '&nbsp;&nbsp;';
     }
 
@@ -206,27 +211,40 @@ function wpcf_admin_custom_types_form() {
                 'wpcf'),
         '#name' => 'ct[taxonomies]',
     );
+    $fieldset_id = $update ? 'fieldset-custom-types-' . $id . '-labels' : 'fieldset-cutom-types-new-labels';
+    $collapsed = wpcf_admin_form_fieldset_is_collapsed($fieldset_id);
     $form['labels'] = array(
         '#type' => 'fieldset',
+        '#id' => $fieldset_id,
         '#title' => _('Labels'),
         '#collapsible' => true,
-        '#collapsed' => true,
+        '#collapsed' => $collapsed,
         '#description' => __('Enter label values for custom type.<br />%s will be used to dinamically wrap text around singular name or name.',
                 'wpcf')
     );
     $labels = array(
-        'add_new' => array('title' => __('Add New'), 'description' => __('The add new text. The default is Add New for both hierarchical and non-hierarchical types.', 'wpcf')),
-        'add_new_item' => array('title' => __('Add New %s'), 'description' => __('The add new item text. Default is Add New Post/Add New Page.', 'wpcf')),
+        'add_new' => array('title' => __('Add New'), 'description' => __('The add new text. The default is Add New for both hierarchical and non-hierarchical types.',
+                    'wpcf')),
+        'add_new_item' => array('title' => __('Add New %s'), 'description' => __('The add new item text. Default is Add New Post/Add New Page.',
+                    'wpcf')),
 //        'edit' => array('title' => __('Edit'), 'description' => __('The edit item text. Default is Edit Post/Edit Page.', 'wpcf')),
-        'edit_item' => array('title' => __('Edit %s'), 'description' => __('The edit item text. Default is Edit Post/Edit Page.', 'wpcf')),
-        'new_item' => array('title' => __('New %s'), 'description' => __('The view item text. Default is View Post/View Page.', 'wpcf')),
+        'edit_item' => array('title' => __('Edit %s'), 'description' => __('The edit item text. Default is Edit Post/Edit Page.',
+                    'wpcf')),
+        'new_item' => array('title' => __('New %s'), 'description' => __('The view item text. Default is View Post/View Page.',
+                    'wpcf')),
 //        'view' => array('title' => __('View'), 'description' => __('', 'wpcf')),
-        'view_item' => array('title' => __('View %s'), 'description' => __('The view item text. Default is View Post/View Page.', 'wpcf')),
-        'search_items' => array('title' => __('Search %s'), 'description' => __('The search items text. Default is Search Posts/Search Pages.', 'wpcf')),
-        'not_found' => array('title' => __('No %s found'), 'description' => __('The not found text. Default is No posts found/No pages found.', 'wpcf')),
-        'not_found_in_trash' => array('title' => __('No %s found in Trash'), 'description' => __('The not found in trash text. Default is No posts found in Trash/No pages found in Trash.', 'wpcf')),
-        'parent_item_colon' => array('title' => __('Parent text'), 'description' => __("The parent text. This string isn't used on non-hierarchical types. In hierarchical ones the default is Parent Page.", 'wpcf')),
-        'all_items' => array('title' => __('All items'), 'description' => __('The all items text used in the menu. Default is the Name label.', 'wpcf')),
+        'view_item' => array('title' => __('View %s'), 'description' => __('The view item text. Default is View Post/View Page.',
+                    'wpcf')),
+        'search_items' => array('title' => __('Search %s'), 'description' => __('The search items text. Default is Search Posts/Search Pages.',
+                    'wpcf')),
+        'not_found' => array('title' => __('No %s found'), 'description' => __('The not found text. Default is No posts found/No pages found.',
+                    'wpcf')),
+        'not_found_in_trash' => array('title' => __('No %s found in Trash'), 'description' => __('The not found in trash text. Default is No posts found in Trash/No pages found in Trash.',
+                    'wpcf')),
+        'parent_item_colon' => array('title' => __('Parent text'), 'description' => __("The parent text. This string isn't used on non-hierarchical types. In hierarchical ones the default is Parent Page.",
+                    'wpcf')),
+        'all_items' => array('title' => __('All items'), 'description' => __('The all items text used in the menu. Default is the Name label.',
+                    'wpcf')),
     );
 
     foreach ($labels as $name => $data) {
@@ -238,12 +256,14 @@ function wpcf_admin_custom_types_form() {
             '#value' => isset($ct['labels'][$name]) ? $ct['labels'][$name] : '',
         );
     }
-
+    $fieldset_id = $update ? 'fieldset-custom-types-' . $id . '-supports' : 'fieldset-cutom-types-new-supports';
+    $collapsed = wpcf_admin_form_fieldset_is_collapsed($fieldset_id);
     $form['fields'] = array(
         '#type' => 'fieldset',
-        '#title' => __('Fields'),
+        '#id' => $fieldset_id,
+        '#title' => __('Supports', 'wpcf'),
         '#collapsible' => true,
-        '#collapsed' => true,
+        '#collapsed' => $collapsed,
     );
     $options = array(
         'title' => array(
@@ -310,27 +330,49 @@ function wpcf_admin_custom_types_form() {
             '#name' => 'ct[supports][page-attributes]',
             '#default_value' => !empty($ct['supports']['page-attributes']),
             '#title' => __('page-attributes'),
-        )
+            '#description' => __('Menu order, hierarchical must be true to show Parent option',
+                    'wpcf'),
+        ),
+        'post-formats' => array(
+            '#name' => 'ct[supports][post-formats]',
+            '#default_value' => !empty($ct['supports']['post-formats']),
+            '#title' => __('post-formats'),
+            '#description' => sprintf(__('Add post formats, see %sPost Formats%s',
+                            'wpcf'),
+                    '<a href="http://codex.wordpress.org/Post_Formats" title="Post Formats" target="_blank">',
+                    '</a>'),
+        ),
     );
     $form['fields']['supports'] = array(
         '#type' => 'checkboxes',
         '#options' => $options,
         '#name' => 'ct[supports]',
     );
+    $fieldset_id = $update ? 'fieldset-custom-types-' . $id . '-advanced' : 'fieldset-cutom-types-new-advanced';
+    $collapsed = wpcf_admin_form_fieldset_is_collapsed($fieldset_id);
     $form['advanced'] = array(
         '#type' => 'fieldset',
+        '#id' => $fieldset_id,
         '#title' => __('Advanced settings'),
-        '#collapsed' => TRUE,
+        '#collapsible' => true,
+        '#collapsed' => $collapsed,
     );
     $form['advanced']['rewrite'] = array(
+        '#type' => 'fieldset',
+        '#title' => __('Rewrite'),
+        '#collapsible' => false,
+    );
+    $form['advanced']['rewrite']['enabled'] = array(
         '#type' => 'checkbox',
-        '#force_boolean' => TRUE,
+        '#force_boolean' => true,
         '#title' => __('Rewrite'),
         '#name' => 'ct[rewrite][enabled]',
-        '#description' => __('Rewrite permalinks with this format. False to prevent rewrite. Default: true and use post type as slug.', 'wpcf'),
+        '#description' => __('Rewrite permalinks with this format. False to prevent rewrite. Default: true and use post type as slug.',
+                'wpcf'),
         '#default_value' => !empty($ct['rewrite']['enabled']),
+        '#inline' => true,
     );
-    $form['advanced']['rewrite_slug'] = array(
+    $form['advanced']['rewrite']['slug'] = array(
         '#type' => 'textfield',
         '#name' => 'ct[rewrite][slug]',
         '#title' => __('Prepend posts with this slug', 'wpcf'),
@@ -338,95 +380,97 @@ function wpcf_admin_custom_types_form() {
                 'wpcf'),
         '#value' => isset($ct['rewrite']['slug']) ? $ct['rewrite']['slug'] : '',
         '#validation' => array('numeric' => '#submitted'),
-        '#suffix' => '',
+        '#inline' => true,
     );
-    $form['advanced']['rewrite_with_front'] = array(
+    $form['advanced']['rewrite']['with_front'] = array(
         '#type' => 'checkbox',
-        '#force_boolean' => TRUE,
+        '#force_boolean' => true,
         '#title' => __('Allow permalinks to be prepended with front base',
                 'wpcf'),
         '#name' => 'ct[rewrite][with_front]',
         '#description' => __('Example: if your permalink structure is /blog/, then your links will be: false->/news/, true->/blog/news/.',
-                'wpcf') . ' ' . __('Defaults to true', 'wpcf'),
+                'wpcf') . ' ' . __('Defaults to true.', 'wpcf'),
         '#default_value' => !empty($ct['rewrite']['with_front']),
+        '#inline' => true,
     );
-    $form['advanced']['feeds'] = array(
+    $form['advanced']['rewrite']['feeds'] = array(
         '#type' => 'checkbox',
         '#name' => 'ct[rewrite][feeds]',
         '#title' => __('Feeds'),
-        '#description' => __('Defaults to has_archive value', 'wpcf'),
+        '#description' => __('Defaults to has_archive value.', 'wpcf'),
         '#default_value' => !empty($ct['rewrite']['feeds']),
         '#value' => 1,
+        '#inline' => true,
     );
-    $form['advanced']['pages'] = array(
+    $form['advanced']['rewrite']['pages'] = array(
         '#type' => 'checkbox',
         '#name' => 'ct[rewrite][pages]',
         '#title' => __('Pages'),
-        '#description' => __('Defaults to true', 'wpcf'),
+        '#description' => __('Defaults to true.', 'wpcf'),
         '#default_value' => !empty($ct['rewrite']['pages']),
         '#value' => 1,
+        '#inline' => true,
     );
+    $show_in_menu_page = isset($ct['show_in_menu_page']) ? $ct['show_in_menu_page'] : '';
     $form['advanced']['vars'] = array(
         '#type' => 'checkboxes',
         '#name' => 'ct[vars]',
         '#options' => array(
             'has_archive' => array(
                 '#name' => 'ct[has_archive]',
-                '#force_boolean' => TRUE,
                 '#default_value' => !empty($ct['has_archive']),
-                '#title' => __('has_archive: Allow custom type to have index page.',
-                        'wpcf'),
-                '#description' => __('Default: not set', 'wpcf')),
+                '#title' => __('has_archive', 'wpcf'),
+                '#description' => __('Allow custom type to have index page.',
+                        'wpcf') . '<br />' . __('Default: not set.', 'wpcf')),
             'show_in_menu' => array(
                 '#name' => 'ct[show_in_menu]',
-                '#force_boolean' => TRUE,
                 '#default_value' => !empty($ct['show_in_menu']),
-                '#title' => __('show_in_menu: Whether to show the post type in the admin menu and where to show that menu. Note that show_ui must be true.',
-                        'wpcf'),
-                '#description' => __('Default: null', 'wpcf')),
+                '#title' => __('show_in_menu', 'wpcf'),
+                '#description' => __('Whether to show the post type in the admin menu and where to show that menu. Note that show_ui must be true.',
+                        'wpcf') . '<br />' . __('Default: null.', 'wpcf'),
+                '#after' => '<input type="text" name="ct[show_in_menu_page]" value="' . $show_in_menu_page . '" />&nbsp;' . __("Top level page like 'tools.php' or 'edit.php?post_type=page'",
+                        'wpcf') . '<br /><br />',
+            ),
             'show_ui' => array(
                 '#name' => 'ct[show_ui]',
-                '#force_boolean' => TRUE,
                 '#default_value' => !empty($ct['show_ui']),
-                '#title' => __('show_ui: Generate a default UI for managing this post type.',
-                        'wpcf'),
-                '#description' => __('Default: value of public argument', 'wpcf')),
+                '#title' => __('show_ui', 'wpcf'),
+                '#description' => __('Generate a default UI for managing this post type.',
+                        'wpcf') . '<br />' . __('Default: value of public argument.',
+                        'wpcf')),
             'publicly_queryable' => array(
                 '#name' => 'ct[publicly_queryable]',
-                '#force_boolean' => TRUE,
                 '#default_value' => !empty($ct['publicly_queryable']),
-                '#title' => __('publicly_queryable: Whether post_type queries can be performed from the front end.',
-                        'wpcf'),
-                '#description' => __('Default: value of public argument', 'wpcf')),
+                '#title' => __('publicly_queryable', 'wpcf'),
+                '#description' => __('Whether post_type queries can be performed from the front end.',
+                        'wpcf') . '<br />' . __('Default: value of public argument.',
+                        'wpcf')),
             'exclude_from_search' => array(
                 '#name' => 'ct[exclude_from_search]',
-                '#force_boolean' => TRUE,
                 '#default_value' => !empty($ct['exclude_from_search']),
-                '#title' => __('exclude_from_search: Whether to exclude posts with this post type from search results.',
-                        'wpcf'),
-                '#description' => __('Default: value of the opposite of the public argument',
+                '#title' => __('exclude_from_search', 'wpcf'),
+                '#description' => __('Whether to exclude posts with this post type from search results.',
+                        'wpcf') . '<br />' . __('Default: value of the opposite of the public argument.',
                         'wpcf')),
             'hierarchical' => array(
                 '#name' => 'ct[hierarchical]',
-                '#force_boolean' => TRUE,
                 '#default_value' => !empty($ct['hierarchical']),
-                '#title' => __('hierarchical: Whether the post type is hierarchical. Allows Parent to be specified. ',
-                        'wpcf'),
-                '#description' => __('Default: false', 'wpcf')),
+                '#title' => __('hierarchical', 'wpcf'),
+                '#description' => __('Whether the post type is hierarchical. Allows Parent to be specified.',
+                        'wpcf') . '<br />' . __('Default: false.', 'wpcf')),
             'can_export' => array(
                 '#name' => 'ct[can_export]',
-                '#force_boolean' => TRUE,
                 '#default_value' => !empty($ct['can_export']),
-                '#title' => __('can_export: Can this post_type be exported.',
-                        'wpcf'),
-                '#description' => __('Default: true', 'wpcf')),
+                '#title' => __('can_export', 'wpcf'),
+                '#description' => __('Can this post_type be exported.', 'wpcf') . '<br />' . __('Default: true.',
+                        'wpcf')),
             'show_in_nav_menus' => array(
                 '#name' => 'ct[show_in_nav_menus]',
-                '#force_boolean' => TRUE,
                 '#default_value' => !empty($ct['show_in_nav_menus']),
-                '#title' => __('show_in_nav_menus: Whether post_type is available for selection in navigation menus.',
-                        'wpcf'),
-                '#description' => __('Default: value of public argument', 'wpcf')),
+                '#title' => __('show_in_nav_menus', 'wpcf'),
+                '#description' => __('Whether post_type is available for selection in navigation menus.',
+                        'wpcf') . '<br />' . __('Default: value of public argument.',
+                        'wpcf')),
         ),
     );
     $form['advanced']['query_var'] = array(
@@ -464,32 +508,69 @@ function wpcf_admin_types_form_js_validation() {
 /**
  * Submit function
  */
-function wpcf_admin_custom_types_form_submit() {
+function wpcf_admin_custom_types_form_submit($form) {
     if (!isset($_POST['ct'])) {
         return false;
     }
     $data = $_POST['ct'];
+    $update = false;
+
+    // Sanitize data
+    if (isset($data['wpcf-post-type'])) {
+        $update = true;
+        $data['wpcf-post-type'] = sanitize_title($data['wpcf-post-type']);
+    }
+    if (isset($data['slug'])) {
+        $data['slug'] = sanitize_title($data['slug']);
+    }
+    if (isset($data['rewrite']['slug'])) {
+        $data['rewrite']['slug'] = sanitize_title($data['rewrite']['slug']);
+    }
+
     // Set post type name
     $post_type = '';
-    if (!empty($data['wpcf-post-type'])) {
+    if (!empty($data['slug'])) {
+        $post_type = $data['slug'];
+    } else if (!empty($data['wpcf-post-type'])) {
         $post_type = $data['wpcf-post-type'];
-    } else if (!empty($data['slug'])) {
-        $post_type = str_replace('-', '_', sanitize_title($data['slug']));
     } else if (!empty($data['labels']['singular_name'])) {
-        $post_type = str_replace('-', '_',
-                sanitize_title($data['labels']['singular_name']));
+        $post_type = sanitize_title($data['labels']['singular_name']);
     }
+
     if (empty($post_type)) {
-        wpcf_admin_message_store(__('Please set post type name', 'wpcf'),
+        wpcf_admin_message(__('Please set post type name', 'wpcf'),
                 'error');
+//        $form->triggerError();
         return false;
     }
+
     $data['slug'] = $post_type;
     $custom_types = get_option('wpcf-custom-types', array());
-//    echo '<pre>'; print_r($data); die();
-    // @todo Check overwriting?
+
+    // Check overwriting
+    if (!$update && array_key_exists($post_type, $custom_types)) {
+        wpcf_admin_message(__('Custom type already exists', 'wpcf'),
+                'error');
+//            $form->triggerError();
+        return false;
+    }
+
+    // Check if renaming then rename all post entries and delete old type
+    if (!empty($data['wpcf-post-type'])
+            && $data['wpcf-post-type'] != $post_type) {
+        global $wpdb;
+        $wpdb->update($wpdb->posts, array('post_type' => $post_type),
+                array('post_type' => $data['wpcf-post-type']), array('%s'),
+                array('%s')
+        );
+        // Delete old type
+        unset($custom_types[$data['wpcf-post-type']]);
+    }
+
     $custom_types[$post_type] = $data;
     update_option('wpcf-custom-types', $custom_types);
-    wp_redirect(admin_url('admin.php?page=wpcf-edit-type&wpcf-post-type=' . $post_type));
+
+    // Redirect
+    wp_redirect(admin_url('admin.php?page=wpcf-edit-type&wpcf-post-type=' . $post_type . '&wpcf-rewrite=1'));
     die();
 }

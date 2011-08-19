@@ -44,18 +44,28 @@ jQuery(document).ready(function(){
             // Save collapsed state
             // Get fieldset id
             var collapsed = jQuery(this).parent().attr('id');
-            // Get group id
-            var group_id = false;
-            if (jQuery('input:[name="group-id"]').length > 0) {
-                group_id = jQuery('input:[name="group-id"]').val();
+            
+            // For group form save fieldset toggle per group
+            if (jQuery(this).parent().hasClass('wpcf-fields-form')) {
+                // Get group id
+                var group_id = false;
+                if (jQuery('input:[name="group-id"]').length > 0) {
+                    group_id = jQuery('input:[name="group-id"]').val();
+                } else {
+                    group_id = -1;
+                }
+                jQuery.ajax({
+                    url: ajaxurl,
+                    type: 'get',
+                    data: 'action=wpcf_ajax&wpcf_action=group_form_collapsed&id='+collapsed+'&toggle='+toggle+'&group_id='+group_id
+                });
             } else {
-                group_id = -1;
+                jQuery.ajax({
+                    url: ajaxurl,
+                    type: 'get',
+                    data: 'action=wpcf_ajax&wpcf_action=form_fieldset_toggle&id='+collapsed+'&toggle='+toggle
+                });
             }
-            jQuery.ajax({
-                url: ajaxurl,
-                type: 'get',
-                data: 'action=wpcf_ajax&wpcf_action=group_form_collapsed&id='+collapsed+'&toggle='+toggle+'&group_id='+group_id
-            });
         });
     });
     jQuery('.wpcf-forms-set-legend').live('keyup', function(){

@@ -53,6 +53,10 @@ function wpcf_admin_post_init($post = false) {
                 WPCF_RES_RELPATH . '/js/'
                 . 'jquery-form-validation/jquery.validate.min.js',
                 array('jquery'), WPCF_VERSION);
+        wp_enqueue_script('wpcf-form-validation-additional',
+                WPCF_RES_RELPATH . '/js/'
+                . 'jquery-form-validation/additional-methods.min.js',
+                array('jquery'), WPCF_VERSION);
         wp_enqueue_style('wpcf-fields-basic',
                 WPCF_RES_RELPATH . '/css/basic.css', array(), WPCF_VERSION);
         wp_enqueue_style('wpcf-fields-post',

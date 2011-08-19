@@ -58,7 +58,7 @@ function wpcf_admin_get_groups_by_post_type($post_type, $fetch_empty = true,
                 $search = '(value=\'' . implode('\' OR value=\'', $terms) . '\'' . $fetch_empty . ')';
             }
         } else {
-            $search = 'value IS NULL';
+            $search = '(value IS NULL OR value = \'\')';
         }
         foreach ($results as $k => $v) {
             $keep = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}wpcf_relationships
