@@ -1,4 +1,23 @@
 <?php
+/**
+ * Types-field: Email
+ *
+ * Description: Displays a email input to the user.
+ *
+ * Rendering: Link with mailto as href. Link text can be specified otherwise
+ * equals to email address.
+ * 
+ * Parameters:
+ * 'raw' => 'true'|'false' (display raw data stored in DB, default false)
+ * 'output' => 'html' (wrap data in HTML, optional)
+ * 'show_name' => 'true' (show field name before value e.g. My date: $value)
+ * 'title' => link title e.g. 'Mail me!'
+ *
+ * Example usage:
+ * With a short code use [types field="my-email"]
+ * In a theme use types_render_field("my-email", $parameters)
+ * 
+ */
 
 /**
  * Register data (called automatically).
@@ -17,33 +36,8 @@ function wpcf_fields_email() {
                 'inline' => 'wpcf_fields_email_editor_callback_js',
             ),
         ),
-        'editor_callback' => 'wpcfFieldsEmailEditorCallback(%d)'
+        'editor_callback' => 'wpcfFieldsEmailEditorCallback(\'%s\')'
     );
-}
-
-/**
- * Form data for group form.
- * 
- * @return type 
- */
-function wpcf_fields_email_insert_form() {
-    $form['name'] = array(
-        '#type' => 'textfield',
-        '#title' => __('Name of custom field', 'wpcf'),
-        '#description' => __('Under this name field will be stored in DB (sanitized)',
-                'wpcf'),
-        '#name' => 'name',
-        '#attributes' => array('class' => 'wpcf-forms-set-legend'),
-        '#validate' => array('required' => array('value' => true)),
-    );
-    $form['description'] = array(
-        '#type' => 'textarea',
-        '#title' => __('Description', 'wpcf'),
-        '#description' => __('Text that describes function to user', 'wpcf'),
-        '#name' => 'description',
-        '#attributes' => array('rows' => 5, 'cols' => 1),
-    );
-    return $form;
 }
 
 /**
@@ -66,7 +60,7 @@ function wpcf_fields_email_view($params) {
     }
     $output = '<a href="mailto:' . $params['field_value'] . '"' . $add . '>'
             . $title . '</a>';
-    $output = wpcf_frontend_wrap_field_value($params['field'], $output);
+    $output = wpcf_frontend_wrap_field_value($params['field'], $output, $params);
     return wpcf_frontend_wrap_field($params['field'], $output, $params);
 }
 

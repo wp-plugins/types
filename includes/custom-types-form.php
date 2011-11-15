@@ -28,7 +28,7 @@ function wpcf_admin_custom_types_form() {
                 flush_rewrite_rules();
             }
         } else {
-            wpcf_admin_message(__('Wrong custom type specified', 'wpcf'),
+            wpcf_admin_message(__('Wrong custom post type specified', 'wpcf'),
                     'error');
             return false;
         }
@@ -48,34 +48,44 @@ function wpcf_admin_custom_types_form() {
         );
     }
 
+    $form['table-1-open'] = array(
+        '#type' => 'markup',
+        '#markup' => '<table id="wpcf-types-form-name-table" class="wpcf-types-form-table widefat"><thead><tr><th colspan="2">' . __('Name and description',
+                'wpcf') . '</th></tr></thead><tbody>',
+    );
+    $table_row = '<tr><td><LABEL></td><td><ERROR><ELEMENT></td></tr>';
     $form['name'] = array(
         '#type' => 'textfield',
         '#name' => 'ct[labels][name]',
-        '#title' => __('Custom type name plural', 'wpcf') . ' (' . __('required',
-                'wpcf') . ')',
+        '#title' => __('Custom post type name plural', 'wpcf') . ' (<strong>' . __('required',
+                'wpcf') . '</strong>)',
         '#description' => '<strong>' . __('Enter in plural!', 'wpcf')
         . '</strong><br />' . __('Alphanumeric with whitespaces only', 'wpcf')
         . '.',
         '#value' => isset($ct['labels']['name']) ? $ct['labels']['name'] : '',
         '#validate' => array(
-            'required' => array('value' => true),
-            'alphanumeric' => array('value' => true),
+            'required' => array('value' => 'true'),
+            'alphanumeric' => array('value' => 'true'),
         ),
+        '#pattern' => $table_row,
+        '#inline' => true,
     );
     $form['name-singular'] = array(
         '#type' => 'textfield',
         '#name' => 'ct[labels][singular_name]',
-        '#title' => __('Custom type name singular', 'wpcf') . ' (' . __('required',
-                'wpcf') . ')',
+        '#title' => __('Custom post type name singular', 'wpcf') . ' (<strong>' . __('required',
+                'wpcf') . '</strong>)',
         '#description' => '<strong>' . __('Enter in singular!', 'wpcf')
         . '</strong><br />'
         . __('Alphanumeric with whitespaces only', 'wpcf')
         . '.',
         '#value' => isset($ct['labels']['singular_name']) ? $ct['labels']['singular_name'] : '',
         '#validate' => array(
-            'required' => array('value' => true),
-            'alphanumeric' => array('value' => true),
+            'required' => array('value' => 'true'),
+            'alphanumeric' => array('value' => 'true'),
         ),
+        '#pattern' => $table_row,
+        '#inline' => true,
     );
     $form['slug'] = array(
         '#type' => 'textfield',
@@ -83,10 +93,11 @@ function wpcf_admin_custom_types_form() {
         '#title' => __('Slug'),
         '#description' => '<strong>' . __('Enter in singular!', 'wpcf')
         . '</strong><br />' . __('Machine readable name.', 'wpcf')
-//        . '<br />' . __('Alphanumeric, whitespaces or scores only.', 'wpcf')
         . '<br />' . __('If not provided - will be created from singular name.',
                 'wpcf') . '<br />',
         '#value' => isset($ct['slug']) ? $ct['slug'] : '',
+        '#pattern' => $table_row,
+        '#inline' => true,
     );
     $form['description'] = array(
         '#type' => 'textarea',
@@ -97,87 +108,39 @@ function wpcf_admin_custom_types_form() {
             'rows' => 4,
             'cols' => 60,
         ),
+        '#pattern' => $table_row,
+        '#inline' => true,
+    );
+    $form['table-1-close'] = array(
+        '#type' => 'markup',
+        '#markup' => '</tbody></table>',
+    );
+
+    $form['table-2-open'] = array(
+        '#type' => 'markup',
+        '#markup' => '<table id="wpcf-types-form-visibility-table" class="wpcf-types-form-table widefat"><thead><tr><th>' . __('Visibility',
+                'wpcf') . '</th></tr></thead><tbody><tr><td>',
     );
     $form['public'] = array(
-        '#type' => 'checkbox',
+        '#type' => 'radios',
         '#name' => 'ct[public]',
-        '#title' => __('Public'),
-        '#description' => __('Make this type visible to visitors.', 'wpcf'),
-        '#default_value' => !empty($ct['public']),
-        '#value' => 1,
+        '#options' => array(
+            __('Make this type public (will appear in the WordPress Admin menu)',
+                    'wpcf') => 'public',
+            __('Hidden - users cannot directly edit data in this type', 'wpcf') => 'hidden',
+        ),
+        '#default_value' => (isset($ct['public']) && strval($ct['public']) == 'hidden') ? 'hidden' : 'public',
+        '#inline' => true,
     );
-//    $form['capabilities'] = array(
-//        '#type' => 'checkbox',
-//        '#force_boolean' => true,
-//        '#name' => 'ct[capabilities]',
-//        '#title' => __('Enable capabilities'),
-//        '#description' => '<a href="javascript:void(0);" onclick="jQuery(\'#roles\').slideToggle();"><strong>' . __("Edit capabilities by roles", 'wpcf') . '</strong></a>',
-//        '#default_value' => $ct['capabilities'],
-//        '#value' => 1,
-//    );
-//    global $wp_roles;
-//    $roles = $wp_roles->get_names();
-//    $roles_array = array();
-//    foreach ($roles as $name => $title) {
-//        if ($name == 'administrator') {
-//            continue;
-//        }
-//        $roles_array[$name . 'read_post'] = array(
-//            '#title' => $title . ' ' . __('can read posts', 'wpcf'),
-//            '#value' => 1,
-//            '#name' => 'ct[capabilities_roles][' . $name . '][read_post]',
-//            '#default_value' => isset($ct['capabilities_roles'][$name]['read_post']) ? $ct['capabilities_roles'][$name]['read_post'] : 1,
-//        );
-//        $roles_array[$name . 'read_private_posts'] = array(
-//            '#title' => $title . ' ' . __('can read private posts', 'wpcf'),
-//            '#value' => 1,
-//            '#name' => 'ct[capabilities_roles][' . $name . '][read_private_posts]',
-//            '#default_value' => isset($ct['capabilities_roles'][$name]['read_private_posts']) ? $ct['capabilities_roles'][$name]['read_private_posts'] : 0,
-//        );
-//        $roles_array[$name . 'edit_post'] = array(
-//            '#title' => $title . ' ' . __('can edit post', 'wpcf'),
-//            '#value' => 1,
-//            '#name' => 'ct[capabilities_roles][' . $name . '][edit_post]',
-//            '#default_value' => isset($ct['capabilities_roles'][$name]['edit_post']) ? $ct['capabilities_roles'][$name]['edit_post'] : 0,
-//        );
-//        $roles_array[$name . 'edit_posts'] = array(
-//            '#title' => $title . ' ' . __('can edit posts', 'wpcf'),
-//            '#value' => 1,
-//            '#name' => 'ct[capabilities_roles][' . $name . '][edit_posts]',
-//            '#default_value' => isset($ct['capabilities_roles'][$name]['edit_posts']) ? $ct['capabilities_roles'][$name]['edit_posts'] : 0,
-//        );
-//        $roles_array[$name . 'edit_others_posts'] = array(
-//            '#title' => $title . ' ' . __('can edit others posts', 'wpcf'),
-//            '#value' => 1,
-//            '#name' => 'ct[capabilities_roles][' . $name . '][edit_others_posts]',
-//            '#default_value' => isset($ct['capabilities_roles'][$name]['edit_others_posts']) ? $ct['capabilities_roles'][$name]['edit_others_posts'] : 0,
-//        );
-//        $roles_array[$name . 'publish_posts'] = array(
-//            '#title' => $title . ' ' . __('can publish posts', 'wpcf'),
-//            '#value' => 1,
-//            '#name' => 'ct[capabilities_roles][' . $name . '][publish_posts]',
-//            '#default_value' => isset($ct['capabilities_roles'][$name]['publish_posts']) ? $ct['capabilities_roles'][$name]['publish_posts'] : 0,
-//        );
-//        $roles_array[$name . 'delete_post'] = array(
-//            '#title' => $title . ' ' . __('can delete post', 'wpcf'),
-//            '#value' => 1,
-//            '#name' => 'ct[capabilities_roles][' . $name . '][delete_post]',
-//            '#after' => '<br /><br />',
-//            '#default_value' => isset($ct['capabilities_roles'][$name]['delete_post']) ? $ct['capabilities_roles'][$name]['delete_post'] : 0,
-//        );
-//    }
-//    $form['capabilities_roles'] = array(
-//        '#before' => '<div id="roles" style="display:none;">',
-//        '#type' => 'checkboxes',
-//        '#options' => $roles_array,
-//        '#after' => '</div>',
-//    );
+    $hidden = (isset($ct['public']) && strval($ct['public']) == 'hidden') ? ' class="hidden"' : '';
     $form['menu_position'] = array(
         '#type' => 'textfield',
         '#name' => 'ct[menu_position]',
         '#title' => __('Menu position', 'wpcf'),
         '#value' => isset($ct['menu_position']) ? $ct['menu_position'] : 20,
-        '#validation' => array('numeric' => array('value' => true)),
+        '#validate' => array('number' => array('value' => true)),
+        '#inline' => true,
+        '#pattern' => '<div' . $hidden . ' id="wpcf-types-form-visiblity-toggle"><table><tr><td><LABEL></td><td><ELEMENT><ERROR></td></tr>',
     );
     $form['menu_icon'] = array(
         '#type' => 'textfield',
@@ -186,6 +149,12 @@ function wpcf_admin_custom_types_form() {
         '#description' => __('The url to the icon to be used for this menu. Default: null - defaults to the posts icon.',
                 'wpcf'),
         '#value' => isset($ct['menu_icon']) ? $ct['menu_icon'] : '',
+        '#inline' => true,
+        '#pattern' => '<tr><td><LABEL></td><td><ELEMENT><ERROR></td></tr></table></div>',
+    );
+    $form['table-2-close'] = array(
+        '#type' => 'markup',
+        '#markup' => '</td></tr></tbody></table>',
     );
 
     $taxonomies = get_taxonomies('', 'objects');
@@ -203,24 +172,28 @@ function wpcf_admin_custom_types_form() {
         $options[$category_slug]['#after'] = '&nbsp;&nbsp;';
     }
 
+    $form['table-3-open'] = array(
+        '#type' => 'markup',
+        '#markup' => '<table id="wpcf-types-form-taxonomies-table" class="wpcf-types-form-table widefat"><thead><tr><th>' . __('Select Taxonomies',
+                'wpcf') . '</th></tr></thead><tbody><tr><td>',
+    );
     $form['taxonomies'] = array(
         '#type' => 'checkboxes',
         '#options' => $options,
-        '#title' => __('Select taxonomies', 'wpcf'),
         '#description' => __('Registered taxonomies that will be used with this post type.',
                 'wpcf'),
         '#name' => 'ct[taxonomies]',
+        '#inline' => true,
     );
-    $fieldset_id = $update ? 'fieldset-custom-types-' . $id . '-labels' : 'fieldset-cutom-types-new-labels';
-    $collapsed = wpcf_admin_form_fieldset_is_collapsed($fieldset_id);
-    $form['labels'] = array(
-        '#type' => 'fieldset',
-        '#id' => $fieldset_id,
-        '#title' => _('Labels'),
-        '#collapsible' => true,
-        '#collapsed' => $collapsed,
-        '#description' => __('Enter label values for custom type.<br />%s will be used to dinamically wrap text around singular name or name.',
-                'wpcf')
+    $form['table-3-close'] = array(
+        '#type' => 'markup',
+        '#markup' => '</td></tr></tbody></table>',
+    );
+
+    $form['table-4-open'] = array(
+        '#type' => 'markup',
+        '#markup' => '<table id="wpcf-types-form-labels-table" class="wpcf-types-form-table widefat"><thead><tr><th colspan="3">' . __('Labels',
+                'wpcf') . '</th></tr></thead><tbody>',
     );
     $labels = array(
         'add_new' => array('title' => __('Add New'), 'description' => __('The add new text. The default is Add New for both hierarchical and non-hierarchical types.',
@@ -246,24 +219,25 @@ function wpcf_admin_custom_types_form() {
         'all_items' => array('title' => __('All items'), 'description' => __('The all items text used in the menu. Default is the Name label.',
                     'wpcf')),
     );
-
     foreach ($labels as $name => $data) {
-        $form['labels'][$name] = array(
+        $form['labels-' . $name] = array(
             '#type' => 'textfield',
             '#name' => 'ct[labels][' . $name . ']',
-            '#suffix' => '&nbsp;' . $data['title'],
+            '#title' => ucwords(str_replace('_', ' ', $name)),
             '#description' => $data['description'],
             '#value' => isset($ct['labels'][$name]) ? $ct['labels'][$name] : '',
+            '#inline' => true,
+            '#pattern' => '<tr><td><LABEL></td><td><ELEMENT></td><td><DESCRIPTION></td>',
         );
     }
-    $fieldset_id = $update ? 'fieldset-custom-types-' . $id . '-supports' : 'fieldset-cutom-types-new-supports';
-    $collapsed = wpcf_admin_form_fieldset_is_collapsed($fieldset_id);
-    $form['fields'] = array(
-        '#type' => 'fieldset',
-        '#id' => $fieldset_id,
-        '#title' => __('Supports', 'wpcf'),
-        '#collapsible' => true,
-        '#collapsed' => $collapsed,
+    $form['table-4-close'] = array(
+        '#type' => 'markup',
+        '#markup' => '</tbody></table>',
+    );
+    $form['table-5-open'] = array(
+        '#type' => 'markup',
+        '#markup' => '<table id="wpcf-types-form-supports-table" class="wpcf-types-form-table widefat"><thead><tr><th>' . __('Display Sections',
+                'wpcf') . '</th></tr></thead><tbody><tr><td>',
     );
     $options = array(
         'title' => array(
@@ -272,18 +246,21 @@ function wpcf_admin_custom_types_form() {
             '#title' => __('Title'),
             '#description' => __('Text input field to create a post title.',
                     'wpcf'),
+            '#inline' => true,
         ),
         'editor' => array(
             '#name' => 'ct[supports][editor]',
             '#default_value' => !empty($ct['supports']['editor']),
             '#title' => __('Editor'),
             '#description' => __('Content input box for writing.', 'wpcf'),
+            '#inline' => true,
         ),
         'comments' => array(
             '#name' => 'ct[supports][comments]',
             '#default_value' => !empty($ct['supports']['comments']),
             '#title' => __('Comments'),
             '#description' => __('Ability to turn comments on/off.', 'wpcf'),
+            '#inline' => true,
         ),
         'trackbacks' => array(
             '#name' => 'ct[supports][trackbacks]',
@@ -291,6 +268,7 @@ function wpcf_admin_custom_types_form() {
             '#title' => __('Trackbacks'),
             '#description' => __('Ability to turn trackbacks and pingbacks on/off.',
                     'wpcf'),
+            '#inline' => true,
         ),
         'revisions' => array(
             '#name' => 'ct[supports][revisions]',
@@ -298,33 +276,38 @@ function wpcf_admin_custom_types_form() {
             '#title' => __('Revisions'),
             '#description' => __('Allows revisions to be made of your post.',
                     'wpcf'),
+            '#inline' => true,
         ),
         'author' => array(
             '#name' => 'ct[supports][author]',
             '#default_value' => !empty($ct['supports']['author']),
             '#title' => __('Author'),
-            '#description' => __('Displays a select box for changing the post author.',
+            '#description' => __('Displays a dropdown menu for changing the post author.',
                     'wpcf'),
+            '#inline' => true,
         ),
         'excerpt' => array(
             '#name' => 'ct[supports][excerpt]',
             '#default_value' => !empty($ct['supports']['excerpt']),
             '#title' => __('Excerpt'),
-            '#description' => __('A textarea for writing a custom excerpt.',
+            '#description' => __('A text area for writing a custom excerpt.',
                     'wpcf'),
+            '#inline' => true,
         ),
         'thumbnail' => array(
             '#name' => 'ct[supports][thumbnail]',
             '#default_value' => !empty($ct['supports']['thumbnail']),
             '#title' => __('Thumbnail'),
-            '#description' => __('The thumbnail (featured image in 3.0) uploading box.',
+            '#description' => __('Add a box for uploading a featured image.',
                     'wpcf'),
+            '#inline' => true,
         ),
         'custom-fields' => array(
             '#name' => 'ct[supports][custom-fields]',
             '#default_value' => !empty($ct['supports']['custom-fields']),
-            '#title' => __('Custom-fields'),
+            '#title' => __('custom-fields', 'wpcf'),
             '#description' => __('Custom fields input area.', 'wpcf'),
+            '#inline' => true,
         ),
         'page-attributes' => array(
             '#name' => 'ct[supports][page-attributes]',
@@ -332,6 +315,7 @@ function wpcf_admin_custom_types_form() {
             '#title' => __('page-attributes'),
             '#description' => __('Menu order, hierarchical must be true to show Parent option',
                     'wpcf'),
+            '#inline' => true,
         ),
         'post-formats' => array(
             '#name' => 'ct[supports][post-formats]',
@@ -341,30 +325,26 @@ function wpcf_admin_custom_types_form() {
                             'wpcf'),
                     '<a href="http://codex.wordpress.org/Post_Formats" title="Post Formats" target="_blank">',
                     '</a>'),
+            '#inline' => true,
         ),
     );
-    $form['fields']['supports'] = array(
+    $form['supports'] = array(
         '#type' => 'checkboxes',
         '#options' => $options,
         '#name' => 'ct[supports]',
+        '#inline' => true,
     );
-    $fieldset_id = $update ? 'fieldset-custom-types-' . $id . '-advanced' : 'fieldset-cutom-types-new-advanced';
-    $collapsed = wpcf_admin_form_fieldset_is_collapsed($fieldset_id);
-    $form['advanced'] = array(
-        '#type' => 'fieldset',
-        '#id' => $fieldset_id,
-        '#title' => __('Advanced settings'),
-        '#collapsible' => true,
-        '#collapsed' => $collapsed,
+    $form['table-5-close'] = array(
+        '#type' => 'markup',
+        '#markup' => '</td></tr></tbody></table>',
     );
-    $form['advanced']['rewrite'] = array(
-        '#type' => 'fieldset',
-        '#title' => __('Rewrite'),
-        '#collapsible' => false,
+    $form['table-6-open'] = array(
+        '#type' => 'markup',
+        '#markup' => '<table id="wpcf-types-form-supports-table" class="wpcf-types-form-table widefat"><thead><tr><th>' . __('Advanced',
+                'wpcf') . '</th></tr></thead><tbody><tr><td>',
     );
-    $form['advanced']['rewrite']['enabled'] = array(
+    $form['rewrite-enabled'] = array(
         '#type' => 'checkbox',
-        '#force_boolean' => true,
         '#title' => __('Rewrite'),
         '#name' => 'ct[rewrite][enabled]',
         '#description' => __('Rewrite permalinks with this format. False to prevent rewrite. Default: true and use post type as slug.',
@@ -372,19 +352,30 @@ function wpcf_admin_custom_types_form() {
         '#default_value' => !empty($ct['rewrite']['enabled']),
         '#inline' => true,
     );
-    $form['advanced']['rewrite']['slug'] = array(
+    $form['rewrite-custom'] = array(
+        '#type' => 'radios',
+        '#name' => 'ct[rewrite][custom]',
+        '#options' => array(
+            __('Use the normal WordPress URL logic', 'wpcf') => 'normal',
+            __('Use a custom URL format', 'wpcf') => 'custom',
+        ),
+        '#default_value' => empty($ct['rewrite']['custom']) || $ct['rewrite']['custom'] != 'custom' ? 'normal' : 'custom',
+        '#inline' => true,
+        '#after' => '<br />',
+    );
+    $hidden = empty($ct['rewrite']['custom']) || $ct['rewrite']['custom'] != 'custom' ? ' class="hidden"' : '';
+    $form['rewrite-slug'] = array(
         '#type' => 'textfield',
         '#name' => 'ct[rewrite][slug]',
-        '#title' => __('Prepend posts with this slug', 'wpcf'),
-        '#description' => __("Prepend posts with this slug - defaults to post type's name.",
+        '#description' =>  __('Optional.', 'wpcf') . ' ' . __("Prepend posts with this slug - defaults to post type's name.",
                 'wpcf'),
         '#value' => isset($ct['rewrite']['slug']) ? $ct['rewrite']['slug'] : '',
-        '#validation' => array('numeric' => '#submitted'),
         '#inline' => true,
+        '#before' => '<div id="wpcf-types-form-rewrite-toggle"' . $hidden . '>',
+        '#after' => '</div>',
     );
-    $form['advanced']['rewrite']['with_front'] = array(
+    $form['rewrite-with_front'] = array(
         '#type' => 'checkbox',
-        '#force_boolean' => true,
         '#title' => __('Allow permalinks to be prepended with front base',
                 'wpcf'),
         '#name' => 'ct[rewrite][with_front]',
@@ -393,7 +384,7 @@ function wpcf_admin_custom_types_form() {
         '#default_value' => !empty($ct['rewrite']['with_front']),
         '#inline' => true,
     );
-    $form['advanced']['rewrite']['feeds'] = array(
+    $form['rewrite-feeds'] = array(
         '#type' => 'checkbox',
         '#name' => 'ct[rewrite][feeds]',
         '#title' => __('Feeds'),
@@ -402,7 +393,7 @@ function wpcf_admin_custom_types_form() {
         '#value' => 1,
         '#inline' => true,
     );
-    $form['advanced']['rewrite']['pages'] = array(
+    $form['rewrite-pages'] = array(
         '#type' => 'checkbox',
         '#name' => 'ct[rewrite][pages]',
         '#title' => __('Pages'),
@@ -412,24 +403,29 @@ function wpcf_admin_custom_types_form() {
         '#inline' => true,
     );
     $show_in_menu_page = isset($ct['show_in_menu_page']) ? $ct['show_in_menu_page'] : '';
-    $form['advanced']['vars'] = array(
+    $hidden = !empty($ct['show_in_menu']) ? '' : ' class="hidden"';
+    $form['vars'] = array(
         '#type' => 'checkboxes',
         '#name' => 'ct[vars]',
+        '#inline' => true,
         '#options' => array(
             'has_archive' => array(
                 '#name' => 'ct[has_archive]',
                 '#default_value' => !empty($ct['has_archive']),
                 '#title' => __('has_archive', 'wpcf'),
-                '#description' => __('Allow custom type to have index page.',
-                        'wpcf') . '<br />' . __('Default: not set.', 'wpcf')),
+                '#description' => __('Allow custom post type to have index page.',
+                        'wpcf') . '<br />' . __('Default: not set.', 'wpcf'),
+                '#inline' => true,
+            ),
             'show_in_menu' => array(
                 '#name' => 'ct[show_in_menu]',
                 '#default_value' => !empty($ct['show_in_menu']),
                 '#title' => __('show_in_menu', 'wpcf'),
                 '#description' => __('Whether to show the post type in the admin menu and where to show that menu. Note that show_ui must be true.',
                         'wpcf') . '<br />' . __('Default: null.', 'wpcf'),
-                '#after' => '<input type="text" name="ct[show_in_menu_page]" value="' . $show_in_menu_page . '" />&nbsp;' . __("Top level page like 'tools.php' or 'edit.php?post_type=page'",
-                        'wpcf') . '<br /><br />',
+                '#after' => '<div id="wpcf-types-form-showinmenu-toggle"' . $hidden . '><input type="text" name="ct[show_in_menu_page]" style="width:50%;" value="' . $show_in_menu_page . '" /><div class="description wpcf-form-description wpcf-form-description-checkbox description-checkbox">' . __('Optional.', 'wpcf') . ' ' . __("Top level page like 'tools.php' or 'edit.php?post_type=page'" . '</div>',
+                        'wpcf') . '</div>',
+                '#inline' => true,
             ),
             'show_ui' => array(
                 '#name' => 'ct[show_ui]',
@@ -437,51 +433,68 @@ function wpcf_admin_custom_types_form() {
                 '#title' => __('show_ui', 'wpcf'),
                 '#description' => __('Generate a default UI for managing this post type.',
                         'wpcf') . '<br />' . __('Default: value of public argument.',
-                        'wpcf')),
+                        'wpcf'),
+                '#inline' => true,
+            ),
             'publicly_queryable' => array(
                 '#name' => 'ct[publicly_queryable]',
                 '#default_value' => !empty($ct['publicly_queryable']),
                 '#title' => __('publicly_queryable', 'wpcf'),
                 '#description' => __('Whether post_type queries can be performed from the front end.',
                         'wpcf') . '<br />' . __('Default: value of public argument.',
-                        'wpcf')),
+                        'wpcf'),
+                '#inline' => true,
+            ),
             'exclude_from_search' => array(
                 '#name' => 'ct[exclude_from_search]',
                 '#default_value' => !empty($ct['exclude_from_search']),
                 '#title' => __('exclude_from_search', 'wpcf'),
                 '#description' => __('Whether to exclude posts with this post type from search results.',
                         'wpcf') . '<br />' . __('Default: value of the opposite of the public argument.',
-                        'wpcf')),
+                        'wpcf'),
+                '#inline' => true,
+            ),
             'hierarchical' => array(
                 '#name' => 'ct[hierarchical]',
                 '#default_value' => !empty($ct['hierarchical']),
                 '#title' => __('hierarchical', 'wpcf'),
                 '#description' => __('Whether the post type is hierarchical. Allows Parent to be specified.',
-                        'wpcf') . '<br />' . __('Default: false.', 'wpcf')),
+                        'wpcf') . '<br />' . __('Default: false.', 'wpcf'),
+                '#inline' => true,
+            ),
             'can_export' => array(
                 '#name' => 'ct[can_export]',
                 '#default_value' => !empty($ct['can_export']),
                 '#title' => __('can_export', 'wpcf'),
                 '#description' => __('Can this post_type be exported.', 'wpcf') . '<br />' . __('Default: true.',
-                        'wpcf')),
+                        'wpcf'),
+                '#inline' => true,
+            ),
             'show_in_nav_menus' => array(
                 '#name' => 'ct[show_in_nav_menus]',
                 '#default_value' => !empty($ct['show_in_nav_menus']),
                 '#title' => __('show_in_nav_menus', 'wpcf'),
                 '#description' => __('Whether post_type is available for selection in navigation menus.',
                         'wpcf') . '<br />' . __('Default: value of public argument.',
-                        'wpcf')),
+                        'wpcf'),
+                '#inline' => true,
+            ),
         ),
     );
-    $form['advanced']['query_var'] = array(
-        '#type' => 'textfield',
-        '#name' => 'ct[query_var]',
+    $query_var = isset($ct['query_var']) ? $ct['query_var'] : '';
+    $hidden = !empty($ct['query_var_enabled']) ? '' : ' class="hidden"';
+    $form['query_var'] = array(
+        '#type' => 'checkbox',
+        '#name' => 'ct[query_var_enabled]',
         '#title' => 'query_var',
-        '#description' => __('String to customize query_var. Leave empty to use default.',
-                'wpcf'),
-        '#value' => isset($ct['query_var']) ? $ct['query_var'] : '',
+        '#description' => __('False to prevent queries, or string value of the query var to use for this post type.',
+                'wpcf') . '<br />' . __('Default: true - set to $post_type.'),
+        '#default_value' => !empty($ct['query_var_enabled']),
+        '#after' => '<div id="wpcf-types-form-queryvar-toggle"' . $hidden . '><input type="text" name="ct[query_var]" value="' . $query_var . '" style="width:50%;" /><div class="description wpcf-form-description wpcf-form-description-checkbox description-checkbox">' . __('Optional', 'wpcf') . '. ' . __('String to customize query var',
+                'wpcf') . '</div></div>',
+        '#inline' => true,
     );
-    $form['advanced']['permalink_epmask'] = array(
+    $form['permalink_epmask'] = array(
         '#type' => 'textfield',
         '#name' => 'ct[permalink_epmask]',
         '#title' => __('Permalink epmask', 'wpcf'),
@@ -489,10 +502,16 @@ function wpcf_admin_custom_types_form() {
                         'wpcf'),
                 '<a href="http://core.trac.wordpress.org/ticket/12605" target="_blank">link</a>'),
         '#value' => isset($ct['permalink_epmask']) ? $ct['permalink_epmask'] : '',
+        '#inline' => true,
     );
+    $form['table-6-close'] = array(
+        '#type' => 'markup',
+        '#markup' => '</td></tr></tbody></table>',
+    );
+
     $form['submit'] = array(
         '#type' => 'markup',
-        '#markup' => get_submit_button(__('Save Type', 'wpcf')),
+        '#markup' => get_submit_button(__('Save Custom Post Type', 'wpcf')),
     );
 
     return $form;
@@ -538,8 +557,7 @@ function wpcf_admin_custom_types_form_submit($form) {
     }
 
     if (empty($post_type)) {
-        wpcf_admin_message(__('Please set post type name', 'wpcf'),
-                'error');
+        wpcf_admin_message(__('Please set post type name', 'wpcf'), 'error');
 //        $form->triggerError();
         return false;
     }
@@ -549,8 +567,7 @@ function wpcf_admin_custom_types_form_submit($form) {
 
     // Check overwriting
     if (!$update && array_key_exists($post_type, $custom_types)) {
-        wpcf_admin_message(__('Custom type already exists', 'wpcf'),
-                'error');
+        wpcf_admin_message(__('Custom post type already exists', 'wpcf'), 'error');
 //            $form->triggerError();
         return false;
     }
@@ -567,8 +584,16 @@ function wpcf_admin_custom_types_form_submit($form) {
         unset($custom_types[$data['wpcf-post-type']]);
     }
 
+    // Check if active
+    if (isset($custom_types[$post_type]['disabled'])) {
+        $data['disabled'] = $custom_types[$post_type]['disabled'];
+    }
+
     $custom_types[$post_type] = $data;
     update_option('wpcf-custom-types', $custom_types);
+    
+    wpcf_admin_message_store(__('Custom post type saved', 'wpcf'));
+    
 
     // Redirect
     wp_redirect(admin_url('admin.php?page=wpcf-edit-type&wpcf-post-type=' . $post_type . '&wpcf-rewrite=1'));

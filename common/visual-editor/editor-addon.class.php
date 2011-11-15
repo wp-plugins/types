@@ -8,7 +8,13 @@ if (!class_exists('Editor_addon')) {
         
         if($pagenow == 'post.php' || $pagenow == 'post-new.php'){
             wp_enqueue_style('editor_addon_menu', plugins_url() . '/' . basename(dirname(dirname(dirname(__FILE__)))) . '/common/' . basename(dirname(__FILE__)) . '/res/css/pro_dropdown_2.css');
+            wp_enqueue_style('editor_addon_menu_scroll', plugins_url() . '/' . basename(dirname(dirname(dirname(__FILE__)))) . '/common/' . basename(dirname(__FILE__)) . '/res/css/scroll.css');
+            wp_enqueue_script('editor_addon_menu_scrollbar', plugins_url() . '/' . basename(dirname(dirname(dirname(__FILE__)))) . '/common/' . basename(dirname(__FILE__)) . '/res/js/scrollbar.js', array('jquery'));
+            wp_enqueue_script('editor_addon_menu_mousewheel', plugins_url() . '/' . basename(dirname(dirname(dirname(__FILE__)))) . '/common/' . basename(dirname(__FILE__)) . '/res/js/mousewheel.js', array('editor_addon_menu_scrollbar'));
         }
+    }
+    if(is_admin()){
+        add_action('admin_print_scripts', 'editor_add_js');
     }
 
     class Editor_addon {
@@ -31,12 +37,14 @@ if (!class_exists('Editor_addon')) {
             
 //            add_action('media_buttons', array($this, 'media_buttons'), 11);
 //            wp_enqueue_style('editor_addon', plugins_url() . '/' . basename(dirname(dirname(dirname(__FILE__)))) . '/common/' . basename(dirname(__FILE__)) . '/res/css/style.css');
+
             
         }
     
         function __destruct(){
             
         }
+
     
         /*
          
@@ -57,7 +65,10 @@ if (!class_exists('Editor_addon')) {
             $this->items[] = array($text, $shortcode, $menu, $function_name);
         }
         
-        function add_form_button($context) {
+        function add_form_button($context, $text_area = 'textarea#content') {
+            
+            // Apply filters
+            $this->items = apply_filters('editor_addon_items_' . $this->name, $this->items);
             
             // sort the items into menu levels.
             
@@ -79,47 +90,40 @@ if (!class_exists('Editor_addon')) {
                 
             }
             
+            // Apply filters
+            $menus = apply_filters('editor_addon_menus_' . $this->name, $menus);
+            
+            $this->_media_menu_direct_links = array();
+            $menus_output = $this->_output_media_menu($menus, $text_area);
+            $direct_links = implode(' ', $this->_media_menu_direct_links);
             $out = '
-
-<span class="preload1"></span>
-<span class="preload2"></span>
-            
-<ul id="editor_addon">
-	<li class="top"><a href="#nogo27" id="contacts" class="top_link"><span class="down"><img src="' . $this->media_button_image . '"></span></a>
-		<ul class="sub">';
-        
-            $out .= $this->_output_media_menu($menus);
-            
-            $out .= '         
-		</ul>
-	</li>
-</ul>
-';
-            
+<ul class="editor_addon_wrapper"><li><img src="' . $this->media_button_image . '"><ul class="editor_addon_dropdown"><li><div class="title">' . $this->button_text . '</div><div class="close">&nbsp;</div></li><li><div class="direct-links">' . $direct_links . '</div><div class="scroll">' . $menus_output . '</div></li></ul></li></ul>';
             return $context . $out;
+            
         }
 
-        function _output_media_menu($menu) {
-            
+        function _output_media_menu($menu, $text_area) {
+
             $out = '';
             foreach ($menu as $key => $menu_item) {
                 if (isset($menu_item[0]) && !is_array($menu_item[0])) {
                     if ($menu_item[3] != '') {
-                        $out .= '<li><a href="#" onclick="'. $menu_item[3] . '">' . $menu_item[0] . "</a></li>\n";
+                        $out .= '<a href="javascript:void(0);" class="item" onclick="'. $menu_item[3] . '">' . $menu_item[0] . "</a>\n";
                     } else {
                         $short_code = '[' . str_replace('"', '\\\'', $menu_item[1]) . ']';
-                        $out .= '<li><a href="#" onclick="jQuery(\'textarea#content\').insertAtCaret(\'' . $short_code . '\')">' . $menu_item[0] . "</a></li>\n";
+                        $out .= '<a href="javascript:void(0);" class="item" onclick="insert_shortcode_to_editor(\'' . $short_code . '\', \'' . $text_area . '\')">' . $menu_item[0] . "</a>\n";
                     }
                 } else {
                     // a sum menu.
-                    $out .= '<li><a href="#" class="fly">' . $key . "</a>\n<ul>\n";
-                    $out .= $this->_output_media_menu($menu_item);
-                    $out .= "</ul>\n</li>\n";
+                    $this->_media_menu_direct_links[] = '<a href="javascript:void(0);" class="editor-addon-top-link" id="editor-addon-link-' . md5($key) . '">' . $key . ' </a>';
+                    $out .= '<div class="group"><div class="group-title" id="editor-addon-link-' . md5($key) . '-target">' . $key . "&nbsp;&nbsp;\n</div>\n";
+                    $out .= $this->_output_media_menu($menu_item, $text_area);
+                    $out .= "</div>\n";
                 }
             }
                 
             return $out;
-
+            
             
         }
         
@@ -198,18 +202,15 @@ if (!class_exists('Editor_addon')) {
         
     }
     
-    if(is_admin()){
+    
+    function editor_add_js() {
         global $pagenow;
         
         if($pagenow == 'post.php' || $pagenow == 'post-new.php'){
-            add_action('admin_print_scripts', 'editor_add_js');
+            $url = plugins_url() . '/' . dirname(plugin_basename(__FILE__));
+            
+            wp_enqueue_script( 'icl_editor-script' , $url . '/res/js/icl_editor_addon_plugin.js', array());
         }
-    }
-    
-    function editor_add_js() {
-        $url = plugins_url() . '/' . dirname(plugin_basename(__FILE__));
-        
-        wp_enqueue_script( 'icl_editor-script' , $url . '/res/js/icl_editor_addon_plugin.js', array());
     }
 }
 

@@ -4,9 +4,12 @@ require_once( WPCF_ABSPATH . '/common/visual-editor/editor-addon.class.php');
 /*
  * Admin functions
  */
-add_action('admin_init', 'wpcf_admin_init_hook');
+add_action('init', 'wpcf_admin_init_hook');
 add_action('admin_menu', 'wpcf_admin_menu_hook');
-add_action('wp_ajax_wpcf_ajax', 'wpcf_ajax');
+if (defined('DOING_AJAX')) {
+    require_once WPCF_INC_ABSPATH . '/ajax.php';
+    add_action('wp_ajax_wpcf_ajax', 'wpcf_ajax');
+}
 
 /**
  * admin_init hook.
@@ -39,6 +42,45 @@ function wpcf_admin_init_hook() {
         add_filter('media_upload_tabs',
                 'wpcf_fields_file_media_upload_tabs_filter');
     }
+
+    register_post_type('wp-types-group',
+            array(
+        'public' => false,
+        'label' => 'Types Groups',
+            )
+    );
+
+    add_filter('icl_custom_fields_to_be_copied',
+            'wpcf_custom_fields_to_be_copied', 10, 2);
+
+    // WPML editor filters
+    add_filter('icl_editor_cf_name', 'wpcf_icl_editor_cf_name_filter');
+    add_filter('icl_editor_cf_description',
+            'wpcf_icl_editor_cf_description_filter', 10, 2);
+    add_filter('icl_editor_cf_style', 'wpcf_icl_editor_cf_style_filter', 10, 2);
+}
+
+/**
+ * wpcf_custom_fields_to_be_copied
+ *
+ * Hook the copy custom fields from WPML and remove any of the fields
+ * that wpcf will copy.
+ */
+function wpcf_custom_fields_to_be_copied($copied_fields, $original_post_id) {
+
+    // see if this is one of our fields.
+    $groups = wpcf_admin_post_get_post_groups_fields(get_post($original_post_id));
+
+    foreach ($copied_fields as $id => $copied_field) {
+        foreach ($groups as $group) {
+            foreach ($group['fields'] as $field) {
+                if ($copied_field == WPCF_META_PREFIX . $field['slug']) {
+                    unset($copied_fields[$id]);
+                }
+            }
+        }
+    }
+    return $copied_fields;
 }
 
 /**
@@ -59,27 +101,57 @@ function wpcf_admin_save_post_hook($post_ID, $post) {
 function wpcf_admin_menu_hook() {
     add_menu_page('Types', 'Types', 'manage_options', 'wpcf',
             'wpcf_admin_menu_summary', WPCF_RES_RELPATH . '/images/logo-16.png');
-    $hook = add_submenu_page('wpcf', __('Groups and Fields', 'wpcf'),
-            __('Groups and Fields', 'wpcf'), 'manage_options', 'wpcf',
+    $hook = add_submenu_page('wpcf', __('Custom Fields', 'wpcf'),
+            __('Custom Fields', 'wpcf'), 'manage_options', 'wpcf',
             'wpcf_admin_menu_summary');
+    add_contextual_help($hook, wpcf_admin_plugin_help('wpcf'));
     add_action('load-' . $hook, 'wpcf_admin_menu_summary_hook');
-    $hook = add_submenu_page('wpcf', __('Add New Group', 'wpcf'),
-            __('Add New Group', 'wpcf'), 'manage_options', 'wpcf-edit',
-            'wpcf_admin_menu_edit_fields');
-    add_action('load-' . $hook, 'wpcf_admin_menu_edit_fields_hook');
     // Custom types and tax
     $hook = add_submenu_page('wpcf', __('Custom Types and Taxonomies', 'wpcf'),
             __('Custom Types and Taxonomies', 'wpcf'), 'manage_options',
             'wpcf-ctt', 'wpcf_admin_menu_summary_ctt');
     add_action('load-' . $hook, 'wpcf_admin_menu_summary_ctt_hook');
-    $hook = add_submenu_page('wpcf', __('Add New Type', 'wpcf'),
-            __('Add New Type', 'wpcf'), 'manage_options', 'wpcf-edit-type',
-            'wpcf_admin_menu_edit_type');
-    add_action('load-' . $hook, 'wpcf_admin_menu_edit_type_hook');
-    $hook = add_submenu_page('wpcf', __('Add New Taxonomy', 'wpcf'),
-            __('Add New Taxonomy', 'wpcf'), 'manage_options', 'wpcf-edit-tax',
-            'wpcf_admin_menu_edit_tax');
-    add_action('load-' . $hook, 'wpcf_admin_menu_edit_tax_hook');
+    add_contextual_help($hook, wpcf_admin_plugin_help('wpcf-ctt'));
+    // Import/Export
+    $hook = add_submenu_page('wpcf', __('Import/Export', 'wpcf'),
+            __('Import/Export', 'wpcf'), 'manage_options', 'wpcf-import-export',
+            'wpcf_admin_menu_import_export');
+    add_action('load-' . $hook, 'wpcf_admin_menu_import_export_hook');
+    add_contextual_help($hook, wpcf_admin_plugin_help('wpcf-import-export'));
+
+    if (isset($_GET['page'])) {
+        switch ($_GET['page']) {
+            case 'wpcf-edit':
+                $title = isset($_GET['group_id']) ? __('Edit Group', 'wpcf') : __('Add New Group',
+                                'wpcf');
+                $hook = add_submenu_page('wpcf', $title, $title,
+                        'manage_options', 'wpcf-edit',
+                        'wpcf_admin_menu_edit_fields');
+                add_action('load-' . $hook, 'wpcf_admin_menu_edit_fields_hook');
+                add_contextual_help($hook, wpcf_admin_plugin_help('wpcf-edit'));
+                break;
+
+            case 'wpcf-edit-type':
+                $title = isset($_GET['wpcf-post-type']) ? __('Edit Custom Post Type',
+                                'wpcf') : __('Add New Custom Post Type', 'wpcf');
+                $hook = add_submenu_page('wpcf', $title, $title,
+                        'manage_options', 'wpcf-edit-type',
+                        'wpcf_admin_menu_edit_type');
+                add_action('load-' . $hook, 'wpcf_admin_menu_edit_type_hook');
+                add_contextual_help($hook, wpcf_admin_plugin_help('wpcf-edit-type'));
+                break;
+
+            case 'wpcf-edit-tax':
+                $title = isset($_GET['wpcf-tax']) ? __('Edit Taxonomy', 'wpcf') : __('Add New Taxonomy',
+                                'wpcf');
+                $hook = add_submenu_page('wpcf', $title, $title,
+                        'manage_options', 'wpcf-edit-tax',
+                        'wpcf_admin_menu_edit_tax');
+                add_action('load-' . $hook, 'wpcf_admin_menu_edit_tax_hook');
+                add_contextual_help($hook, wpcf_admin_plugin_help('wpcf-edit-tax'));
+                break;
+        }
+    }
 }
 
 /**
@@ -124,7 +196,7 @@ function wpcf_admin_menu_summary_hook() {
  * Menu page display.
  */
 function wpcf_admin_menu_summary() {
-    echo wpcf_add_admin_header(__('Groups', 'wpcf'));
+    echo wpcf_add_admin_header(__('Custom Fields', 'wpcf'));
     require_once WPCF_INC_ABSPATH . '/fields.php';
     require_once WPCF_INC_ABSPATH . '/fields-list.php';
     wpcf_admin_fields_list();
@@ -148,6 +220,14 @@ function wpcf_admin_menu_edit_fields_hook() {
             WPCF_RES_RELPATH . '/js/'
             . 'jquery-form-validation/additional-methods.min.js',
             array('jquery'), WPCF_VERSION);
+    wp_enqueue_style('wpcf-scroll',
+            WPCF_RELPATH . '/common/visual-editor/res/css/scroll.css');
+    wp_enqueue_script('wpcf-scrollbar',
+            WPCF_RELPATH . '/common/visual-editor/res/js/scrollbar.js',
+            array('jquery'));
+    wp_enqueue_script('wpcf-mousewheel',
+            WPCF_RELPATH . '/common/visual-editor/res/js/mousewheel.js',
+            array('wpcf-scrollbar'));
     add_action('admin_footer', 'wpcf_admin_fields_form_js_validation');
     require_once WPCF_INC_ABSPATH . '/fields.php';
     require_once WPCF_INC_ABSPATH . '/fields-form.php';
@@ -162,7 +242,7 @@ function wpcf_admin_menu_edit_fields() {
     if (isset($_GET['group_id'])) {
         $title = __('Edit Group', 'wpcf');
     } else {
-        $title = __('Add New', 'wpcf');
+        $title = __('Add New Group', 'wpcf');
     }
     echo wpcf_add_admin_header($title);
     $form = wpcf_form('wpcf_form_fields');
@@ -183,6 +263,7 @@ function wpcf_admin_menu_summary_ctt_hook() {
     wp_enqueue_style('wpcf-ctt', WPCF_RES_RELPATH . '/css/basic.css', array(),
             WPCF_VERSION);
     require_once WPCF_INC_ABSPATH . '/custom-types.php';
+    require_once WPCF_INC_ABSPATH . '/custom-taxonomies.php';
     require_once WPCF_INC_ABSPATH . '/custom-types-taxonomies-list.php';
 }
 
@@ -190,7 +271,7 @@ function wpcf_admin_menu_summary_ctt_hook() {
  * Menu page display.
  */
 function wpcf_admin_menu_summary_ctt() {
-    echo wpcf_add_admin_header(__('Custom Types and Taxonomies', 'wpcf'));
+    echo wpcf_add_admin_header(__('Custom Post Types and Taxonomies', 'wpcf'));
     wpcf_admin_ctt_list();
     echo wpcf_add_admin_footer();
 }
@@ -223,16 +304,85 @@ function wpcf_admin_menu_edit_type_hook() {
  * Menu page display.
  */
 function wpcf_admin_menu_edit_type() {
-    if (isset($_GET['type_id'])) {
-        $title = __('Edit Type', 'wpcf');
+    if (isset($_GET['wpcf-post-type'])) {
+        $title = __('Edit Custom Post Type', 'wpcf');
     } else {
-        $title = __('Add New Type', 'wpcf');
+        $title = __('Add New Custom Post Type', 'wpcf');
     }
     echo wpcf_add_admin_header($title);
     $form = wpcf_form('wpcf_form_types');
     echo '<br /><form method="post" action="" class="wpcf-types-form '
     . 'wpcf-form-validate">';
     echo $form->renderForm();
+    echo '</form>';
+    echo wpcf_add_admin_footer();
+}
+
+/**
+ * Menu page hook.
+ */
+function wpcf_admin_menu_edit_tax_hook() {
+    wp_enqueue_script('wpcf-tax-edit', WPCF_RES_RELPATH . '/js/basic.js',
+            array('jquery', 'jquery-ui-sortable', 'jquery-ui-draggable'),
+            WPCF_VERSION);
+    wp_enqueue_style('wpcf-tax-edit', WPCF_RES_RELPATH . '/css/basic.css',
+            array(), WPCF_VERSION);
+    wp_enqueue_script('wpcf-form-validation',
+            WPCF_RES_RELPATH . '/js/'
+            . 'jquery-form-validation/jquery.validate.min.js', array('jquery'),
+            WPCF_VERSION);
+    wp_enqueue_script('wpcf-form-validation-additional',
+            WPCF_RES_RELPATH . '/js/'
+            . 'jquery-form-validation/additional-methods.min.js',
+            array('jquery'), WPCF_VERSION);
+    add_action('admin_footer', 'wpcf_admin_tax_form_js_validation');
+    require_once WPCF_INC_ABSPATH . '/custom-taxonomies.php';
+    require_once WPCF_INC_ABSPATH . '/custom-taxonomies-form.php';
+    $form = wpcf_admin_custom_taxonomies_form();
+    wpcf_form('wpcf_form_tax', $form);
+}
+
+/**
+ * Menu page display.
+ */
+function wpcf_admin_menu_edit_tax() {
+    if (isset($_GET['wpcf-tax'])) {
+        $title = __('Edit Taxonomy', 'wpcf');
+    } else {
+        $title = __('Add New Taxonomy', 'wpcf');
+    }
+    echo wpcf_add_admin_header($title);
+    $form = wpcf_form('wpcf_form_tax');
+    echo '<br /><form method="post" action="" class="wpcf-tax-form '
+    . 'wpcf-form-validate">';
+    echo $form->renderForm();
+    echo '</form>';
+    echo wpcf_add_admin_footer();
+}
+
+/**
+ * Menu page hook.
+ */
+function wpcf_admin_menu_import_export_hook() {
+    wp_enqueue_style('wpcf-import-export', WPCF_RES_RELPATH . '/css/basic.css',
+            array(), WPCF_VERSION);
+    require_once WPCF_INC_ABSPATH . '/fields.php';
+    require_once WPCF_INC_ABSPATH . '/import-export.php';
+    if (extension_loaded('simplexml') && isset($_POST['export'])
+            && wp_verify_nonce($_POST['_wpnonce'], 'wpcf_import')) {
+        wpcf_admin_export_data();
+        die();
+    }
+}
+
+/**
+ * Menu page display.
+ */
+function wpcf_admin_menu_import_export() {
+    echo wpcf_add_admin_header(__('Import/Export', 'wpcf'));
+    echo '<br /><form method="post" action="" class="wpcf-import-export-form '
+    . 'wpcf-form-validate" enctype="multipart/form-data">';
+    echo wpcf_form_simple(wpcf_admin_import_export_form());
     echo '</form>';
     echo wpcf_add_admin_footer();
 }
@@ -355,10 +505,13 @@ function wpcf_form_render_js_validation($form = '.wpcf-form-validate') {
         highlight: function(element, errorClass, validClass) {
             jQuery(element).parents(\'.collapsible\').slideDown();
             jQuery("input#publish").addClass("button-primary-disabled");
+            jQuery("input#save-post").addClass("button-disabled");
+            jQuery("#save-action .ajax-loading").css("visibility", "hidden");
+            jQuery("#publishing-action #ajax-loading").css("visibility", "hidden");
 //            jQuery.validator.defaults.highlight(element, errorClass, validClass); // Do not add class to element
 		},
         unhighlight: function(element, errorClass, validClass) {
-			jQuery("input#publish").removeClass("button-primary-disabled");
+			jQuery("input#publish, input#save-post").removeClass("button-primary-disabled").removeClass("button-disabled");
 //            jQuery.validator.defaults.unhighlight(element, errorClass, validClass);
 		},
     });' . "\r\n";
@@ -378,9 +531,10 @@ function wpcf_form_render_js_validation($form = '.wpcf-form-validate') {
             if (empty($args['message'])) {
                 $args['message'] = wpcf_admin_validation_messages($method);
             }
-            if (!empty($args['message'])) {
-                $messages[] = $method . ': "' . $args['message'] . '"';
-            }
+            // TODO Why is this here?
+//            if (!empty($args['message'])) {
+//                $messages[] = $method . ': "' . wpcf_translate('field ' . $element['wpcf-id'] . ' validation message ' . $method, $args['message']) . '"';
+//            }
         }
         echo implode(',' . "\r\n", $rules);
         if (!empty($messages)) {
@@ -395,6 +549,7 @@ function wpcf_form_render_js_validation($form = '.wpcf-form-validate') {
 
 function wpcf_admin_add_js_settings($id, $setting = '') {
     static $settings = array();
+    $settings['wpcf_nonce_ajax_callback'] = '\'' . wp_create_nonce('execute') . '\'';
     if ($id == 'get') {
         $temp = $settings;
         $settings = array();
@@ -433,7 +588,7 @@ function wpcf_admin_validation_messages($method = false) {
     $messages = array(
         'required' => __('This Field is required', 'wpcf'),
         'email' => __('Please enter a valid email address', 'wpcf'),
-        'url' => __('Please enter a valid email address', 'wpcf'),
+        'url' => __('Please enter a valid URL address', 'wpcf'),
         'date' => __('Please enter a valid date', 'wpcf'),
         'digits' => __('Please enter numeric data', 'wpcf'),
         'number' => __('Please enter numeric data', 'wpcf'),
@@ -483,7 +638,10 @@ function wpcf_show_admin_messages() {
  */
 function wpcf_admin_message_store($message, $class = 'updated') {
     $messages = get_option('wpcf-messages', array());
-    $messages[get_current_user_id()][md5($message)] = array('message' => $message, 'class' => $class);
+    $messages[get_current_user_id()][md5($message)] = array(
+        'message' => $message,
+        'class' => $class
+    );
     update_option('wpcf-messages', $messages);
 }
 
@@ -569,8 +727,9 @@ function wpcf_admin_ajax_head($title) {
             do_action('admin_print_styles');
             do_action("admin_print_scripts-$hook_suffix");
             do_action('admin_print_scripts');
-            do_action("admin_head-$hook_suffix");
-            do_action('admin_head');
+            // TODO Check if needed
+//            do_action("admin_head-$hook_suffix");
+//            do_action('admin_head');
             do_action('admin_head_wpcf_ajax');
 
             ?>
@@ -650,202 +809,110 @@ function wpcf_admin_form_fieldset_is_collapsed($fieldset) {
 }
 
 /**
- * All AJAX calls go here.
+ * Adds help on admin pages.
+ * 
+ * @param type $contextual_help
+ * @param type $screen_id
+ * @param type $screen
+ * @return type 
  */
-function wpcf_ajax() {
-    switch ($_REQUEST['wpcf_action']) {
-        case 'fields_insert':
-            require_once WPCF_INC_ABSPATH . '/fields.php';
-            require_once WPCF_INC_ABSPATH . '/fields-form.php';
-            wpcf_fields_insert_ajax();
-            wpcf_form_render_js_validation();
-            break;
+function wpcf_admin_plugin_help($page) {
+    $call = false;
+    $contextual_help = '';
+    $page = $page;
+    if (isset($page)) {
+        switch ($page) {
+            case 'wpcf':
+                $call = 'custom_fields';
+                break;
 
-        case 'fields_insert_existing':
-            require_once WPCF_INC_ABSPATH . '/fields.php';
-            require_once WPCF_INC_ABSPATH . '/fields-form.php';
-            wpcf_fields_insert_existing_ajax();
-            wpcf_form_render_js_validation();
-            break;
+            case 'wpcf-ctt':
+                $call = 'custom_types_and_taxonomies';
+                break;
 
-        case 'remove_field_from_group':
-            require_once WPCF_INC_ABSPATH . '/fields.php';
-            wpcf_admin_fields_remove_field_from_group($_GET['group_id'],
-                    $_GET['field_id']);
-            break;
+            case 'wpcf-import-export':
+                $call = 'import_export';
+                break;
 
-        case 'deactivate_group':
-            require_once WPCF_INC_ABSPATH . '/fields.php';
-            $success = wpcf_admin_fields_deactivate_group(intval($_GET['group_id']));
-            if ($success) {
-                echo json_encode(array(
-                    'output' => __('Group deactivated', 'wpcf'),
-                    'execute' => 'jQuery("#wpcf-list-activate-'
-                    . intval($_GET['group_id']) . '").replaceWith(\''
-                    . wpcf_admin_fields_get_ajax_activation_link(intval($_GET['group_id']))
-                    . '\');jQuery(".wpcf-table-column-active-'
-                    . intval($_GET['group_id']) . '").html("' . __('No') . '");',
-                ));
-            } else {
-                echo json_encode(array(
-                    'output' => __('Error occured', 'wpcf')
-                ));
-            }
-            break;
+            case 'wpcf-edit':
+                $call = 'edit_group';
+                break;
 
-        case 'activate_group':
-            require_once WPCF_INC_ABSPATH . '/fields.php';
-            $success = wpcf_admin_fields_activate_group(intval($_GET['group_id']));
-            if ($success) {
-                echo json_encode(array(
-                    'output' => __('Group activated', 'wpcf'),
-                    'execute' => 'jQuery("#wpcf-list-activate-'
-                    . intval($_GET['group_id']) . '").replaceWith(\''
-                    . wpcf_admin_fields_get_ajax_deactivation_link(intval($_GET['group_id']))
-                    . '\');jQuery(".wpcf-table-column-active-'
-                    . intval($_GET['group_id']) . '").html("' . __('Yes') . '");',
-                ));
-            } else {
-                echo json_encode(array(
-                    'output' => __('Error occured', 'wpcf')
-                ));
-            }
-            break;
+            case 'wpcf-edit-type':
+                $call = 'edit_type';
+                break;
 
-        case 'delete_group':
-            require_once WPCF_INC_ABSPATH . '/fields.php';
-            wpcf_admin_fields_delete_group(intval($_GET['group_id']));
-            echo json_encode(array(
-                'output' => '',
-                'execute' => 'jQuery("#wpcf-list-activate-'
-                . intval($_GET['group_id'])
-                . '").parents("tr").css("background-color", "#FF0000").fadeOut();',
-            ));
-            break;
-
-        case 'deactivate_post_type':
-            if (!isset($_GET['wpcf-post-type'])) {
-                die();
-            }
-            require_once WPCF_INC_ABSPATH . '/custom-types.php';
-            $custom_types = get_option('wpcf-custom-types', array());
-            if (isset($custom_types[$_GET['wpcf-post-type']])) {
-                $custom_types[$_GET['wpcf-post-type']]['disabled'] = 1;
-                update_option('wpcf-custom-types', $custom_types);
-                echo json_encode(array(
-                    'output' => __('Post type deactivated', 'wpcf'),
-                    'execute' => 'jQuery("#wpcf-list-activate-'
-                    . $_GET['wpcf-post-type'] . '").replaceWith(\''
-                    . wpcf_admin_custom_types_get_ajax_activation_link($_GET['wpcf-post-type'])
-                    . '\');jQuery(".wpcf-table-column-active-'
-                    . $_GET['wpcf-post-type'] . '").html("' . __('No') . '");',
-                ));
-            } else {
-                echo json_encode(array(
-                    'output' => __('Error occured', 'wpcf')
-                ));
-            }
-            break;
-
-        case 'activate_post_type':
-            if (!isset($_GET['wpcf-post-type'])) {
-                die();
-            }
-            require_once WPCF_INC_ABSPATH . '/custom-types.php';
-            $custom_types = get_option('wpcf-custom-types', array());
-            if (isset($custom_types[$_GET['wpcf-post-type']])) {
-                $custom_types[$_GET['wpcf-post-type']]['disabled'] = 0;
-                update_option('wpcf-custom-types', $custom_types);
-                echo json_encode(array(
-                    'output' => __('Post type activated', 'wpcf'),
-                    'execute' => 'jQuery("#wpcf-list-activate-'
-                    . $_GET['wpcf-post-type'] . '").replaceWith(\''
-                    . wpcf_admin_custom_types_get_ajax_deactivation_link($_GET['wpcf-post-type'])
-                    . '\');jQuery(".wpcf-table-column-active-'
-                    . $_GET['wpcf-post-type'] . '").html("' . __('Yes') . '");',
-                ));
-            } else {
-                echo json_encode(array(
-                    'output' => __('Error occured', 'wpcf')
-                ));
-            }
-            break;
-
-        case 'delete_post_type':
-            if (!isset($_GET['wpcf-post-type'])) {
-                die();
-            }
-            $custom_types = get_option('wpcf-custom-types', array());
-            unset($custom_types[$_GET['wpcf-post-type']]);
-            update_option('wpcf-custom-types', $custom_types);
-            echo json_encode(array(
-                'output' => '',
-                'execute' => 'jQuery("#wpcf-list-activate-'
-                . $_GET['wpcf-post-type']
-                . '").parents("tr").css("background-color", "#FF0000").fadeOut();',
-            ));
-            break;
-
-        case 'add_radio_option':
-            require_once WPCF_INC_ABSPATH . '/fields/radio.php';
-            $element = wpcf_fields_radio_get_option(
-                    urldecode($_GET['parent_name']));
-            echo json_encode(array(
-                'output' => wpcf_form_simple($element)
-            ));
-            break;
-
-        case 'add_select_option':
-            require_once WPCF_INC_ABSPATH . '/fields/select.php';
-            $element = wpcf_fields_select_get_option(
-                    urldecode($_GET['parent_name']));
-            echo json_encode(array(
-                'output' => wpcf_form_simple($element)
-            ));
-            break;
-
-        case 'editor_insert_date':
-            require_once WPCF_INC_ABSPATH . '/fields/date.php';
-            wpcf_fields_date_editor_form();
-            break;
-
-        case 'insert_skype_button':
-            require_once WPCF_INC_ABSPATH . '/fields/skype.php';
-            wpcf_fields_skype_meta_box_ajax();
-            break;
-
-        case 'editor_callback':
-            require_once WPCF_INC_ABSPATH . '/fields.php';
-            $field = wpcf_admin_fields_get_field($_GET['field_id']);
-            if (!empty($field)) {
-                $file = WPCF_INC_ABSPATH . '/fields/' . $field['type'] . '.php';
-                if (file_exists($file)) {
-                    require_once $file;
-                    $function = 'wpcf_fields_' . $field['type'] . '_editor_callback';
-                    if (function_exists($function)) {
-                        call_user_func($function);
-                    }
-                }
-            }
-            break;
-
-        case 'group_form_collapsed':
-            require_once WPCF_INC_ABSPATH . '/fields-form.php';
-            $group_id = $_GET['group_id'];
-            $action = $_GET['toggle'];
-            $fieldset = $_GET['id'];
-            wpcf_admin_fields_form_save_open_fieldset($action, $fieldset,
-                    $group_id);
-            break;
-
-        case 'form_fieldset_toggle':
-            $action = $_GET['toggle'];
-            $fieldset = $_GET['id'];
-            wpcf_admin_form_fieldset_save_toggle($action, $fieldset);
-            break;
-
-        default:
-            break;
+            case 'wpcf-edit-tax':
+                $call = 'edit_tax';
+                break;
+        }
     }
-    die();
+    if ($call) {
+        require_once WPCF_ABSPATH . '/help.php';
+        $contextual_help = wpcf_admin_help($call, $contextual_help);
+    }
+    return $contextual_help;
+}
+
+/**
+ * WPML editor filter
+ * 
+ * @param type $cf_name
+ * @return type 
+ */
+function wpcf_icl_editor_cf_name_filter($cf_name) {
+    require_once WPCF_INC_ABSPATH . '/fields.php';
+    $fields = wpcf_admin_fields_get_fields();
+    if (empty($fields)) {
+        return $cf_name;
+    }
+    $field_id = str_replace('field-' . WPCF_META_PREFIX, '', $cf_name);
+    if (isset($fields[$field_id]['name'])) {
+        $cf_name = wpcf_translate('field ' . $fields[$field_id]['id'] . ' name',
+                $fields[$field_id]['name']);
+    }
+    return $cf_name;
+}
+
+/**
+ * WPML editor filter
+ * 
+ * @param type $cf_name
+ * @param type $description
+ * @return type 
+ */
+function wpcf_icl_editor_cf_description_filter($description, $cf_name) {
+    require_once WPCF_INC_ABSPATH . '/fields.php';
+    $fields = wpcf_admin_fields_get_fields();
+    if (empty($fields)) {
+        return $description;
+    }
+    $field_id = str_replace('field-' . WPCF_META_PREFIX, '', $cf_name);
+    if (isset($fields[$field_id]['description'])) {
+        $description = wpcf_translate('field ' . $fields[$field_id]['id'] . ' description',
+                $fields[$field_id]['description']);
+    }
+
+    return $description;
+}
+
+/**
+ * WPML editor filter
+ * 
+ * @param type $cf_name
+ * @param type $style
+ * @return type 
+ */
+function wpcf_icl_editor_cf_style_filter($style, $cf_name) {
+    require_once WPCF_INC_ABSPATH . '/fields.php';
+    $fields = wpcf_admin_fields_get_fields();
+    if (empty($fields)) {
+        return $style;
+    }
+    $field_id = str_replace('field-' . WPCF_META_PREFIX, '', $cf_name);
+    if (isset($fields[$field_id]['type']) && $fields[$field_id]['type'] == 'textarea') {
+        $style = 1;
+    }
+
+    return $style;
 }

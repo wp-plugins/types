@@ -64,6 +64,7 @@ function wpcf_custom_types_default() {
         'publicly_queryable' => true,
         'exclude_from_search' => false,
         'hierarchical' => false,
+        'query_var_enabled' => true,
         'query_var' => '',
         'can_export' => true,
         'show_in_nav_menus' => true,
@@ -109,7 +110,6 @@ function wpcf_custom_types_register($post_type, $data) {
                 case 'new_item':
                 case 'view_item':
                 case 'parent_item_colon':
-                case 'menu_name':
                     $data['labels'][$label_key] = sprintf($label,
                             $data['labels']['singular_name']);
                     break;
@@ -118,38 +118,48 @@ function wpcf_custom_types_register($post_type, $data) {
                 case 'all_items':
                 case 'not_found':
                 case 'not_found_in_trash':
+                case 'menu_name':
                     $data['labels'][$label_key] = sprintf($label,
                             $data['labels']['name']);
                     break;
             }
         }
     }
-    $data['description'] = isset($data['description']) ? htmlspecialchars(stripslashes($data['description']),
+    $data['description'] = !empty($data['description']) ? htmlspecialchars(stripslashes($data['description']),
                     ENT_QUOTES) : '';
-    $data['public'] = isset($data['public']);
-    $data['publicly_queryable'] = isset($data['publicly_queryable']);
-    $data['exclude_from_search'] = isset($data['exclude_from_search']);
-    $data['show_ui'] = isset($data['show_ui']);
+    $data['public'] = (empty($data['public']) || strval($data['public']) == 'hidden') ? false : true;
+    $data['publicly_queryable'] = !empty($data['publicly_queryable']);
+    $data['exclude_from_search'] = !empty($data['exclude_from_search']);
+    $data['show_ui'] = (empty($data['show_ui']) || !$data['public']) ? false : true;
     $data['menu_position'] = !empty($data['menu_position']) ? intval($data['menu_position']) : 20;
-    $data['hierarchical'] = isset($data['hierarchical']);
+    $data['hierarchical'] = !empty($data['hierarchical']);
     $data['supports'] = !empty($data['supports']) && is_array($data['supports']) ? array_keys($data['supports']) : array();
     $data['taxonomies'] = !empty($data['taxonomies']) && is_array($data['taxonomies']) ? array_keys($data['taxonomies']) : array();
-    $data['has_archive'] = isset($data['has_archive']);
-    $data['can_export'] = isset($data['can_export']);
-    $data['show_in_nav_menus'] = isset($data['show_in_nav_menus']);
-    $data['show_in_menu'] = isset($data['show_in_menu']);
-    if (empty($data['query_var'])) {
-        unset($data['query_var']);
+    $data['has_archive'] = !empty($data['has_archive']);
+    $data['can_export'] = !empty($data['can_export']);
+    $data['show_in_nav_menus'] = !empty($data['show_in_nav_menus']);
+    $data['show_in_menu'] = !empty($data['show_in_menu']);
+    if (empty($data['query_var_enabled'])) {
+        $data['query_var'] = false;
+    } else if (empty($data['query_var'])) {
+        $data['query_var'] = true;
     }
     if (!empty($data['show_in_menu_page'])) {
         $data['show_in_menu'] = $data['show_in_menu_page'];
     }
     if (empty($data['menu_icon'])) {
         unset($data['menu_icon']);
+    } else {
+        $data['menu_icon'] = stripslashes($data['menu_icon']);
     }
-    if (isset($data['rewrite']['enabled']) && $data['rewrite']['enabled']) {
-        $data['rewrite']['feeds'] = isset($data['rewrite']['feeds']);
-        $data['rewrite']['pages'] = isset($data['rewrite']['pages']);
+    if (!empty($data['rewrite']['enabled'])) {
+        $data['rewrite']['with_front'] = !empty($data['rewrite']['with_front']);
+        $data['rewrite']['feeds'] = !empty($data['rewrite']['feeds']);
+        $data['rewrite']['pages'] = !empty($data['rewrite']['pages']);
+        if (!empty($data['rewrite']['custom']) && $data['rewrite']['custom'] != 'custom') {
+            unset($data['rewrite']['slug']);
+        }
+        unset($data['rewrite']['custom']);
     } else {
         $data['rewrite'] = false;
     }
@@ -163,9 +173,11 @@ function wpcf_custom_types_register($post_type, $data) {
  * @return type 
  */
 function wpcf_admin_custom_types_get_ajax_activation_link($post_type) {
-    return '<a href="' . admin_url('admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=activate_post_type&amp;wpcf-post-type='
+    return '<a href="' . admin_url('admin-ajax.php?action=wpcf_ajax&amp;'
+                    . 'wpcf_action=activate_post_type&amp;wpcf-post-type='
                     . $post_type . '&amp;wpcf_ajax_update=wpcf_list_ajax_response_'
-                    . $post_type) . '" class="wpcf-ajax-link" id="wpcf-list-activate-'
+                    . $post_type) . '&amp;_wpnonce=' . wp_create_nonce('activate_post_type')
+            . '" class="wpcf-ajax-link" id="wpcf-list-activate-'
             . $post_type . '">'
             . __('Activate') . '</a>';
 }
@@ -176,9 +188,11 @@ function wpcf_admin_custom_types_get_ajax_activation_link($post_type) {
  * @return type 
  */
 function wpcf_admin_custom_types_get_ajax_deactivation_link($post_type) {
-    return '<a href="' . admin_url('admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=deactivate_post_type&amp;wpcf-post-type='
+    return '<a href="' . admin_url('admin-ajax.php?action=wpcf_ajax&amp;'
+                    . 'wpcf_action=deactivate_post_type&amp;wpcf-post-type='
                     . $post_type . '&amp;wpcf_ajax_update=wpcf_list_ajax_response_'
-                    . $post_type) . '" class="wpcf-ajax-link" id="wpcf-list-activate-'
+                    . $post_type) . '&amp;_wpnonce=' . wp_create_nonce('deactivate_post_type')
+            . '" class="wpcf-ajax-link" id="wpcf-list-activate-'
             . $post_type . '">'
             . __('Deactivate') . '</a>';
 }

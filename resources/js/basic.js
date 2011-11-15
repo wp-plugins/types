@@ -1,15 +1,21 @@
+var wpcfFormGroupsSupportPostTypeState = new Array();
+var wpcfFormGroupsSupportTaxState = new Array();
+
 jQuery(document).ready(function(){
     // Only for adding group
     jQuery('.wpcf-fields-add-ajax-link').click(function(){
         jQuery.ajax({
             url: jQuery(this).attr('href'),
             beforeSend: function() {
+                jQuery('#wpcf-fields-under-title').hide();
                 jQuery('#wpcf-ajax-response').addClass('wpcf-ajax-loading');
             },
             success: function(data) {
                 jQuery('#wpcf-ajax-response').removeClass('wpcf-ajax-loading');
                 jQuery('#wpcf-fields-sortable').append(data);
-                jQuery('#wpcf-fields-sortable .ui-draggable:last').find('input:first').focus();
+                jQuery('#wpcf-fields-sortable .ui-draggable:last').find('input:first').focus().select();
+                var scrollToHeight = jQuery('#wpcf-fields-sortable .ui-draggable:last').offset();
+                window.scrollTo(0, scrollToHeight.top);
             }
         });
         return false;
@@ -46,7 +52,7 @@ jQuery(document).ready(function(){
             var collapsed = jQuery(this).parent().attr('id');
             
             // For group form save fieldset toggle per group
-            if (jQuery(this).parent().hasClass('wpcf-fields-form')) {
+            if (jQuery(this).parents('form').hasClass('wpcf-fields-form')) {
                 // Get group id
                 var group_id = false;
                 if (jQuery('input:[name="group-id"]').length > 0) {
@@ -57,19 +63,22 @@ jQuery(document).ready(function(){
                 jQuery.ajax({
                     url: ajaxurl,
                     type: 'get',
-                    data: 'action=wpcf_ajax&wpcf_action=group_form_collapsed&id='+collapsed+'&toggle='+toggle+'&group_id='+group_id
+                    data: 'action=wpcf_ajax&wpcf_action=group_form_collapsed&id='+collapsed+'&toggle='+toggle+'&group_id='+group_id+'&_wpnonce='+wpcf_nonce_toggle_group
                 });
             } else {
                 jQuery.ajax({
                     url: ajaxurl,
                     type: 'get',
-                    data: 'action=wpcf_ajax&wpcf_action=form_fieldset_toggle&id='+collapsed+'&toggle='+toggle
+                    data: 'action=wpcf_ajax&wpcf_action=form_fieldset_toggle&id='+collapsed+'&toggle='+toggle+'&_wpnonce'+wpcf_nonce_toggle_fieldset
                 });
             }
         });
     });
     jQuery('.wpcf-forms-set-legend').live('keyup', function(){
         jQuery(this).parents('fieldset').find('.wpcf-legend-update').html(jQuery(this).val());
+    });
+    jQuery('.wpcf-form-groups-radio-update-title-display-value').live('keyup', function(){
+        jQuery('#'+jQuery(this).attr('id')+'-display-value').prev('label').html(jQuery(this).val());
     });
     jQuery('.form-error').parents('.collapsed').slideDown();
     jQuery('.wpcf-form input').live('focus', function(){
@@ -140,28 +149,26 @@ jQuery(document).ready(function(){
             cache: false,
             beforeSend: function() {
                 if (update != false) {
-                    jQuery('#'+update).html('').show();
+                    jQuery('#'+update).html('').show().addClass('wpcf-ajax-loading-small');
                 }
             },
             success: function(data) {
                 if (data != null) {
                     if (typeof data.output != 'undefined') {
                         if (update != false) {
-                            jQuery('#'+update).html(data.output).fadeOut(2000);
-                        //                        if (data.output.length < 1) {
-                        //                            jQuery('#'+update).fadeOut();
-                        //                        }
+                            jQuery('#'+update).removeClass('wpcf-ajax-loading-small').html(data.output);
                         }
                         if (updateAdd != false) {
                             if (data.output.length < 1) {
                                 jQuery('#'+updateAdd).fadeOut();
                             }
-                            //                        jQuery('.calcium-ajax-loader-small').remove();
                             jQuery('#'+updateAdd).append(data.output);
                         }
                     }
-                    if (typeof data.execute != 'undefined') {
-                        eval(data.execute);
+                    if (typeof data.execute != 'undefined'
+                        && (typeof data.wpcf_nonce_ajax_callback != 'undefined'
+                        && data.wpcf_nonce_ajax_callback == wpcf_nonce_ajax_callback)) {
+                            eval(data.execute);
                     }
                 }
                 if (callback != false) {
@@ -170,6 +177,77 @@ jQuery(document).ready(function(){
             }
         });
         return false;
+    });
+    
+    //    Update post types and taxonomies
+    // TODO REMOVE
+    //    jQuery('.wpcf-groups-form-ajax-update-post-type, .wpcf-groups-form-ajax-update-tax').click(function(){
+    //        var data = jQuery(this).parent().children('input').serialize();
+    //        var urlSplit = jQuery(this).attr('href').split("&delimiter");
+    //        jQuery(this).attr('href', urlSplit[0]+'&delimiter&'+data);
+    //    });
+
+    jQuery('.wpcf-form-groups-support-post-type').each(function(){
+        if (jQuery(this).is(':checked')) {
+            window.wpcfFormGroupsSupportPostTypeState.push(jQuery(this).attr('id'));
+        }
+    });
+    
+    jQuery('.wpcf-form-groups-support-tax').each(function(){
+        if (jQuery(this).is(':checked')) {
+            window.wpcfFormGroupsSupportTaxState.push(jQuery(this).attr('id'));
+        }
+    });
+    
+    // Add scroll to user created fieldset if necessary
+    if (jQuery('#wpcf-form-groups-user-fields').length > 0) {
+        var wpcfFormGroupsUserCreatedFieldsHeight = Math.round(jQuery('#wpcf-form-groups-user-fields').height());
+        var wpcfScreenHeight = Math.round(jQuery(window).height());
+        var wpcfFormGroupsUserCreatedFieldsOffset = jQuery('#wpcf-form-groups-user-fields').offset();
+        if (wpcfFormGroupsUserCreatedFieldsHeight+wpcfFormGroupsUserCreatedFieldsOffset.top > wpcfScreenHeight) {
+            var wpcfFormGroupsUserCreatedFieldsHeightResize = Math.round(wpcfScreenHeight-wpcfFormGroupsUserCreatedFieldsOffset.top-40);
+            jQuery('#wpcf-form-groups-user-fields').height(wpcfFormGroupsUserCreatedFieldsHeightResize);
+            jQuery('#wpcf-form-groups-user-fields .fieldset-wrapper').height(wpcfFormGroupsUserCreatedFieldsHeightResize-15);
+            jQuery('#wpcf-form-groups-user-fields .fieldset-wrapper').jScrollPane();
+        }
+        jQuery('.wpcf-form-fields-align-right').css('position', 'fixed');
+    }
+    
+    // Types form
+    jQuery('input:[name="ct[public]"]').change(function(){
+        if (jQuery(this).val() == 'public') {
+            jQuery('#wpcf-types-form-visiblity-toggle').slideDown();
+        } else {
+            jQuery('#wpcf-types-form-visiblity-toggle').slideUp();
+        }
+    });
+    jQuery('input:[name="ct[rewrite][custom]"]').change(function(){
+        if (jQuery(this).val() == 'custom') {
+            jQuery('#wpcf-types-form-rewrite-toggle').slideDown();
+        } else {
+            jQuery('#wpcf-types-form-rewrite-toggle').slideUp();
+        }
+    });
+    jQuery('.wpcf-tax-form input:[name="ct[rewrite][enabled]"]').change(function(){
+        if (jQuery(this).is(':checked')) {
+            jQuery('#wpcf-types-form-rewrite-toggle').slideDown();
+        } else {
+            jQuery('#wpcf-types-form-rewrite-toggle').slideUp();
+        }
+    });
+    jQuery('input:[name="ct[show_in_menu]"]').change(function(){
+        if (jQuery(this).is(':checked')) {
+            jQuery('#wpcf-types-form-showinmenu-toggle').slideDown();
+        } else {
+            jQuery('#wpcf-types-form-showinmenu-toggle').slideUp();
+        }
+    });
+    jQuery('input:[name="ct[query_var_enabled]"]').change(function(){
+        if (jQuery(this).is(':checked')) {
+            jQuery('#wpcf-types-form-queryvar-toggle').slideDown();
+        } else {
+            jQuery('#wpcf-types-form-queryvar-toggle').slideUp();
+        }
     });
 });
 
@@ -195,4 +273,13 @@ function wpcfFieldsFormDeleteElement(data, element) {
     element.parent().fadeOut(function(){
         element.parent().remove();
     });
+}
+
+/**
+ * Set count for options
+ */
+function wpcfFieldsFormCountOptions(obj) {
+    var count = wpcfGetParameterByName('count', obj.attr('href'));
+    count++;
+    obj.attr('href',  obj.attr('href').replace(/count=*./, 'count='+count));
 }

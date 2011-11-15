@@ -50,13 +50,13 @@ class Wpcf_Validate
         // Loop over validation array
         foreach ($args as $method => $v) {
             // Use this class method
-            if (is_callable('Wpcf_Validate::' . $method)) {
+            if (method_exists('Wpcf_Validate',  $method)) {
                 $check = call_user_func_array(array('Wpcf_Validate', $method),
                         array($v, $value));
                 // Use CakePHP method
             } else if ((isset(self::$_cake_aliases[$method])
-                    && is_callable('Wpcf_Cake_Validation::' . self::$_cake_aliases[$method]))
-                    || is_callable('Wpcf_Cake_Validation::' . $method)) {
+                    && method_exists('Wpcf_Cake_Validation', self::$_cake_aliases[$method]))
+                    || method_exists('Wpcf_Cake_Validation', $method)) {
 
                 // Check if validation pattern is set
                 if (isset($v['pattern'])) {
@@ -75,7 +75,7 @@ class Wpcf_Validate
                 }
 
                 // Validate
-                if (is_callable('Wpcf_Cake_Validation::' . self::$_cake_aliases[$method])) {
+                if (isset(self::$_cake_aliases[$method]) && method_exists('Wpcf_Cake_Validation', self::$_cake_aliases[$method])) {
                     $check = @call_user_func_array(array('Wpcf_Cake_Validation', self::$_cake_aliases[$method]),
                                     array_values($v));
                 } else {
@@ -113,10 +113,10 @@ class Wpcf_Validate
      */
     public static function canValidate($method)
     {
-        return (is_callable('Wpcf_Validate::' . $method)
+        return (method_exists('Wpcf_Validate',  $method)
         || (isset(self::$_cake_aliases[$method])
-        && is_callable('Wpcf_Cake_Validation::' . self::$_cake_aliases[$method]))
-        || is_callable('Wpcf_Cake_Validation::' . $method));
+        && method_exists('Wpcf_Cake_Validation', self::$_cake_aliases[$method]))
+        || method_exists('Wpcf_Cake_Validation',  $method));
     }
 
     /**
@@ -127,7 +127,7 @@ class Wpcf_Validate
      */
     public static function hasForm($method)
     {
-        return is_callable('Wpcf_Validate::' . $method . '_form');
+        return method_exists('Wpcf_Validate', $method . '_form');
     }
 
     /**
@@ -382,11 +382,11 @@ class Wpcf_Validate
     {
         return array(
             '#type' => 'textfield',
-            '#title' => __('Custom message', 'wpcf'),
+//            '#title' => __('Custom message', 'wpcf'),
             '#name' => $field['#name'] . '[message]',
             '#value' => !empty($data['message']) ? $data['message'] : $default,
             '#inline' => true,
-            '#suffix' => '<br /><br />',
+//            '#suffix' => '<br /><br />',
         );
     }
 

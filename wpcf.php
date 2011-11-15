@@ -2,22 +2,22 @@
 /*
   Plugin Name: Types
   Plugin URI: http://wordpress.org/extend/plugins/types/
-  Description: A flexible GUI for managing custom fields on different content types. Allows grouping fields together, includes a drag-and-drop interface for arranging fields, data validation and placement selection.
+  Description: Define custom post types, custom taxonomy and custom fields.
   Author: ICanLocalize
-  Author URI: http://wpml.org
-  Version: 0.0.9
+  Author URI: http://wp-types.com
+  Version: 0.9
  */
-define('WPCF_VERSION', '0.0.9');
+define('WPCF_VERSION', '0.9');
 define('WPCF_ABSPATH', dirname(__FILE__));
 define('WPCF_RELPATH', plugins_url() . '/' . basename(WPCF_ABSPATH));
 define('WPCF_INC_ABSPATH', WPCF_ABSPATH . '/includes');
 define('WPCF_INC_RELPATH', WPCF_RELPATH . '/includes');
 define('WPCF_RES_ABSPATH', WPCF_ABSPATH . '/resources');
 define('WPCF_RES_RELPATH', WPCF_RELPATH . '/resources');
+require_once WPCF_INC_ABSPATH . '/constants.inc';
 
 add_action('plugins_loaded', 'wpcf_init');
 register_activation_hook(__FILE__, 'wpcf_upgrade_init');
-//register_deactivation_hook($file, $function);
 
 /**
  * Main init hook.
@@ -29,17 +29,26 @@ function wpcf_init() {
         require_once WPCF_ABSPATH . '/frontend.php';
     }
     // Init custom types
-    add_action('init', 'wpcf_init_custom_types');
+    add_action('init', 'wpcf_init_custom_types_taxonomies');
+    // TODO resolve this
+    if (defined('DOING_AJAX')) {
+        require_once WPCF_ABSPATH . '/frontend.php';
+    }
 }
 
 /**
- * Inits custom types.
+ * Inits custom types and taxonomies.
  */
-function wpcf_init_custom_types() {
+function wpcf_init_custom_types_taxonomies() {
     $custom_types = get_option('wpcf-custom-types', array());
     if (!empty($custom_types)) {
         require_once WPCF_INC_ABSPATH . '/custom-types.php';
         wpcf_custom_types_init();
+    }
+    $custom_taxonomies = get_option('wpcf-custom-taxonomies', array());
+    if (!empty($custom_taxonomies)) {
+        require_once WPCF_INC_ABSPATH . '/custom-taxonomies.php';
+        wpcf_custom_taxonomies_init();
     }
 }
 
@@ -64,7 +73,6 @@ function wpcf_translate($name, $string) {
     }
     return icl_t('plugin Types', $name, $string);
 }
-
 
 /**
  * Returns meta_key type for specific field type.

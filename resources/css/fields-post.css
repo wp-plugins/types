@@ -25,6 +25,13 @@ img.ui-datepicker-trigger {
     width: auto;
     border: 1px solid #A0A0A0;
 }
-#side-info-column .wpcf-form-textfield {
+.wpcf-form-textfield,
+.wpcf-form-textarea {
+    width: 100%;
+}
+.wpcf-fields-file-textfield {
+    width: 70%;
+}
+#side-info-column .wpcf-fields-file-textfield {
     width: 130px;
 }

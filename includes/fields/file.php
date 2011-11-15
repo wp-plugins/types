@@ -1,6 +1,22 @@
 <?php
 /**
- * File field type.
+ * Types-field: File
+ *
+ * Description: Displays a file upload or input to the user.
+ *
+ * Rendering: Raw DB data (file URI) or link to file.
+ * 
+ * Parameters:
+ * 'raw' => 'true'|'false' (display raw data stored in DB, default false)
+ * 'output' => 'html' (wrap data in HTML, optional)
+ * 'show_name' => 'true' (show field name before value e.g. My date: $value)
+ * 'link' => 'true'|'false'
+ * 'title' => link title ('link' parameter must be 'true') e.g. 'Download'
+ *
+ * Example usage:
+ * With a short code use [types field="my-file"]
+ * In a theme use types_render_field("my-file", $parameters)
+ * 
  */
 
 /**
@@ -20,31 +36,6 @@ function wpcf_fields_file() {
             )
         ),
     );
-}
-
-/**
- * Form data for group form.
- * 
- * @return type 
- */
-function wpcf_fields_file_insert_form() {
-    $form['name'] = array(
-        '#type' => 'textfield',
-        '#title' => __('Name of custom field', 'wpcf'),
-        '#description' => __('Under this name field will be stored in DB (sanitized)',
-                'wpcf'),
-        '#name' => 'name',
-        '#attributes' => array('class' => 'wpcf-forms-set-legend'),
-        '#validate' => array('required' => array('value' => true)),
-    );
-    $form['description'] = array(
-        '#type' => 'textarea',
-        '#title' => __('Description', 'wpcf'),
-        '#description' => __('Text that describes function to user', 'wpcf'),
-        '#name' => 'description',
-        '#attributes' => array('rows' => 5, 'cols' => 1),
-    );
-    return $form;
 }
 
 /**
@@ -78,18 +69,26 @@ function wpcf_fields_file_meta_box_form($field, $image = false) {
         }
     }
 
+    // Set button
+    if (isset($field['disable'])) {
+        $button = '';
+    } else {
+        $button = '<a href="javascript:void(0);"'
+                . ' class="wpcf-fields-' . $type . '-upload-link button-secondary"'
+                . ' id="wpcf-fields-' . $field['slug'] . '-upload">'
+                . $button_text . '</a>';
+    }
+
     // Set form
     $form = array(
         '#type' => 'textfield',
         '#id' => 'wpcf-fields-' . $field['slug'] . '-upload-holder',
         '#name' => 'wpcf[' . $field['slug'] . ']',
-        '#suffix' => '&nbsp;<a href="javascript:void(0);"'
-        . ' class="wpcf-fields-' . $type . '-upload-link button-secondary"'
-        . ' id="wpcf-fields-' . $field['slug'] . '-upload">'
-        . $button_text . '</a>',
+        '#suffix' => '&nbsp;' . $button,
         '#after' => '<div id="wpcf-fields-' . $field['slug']
         . '-upload-holder-preview"'
         . ' class="wpcf-fields-file-preview">' . $preview . '</div>',
+        '#attributes' => array('class' => 'wpcf-fields-file-textfield'),
     );
     return $form;
 }
@@ -184,13 +183,16 @@ function wpcf_fields_file_view($params) {
             $add .= ' title="' . $params['field_value'] . '"';
             $title .= $params['field_value'];
         }
+        if (!empty($params['class'])) {
+            $add .= ' class="' . $params['class'] . '"';
+        }
         $output = '<a href="' . $params['field_value'] . '"' . $add . '>'
                 . $title . '</a>';
     } else {
         $output = $params['field_value'];
     }
 
-    $output = wpcf_frontend_wrap_field_value($params['field'], $output);
+    $output = wpcf_frontend_wrap_field_value($params['field'], $output, $params);
     $output = wpcf_frontend_wrap_field($params['field'], $output, $params);
 
     return $output;
@@ -225,7 +227,7 @@ function wpcf_fields_file_editor_callback() {
     // Get attachment
     $attachment_id = false;
     if ($post_ID) {
-        $file = get_post_meta($post_ID, 'wpcf-' . $field['slug'], true);
+        $file = get_post_meta($post_ID, WPCF_META_PREFIX . $field['slug'], true);
         if (!empty($file)) {
             // Get attachment by guid
             global $wpdb;
@@ -281,6 +283,7 @@ function wpcf_fields_file_editor_submit() {
             $add .= ' title="' . strval($_POST['title']) . '"';
         }
     }
+    $add .= ' class=""';
     $field = wpcf_admin_fields_get_field($_GET['field_id']);
     if (!empty($field)) {
         $shortcode = wpcf_fields_get_shortcode($field, $add);

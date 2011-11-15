@@ -1,4 +1,26 @@
 <?php
+/**
+ * Types-field: Date
+ *
+ * Description: Displays a datepicker to the user.
+ *
+ * Rendering: Date is stored in seconds (time()) but displayed as date
+ * formatted.
+ * 
+ * Parameters:
+ * 'raw' => 'true'|'false' (display raw data stored in DB, default false)
+ * 'output' => 'html' (wrap data in HTML, optional)
+ * 'show_name' => 'true' (show field name before value e.g. My date: $value)
+ * 'style' => 'text'|'calendar' (display text or WP calendar)
+ * 'format' => defaults to WP date format settings, can be any valid date format
+ *     e.g. "j/n/Y"
+ *
+ * Example usage:
+ * With a short code use [types field="my-date"]
+ * In a theme use types_render_field("my-date", $parameters)
+ * 
+ */
+
 add_filter('wpcf_fields_type_date_value_get',
         'wpcf_fields_date_value_get_filter');
 add_filter('wpcf_fields_type_date_value_save',
@@ -42,7 +64,7 @@ function wpcf_fields_date() {
 function wpcf_fields_date_meta_box_form($field) {
     return array(
         '#type' => 'textfield',
-        '#attributes' => array('class' => 'wpcf-datepicker'),
+        '#attributes' => array('class' => 'wpcf-datepicker', 'style' => 'width:150px;'),
     );
 }
 
@@ -56,17 +78,21 @@ function wpcf_fields_date_meta_box_js_inline() {
         //<![CDATA[
         jQuery(document).ready(function(){
             if (jQuery.isFunction(jQuery.fn.datepicker)) {
-                jQuery('.wpcf-datepicker').datepicker({
-                    showOn: "button",
-                    buttonImage: "<?php echo WPCF_RES_RELPATH; ?>/images/calendar.gif",
-                    buttonImageOnly: true,
-                    buttonText: "<?php _e('Select date',
-            'wpcf'); ?>"
-                        });
+                jQuery('.wpcf-datepicker').each(function(index) {
+                    if (!jQuery(this).is(':disabled')) {
+                            jQuery(this).datepicker({
+                            showOn: "button",
+                            buttonImage: "<?php echo WPCF_RES_RELPATH; ?>/images/calendar.gif",
+                            buttonImageOnly: true,
+                            buttonText: "<?php _e('Select date',
+                    'wpcf'); ?>"
+                                });
+                        }
+                    });
                     }
                 });
                 function wpcfFieldsDateEditorCallback(field_id) {
-                    var url = "<?php echo admin_url('admin-ajax.php'); ?>?action=wpcf_ajax&wpcf_action=editor_insert_date&field_id="+field_id+"&keepThis=true&TB_iframe=true&width=400&height=400";
+                    var url = "<?php echo admin_url('admin-ajax.php'); ?>?action=wpcf_ajax&wpcf_action=editor_insert_date&_wpnonce=<?php echo wp_create_nonce('fields_insert'); ?>&field_id="+field_id+"&keepThis=true&TB_iframe=true&width=400&height=400";
                     tb_show("<?php _e('Insert date',
             'wpcf'); ?>", url);
                 }
@@ -119,17 +145,31 @@ function wpcf_fields_date_view($params) {
 
         default:
             $field_name = '';
-            $field_value = wpcf_frontend_wrap_field_value($params['field'], date($params['format'], intval($params['field_value'])));
-            $output = wpcf_frontend_wrap_field($field, $field_value, $params);
+            $field_value = wpcf_frontend_wrap_field_value($params['field'],
+                    date($params['format'], intval($params['field_value'])),
+                    $params);
+            $output = wpcf_frontend_wrap_field($params['field'], $field_value,
+                    $params);
             break;
     }
 
     return $output;
 }
 
+/**
+ * Calendar view.
+ * 
+ * @global type $wpdb
+ * @global type $m
+ * @global type $wp_locale
+ * @global type $posts
+ * @param type $params
+ * @param type $initial
+ * @param type $echo
+ * @return type 
+ */
 function wpcf_fields_date_get_calendar($params, $initial = true, $echo = true) {
 
-//    global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;
     global $wpdb, $m, $wp_locale, $posts;
 
     // wpcf Set our own date
@@ -154,16 +194,6 @@ function wpcf_fields_date_get_calendar($params, $initial = true, $echo = true) {
 
     if (!is_array($cache))
         $cache = array();
-
-    // Quick check. If we have no posts at all, abort!
-//    if (!$posts) {
-//        $gotsome = $wpdb->get_var("SELECT 1 as test FROM $wpdb->posts WHERE post_type = 'post' AND post_status = 'publish' LIMIT 1");
-//        if (!$gotsome) {
-//            $cache[$key] = '';
-//            wp_cache_set('get_calendar', $cache, 'calendar');
-//            return;
-//        }
-//    }
 
     if (isset($_GET['w']))
         $w = '' . intval($_GET['w']);
@@ -194,20 +224,6 @@ function wpcf_fields_date_get_calendar($params, $initial = true, $echo = true) {
     $unixmonth = mktime(0, 0, 0, $thismonth, 1, $thisyear);
     $last_day = date('t', $unixmonth);
 
-    // Get the next and previous month and year with at least one post
-//    $previous = $wpdb->get_row("SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
-//		FROM $wpdb->posts
-//		WHERE post_date < '$thisyear-$thismonth-01'
-//		AND post_type = 'post' AND post_status = 'publish'
-//			ORDER BY post_date DESC
-//			LIMIT 1");
-//    $next = $wpdb->get_row("SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
-//		FROM $wpdb->posts
-//		WHERE post_date > '$thisyear-$thismonth-{$last_day} 23:59:59'
-//		AND post_type = 'post' AND post_status = 'publish'
-//			ORDER BY post_date ASC
-//			LIMIT 1");
-
     /* translators: Calendar caption: 1: month name, 2: 4-digit year */
     $calendar_caption = _x('%1$s %2$s', 'calendar caption');
     $calendar_output = '<table id="wp-calendar" summary="' . esc_attr__('Calendar') . '">
@@ -235,79 +251,13 @@ function wpcf_fields_date_get_calendar($params, $initial = true, $echo = true) {
 	<tfoot>
 	<tr>';
 
-//    if ($previous) {
-//        $calendar_output .= "\n\t\t" . '<td colspan="3" id="prev"><a href="' . get_month_link($previous->year,
-//                        $previous->month) . '" title="' . esc_attr(sprintf(__('View posts for %1$s %2$s'),
-//                                $wp_locale->get_month($previous->month),
-//                                date('Y',
-//                                        mktime(0, 0, 0, $previous->month, 1,
-//                                                $previous->year)))) . '">&laquo; ' . $wp_locale->get_month_abbrev($wp_locale->get_month($previous->month)) . '</a></td>';
-//    } else {
-//        $calendar_output .= "\n\t\t" . '<td colspan="3" id="prev" class="pad">&nbsp;</td>';
-//    }
-//
-//    $calendar_output .= "\n\t\t" . '<td class="pad">&nbsp;</td>';
-//
-//    if ($next) {
-//        $calendar_output .= "\n\t\t" . '<td colspan="3" id="next"><a href="' . get_month_link($next->year,
-//                        $next->month) . '" title="' . esc_attr(sprintf(__('View posts for %1$s %2$s'),
-//                                $wp_locale->get_month($next->month),
-//                                date('Y',
-//                                        mktime(0, 0, 0, $next->month, 1,
-//                                                $next->year)))) . '">' . $wp_locale->get_month_abbrev($wp_locale->get_month($next->month)) . ' &raquo;</a></td>';
-//    } else {
-//        $calendar_output .= "\n\t\t" . '<td colspan="3" id="next" class="pad">&nbsp;</td>';
-//    }
-
     $calendar_output .= '
 	</tr>
 	</tfoot>
 
 	<tbody>
 	<tr>';
-
-    // Get days with posts
-//    $dayswithposts = $wpdb->get_results("SELECT DISTINCT DAYOFMONTH(post_date)
-//		FROM $wpdb->posts WHERE post_date >= '{$thisyear}-{$thismonth}-01 00:00:00'
-//		AND post_type = 'post' AND post_status = 'publish'
-//		AND post_date <= '{$thisyear}-{$thismonth}-{$last_day} 23:59:59'",
-//                    ARRAY_N);
-//    if ($dayswithposts) {
-//        foreach ((array) $dayswithposts as $daywith) {
-//            $daywithpost[] = $daywith[0];
-//        }
-//    } else {
-//        $daywithpost = array();
-//    }
-//
-//    if (strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== false || stripos($_SERVER['HTTP_USER_AGENT'],
-//                    'camino') !== false || stripos($_SERVER['HTTP_USER_AGENT'],
-//                    'safari') !== false)
-//        $ak_title_separator = "\n";
-//    else
-//        $ak_title_separator = ', ';
-//
-//    $ak_titles_for_day = array();
-//    $ak_post_titles = $wpdb->get_results("SELECT ID, post_title, DAYOFMONTH(post_date) as dom "
-//                    . "FROM $wpdb->posts "
-//                    . "WHERE post_date >= '{$thisyear}-{$thismonth}-01 00:00:00' "
-//                    . "AND post_date <= '{$thisyear}-{$thismonth}-{$last_day} 23:59:59' "
-//                    . "AND post_type = 'post' AND post_status = 'publish'"
-//    );
-//    if ($ak_post_titles) {
-//        foreach ((array) $ak_post_titles as $ak_post_title) {
-//
-//            $post_title = esc_attr(apply_filters('the_title',
-//                            $ak_post_title->post_title, $ak_post_title->ID));
-//
-//            if (empty($ak_titles_for_day['day_' . $ak_post_title->dom]))
-//                $ak_titles_for_day['day_' . $ak_post_title->dom] = '';
-//            if (empty($ak_titles_for_day["$ak_post_title->dom"])) // first one
-//                $ak_titles_for_day["$ak_post_title->dom"] = $post_title;
-//            else
-//                $ak_titles_for_day["$ak_post_title->dom"] .= $ak_title_separator . $post_title;
-//        }
-//    }
+    
     // See how much we should pad in the beginning
     $pad = calendar_week_mod(date('w', $unixmonth) - $week_begins);
     if (0 != $pad)
@@ -332,11 +282,7 @@ function wpcf_fields_date_get_calendar($params, $initial = true, $echo = true) {
         } else {
             $calendar_output .= $day;
         }
-//        if (in_array($day, $daywithpost)) // any posts today?
-//            $calendar_output .= '<a href="' . get_day_link($thisyear,
-//                            $thismonth, $day) . "\" title=\"" . esc_attr($ak_titles_for_day[$day]) . "\">$day</a>";
-//        else
-//            $calendar_output .= $day;
+
         $calendar_output .= '</td>';
 
         if (6 == calendar_week_mod(date('w',
@@ -424,7 +370,7 @@ function wpcf_fields_date_editor_callback() {
     $form['field_id'] = array(
         '#type' => 'hidden',
         '#name' => 'wpcf[field_id]',
-        '#value' => intval($_GET['field_id']),
+        '#value' => $_GET['field_id'],
     );
     $form['submit'] = array(
         '#type' => 'markup',
@@ -501,6 +447,6 @@ function wpcf_fields_date_editor_form_submit() {
         'format-custom' => $_POST['wpcf']['format-custom'],
             )
     );
-    wpcf_admin_fields_popup_insert_shortcode_js($shortcode);
+    echo wpcf_admin_fields_popup_insert_shortcode_js($shortcode);
     die();
 }

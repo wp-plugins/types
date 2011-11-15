@@ -57,4 +57,114 @@ way to fit your requirements.
 #editor_addon li:hover li:hover li a.fly,
 #editor_addon li:hover li:hover li:hover li a.fly,
 #editor_addon li:hover li:hover li:hover li:hover li a.fly
-{background:#ffffff url(../img/arrow.gif) 80px 6px no-repeat; color:#000; border-color:#bbd37e;} 
+{background:#ffffff url(../img/arrow.gif) 80px 6px no-repeat; color:#000; border-color:#bbd37e;}
+
+.editor_addon_wrapper {
+    display: inline;
+    width: 20px;
+}
+
+.editor_addon_wrapper li {
+    display: inline;
+    width: 20px;
+}
+
+.editor_addon_wrapper img {
+    margin: 0 2px;
+    cursor: pointer;
+    display: inline;
+}
+
+.editor_addon_dropdown {
+    display: inline;
+    visibility: hidden;
+    position: absolute;
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    padding: 0;
+    z-index: 99;
+    width: auto;
+    height: auto;
+    margin-top: 22px;
+    margin-left: -16px;
+    margin-right: 30px;
+    overflow: hidden;
+}
+
+.editor_addon_dropdown ul {
+    list-style: none inside none;
+}
+
+.editor_addon_dropdown li {
+    padding: 5px 20px 20px 20px;
+    margin: 0;
+    display: block;
+    width: auto;
+}
+
+.editor_addon_dropdown li:first-child {
+    padding: 5px 10px;
+    margin: 0;
+    background-color: #EFEFEF;
+    width: auto;
+}
+
+.editor_addon_dropdown .title {
+    font-weight: bold;
+    width: 200px;
+}
+
+.editor_addon_dropdown .close {
+    width: 11px;
+    height: 11px;
+    background-image: url(../img/close_icon.gif);
+    float: right;
+    margin: -15px -5px 0 0;
+    cursor: pointer;
+}
+
+.editor_addon_dropdown .scroll {
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+}
+
+.editor_addon_dropdown .group-title {
+    font-weight: bold;
+}
+
+.editor-addon-link-to-top {
+    font-weight: normal;
+    color: #909090;
+}
+
+.editor_addon_dropdown .group {
+    margin-bottom: 20px;
+}
+
+.editor_addon_dropdown .group .group .group-title {
+    margin-top: 20px;
+}
+
+.editor_addon_dropdown .group .group {
+    margin-left: 20px;
+}
+
+.editor_addon_dropdown .item {
+    margin: 0 0 0 10px;
+    line-height: 1.8em;
+    white-space: nowrap;
+    padding: 0;
+}
+
+.editor_addon_dropdown .direct-links {
+    margin-bottom: 10px;
+}
+
+.editor_addon_dropdown .direct-links a {
+    font-weight: normal;
+    line-height: 1.8em;
+    margin-right: 10px;
+    padding: 0;
+    color: #909090;
+}

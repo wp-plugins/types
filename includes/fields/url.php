@@ -1,4 +1,23 @@
 <?php
+/**
+ * Types-field: URL
+ *
+ * Description: Displays a URL input to the user and forces input check.
+ *
+ * Rendering: HTML formatted DB data (link).
+ * 
+ * Parameters:
+ * 'raw' => 'true'|'false' (display raw data stored in DB, default false)
+ * 'output' => 'html' (wrap data in HTML, optional)
+ * 'show_name' => 'true' (show field name before value e.g. My checkbox: $value)
+ * 'title' => link title e.g. 'Go here'
+ * 'class' => CSS class applied to link e.g. 'my-link'
+ *
+ * Example usage:
+ * With a short code use [types field="my-url"]
+ * In a theme use types_render_field("my-url", $parameters)
+ * 
+ */
 
 /**
  * Register data (called automatically).
@@ -33,9 +52,12 @@ function wpcf_fields_url_view($params) {
         $add .= ' title="' . $params['field_value'] . '"';
         $title .= $params['field_value'];
     }
+    if (!empty($params['class'])) {
+        $add .= ' class="' . $params['class'] . '"';
+    }
     $output = '<a href="' . $params['field_value'] . '"' . $add . '>'
-    . $title . '</a>';
-    $output = wpcf_frontend_wrap_field_value($params['field'], $output);
+            . $title . '</a>';
+    $output = wpcf_frontend_wrap_field_value($params['field'], $output, $params);
     return wpcf_frontend_wrap_field($params['field'], $output, $params);
 }
 
@@ -69,8 +91,9 @@ function wpcf_fields_url_editor_callback() {
 function wpcf_fields_url_editor_submit() {
     $add = '';
     if (!empty($_POST['title'])) {
-        $add = ' title="' . strval($_POST['title']) . '"';
+        $add .= ' title="' . strval($_POST['title']) . '"';
     }
+    $add .= ' class=""';
     $field = wpcf_admin_fields_get_field($_GET['field_id']);
     if (!empty($field)) {
         $shortcode = wpcf_fields_get_shortcode($field, $add);

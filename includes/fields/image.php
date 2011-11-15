@@ -1,6 +1,26 @@
 <?php
 /**
- * Image field type.
+ * Types-field: Image
+ *
+ * Description: Displays a file (image) upload or input to the user.
+ *
+ * Rendering: Raw DB data (image URI) or HTML formatted image.
+ * 
+ * Parameters:
+ * 'raw' => 'true'|'false' (display raw data stored in DB, default false)
+ * 'output' => 'html' (wrap data in HTML, optional)
+ * 'show_name' => 'true' (show field name before value e.g. My date: $value)
+ * 'alt' => alternative text e.g. 'My image'
+ * 'title' => hover text e.g. 'My image'
+ * 'size' => 'thumbnail'|'medium'|'large'|'full' (WP predefined sizes)
+ * 'width' => image width e.g. 300 (overriden if 'size' is specified)
+ * 'height' => image height e.g. 100 (overriden if 'size' is specified)
+ * 'proportional' => 'true'|'false' (overriden if 'size' is specified)
+ *
+ * Example usage:
+ * With a short code use [types field="my-image"]
+ * In a theme use types_render_field("my-image", $parameters)
+ * 
  */
 
 /**
@@ -31,7 +51,12 @@ function wpcf_fields_image() {
  * @return type 
  */
 function wpcf_fields_image_insert_form() {
-    return wpcf_fields_file_insert_form();
+    $filename = WPCF_INC_ABSPATH . '/fields/file.php';
+    require_once $filename;
+    
+    if (function_exists('wpcf_fields_file_insert_form')) {
+        return wpcf_fields_file_insert_form();
+    }
 }
 
 /**
@@ -40,7 +65,11 @@ function wpcf_fields_image_insert_form() {
  * @param type $field 
  */
 function wpcf_fields_image_meta_box_form($field) {
-    return wpcf_fields_file_meta_box_form($field, true);
+    $filename = WPCF_INC_ABSPATH . '/fields/file.php';
+    require_once $filename;
+    if (function_exists('wpcf_fields_file_meta_box_form')) {
+        return wpcf_fields_file_meta_box_form($field, true);
+    }
 }
 
 /**
@@ -96,7 +125,7 @@ function wpcf_fields_image_editor_callback() {
     // Get attachment
     $attachment_id = false;
     if ($post_ID) {
-        $image = get_post_meta($post_ID, 'wpcf-' . $field['slug'], true);
+        $image = get_post_meta($post_ID, WPCF_META_PREFIX . $field['slug'], true);
         if (!empty($image)) {
             // Get attachment by guid
             global $wpdb;
@@ -283,8 +312,8 @@ function wpcf_fields_image_editor_submit() {
  */
 function wpcf_fields_image_view($params) {
     $output = '';
-    $alt = '';
-    $title = '';
+    $alt = false;
+    $title = false;
     $class = array();
     global $wpdb;
     $attachment_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM {$wpdb->posts}
@@ -292,12 +321,12 @@ function wpcf_fields_image_view($params) {
                     $params['field_value']));
 
     // Set alt
-    if (!empty($params['alt'])) {
+    if (isset($params['alt'])) {
         $alt = $params['alt'];
     }
 
     // Set title
-    if (!empty($params['title'])) {
+    if (isset($params['title'])) {
         $title = $params['title'];
     }
 
@@ -321,7 +350,8 @@ function wpcf_fields_image_view($params) {
             'title' => $title
                 )
         );
-        $output = wpcf_frontend_wrap_field_value($params['field'], $output);
+        $output = wpcf_frontend_wrap_field_value($params['field'], $output,
+                $params);
         $output = wpcf_frontend_wrap_field($params['field'], $output, $params);
     } else { // Custom size
         $width = !empty($params['width']) ? intval($params['width']) : null;
@@ -334,13 +364,14 @@ function wpcf_fields_image_view($params) {
             $resized_image = $params['field_value'];
         }
         $output = '<img alt="';
-        $output .=!empty($alt) ? $alt : $resized_image;
+        $output .= $alt !== false ? $alt : $resized_image;
         $output .= '" title="';
-        $output .=!empty($title) ? $title : $resized_image;
+        $output .= $title !== false ? $title : $resized_image;
         $output .= '"';
         $output .=!empty($class) ? ' class="' . implode(' ', $class) . '"' : '';
         $output .= ' src="' . $resized_image . '" />';
-        $output = wpcf_frontend_wrap_field_value($params['field'], $output);
+        $output = wpcf_frontend_wrap_field_value($params['field'], $output,
+                $params);
         $output = wpcf_frontend_wrap_field($params['field'], $output, $params);
     }
 
@@ -373,8 +404,8 @@ function wpcf_fields_image_resize_image($url_path, $width = 300, $height = 200,
     $cache_key = md5($url_path . $width . $height . intval($crop) . $suffix . $dest_path);
 
     // Check if cached in this call
-    if (!$refresh && isset($cached[$cache_key])) {
-        return $cached[$cache_key];
+    if (!$refresh && isset($cached[$cache_key][$return])) {
+        return $cached[$cache_key][$return];
     }
 
     $width = intval($width);

@@ -1,4 +1,21 @@
 <?php
+/**
+ * Types-field: Select
+ *
+ * Description: Displays a select box to the user.
+ *
+ * Rendering: The option title will be rendered or if set - specific value.
+ * 
+ * Parameters:
+ * 'raw' => 'true'|'false' (display raw data stored in DB, default false)
+ * 'output' => 'html' (wrap data in HTML, optional)
+ * 'show_name' => 'true' (show field name before value e.g. My checkbox: $value)
+ *
+ * Example usage:
+ * With a short code use [types field="my-select"]
+ * In a theme use types_render_field("my-select", $parameters)
+ * 
+ */
 
 /**
  * Register data (called automatically).
@@ -56,10 +73,19 @@ function wpcf_fields_select_insert_form($form_data = array(), $parent_name = '')
         $form = $form + wpcf_fields_select_get_option();
     }
 
+    if (!empty($form_data['data']['options'])) {
+        $count = count($form_data['data']['options']);
+    } else {
+        $count = 1;
+    }
+
     $form['options-markup-close'] = array(
         '#type' => 'markup',
         '#markup' => '</div><div id="'
-        . $id . '-add-option"></div><br /><a href="' . admin_url('admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=add_select_option&amp;wpcf_ajax_update_add=' . $id . '-sortable&amp;parent_name=' . urlencode($parent_name)) . '"'
+        . $id . '-add-option"></div><br /><a href="' . admin_url('admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=add_select_option&amp;_wpnonce='
+                . wp_create_nonce('add_select_option') . '&amp;wpcf_ajax_update_add=' . $id . '-sortable&amp;parent_name=' . urlencode($parent_name)
+                . '&amp;count=' . $count)
+        . '" onclick="wpcfFieldsFormCountOptions(jQuery(this));"'
         . ' class="button-secondary wpcf-ajax-link">'
         . __('Add option', 'wpcf') . '</a>',
     );
@@ -73,11 +99,13 @@ function wpcf_fields_select_insert_form($form_data = array(), $parent_name = '')
 function wpcf_fields_select_get_option($parent_name = '', $form_data = array()) {
     $id = isset($form_data['key']) ? $form_data['key'] : 'wpcf-fields-select-option-' . mt_rand();
     $form = array();
+    $value = isset($_GET['count']) ? __('Option title', 'wpcf') . ' ' . $_GET['count'] : __('Option title',
+                    'wpcf') . ' 1';
+    $value = isset($form_data['title']) ? $form_data['title'] : $value;
     $form[$id . '-title'] = array(
         '#type' => 'textfield',
         '#name' => $parent_name . '[options][' . $id . '][title]',
-        '#value' => isset($form_data['title']) ? $form_data['title'] : __('Option title',
-                        'wpcf'),
+        '#value' => $value,
         '#inline' => true,
         '#attributes' => array('style' => 'width:80px;'),
         '#before' => '<div class="wpcf-fields-select-draggable"><img src="'
@@ -90,11 +118,12 @@ function wpcf_fields_select_get_option($parent_name = '', $form_data = array()) 
         . '\')) { jQuery(this).parent().fadeOut(function(){jQuery(this).remove();}); }"'
         . 'alt="' . __('Delete this option', 'wpcf') . '" />',
     );
+    $value = isset($_GET['count']) ? $_GET['count'] : 1;
+    $value = isset($form_data['value']) ? $form_data['value'] : $value;
     $form[$id . '-value'] = array(
         '#type' => 'textfield',
         '#name' => $parent_name . '[options][' . $id . '][value]',
-        '#value' => isset($form_data['value']) ? $form_data['value'] : __('Option value',
-                        'wpcf'),
+        '#value' => $value,
         '#inline' => true,
         '#attributes' => array(
             'style' => 'width:80px;',
@@ -108,7 +137,7 @@ function wpcf_fields_select_get_option($parent_name = '', $form_data = array()) 
         '#after' => '</div>',
         '#name' => $parent_name . '[options][default]',
         '#value' => $id,
-        '#default_value' => $form_data['default']
+        '#default_value' => isset($form_data['default']) ? $form_data['default'] : false,
     );
     return $form;
 }
@@ -145,11 +174,13 @@ function wpcf_fields_select_meta_box_form($field) {
         $default_value = $field['value'];
     }
 
-    return array(
+    $element = array(
         '#type' => 'select',
         '#default_value' => $default_value,
         '#options' => $options,
     );
+
+    return $element;
 }
 
 /**
@@ -164,6 +195,7 @@ function wpcf_fields_select_view($params) {
     $field = wpcf_fields_get_field_by_slug($params['field']['slug']);
     $output = '';
     if (!empty($field['data']['options'])) {
+        $field_value = $params['field_value'];
         foreach ($field['data']['options'] as $option_key => $option) {
             if (isset($option['value'])
                     && $option['value'] == $params['field_value']) {
@@ -172,7 +204,7 @@ function wpcf_fields_select_view($params) {
             }
         }
         $field_value = wpcf_frontend_wrap_field_value($params['field'],
-                $field_value);
+                $field_value, $params);
         $output = wpcf_frontend_wrap_field($params['field'], $field_value,
                 $params);
     }

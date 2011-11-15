@@ -1,4 +1,22 @@
 <?php
+/**
+ * Types-field: Skype
+ *
+ * Description: Displays input for skype button.
+ *
+ * Rendering: Skype button.
+ * 
+ * Parameters:
+ * 'raw' => 'true'|'false' (display raw data stored in DB, default false)
+ * 'output' => 'html' (wrap data in HTML, optional)
+ * 'show_name' => 'true' (show field name before value e.g. My checkbox: $value)
+ * 'style' => 'btn1'|'btn2'|'btn3'|'btn4'|'btn5'|'btn6'
+ *
+ * Example usage:
+ * With a short code use [types field="my-skype"]
+ * In a theme use types_render_field("my-skype", $parameters)
+ * 
+ */
 
 /**
  * Register data (called automatically).
@@ -12,31 +30,6 @@ function wpcf_fields_skype() {
         'description' => __('Skype', 'wpcf'),
         'validate' => array('required'),
     );
-}
-
-/**
- * Form data for group form.
- * 
- * @return type 
- */
-function wpcf_fields_skype_insert_form() {
-    $form['name'] = array(
-        '#type' => 'textfield',
-        '#title' => __('Name of custom field', 'wpcf'),
-        '#description' => __('Under this name field will be stored in DB (sanitized)',
-                'wpcf'),
-        '#name' => 'name',
-        '#attributes' => array('class' => 'wpcf-forms-set-legend'),
-        '#validate' => array('required' => array('value' => true)),
-    );
-    $form['description'] = array(
-        '#type' => 'textarea',
-        '#title' => __('Description', 'wpcf'),
-        '#description' => __('Text that describes function to user', 'wpcf'),
-        '#name' => 'description',
-        '#attributes' => array('rows' => 5, 'cols' => 1),
-    );
-    return $form;
 }
 
 /**
@@ -65,7 +58,8 @@ function wpcf_fields_skype_meta_box_form($field) {
         '#suffix' => '&nbsp;' . __('Skype name', 'wpcf'),
         '#description' => '',
         '#prefix' => !empty($field['description']) ? wpcf_translate('field ' . $field['id'] . ' description', $field['description'])
-        . '<br />' : '',
+        . '<br /><br />' : '',
+        '#attributes' => array('style' => 'width:60%;'),
     );
     
 
@@ -73,23 +67,33 @@ function wpcf_fields_skype_meta_box_form($field) {
     $preview_style = isset($field['value']['style']) ? $field['value']['style'] : 'btn2';
     $preview = wpcf_fields_skype_get_button_image($preview_skypename,
             $preview_style);
+    
+    // Set button
+    if (isset($field['disable'])) {
+        $edit_button = '';
+    } else {
+        $edit_button = '<br />'
+        . '<a href="'
+        . admin_url('admin-ajax.php?action=wpcf_ajax&amp;'
+                . 'wpcf_action=insert_skype_button&amp;_wpnonce='
+                . wp_create_nonce('insert_skype_button')
+                . '&amp;update=wpcf-fields-skype-'
+                . $field['slug'] . '&amp;skypename=' . $preview_skypename
+                . '&amp;style=' . $preview_style
+                . '&amp;keepThis=true&amp;TB_iframe=true&amp;width=500&amp;height=500')
+        . '"'
+        . ' class="thickbox wpcf-fields-skype button-secondary"'
+        . ' title="' . __('Edit Skype button', 'wpcf') . '"'
+        . '>'
+        . __('Edit Skype button', 'wpcf') . '</a>';
+    }
 
     $form['markup'] = array(
         '#type' => 'markup',
         '#markup' => '<br /><div class="wpcf-form-item">'
         . '<div id="wpcf-fields-skype-'
         . $field['slug'] . '-preview">' . $preview . '</div>'
-        . '<br />'
-        . '<a href="'
-        . admin_url('admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=insert_skype_button&amp;update=wpcf-fields-skype-'
-                . $field['slug'] . '&amp;skypename=' . $preview_skypename
-                . '&amp;style=' . $preview_style
-                . '&amp;keepThis=true&amp;TB_iframe=true&amp;width=500&amp;height=500')
-        . '"'
-        . ' class="thickbox wpcf-fields-skype button-secondary"'
-        . ' title="' . __('Insert skype button', 'wpcf') . '"'
-        . '>'
-        . __('Edit Skype button', 'wpcf') . '</a></div>',
+        . $edit_button . '</div>',
     );
     return $form;
 }
@@ -102,6 +106,7 @@ function wpcf_fields_skype_meta_box_form($field) {
  * @return type 
  */
 function wpcf_fields_skype_shortcode_filter($shortcode, $field) {
+    return $shortcode;
     $add = '';
     $add .= isset($field['value']['skypename']) ? ' skypename="' . $field['value']['skypename'] . '"' : '';
     $add .= isset($field['value']['skypename']) ? ' style="' . $field['value']['style'] . '"' : '';
@@ -348,7 +353,7 @@ function wpcf_fields_skype_view($params) {
     if (!isset($params['field_value']['style'])) {
         $params['field_value']['style'] = '';
     }
-    $style = !empty($params['style']) ? $params['style'] : $params['field_value']['style'];
+    $style = (!empty($params['style']) && $params['style'] != 'default') ? $params['style'] : $params['field_value']['style'];
     $content =  wpcf_fields_skype_get_button($params['field_value']['skypename'],
             $style);
     return wpcf_frontend_wrap_field($params['field'], $content);
