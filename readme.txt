@@ -51,7 +51,7 @@ When you translate content that includes custom fields, these fields will appear
 
 Types creates shortcodes for inserting custom fields into the WordPress editor. Your new fields will be available to editors. Just click on the T menu and choose which field to insert.
 
-You can use [Types' API](wp-types.com/documentation/functions/) functions to insert fields to PHP template files.
+You can use [Types' API](http://wp-types.com/documentation/functions/) functions to insert fields to PHP template files.
 
 If you want to save time re-inventing the wheel, but still want full control of how your site displays, we recommend that you check out [Views](http://wp-types.com), the perfect companion for Types. Together, Types and Views allow building complex WordPress sites, without any coding.
 
