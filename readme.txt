@@ -1,11 +1,12 @@
-=== Types ===
+=== Types - Manage Custom Post Types and Custom Fields ===
 Contributors: brucepearson, AmirHelzer, jozik, mihaimihai
-Tags: custom, field, custom field, types
+Donate link: http://wp-types.com
+Tags: CMS, custom post types, post, post type, cck, taxonomy, fields, custom field, types
 Requires at least: 3.0
 Tested up to: 3.2.1
 Stable tag: 0.9
 
-Define custom post types, custom taxonomy and custom fields.
+The complete solution for custom post types, custom taxonomy and custom fields. Craft your edit screens and use shortcodes to display fields.
 
 == Description ==
 
@@ -15,7 +16,17 @@ Types is your one-stop solution for creating custom content with WordPress. You 
 * Custom taxonomy
 * Custom fields with fancy meta boxes
 
-Learn more about Types in [WP Types home page](http://wp-types.com).
+Once you've defined your custom post types and custom fields, use Types shortcode to include them in your content, without resorting to PHP.
+
+Check out this 2 minutes Types intro: (beware, includes spicy Milonga!)
+
+[vimeo http://vimeo.com/32661608]
+
+= Documentation =
+
+* [Types - Custom Post Types and Custom Fields](http://wp-types.com/home/types-manage-post-types-taxonomy-and-custom-fields/) - Official home page, with example applications
+* [Types and Views User Guides](http://wp-types.com/documentation/user-guides/) - The complete set of Types manuals
+* [Types API](http://wp-types.com/documentation/functions/) - PHP reference for API usage
 
 = Custom Posts and Taxonomy =
 
@@ -41,20 +52,27 @@ Types lets you define meta boxes with custom fields. You can assign these boxes 
 * **Multi-line text** - a paragraph of text
 * **URL** - validates URL format and displays a link on public pages
 
+= Embed Types into Your Themes and Plugins =
+
+If you're creating themes and plugins that require custom types and custom fields, you can use the Embedded version of Types. This is a minimal version, which doesn't include the configuration screens. It runs as a theme function and doesn't require activation, like the full plugin version.
+
+You will export Types configuration to a file and the Embedded version will use that. Your theme (or plugin) will include the custom types and fields that you define, but users will not be able to modify the settings. Look at the 'embedded' directory for information on how to integrate with your theme.
+
 = Fully WPML Compatible =
 
 The same folks who wrote [WPML](http://wpml.org) have created this plugin. Types and WPML play perfectly together. You can translate all labels via WPML's String Translation, without any configuration.
 
 When you translate content that includes custom fields, these fields will appear in WPML's Translation Editor. Also, content synchronization between different languages is fully supported.
 
-= Display Custom Content with Flair =
+= Use Shortcodes to Display Custom Fields =
 
 Types creates shortcodes for inserting custom fields into the WordPress editor. Your new fields will be available to editors. Just click on the T menu and choose which field to insert.
 
-You can use [Types' API](http://wp-types.com/documentation/functions/) functions to insert fields to PHP template files.
+= Display Custom Content Without Coding =
 
-If you want to save time re-inventing the wheel, but still want full control of how your site displays, we recommend that you check out [Views](http://wp-types.com), the perfect companion for Types. Together, Types and Views allow building complex WordPress sites, without any coding.
+To display custom content in whatever way you choose, discover [Views](http://wp-types.com) - the perfect companion for Types. Together, Types and Views allow building complex WordPress sites, without any coding.
 
+You'll be able to create dynamic templates for single pages and content lists using advanced query and output tools. All Views are created using plain HTML and shortcodes - no PHP or API to learn.
 
 == Installation ==
 
@@ -70,10 +88,11 @@ Types includes its own import and export features. If you create a development s
 
 == Screenshots ==
 
-We recommend that you check some of these resources:
-
-* [Tutorials](http://wp-types.com/learn/)
-* [Full reference](http://wp-types.com/documentation/)
+1. Define custom post types and taxonomy
+2. Define custom fields (meta-groups)
+3. Editing custom fields
 
 == Changelog ==
-* 1.0.0 - First release
+
+= 0.9 =
+* First release
