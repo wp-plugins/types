@@ -4,7 +4,7 @@ Donate link: http://wp-types.com
 Tags: CMS, custom post types, post, post type, cck, taxonomy, fields, custom field, types
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.9
+Stable tag: 0.9.1
 
 The complete solution for custom post types, custom taxonomy and custom fields. Craft your edit screens and use shortcodes to display fields.
 
@@ -96,3 +96,13 @@ Types includes its own import and export features. If you create a development s
 
 = 0.9 =
 * First release
+
+= 0.9.1 =
+* Added Embedded mode
+* Allows to manage existing custom fields with Types
+* Added a .po file for translating Types interface
+
+== Upgrade Notice ==
+
+= 0.9.1 =
+* The new Embedded mode allows integrating Types functionality in WordPress plugins and themes.

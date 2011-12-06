@@ -41,7 +41,7 @@ function wpcf_admin_ctt_list() {
             $name .= '<br />';
             $name .= '<a href="'
                     . admin_url('admin.php?page=wpcf-edit-type&amp;wpcf-post-type='
-                            . $post_type) . '">' . __('Edit') . '</a> | ';
+                            . $post_type) . '">' . __('Edit', 'wpcf') . '</a> | ';
             $name .= empty($type['disabled']) ? wpcf_admin_custom_types_get_ajax_deactivation_link($post_type) . ' | ' : wpcf_admin_custom_types_get_ajax_activation_link($post_type) . ' | ';
             $name .= '<a href="'
                     . admin_url('admin-ajax.php?action=wpcf_ajax&amp;'
@@ -51,12 +51,12 @@ function wpcf_admin_ctt_list() {
                     . wp_create_nonce('delete_post_type') . '&amp;wpcf_warning='
                     . __('Are you sure?', 'wpcf') . '" class="wpcf-ajax-link" id="wpcf-list-delete-'
                     . $post_type . '">'
-                    . __('Delete Permanently') . '</a>';
+                    . __('Delete Permanently', 'wpcf') . '</a>';
             $name .= '<div id="wpcf_list_ajax_response_' . $post_type . '"></div>';
             $rows[$post_type]['name'] = $name;
             $rows[$post_type]['description'] = htmlspecialchars(stripslashes($type['description']),
                     ENT_QUOTES);
-            $rows[$post_type]['active-' . $post_type] = !empty($type['disabled']) ? __('No') : __('Yes');
+            $rows[$post_type]['active-' . $post_type] = !empty($type['disabled']) ? __('No', 'wpcf') : __('Yes', 'wpcf');
             $output = !empty($type['taxonomies']) ? implode(', ',
                             array_keys($type['taxonomies'])) : __('None', 'wpcf');
             $rows[$post_type]['tax'] = $output;
@@ -82,7 +82,7 @@ function wpcf_admin_ctt_list() {
             $name .= '<br />';
             $name .= '<a href="'
                     . admin_url('admin.php?page=wpcf-edit-tax&amp;wpcf-tax='
-                            . $taxonomy) . '">' . __('Edit') . '</a> | ';
+                            . $taxonomy) . '">' . __('Edit', 'wpcf') . '</a> | ';
             $name .= empty($data['disabled']) ? wpcf_admin_custom_taxonomies_get_ajax_deactivation_link($taxonomy) . ' | ' : wpcf_admin_custom_taxonomies_get_ajax_activation_link($taxonomy) . ' | ';
             $name .= '<a href="'
                     . admin_url('admin-ajax.php?action=wpcf_ajax&amp;'
@@ -92,12 +92,12 @@ function wpcf_admin_ctt_list() {
                     . '&amp;wpcf_warning='
                     . __('Are you sure?', 'wpcf') . '" class="wpcf-ajax-link" id="wpcf-list-delete-'
                     . $taxonomy . '">'
-                    . __('Delete Permanently') . '</a>';
+                    . __('Delete Permanently', 'wpcf') . '</a>';
             $name .= '<div id="wpcf_list_ajax_response_' . $taxonomy . '"></div>';
             $rows[$taxonomy]['name'] = $name;
             $rows[$taxonomy]['description'] = htmlspecialchars(stripslashes($data['description']),
                     ENT_QUOTES);
-            $rows[$taxonomy]['active-' . $taxonomy] = !empty($data['disabled']) ? __('No') : __('Yes');
+            $rows[$taxonomy]['active-' . $taxonomy] = !empty($data['disabled']) ? __('No', 'wpcf') : __('Yes', 'wpcf');
             $output = !empty($data['supports']) ? implode(', ',
                             array_keys($data['supports'])) : __('None', 'wpcf');
             $rows[$taxonomy]['post_types'] = $output;

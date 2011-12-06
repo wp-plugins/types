@@ -42,7 +42,7 @@ function wpcf_ajax() {
                     . intval($_GET['group_id']) . '").replaceWith(\''
                     . wpcf_admin_fields_get_ajax_activation_link(intval($_GET['group_id']))
                     . '\');jQuery(".wpcf-table-column-active-'
-                    . intval($_GET['group_id']) . '").html("' . __('No') . '");',
+                    . intval($_GET['group_id']) . '").html("' . __('No', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                 ));
             } else {
@@ -62,7 +62,7 @@ function wpcf_ajax() {
                     . intval($_GET['group_id']) . '").replaceWith(\''
                     . wpcf_admin_fields_get_ajax_deactivation_link(intval($_GET['group_id']))
                     . '\');jQuery(".wpcf-table-column-active-'
-                    . intval($_GET['group_id']) . '").html("' . __('Yes') . '");',
+                    . intval($_GET['group_id']) . '").html("' . __('Yes', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                 ));
             } else {
@@ -99,7 +99,7 @@ function wpcf_ajax() {
                     . $_GET['wpcf-post-type'] . '").replaceWith(\''
                     . wpcf_admin_custom_types_get_ajax_activation_link($_GET['wpcf-post-type'])
                     . '\');jQuery(".wpcf-table-column-active-'
-                    . $_GET['wpcf-post-type'] . '").html("' . __('No') . '");',
+                    . $_GET['wpcf-post-type'] . '").html("' . __('No', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                 ));
             } else {
@@ -124,7 +124,7 @@ function wpcf_ajax() {
                     . $_GET['wpcf-post-type'] . '").replaceWith(\''
                     . wpcf_admin_custom_types_get_ajax_deactivation_link($_GET['wpcf-post-type'])
                     . '\');jQuery(".wpcf-table-column-active-'
-                    . $_GET['wpcf-post-type'] . '").html("' . __('Yes') . '");',
+                    . $_GET['wpcf-post-type'] . '").html("' . __('Yes', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                 ));
             } else {
@@ -165,7 +165,7 @@ function wpcf_ajax() {
                     . $_GET['wpcf-tax'] . '").replaceWith(\''
                     . wpcf_admin_custom_taxonomies_get_ajax_activation_link($_GET['wpcf-tax'])
                     . '\');jQuery(".wpcf-table-column-active-'
-                    . $_GET['wpcf-tax'] . '").html("' . __('No') . '");',
+                    . $_GET['wpcf-tax'] . '").html("' . __('No', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                 ));
             } else {
@@ -190,7 +190,7 @@ function wpcf_ajax() {
                     . $_GET['wpcf-tax'] . '").replaceWith(\''
                     . wpcf_admin_custom_taxonomies_get_ajax_deactivation_link($_GET['wpcf-tax'])
                     . '\');jQuery(".wpcf-table-column-active-'
-                    . $_GET['wpcf-tax'] . '").html("' . __('Yes') . '");',
+                    . $_GET['wpcf-tax'] . '").html("' . __('Yes', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                 ));
             } else {
@@ -239,31 +239,6 @@ function wpcf_ajax() {
             echo json_encode(array(
                 'output' => wpcf_form_simple($element)
             ));
-            break;
-
-        case 'editor_insert_date':
-            require_once WPCF_INC_ABSPATH . '/fields/date.php';
-            wpcf_fields_date_editor_form();
-            break;
-
-        case 'insert_skype_button':
-            require_once WPCF_INC_ABSPATH . '/fields/skype.php';
-            wpcf_fields_skype_meta_box_ajax();
-            break;
-
-        case 'editor_callback':
-            require_once WPCF_INC_ABSPATH . '/fields.php';
-            $field = wpcf_admin_fields_get_field($_GET['field_id']);
-            if (!empty($field)) {
-                $file = WPCF_INC_ABSPATH . '/fields/' . $field['type'] . '.php';
-                if (file_exists($file)) {
-                    require_once $file;
-                    $function = 'wpcf_fields_' . $field['type'] . '_editor_callback';
-                    if (function_exists($function)) {
-                        call_user_func($function);
-                    }
-                }
-            }
             break;
 
         case 'group_form_collapsed':
@@ -339,6 +314,20 @@ function wpcf_ajax() {
             echo json_encode(array(
                 'output' => $output
             ));
+            break;
+            
+        case 'custom_fields_control_bulk':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+            require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+            require_once WPCF_INC_ABSPATH . '/fields-control.php';
+            wpcf_admin_custom_fields_control_bulk_ajax();
+            break;
+        
+        case 'delete_field':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+            if (isset($_GET['field_id'])) {
+                wpcf_admin_fields_delete_field($_GET['field_id']);
+            }
             break;
 
         default:
