@@ -121,7 +121,7 @@ class Enlimbo_Forms_Wpcf
      */
     public function validate(&$elements)
     {
-        require_once WPCF_ABSPATH . '/classes/validate.php';
+        require_once WPCF_EMBEDDED_ABSPATH . '/classes/validate.php';
         foreach ($elements as $key => &$element) {
             if (!isset($element['#type'])
                     || !$this->_isValidType($element['#type'])) {

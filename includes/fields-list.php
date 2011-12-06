@@ -41,7 +41,7 @@ function wpcf_admin_fields_list() {
             $name .= '<br />';
             $name .= '<a href="'
                     . admin_url('admin.php?page=wpcf-edit&amp;group_id='
-                            . $group['id']) . '">' . __('Edit') . '</a> | ';
+                            . $group['id']) . '">' . __('Edit', 'wpcf') . '</a> | ';
 
             $name .= $group['is_active'] ? wpcf_admin_fields_get_ajax_deactivation_link($group['id']) . ' | ' : wpcf_admin_fields_get_ajax_activation_link($group['id']) . ' | ';
 
@@ -53,7 +53,7 @@ function wpcf_admin_fields_list() {
                     . '&amp;wpcf_warning='
                     . __('Are you sure?', 'wpcf') . '" class="wpcf-ajax-link" '
                     . 'id="wpcf-list-delete-' . $group['id'] . '">'
-                    . __('Delete Permanently') . '</a>';
+                    . __('Delete Permanently', 'wpcf') . '</a>';
 
             $name .= '<div id="wpcf_list_ajax_response_' . $group['id'] . '"></div>';
 
@@ -61,7 +61,7 @@ function wpcf_admin_fields_list() {
 
 
             $rows[$group['id']]['description'] = $group['description'];
-            $rows[$group['id']]['active-' . $group['id']] = $group['is_active'] ? __('Yes') : __('No');
+            $rows[$group['id']]['active-' . $group['id']] = $group['is_active'] ? __('Yes', 'wpcf') : __('No', 'wpcf');
 
             // Set 'post_tpes' column
             $post_types = wpcf_admin_get_post_types_by_group($group['id']);

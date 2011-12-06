@@ -2,7 +2,7 @@
 /*
  * Fields and groups form functions.
  */
-require_once WPCF_ABSPATH . '/classes/validate.php';
+require_once WPCF_EMBEDDED_ABSPATH . '/classes/validate.php';
 
 /**
  * Saves fields and groups.
@@ -40,6 +40,15 @@ function wpcf_admin_save_fields_groups_submit($form) {
     // Save fields for future use
     $fields = array();
     if (!empty($_POST['wpcf']['fields'])) {
+        // Before anything - search unallowed characters
+        foreach ($_POST['wpcf']['fields'] as $key => $field) {
+            if (preg_match('#[^a-zA-Z0-9\s_-]#', $field['name'])) {
+                $form->triggerError();
+                wpcf_admin_message(sprintf(__('Field names cannot contain non-English characters. Please edit this field name %s and save again.',
+                                        'wpcf'), $field['name']), 'error');
+                return false;
+            }
+        }
         foreach ($_POST['wpcf']['fields'] as $key => $field) {
             $slug = $_POST['wpcf']['fields'][$key]['slug'] = sanitize_title($field['name']);
             $field_id = wpcf_admin_fields_save_field($field);
@@ -49,7 +58,7 @@ function wpcf_admin_save_fields_groups_submit($form) {
             // WPML
             if (function_exists('wpml_cf_translation_preferences_store')) {
                 $wpml_save_cf = wpml_cf_translation_preferences_store($key,
-                        WPCF_META_PREFIX . $slug);
+                        wpcf_types_get_meta_prefix(wpcf_admin_fields_get_field($field_id)) . $slug);
             }
         }
     }
@@ -101,8 +110,10 @@ function wpcf_admin_save_fields_groups_submit($form) {
  * Generates form data.
  */
 function wpcf_admin_fields_form() {
-    wpcf_admin_add_js_settings('wpcf_nonce_toggle_group', '\'' . wp_create_nonce('group_form_collapsed') . '\'');
-    wpcf_admin_add_js_settings('wpcf_nonce_toggle_fieldset', '\'' . wp_create_nonce('form_fieldset_toggle') . '\'');
+    wpcf_admin_add_js_settings('wpcf_nonce_toggle_group',
+            '\'' . wp_create_nonce('group_form_collapsed') . '\'');
+    wpcf_admin_add_js_settings('wpcf_nonce_toggle_fieldset',
+            '\'' . wp_create_nonce('form_fieldset_toggle') . '\'');
     $default = array();
 
     // If it's update, get data
@@ -135,7 +146,7 @@ function wpcf_admin_fields_form() {
     );
 
     // Get built-in field types
-    foreach (glob(WPCF_INC_ABSPATH . '/fields/*.php') as $filename) {
+    foreach (glob(WPCF_EMBEDDED_INC_ABSPATH . '/fields/*.php') as $filename) {
         require_once $filename;
         if (function_exists('wpcf_fields_' . basename($filename, '.php'))) {
             $data = call_user_func('wpcf_fields_' . basename($filename, '.php'));
@@ -248,7 +259,7 @@ function wpcf_admin_fields_form() {
         $post_types_currently_supported[] = __('Displayed on all content types',
                 'wpcf');
     }
-    
+
     $post_types_no_currently_supported_txt = __('Post Types:', 'wpcf') . ' '
             . __('Displayed on all content types', 'wpcf');
 
@@ -259,7 +270,8 @@ function wpcf_admin_fields_form() {
         '#inline' => true,
         '#before' => '<span id="wpcf-group-form-update-types-ajax-response"'
         . ' style="font-style:italic;font-weight:bold;display:inline-block;">'
-        . __('Post Types:', 'wpcf') . ' ' . implode(', ', $post_types_currently_supported) . '</span>'
+        . __('Post Types:', 'wpcf') . ' ' . implode(', ',
+                $post_types_currently_supported) . '</span>'
         . '&nbsp;&nbsp;<a href="javascript:void(0);" style="line-height: 30px;"'
         . ' class="button-secondary" onclick="'
         . 'window.wpcfPostTypesText = new Array(); window.wpcfFormGroupsSupportPostTypesState = new Array(); '
@@ -271,7 +283,7 @@ function wpcf_admin_fields_form() {
         . '}'
         . '});'
         . ' jQuery(this).css(\'visibility\', \'hidden\');">'
-        . __('Edit') . '</a>' . '<div class="hidden">',
+        . __('Edit', 'wpcf') . '</a>' . '<div class="hidden">',
         '#after' => '<a href="javascript:void(0);" style="line-height: 35px;" '
         . 'class="button-primary wpcf-groups-form-ajax-update-post-types-ok"'
         . ' onclick="window.wpcfPostTypesText = new Array(); window.wpcfFormGroupsSupportPostTypesState = new Array(); '
@@ -288,7 +300,7 @@ function wpcf_admin_fields_form() {
         . __('Post Types:', 'wpcf') . ' \'+wpcfPostTypesText.join(\', \'));}'
         . ' jQuery(this).parent().parent().children(\'a\').css(\'visibility\', \'visible\');'
         . '">'
-        . __('OK') . '</a>&nbsp;'
+        . __('OK', 'wpcf') . '</a>&nbsp;'
         . '<a href="javascript:void(0);" style="line-height: 35px;" '
         . 'class="button-secondary wpcf-groups-form-ajax-update-post-types-cancel"'
         . ' onclick="jQuery(this).parent().slideUp().find(\'input\').removeAttr(\'checked\');'
@@ -296,10 +308,10 @@ function wpcf_admin_fields_form() {
         . 'for (var element in window.wpcfFormGroupsSupportPostTypesState) { '
         . 'jQuery(\'#\'+window.wpcfFormGroupsSupportPostTypesState[element]).attr(\'checked\', \'checked\'); }}'
         . 'jQuery(\'#wpcf-group-form-update-types-ajax-response\').html(\''
-        . __('Post Types:', 'wpcf'). ' \'+window.wpcfPostTypesText.join(\', \'));'
+        . __('Post Types:', 'wpcf') . ' \'+window.wpcfPostTypesText.join(\', \'));'
         . ' jQuery(this).parent().parent().children(\'a\').css(\'visibility\', \'visible\');'
         . '">'
-        . __('Cancel') . '</a>' . '</div></div><br />',
+        . __('Cancel', 'wpcf') . '</a>' . '</div></div><br />',
     );
 
     $taxonomies = get_taxonomies('', 'objects');
@@ -317,7 +329,6 @@ function wpcf_admin_fields_form() {
         if (!empty($terms)) {
             $options = array();
             $add_title = '<div class="taxonomy-title">' . $category->labels->name . '</div>';
-//            $title = $category->labels->name . ': ';
             $title = '';
             foreach ($terms as $term) {
                 $checked = 0;
@@ -326,7 +337,7 @@ function wpcf_admin_fields_form() {
                     if (array_key_exists($term->term_id,
                                     $update['taxonomies'][$category_slug])) {
                         $checked = 1;
-                        $tax_currently_supported[$category_slug] = $title . $term->name;
+                        $tax_currently_supported[$term->term_id] = $title . $term->name;
                         $title = '';
                     }
                 }
@@ -342,10 +353,6 @@ function wpcf_admin_fields_form() {
                 $options[$term->term_id]['#attributes'] = array('class' => 'wpcf-form-groups-support-tax');
                 $add_title = '';
             }
-            if (empty($tax_currently_supported)) {
-                $tax_currently_supported[] = __('No terms associated',
-                        'wpcf');
-            }
             $form_tax_single['taxonomies-' . $category_slug] = array(
                 '#type' => 'checkboxes',
                 '#options' => $options,
@@ -355,9 +362,13 @@ function wpcf_admin_fields_form() {
             );
         }
     }
-    
+
+    if (empty($tax_currently_supported)) {
+        $tax_currently_supported[] = __('No terms associated', 'wpcf');
+    }
+
     $tax_no_currently_supported_txt = __('Terms:', 'wpcf') . ' ' . __('No terms associated',
-                        'wpcf');
+                    'wpcf');
 
     $form_tax['taxonomies-open'] = array(
         '#type' => 'markup',
@@ -375,7 +386,7 @@ function wpcf_admin_fields_form() {
         . '}'
         . '});'
         . ' jQuery(this).css(\'visibility\', \'hidden\');">'
-        . __('Edit') . '</a>' . '<div class="hidden">',
+        . __('Edit', 'wpcf') . '</a>' . '<div class="hidden">',
     );
 
     $form_tax = $form_tax + $form_tax_single;
@@ -399,18 +410,19 @@ function wpcf_admin_fields_form() {
         . '}'
         . ' jQuery(this).parent().parent().children(\'a\').css(\'visibility\', \'visible\');'
         . '">'
-        . __('OK') . '</a>&nbsp;'
+        . __('OK', 'wpcf') . '</a>&nbsp;'
         . '<a href="javascript:void(0);" style="line-height: 35px;" '
         . 'class="button-secondary wpcf-groups-form-ajax-update-tax-cancel"'
         . ' onclick="jQuery(this).parent().slideUp().find(\'input\').removeAttr(\'checked\');'
         . 'if (window.wpcfFormGroupsSupportTaxState.length > 0) { '
         . 'for (var element in window.wpcfFormGroupsSupportTaxState) { '
         . 'jQuery(\'#\'+window.wpcfFormGroupsSupportTaxState[element]).attr(\'checked\', \'checked\'); }}'
-        . 'jQuery(\'#wpcf-group-form-update-tax-ajax-response\').html(\'' . __('Terms:', 'wpcf')
+        . 'jQuery(\'#wpcf-group-form-update-tax-ajax-response\').html(\'' . __('Terms:',
+                'wpcf')
         . ' \'+window.wpcfTaxText.join(\', \'));'
         . ' jQuery(this).parent().parent().children(\'a\').css(\'visibility\', \'visible\');'
         . '">'
-        . __('Cancel') . '</a>' . '</div><br />',
+        . __('Cancel', 'wpcf') . '</a>' . '</div><br />',
     );
 
     $form['supports-table-open'] = array(
@@ -581,7 +593,7 @@ function wpcf_fields_get_field_form($type, $form_data = array()) {
 function wpcf_fields_get_field_form_data($type, $form_data = array()) {
 
     // Get field type data
-    $filename = WPCF_INC_ABSPATH . '/fields/' . $type . '.php';
+    $filename = WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . $type . '.php';
 
     if (file_exists($filename)) {
         require_once $filename;
@@ -626,7 +638,8 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
         $collapsed = defined('DOING_AJAX') ? false : $collapsed;
 
         // Set title
-        $title = !empty($form_data['name']) ? $form_data['name'] : __('Untitled');
+        $title = !empty($form_data['name']) ? $form_data['name'] : __('Untitled',
+                        'wpcf');
         $title = '<span class="wpcf-legend-update">' . $title . '</span> - '
                 . sprintf(__('%s field', 'wpcf'), $type);
         $form['wpcf-' . $id] = array(
@@ -659,7 +672,7 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
             '#type' => 'textfield',
             '#name' => 'name',
             '#attributes' => array('class' => 'wpcf-forms-set-legend', 'style' => 'width:100%;margin:10px 0 10px 0;'),
-            '#validate' => array('required' => array('value' => true)),
+            '#validate' => array('required' => array('value' => true), 'alphanumeric' => array('value' => true)),
             '#inline' => true,
             '#value' => __('Enter field name', 'wpcf'),
         );
@@ -701,14 +714,12 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
             if (isset($field['#name']) && isset($form_data[$field['#name']])) {
                 $form['wpcf-'
                         . $id][$k]['#value'] = $form_data[$field['#name']];
-                // @todo Added because of e.g. checkbox. Check if can be better.
                 $form['wpcf-'
                         . $id][$k]['#default_value'] = $form_data[$field['#name']];
                 // Check if it's in 'data'
             } else if (isset($field['#name']) && isset($form_data['data'][$field['#name']])) {
                 $form['wpcf-'
                         . $id][$k]['#value'] = $form_data['data'][$field['#name']];
-                // @todo Added because of e.g. checkbox. Check if can be better.
                 $form['wpcf-'
                         . $id][$k]['#default_value'] = $form_data['data'][$field['#name']];
             }
@@ -732,7 +743,8 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
 
         // WPML Translation Preferences
         if (function_exists('wpml_cf_translation_preferences')) {
-            $custom_field = !empty($form_data['slug']) ? WPCF_META_PREFIX . $form_data['slug'] : false;
+            // @todo Fix for added fields
+            $custom_field = !empty($form_data['slug']) ? wpcf_types_get_meta_prefix($form_data) . $form_data['slug'] : false;
             $translatable = array('textfield', 'textarea');
             $action = in_array($type, $translatable) ? 'translate' : 'copy';
             $form['wpcf-' . $id]['wpml-preferences'] = array(

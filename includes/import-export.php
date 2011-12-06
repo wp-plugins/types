@@ -2,6 +2,7 @@
 /*
  * Import/export data.
  */
+require_once WPCF_EMBEDDED_INC_ABSPATH . '/import-export.php';
 
 /**
  * Import/Export form data.
@@ -104,14 +105,24 @@ function wpcf_admin_import_export_form() {
             );
         }
     } else {
+        $form['embedded-settings'] = array(
+            '#type' => 'radios',
+            '#name' => 'embedded-settings',
+            '#title' => __('When importing to theme:', 'wpcf'),
+            '#options' => array(
+                __('ask user for approval', 'wpcf') => 'ask',
+                __('import automatically', 'wpcf') => 'auto',
+            ),
+            '#inline' => true,
+            '#before' => '<h2>' . __('Export Types data', 'wpcf') . '</h2>'
+            . __('Download all custom fields, custom post types and taxonomies created by Types plugin.',
+                    'wpcf') . '<br /><br />',
+        );
         $form['submit'] = array(
             '#type' => 'submit',
             '#name' => 'export',
             '#value' => __('Export', 'wpcf'),
             '#attributes' => array('class' => 'button-primary'),
-            '#before' => '<h2>' . __('Export Types data', 'wpcf') . '</h2>'
-            . __('Download all custom fields, custom post types and taxonomies created by Types plugin.',
-                    'wpcf') . '<br />',
             '#after' => '<br /><br />',
         );
         if (extension_loaded('simplexml')) {
@@ -254,7 +265,6 @@ function wpcf_admin_import_export_settings($data) {
                 '#inline' => true,
                 '#after' => '<br /><br />',
             );
-            //@todo Check if title needs some preparation
             $post = $wpdb->get_var($wpdb->prepare(
                             "SELECT ID FROM $wpdb->posts
                     WHERE post_title = %s AND post_type = %s",
@@ -345,7 +355,8 @@ function wpcf_admin_import_export_settings($data) {
     if (!empty($data->types)) {
         $form['title-types'] = array(
             '#type' => 'markup',
-            '#markup' => '<h2>' . __('Custom post types to be added/updated', 'wpcf') . '</h2>',
+            '#markup' => '<h2>' . __('Custom post types to be added/updated',
+                    'wpcf') . '</h2>',
         );
         $types_existing = get_option('wpcf-custom-types', array());
         $types_check = array();
@@ -372,7 +383,8 @@ function wpcf_admin_import_export_settings($data) {
         if (!empty($types_to_be_deleted)) {
             $form['title-types-deleted'] = array(
                 '#type' => 'markup',
-                '#markup' => '<h2>' . __('Custom post types to be deleted', 'wpcf') . '</h2>',
+                '#markup' => '<h2>' . __('Custom post types to be deleted',
+                        'wpcf') . '</h2>',
             );
             $form['types-deleted'] = array(
                 '#type' => 'checkboxes',
@@ -432,12 +444,12 @@ function wpcf_admin_import_export_settings($data) {
  * Exports data to XML.
  */
 function wpcf_admin_export_data() {
-    require_once WPCF_ABSPATH . '/classes/array2xml.php';
-    $xml = new Wpcf_Array2XML();
+    require_once WPCF_EMBEDDED_ABSPATH . '/common/array2xml.php';
+    $xml = new ICL_Array2XML();
     $data = array();
 
     // Get groups
-    $groups = get_posts('post_type=wp-types-group&post_status=null');
+    $groups = get_posts('post_type=wp-types-group&post_status=null&numberposts=-1');
     if (!empty($groups)) {
         $data['groups'] = array('__key' => 'group');
         foreach ($groups as $key => $post) {
@@ -472,6 +484,16 @@ function wpcf_admin_export_data() {
     // Get fields
     $fields = wpcf_admin_fields_get_fields();
     if (!empty($fields)) {
+        // WPML
+        global $iclTranslationManagement;
+        if (!empty($iclTranslationManagement)) {
+            foreach ($fields as $field_id => $field) {
+                // @todo Fix for added fields
+                if (isset($iclTranslationManagement->settings['custom_fields_translation'][wpcf_types_get_meta_prefix($field) . $field_id])) {
+                    $fields[$field_id]['wpml_action'] = $iclTranslationManagement->settings['custom_fields_translation'][wpcf_types_get_meta_prefix($field) .$field_id];
+                }
+            }
+        }
         $data['fields'] = $fields;
         $data['fields']['__key'] = 'field';
     }
@@ -497,376 +519,40 @@ function wpcf_admin_export_data() {
     }
 
     // Offer for download
-    $data = $xml->array2xml($data);
+    $data = $xml->array2xml($data, 'types');
 
-    $sitename = sanitize_key(get_bloginfo('name'));
+    $sitename = sanitize_title(get_bloginfo('name'));
     if (!empty($sitename)) {
         $sitename .= '.';
     }
     $filename = $sitename . 'types.' . date('Y-m-d') . '.xml';
+    $code = "<?php\r\n";
+    $code .= '$timestamp = ' . time() . ';' . "\r\n";
+    $code .= '$auto_import = ';
+    $code .=  (isset($_POST['embedded-settings']) && $_POST['embedded-settings'] == 'ask') ? 0 : 1;
+    $code .= ';' . "\r\n";
+    $code .= "\r\n?>";
+    $zipname = $sitename . 'types.' . date('Y-m-d') . '.zip';
+    
+    $file = tempnam("tmp", "zip");
+    $zip = new ZipArchive();
+    $zip->open($file, ZipArchive::OVERWRITE);
 
-    header('Content-Description: File Transfer');
-    header('Content-Disposition: attachment; filename=' . $filename);
-    header('Content-Type: text/xml; charset=' . get_option('blog_charset'), true);
+    $zip->addFromString('settings.xml', $data);
+    $zip->addFromString('settings.php', $code);
+    $zip->close();
+    $data = file_get_contents($file);
+    header("Content-Description: File Transfer");
+    header("Content-Disposition: attachment; filename=" . $zipname);
+    header("Content-Type: application/zip");
+    header("Content-length: " . strlen($data) . "\n\n");
+    header("Content-Transfer-Encoding: binary");
     echo $data;
+    unlink($file);
     die();
-}
-
-/**
- * Imports data from XML.
- */
-function wpcf_admin_import_data($data = '') {
-    global $wpdb;
-//    $data = new SimpleXMLElement($data);
-    libxml_use_internal_errors(true);
-    $data = simplexml_load_string($data);
-    if (!$data) {
-        echo '<div class="message error"><p>' . __('Error parsing XML', 'wpcf') . '</p></div>';
-        foreach (libxml_get_errors() as $error) {
-            echo '<div class="message error"><p>' . $error->message . '</p></div>';
-        }
-        libxml_clear_errors();
-        return false;
-    }
-    $overwrite_groups = isset($_POST['overwrite-groups']);
-    $overwrite_fields = isset($_POST['overwrite-fields']);
-    $overwrite_types = isset($_POST['overwrite-types']);
-    $overwrite_tax = isset($_POST['overwrite-tax']);
-    $delete_groups = isset($_POST['delete-groups']);
-    $delete_fields = isset($_POST['delete-fields']);
-    $delete_types = isset($_POST['delete-types']);
-    $delete_tax = isset($_POST['delete-tax']);
-
-    // Process groups
-
-    if (!empty($data->groups)) {
-        $groups = array();
-        // Set insert data from XML
-        foreach ($data->groups->group as $group) {
-            $group = wpcf_admin_import_export_simplexml2array($group);
-            $groups[$group['ID']] = $group;
-        }
-        // Set insert data from POST
-        if (!empty($_POST['groups'])) {
-            foreach ($_POST['groups'] as $group_id => $group) {
-                if (empty($groups[$group_id])) {
-                    continue;
-                }
-                $groups[$group_id]['add'] = !empty($group['add']);
-                $groups[$group_id]['update'] = (isset($group['update']) && $group['update'] == 'update') ? true : false;
-            }
-        }
-
-        // Insert groups
-        $groups_check = array();
-        foreach ($groups as $group_id => $group) {
-            $post = array(
-                'post_status' => $group['post_status'],
-                'post_type' => 'wp-types-group',
-                'post_title' => $group['post_title'],
-                'post_content' => !empty($group['post_content']) ? $group['post_content'] : '',
-            );
-            if ($group['add']) {
-                $post_to_update = $wpdb->get_var($wpdb->prepare(
-                                "SELECT ID FROM $wpdb->posts
-                    WHERE post_title = %s AND post_type = %s",
-                                $group['post_title'], 'wp-types-group'));
-                // Update (may be forced by bulk action)
-                if ($group['update'] || ($overwrite_groups && !empty($post_to_update))) {
-                    if (!empty($post_to_update)) {
-                        $post['ID'] = $post_to_update;
-                        $group_wp_id = wp_update_post($post);
-                        if (!$group_wp_id) {
-                            wpcf_admin_message_store(sprintf(__('Group "%s" update failed',
-                                                    'wpcf'),
-                                            $group['post_title']), 'error');
-                        } else {
-                            wpcf_admin_message_store(sprintf(__('Group "%s" updated',
-                                                    'wpcf'),
-                                            $group['post_title']));
-                        }
-                    } else {
-                        wpcf_admin_message_store(sprintf(__('Group "%s" update failed',
-                                                'wpcf'), $group['post_title']),
-                                'error');
-                    }
-                } else { // Insert
-                    $group_wp_id = wp_insert_post($post, true);
-                    if (is_wp_error($group_wp_id)) {
-                        wpcf_admin_message_store(sprintf(__('Group "%s" insert failed',
-                                                'wpcf'), $group['post_title']),
-                                'error');
-                    } else {
-                        wpcf_admin_message_store(sprintf(__('Group "%s" added',
-                                                'wpcf'), $group['post_title']));
-                    }
-                }
-                // Update meta
-                if (!empty($group['meta'])) {
-                    foreach ($group['meta'] as $meta_key => $meta_value) {
-                        update_post_meta($group_wp_id, $meta_key, $meta_value);
-                    }
-                }
-                $group_check[] = $group_wp_id;
-                if (!empty($post_to_update)) {
-                    $group_check[] = $post_to_update;
-                }
-            }
-        }
-        // Delete groups (forced, set in bulk actions)
-        if ($delete_groups) {
-            $groups_to_delete = get_posts('post_type=wp-types-group&status=null');
-            if (!empty($groups_to_delete)) {
-                foreach ($groups_to_delete as $group_to_delete) {
-                    if (!in_array($group_to_delete->ID, $group_check)) {
-                        $deleted = wp_delete_post($group_to_delete->ID, true);
-                        if (!$deleted) {
-                            wpcf_admin_message_store(sprintf(__('Group "%s" delete failed',
-                                                    'wpcf'),
-                                            $group_to_delete->post_title),
-                                    'error');
-                        } else {
-                            wpcf_admin_message_store(sprintf(__('Group "%s" deleted',
-                                                    'wpcf'),
-                                            $group_to_delete->post_title));
-                        }
-                    }
-                }
-            }
-        } else { // If not forced, look in POST
-            if (!empty($_POST['groups-to-be-deleted'])) {
-                foreach ($_POST['groups-to-be-deleted'] as $group_to_delete) {
-                    $group_to_delete_post = get_post($group_to_delete);
-                    if (!empty($group_to_delete_post) && $group_to_delete_post->post_type == 'wp-types-group') {
-                        $deleted = wp_delete_post($group_to_delete, true);
-                        if (!$deleted) {
-                            wpcf_admin_message_store(sprintf(__('Group "%s" delete failed',
-                                                    'wpcf'),
-                                            $group_to_delete_post->post_title),
-                                    'error');
-                        } else {
-                            wpcf_admin_message_store(sprintf(__('Group "%s" deleted',
-                                                    'wpcf'),
-                                            $group_to_delete_post->post_title));
-                        }
-                    } else {
-                        wpcf_admin_message_store(sprintf(__('Group "%s" delete failed',
-                                                'wpcf'), $group_to_delete),
-                                'error');
-                    }
-                }
-            }
-        }
-    }
-
-    // Process fields
-
-    if (!empty($data->fields)) {
-        $fields_existing = wpcf_admin_fields_get_fields();
-        $fields = array();
-        $fields_check = array();
-        // Set insert data from XML
-        foreach ($data->fields->field as $field) {
-            $field = wpcf_admin_import_export_simplexml2array($field);
-            $fields[$field['id']] = $field;
-        }
-        // Set insert data from POST
-        if (!empty($_POST['fields'])) {
-            foreach ($_POST['fields'] as $field_id => $field) {
-                if (empty($fields[$field_id])) {
-                    continue;
-                }
-                $fields[$field_id]['add'] = !empty($field['add']);
-                $fields[$field_id]['update'] = (isset($field['update']) && $field['update'] == 'update') ? true : false;
-            }
-        }
-        // Insert fields
-        foreach ($fields as $field_id => $field) {
-            if (!$field['add'] && !$overwrite_fields) {
-                continue;
-            }
-            $field_data = array();
-            $field_data['name'] = $field['name'];
-            $field_data['description'] = $field['description'];
-            $field_data['type'] = $field['type'];
-            $field_data['slug'] = $field['slug'];
-            $field_data['data'] = (isset($field['data']) && is_array($field['data'])) ? $field['data'] : array();
-            $fields_existing[$field_id] = $field_data;
-            $fields_check[] = $field_id;
-
-            wpcf_admin_message_store(sprintf(__('Field "%s" added/updated',
-                                    'wpcf'), $field['name']));
-        }
-        // Delete fields
-        if ($delete_fields) {
-            foreach ($fields_existing as $k => $v) {
-                if (!in_array($k, $fields_check)) {
-                    wpcf_admin_message_store(sprintf(__('Field "%s" deleted',
-                                            'wpcf'),
-                                    $fields_existing[$k]['name']));
-                    unset($fields_existing[$k]);
-                }
-            }
-        } else {
-            if (!empty($_POST['fields-to-be-deleted'])) {
-                foreach ($_POST['fields-to-be-deleted'] as $field_to_delete) {
-                    wpcf_admin_message_store(sprintf(__('Field "%s" deleted',
-                                            'wpcf'),
-                                    $fields_existing[$field_to_delete]['name']));
-                    unset($fields_existing[$field_to_delete]);
-                }
-            }
-        }
-        update_option('wpcf-fields', $fields_existing);
-    }
-
-    // Process types
-
-    if (!empty($data->types)) {
-        $types_existing = get_option('wpcf-custom-types', array());
-        $types = array();
-        $types_check = array();
-        // Set insert data from XML
-        foreach ($data->types->type as $type) {
-            $type = wpcf_admin_import_export_simplexml2array($type);
-            $types[$type['id']] = $type;
-        }
-        // Set insert data from POST
-        if (!empty($_POST['types'])) {
-            foreach ($_POST['types'] as $type_id => $type) {
-                if (empty($types[$type_id])) {
-                    continue;
-                }
-                $types[$type_id]['add'] = !empty($type['add']);
-                $types[$type_id]['update'] = (isset($type['update']) && $type['update'] == 'update') ? true : false;
-            }
-        }
-        // Insert types
-        foreach ($types as $type_id => $type) {
-            if (!$type['add'] && !$overwrite_types) {
-                continue;
-            }
-            unset($type['add'], $type['update']);
-            $types_existing[$type_id] = $type;
-            $types_check[] = $type_id;
-            wpcf_admin_message_store(sprintf(__('Custom post type "%s" added/updated',
-                                    'wpcf'), $type_id));
-        }
-        // Delete types
-        if ($delete_types) {
-            foreach ($types_existing as $k => $v) {
-                if (!in_array($k, $types_check)) {
-                    unset($types_existing[$k]);
-                    wpcf_admin_message_store(sprintf(__('Custom post type "%s" deleted',
-                                            'wpcf'), $k));
-                }
-            }
-        } else {
-            if (!empty($_POST['types-to-be-deleted'])) {
-                foreach ($_POST['types-to-be-deleted'] as $type_to_delete) {
-                    wpcf_admin_message_store(sprintf(__('Custom post type "%s" deleted',
-                                            'wpcf'),
-                                    $types_existing[$type_to_delete]['labels']['name']));
-                    unset($types_existing[$type_to_delete]);
-                }
-            }
-        }
-        update_option('wpcf-custom-types', $types_existing);
-    }
-
-    // Process taxonomies
-
-    if (!empty($data->taxonomies)) {
-        $taxonomies_existing = get_option('wpcf-custom-taxonomies', array());
-        $taxonomies = array();
-        $taxonomies_check = array();
-        // Set insert data from XML
-        foreach ($data->taxonomies->taxonomy as $taxonomy) {
-            $taxonomy = wpcf_admin_import_export_simplexml2array($taxonomy);
-            $taxonomies[$taxonomy['id']] = $taxonomy;
-        }
-        // Set insert data from POST
-        if (!empty($_POST['taxonomies'])) {
-            foreach ($_POST['taxonomies'] as $taxonomy_id => $taxonomy) {
-                if (empty($taxonomies[$taxonomy_id])) {
-                    continue;
-                }
-                $taxonomies[$taxonomy_id]['add'] = !empty($taxonomy['add']);
-                $taxonomies[$taxonomy_id]['update'] = (isset($taxonomy['update']) && $taxonomy['update'] == 'update') ? true : false;
-            }
-        }
-        // Insert taxonomies
-        foreach ($taxonomies as $taxonomy_id => $taxonomy) {
-            if (!$taxonomy['add'] && !$overwrite_tax) {
-                continue;
-            }
-            unset($taxonomy['add'], $taxonomy['update']);
-            $taxonomies_existing[$taxonomy_id] = $taxonomy;
-            $taxonomies_check[] = $taxonomy_id;
-            wpcf_admin_message_store(sprintf(__('Custom taxonomy "%s" added/updated',
-                                    'wpcf'), $taxonomy_id));
-        }
-        // Delete taxonomies
-        if ($delete_tax) {
-            foreach ($taxonomies_existing as $k => $v) {
-                if (!in_array($k, $taxonomies_check)) {
-                    unset($taxonomies_existing[$k]);
-                    wpcf_admin_message_store(sprintf(__('Custom taxonomy "%s" deleted',
-                                            'wpcf'), $k));
-                }
-            }
-        } else {
-            if (!empty($_POST['taxonomies-to-be-deleted'])) {
-                foreach ($_POST['taxonomies-to-be-deleted'] as $taxonomy_to_delete) {
-                    wpcf_admin_message_store(sprintf(__('Custom taxonomy "%s" deleted',
-                                            'wpcf'),
-                                    $taxonomies_existing[$taxonomy_to_delete]['labels']['name']));
-                    unset($taxonomies_existing[$taxonomy_to_delete]);
-                }
-            }
-        }
-        update_option('wpcf-custom-taxonomies', $taxonomies_existing);
-    }
-    echo '<script type="text/javascript">
-<!--
-window.location = "' . admin_url('admin.php?page=wpcf-import-export') . '"
-//-->
-</script>';
-    die();
-}
-
-/**
- * Loops over elements and convert to array or empty string.
- * 
- * @param type $element
- * @return string 
- */
-function wpcf_admin_import_export_simplexml2array($element) {
-    $element = is_string($element) ? trim($element) : $element;
-    if (!empty($element) && is_object($element)) {
-        $element = (array) $element;
-    }
-    if (empty($element)) {
-        $element = '';
-    } else if (is_array($element)) {
-        foreach ($element as $k => $v) {
-            $v = is_string($v) ? trim($v) : $v;
-            if (empty($v)) {
-                $element[$k] = '';
-                continue;
-            }
-            $add = wpcf_admin_import_export_simplexml2array($v);
-            if (!empty($add)) {
-                $element[$k] = $add;
-            } else {
-                $element[$k] = '';
-            }
-        }
-    }
-
-    if (empty($element)) {
-        $element = '';
-    }
-
-    return $element;
+//    header('Content-Description: File Transfer');
+//    header('Content-Disposition: attachment; filename=' . $filename);
+//    header('Content-Type: text/xml; charset=' . get_option('blog_charset'), true);
+//    echo $data;
+//    die();
 }

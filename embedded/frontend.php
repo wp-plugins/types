@@ -13,7 +13,7 @@ function wpcf_shortcode($atts, $content = null, $code = '') {
             ), $atts
     );
     if ($atts['field']) {
-        return types_render_field($atts['field'], $atts);
+        return types_render_field($atts['field'], $atts, $content, $code);
     }
     return '';
 }
@@ -25,8 +25,8 @@ function wpcf_shortcode($atts, $content = null, $code = '') {
  * @param type $atts
  * @return type 
  */
-function types_render_field($field, $params) {
-    require_once WPCF_INC_ABSPATH . '/fields.php';
+function types_render_field($field, $params, $content = null, $code = '') {
+    require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
 
     // Count fields (if there are duplicates)
     static $count = array();
@@ -46,7 +46,7 @@ function types_render_field($field, $params) {
 
     // Get post field value
     global $post;
-    $value = get_post_meta($post->ID, WPCF_META_PREFIX . $field['slug'], true);
+    $value = get_post_meta($post->ID, wpcf_types_get_meta_prefix($field) . $field['slug'], true);
     if ($value == '' && $field['type'] != 'checkbox') {
         return '';
     }
@@ -61,7 +61,9 @@ function types_render_field($field, $params) {
     $value = apply_filters('wpcf_fields_type_' . $field['type'] . '_value_display',
             $value);
      // To make sure
-    $value = addslashes(stripslashes($value));
+    if (is_string($value)) {
+        $value = addslashes(stripslashes($value));
+    }
 
     // Set values
     $field['name'] = wpcf_translate('field ' . $field['id'] . ' name',
@@ -71,6 +73,8 @@ function types_render_field($field, $params) {
     $params['field_value'] = $value;
 
     // Get output
+    $params['#content'] = htmlspecialchars($content);
+    $params['#code'] = $code;
     $output = wpcf_fields_type_action($field['type'], 'view', $params);
 
     // Convert to string
@@ -78,10 +82,9 @@ function types_render_field($field, $params) {
         $output = strval($output);
     }
 
+    // @todo Reconsider if ever changing this (works fine now)
     // If no output or 'raw' return default
-    // TODO check if this change makes difference
     if (($params['raw'] == 'true' || empty($output)) && !empty($value)) {
-//    if (($params['raw'] == 'true') && !empty($value)) {
         $field_name = '';
         if ($params['show_name'] == 'true') {
             $field_name = wpcf_frontend_wrap_field_name($field, $field['name'],
