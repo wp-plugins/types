@@ -1,16 +1,23 @@
 <?php
 
 if (!class_exists('Editor_addon')) {
-
-    add_action('init', 'add_menu_css');
+    
+    if (!defined('ICL_COMMON_FUNCTIONS')) {
+        require_once dirname(dirname(__FILE__)) . '/functions.php';
+    }
+    
+    define('EDITOR_ADDON_ABSPATH', dirname(__FILE__));
+    define('EDITOR_ADDON_RELPATH', icl_get_file_relpath(__FILE__));
+    add_action('admin_print_styles', 'add_menu_css');
+    
     function add_menu_css() {
         global $pagenow;
         
         if($pagenow == 'post.php' || $pagenow == 'post-new.php'){
-            wp_enqueue_style('editor_addon_menu', plugins_url() . '/' . basename(dirname(dirname(dirname(__FILE__)))) . '/common/' . basename(dirname(__FILE__)) . '/res/css/pro_dropdown_2.css');
-            wp_enqueue_style('editor_addon_menu_scroll', plugins_url() . '/' . basename(dirname(dirname(dirname(__FILE__)))) . '/common/' . basename(dirname(__FILE__)) . '/res/css/scroll.css');
-            wp_enqueue_script('editor_addon_menu_scrollbar', plugins_url() . '/' . basename(dirname(dirname(dirname(__FILE__)))) . '/common/' . basename(dirname(__FILE__)) . '/res/js/scrollbar.js', array('jquery'));
-            wp_enqueue_script('editor_addon_menu_mousewheel', plugins_url() . '/' . basename(dirname(dirname(dirname(__FILE__)))) . '/common/' . basename(dirname(__FILE__)) . '/res/js/mousewheel.js', array('editor_addon_menu_scrollbar'));
+            wp_enqueue_style('editor_addon_menu', EDITOR_ADDON_RELPATH . '/res/css/pro_dropdown_2.css');
+            wp_enqueue_style('editor_addon_menu_scroll', EDITOR_ADDON_RELPATH . '/res/css/scroll.css');
+            wp_enqueue_script('editor_addon_menu_scrollbar', EDITOR_ADDON_RELPATH . '/res/js/scrollbar.js', array('jquery'));
+            wp_enqueue_script('editor_addon_menu_mousewheel', EDITOR_ADDON_RELPATH . '/res/js/mousewheel.js', array('editor_addon_menu_scrollbar'));
         }
     }
     if(is_admin()){
@@ -207,9 +214,8 @@ if (!class_exists('Editor_addon')) {
         global $pagenow;
         
         if($pagenow == 'post.php' || $pagenow == 'post-new.php'){
-            $url = plugins_url() . '/' . dirname(plugin_basename(__FILE__));
             
-            wp_enqueue_script( 'icl_editor-script' , $url . '/res/js/icl_editor_addon_plugin.js', array());
+            wp_enqueue_script( 'icl_editor-script' , EDITOR_ADDON_RELPATH . '/res/js/icl_editor_addon_plugin.js', array());
         }
     }
 }
