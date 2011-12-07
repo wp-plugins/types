@@ -1,4 +1,4 @@
-=== Types - Manage Custom Post Types and Custom Fields ===
+=== Types - Custom Fields and Custom Post Types Management ===
 Contributors: brucepearson, AmirHelzer, jozik, mihaimihai
 Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types
