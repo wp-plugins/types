@@ -130,6 +130,8 @@ function wpcf_fields_wysiwyg_tiny_mce_js() {
  * @return type 
  */
 function wpcf_fields_wysiwyg_view($params) {
-    return apply_filters('the_content',
-                    htmlspecialchars_decode(stripslashes($params['field_value'])));
+    $content = htmlspecialchars_decode(stripslashes($params['field_value']));
+    $content = do_shortcode($content);
+    $content = wpautop($content);
+    return $content;
 }
