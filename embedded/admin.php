@@ -267,6 +267,8 @@ function wpcf_admin_validation_messages($method = false) {
         'number' => __('Please enter numeric data', 'wpcf'),
         'alphanumeric' => __('Letters, numbers, spaces or underscores only please',
                 'wpcf'),
+        'nospecialchars' => __('Letters, numbers, spaces, underscores and dashes only please',
+                'wpcf')
     );
     if ($method) {
         return isset($messages[$method]) ? $messages[$method] : '';
@@ -419,7 +421,9 @@ function wpcf_admin_ajax_head($title) {
             <meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php echo get_option('blog_charset'); ?>" />
             <title><?php echo $title; ?></title>
             <?php
-            wp_admin_css('global');
+            if (wpcf_compare_wp_version('3.2.1', '<=')) {
+                wp_admin_css('global');
+            }
             wp_admin_css();
             wp_admin_css('colors');
             wp_admin_css('ie');
@@ -521,3 +525,23 @@ function wpcf_admin_render_js_settings() {
     </script>
     <?php
 }
+
+/**
+ * wpcf_get_fields
+ *
+ * returns the fields handled by types
+ *
+ */
+
+function wpcf_get_post_meta_field_names() {
+    require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+    $fields = wpcf_admin_fields_get_fields();
+    
+    $field_names = array();
+    foreach($fields as $field) {
+        $field_names[] = wpcf_types_get_meta_prefix($field) . $field['slug'];
+    }
+    
+    return $field_names;
+}
+

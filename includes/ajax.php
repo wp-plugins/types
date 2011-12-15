@@ -97,7 +97,8 @@ function wpcf_ajax() {
                     'output' => __('Post type deactivated', 'wpcf'),
                     'execute' => 'jQuery("#wpcf-list-activate-'
                     . $_GET['wpcf-post-type'] . '").replaceWith(\''
-                    . wpcf_admin_custom_types_get_ajax_activation_link($_GET['wpcf-post-type'])
+                    . wpcf_admin_custom_types_get_ajax_activation_link(esc_attr(
+$_GET['wpcf-post-type']))
                     . '\');jQuery(".wpcf-table-column-active-'
                     . $_GET['wpcf-post-type'] . '").html("' . __('No', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
@@ -323,11 +324,30 @@ function wpcf_ajax() {
             wpcf_admin_custom_fields_control_bulk_ajax();
             break;
         
+        case 'fields_delete':
         case 'delete_field':
             require_once WPCF_INC_ABSPATH . '/fields.php';
             if (isset($_GET['field_id'])) {
                 wpcf_admin_fields_delete_field($_GET['field_id']);
             }
+            if (isset($_GET['field'])) {
+                wpcf_admin_fields_delete_field($_GET['field']);
+            }
+            echo json_encode(array(
+                'output' => ''
+            ));
+            break;
+            
+        case 'remove_from_history':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+            $fields = wpcf_admin_fields_get_fields();
+            if (isset($_GET['field_id']) && isset($fields[$_GET['field_id']])) {
+                $fields[$_GET['field_id']]['data']['removed_from_history'] = 1;
+                wpcf_admin_fields_save_fields($fields, true);
+            }
+            echo json_encode(array(
+                'output' => ''
+            ));
             break;
 
         default:

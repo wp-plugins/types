@@ -11,9 +11,7 @@ if (defined('DOING_AJAX')) {
 /**
  * admin_init hook.
  */
-function wpcf_admin_init_hook() {
-//    add_action('admin_footer', create_function('$a=""', 'echo "<pre>"; print_r(get_option("wpcf-fields")); echo "</pre>";'));
-}
+function wpcf_admin_init_hook() {}
 
 /**
  * admin_menu hook.
@@ -24,26 +22,27 @@ function wpcf_admin_menu_hook() {
     $hook = add_submenu_page('wpcf', __('Custom Fields', 'wpcf'),
             __('Custom Fields', 'wpcf'), 'manage_options', 'wpcf',
             'wpcf_admin_menu_summary');
-    add_contextual_help($hook, wpcf_admin_plugin_help('wpcf'));
+    wpcf_admin_plugin_help($hook, 'wpcf');
     add_action('load-' . $hook, 'wpcf_admin_menu_summary_hook');
     // Custom types and tax
     $hook = add_submenu_page('wpcf', __('Custom Types and Taxonomies', 'wpcf'),
             __('Custom Types and Taxonomies', 'wpcf'), 'manage_options',
             'wpcf-ctt', 'wpcf_admin_menu_summary_ctt');
     add_action('load-' . $hook, 'wpcf_admin_menu_summary_ctt_hook');
-    add_contextual_help($hook, wpcf_admin_plugin_help('wpcf-ctt'));
+    wpcf_admin_plugin_help($hook, 'wpcf-ctt');
     // Import/Export
     $hook = add_submenu_page('wpcf', __('Import/Export', 'wpcf'),
             __('Import/Export', 'wpcf'), 'manage_options', 'wpcf-import-export',
             'wpcf_admin_menu_import_export');
     add_action('load-' . $hook, 'wpcf_admin_menu_import_export_hook');
-    add_contextual_help($hook, wpcf_admin_plugin_help('wpcf-import-export'));
+    wpcf_admin_plugin_help($hook, 'wpcf-import-export');
     // Custom Fields Control
     $hook = add_submenu_page('wpcf', __('Custom Fields Control', 'wpcf'),
-            __('Custom Fields Control', 'wpcf'), 'manage_options', 'wpcf-custom-fields-control',
+            __('Custom Fields Control', 'wpcf'), 'manage_options',
+            'wpcf-custom-fields-control',
             'wpcf_admin_menu_custom_fields_control');
     add_action('load-' . $hook, 'wpcf_admin_menu_custom_fields_control_hook');
-    add_contextual_help($hook, wpcf_admin_plugin_help('wpcf-custom-fields-control'));
+    wpcf_admin_plugin_help($hook, 'wpcf-custom-fields-control');
 
     if (isset($_GET['page'])) {
         switch ($_GET['page']) {
@@ -54,7 +53,7 @@ function wpcf_admin_menu_hook() {
                         'manage_options', 'wpcf-edit',
                         'wpcf_admin_menu_edit_fields');
                 add_action('load-' . $hook, 'wpcf_admin_menu_edit_fields_hook');
-                add_contextual_help($hook, wpcf_admin_plugin_help('wpcf-edit'));
+                wpcf_admin_plugin_help($hook, 'wpcf-edit');
                 break;
 
             case 'wpcf-edit-type':
@@ -64,7 +63,7 @@ function wpcf_admin_menu_hook() {
                         'manage_options', 'wpcf-edit-type',
                         'wpcf_admin_menu_edit_type');
                 add_action('load-' . $hook, 'wpcf_admin_menu_edit_type_hook');
-                add_contextual_help($hook, wpcf_admin_plugin_help('wpcf-edit-type'));
+                wpcf_admin_plugin_help($hook, 'wpcf-edit-type');
                 break;
 
             case 'wpcf-edit-tax':
@@ -74,7 +73,7 @@ function wpcf_admin_menu_hook() {
                         'manage_options', 'wpcf-edit-tax',
                         'wpcf_admin_menu_edit_tax');
                 add_action('load-' . $hook, 'wpcf_admin_menu_edit_tax_hook');
-                add_contextual_help($hook, wpcf_admin_plugin_help('wpcf-edit-tax'));
+                wpcf_admin_plugin_help($hook, 'wpcf-edit-tax');
                 break;
         }
     }
@@ -99,6 +98,35 @@ function wpcf_admin_menu_summary() {
     require_once WPCF_INC_ABSPATH . '/fields.php';
     require_once WPCF_INC_ABSPATH . '/fields-list.php';
     wpcf_admin_fields_list();
+    $to_display = wpcf_admin_fields_get_fields();
+    if (!empty($to_display)) {
+        $promotional_text = '<div class="message updated" style="padding: 5px 20px;"><h3>' . __('Want to display custom content easily?',
+                        'wpcf') . '</h3>';
+        $promotional_text .= '<p style="font-size: 110%;">' . __('<a href="http://wp-types.com">Views</a> plugin let\'s you create dynamic templates for single pages and complex content lists. It queries content from the database, filters it and displays in any way you choose.',
+                        'wpcf') . '</p>';
+        if (defined('WPV_VERSION')) { // Views active
+            $promotional_text .= '<ul style="list-style-type:disc; list-style-position: inside; font-size: 110%;"><li><a href="' . admin_url('edit.php?post_type=view-template') . '">' . __('Create <strong>View Templates</strong> for single pages',
+                            'wpcf') . '</a></li>';
+            $promotional_text .= '<li><a href="' . admin_url('edit.php?post_type=view') . '">' . __('Create <strong>Views</strong> for content lists',
+                            'wpcf') . '</a></li>';
+            $promotional_text .= '<li><a href="http://wp-types.com">' . __('Find <strong>documentation</strong> and <strong>help</strong>',
+                            'wpcf') . '</a></li></ul>';
+        } else {
+            $promotional_text .= '<p style="font-size: 110%;">' . __('Learn more:',
+                            'wpcf') . '</p>';
+            $promotional_text .= '<ul style="list-style-type:disc; list-style-position: inside; font-size: 110%;"><li><a href="http://wp-types.com/documentation/user-guides/view-templates/">' . __('Creating dynamic templates',
+                            'wpcf') . '</a></li>';
+            $promotional_text .= '<li><a href="http://wp-types.com/documentation/user-guides/views/">' . __('Query content and display it',
+                            'wpcf') . '</a></li>';
+            $promotional_text .= '</ul><p style="font-size: 110%;">' . __('Get Views:',
+                            'wpcf') . '</p><ul>';
+            $promotional_text .= '<li style="font-size: 110%;"><a href="http://wp-types.com/buy/">' . __('Buy and download Views',
+                            'wpcf') . '</a></li>';
+            $promotional_text .= '</ul>';
+        }
+        $promotional_text .= '</div>';
+        echo '<br />' . $promotional_text;
+    }
     echo wpcf_add_admin_footer();
 }
 
@@ -106,11 +134,12 @@ function wpcf_admin_menu_summary() {
  * Menu page hook.
  */
 function wpcf_admin_menu_edit_fields_hook() {
-    wp_enqueue_script('wpcf-fields-edit', WPCF_EMBEDDED_RES_RELPATH . '/js/basic.js',
+    wp_enqueue_script('wpcf-fields-edit',
+            WPCF_EMBEDDED_RES_RELPATH . '/js/basic.js',
             array('jquery', 'jquery-ui-sortable', 'jquery-ui-draggable'),
             WPCF_VERSION);
-    wp_enqueue_style('wpcf-fields-edit', WPCF_EMBEDDED_RES_RELPATH . '/css/basic.css',
-            array(), WPCF_VERSION);
+    wp_enqueue_style('wpcf-fields-edit',
+            WPCF_EMBEDDED_RES_RELPATH . '/css/basic.css', array(), WPCF_VERSION);
     wp_enqueue_script('wpcf-form-validation',
             WPCF_EMBEDDED_RES_RELPATH . '/js/'
             . 'jquery-form-validation/jquery.validate.min.js', array('jquery'),
@@ -146,7 +175,22 @@ function wpcf_admin_menu_edit_fields() {
     echo wpcf_add_admin_header($title);
     $form = wpcf_form('wpcf_form_fields');
     echo '<br /><form method="post" action="" class="wpcf-fields-form '
-    . 'wpcf-form-validate">';
+    . 'wpcf-form-validate" onsubmit="';
+    echo 'if (jQuery(\'#wpcf-group-name\').val() == \'' . __('Enter group title',
+            'wpcf') . '\') { jQuery(\'#wpcf-group-name\').val(\'\'); }';
+    echo 'if (jQuery(\'#wpcf-group-description\').val() == \'' . __('Enter a description for this group',
+            'wpcf') . '\') { jQuery(\'#wpcf-group-description\').val(\'\'); }';
+    echo 'jQuery(\'.wpcf-forms-set-legend\').each(function(){
+        if (jQuery(this).val() == \'' . __('Enter field name',
+            'wpcf') . '\') {
+            jQuery(this).val(\'\');
+        }
+        if (jQuery(this).next().val() == \'' . __('Describe this field',
+            'wpcf') . '\') {
+            jQuery(this).next().val(\'\');
+        }
+});';
+    echo '">';
     echo $form->renderForm();
     echo '</form>';
     echo wpcf_add_admin_footer();
@@ -172,6 +216,36 @@ function wpcf_admin_menu_summary_ctt_hook() {
 function wpcf_admin_menu_summary_ctt() {
     echo wpcf_add_admin_header(__('Custom Post Types and Taxonomies', 'wpcf'));
     wpcf_admin_ctt_list();
+    $to_display_posts = get_option('wpcf-custom-types', array());
+    $to_display_tax = get_option('wpcf-custom-taxonomies', array());
+    if (!empty($to_display_posts) || !empty($to_display_tax)) {
+        $promotional_text = '<div class="message updated" style="padding: 5px 20px;"><h3>' . __('Want to display custom content easily?',
+                        'wpcf') . '</h3>';
+        $promotional_text .= '<p style="font-size: 110%;">' . __('<a href="http://wp-types.com">Views</a> plugin let\'s you create dynamic templates for single pages and complex content lists. It queries content from the database, filters it and displays in any way you choose.',
+                        'wpcf') . '</p>';
+        if (defined('WPV_VERSION')) { // Views active
+            $promotional_text .= '<ul style="list-style-type:disc; list-style-position: inside; font-size: 110%;"><li><a href="' . admin_url('edit.php?post_type=view-template') . '">' . __('Create <strong>View Templates</strong> for single pages',
+                            'wpcf') . '</a></li>';
+            $promotional_text .= '<li><a href="' . admin_url('edit.php?post_type=view') . '">' . __('Create <strong>Views</strong> for content lists',
+                            'wpcf') . '</a></li>';
+            $promotional_text .= '<li><a href="http://wp-types.com">' . __('Find <strong>documentation</strong> and <strong>help</strong>',
+                            'wpcf') . '</a></li></ul>';
+        } else {
+            $promotional_text .= '<p style="font-size: 110%;">' . __('Learn more:',
+                            'wpcf') . '</p>';
+            $promotional_text .= '<ul style="list-style-type:disc; list-style-position: inside; font-size: 110%;"><li><a href="http://wp-types.com/documentation/user-guides/view-templates/">' . __('Creating dynamic templates',
+                            'wpcf') . '</a></li>';
+            $promotional_text .= '<li><a href="http://wp-types.com/documentation/user-guides/views/">' . __('Query content and display it',
+                            'wpcf') . '</a></li>';
+            $promotional_text .= '</ul><p style="font-size: 110%;">' . __('Get Views:',
+                            'wpcf') . '</p><ul>';
+            $promotional_text .= '<li style="font-size: 110%;"><a href="http://wp-types.com/buy/">' . __('Buy and download Views',
+                            'wpcf') . '</a></li>';
+            $promotional_text .= '</ul>';
+        }
+        $promotional_text .= '</div>';
+        echo '<br />' . $promotional_text;
+    }
     echo wpcf_add_admin_footer();
 }
 
@@ -295,20 +369,21 @@ function wpcf_admin_menu_custom_fields_control_hook() {
     wp_enqueue_script('wpcf-fields-edit', WPCF_RES_RELPATH . '/js/basic.js',
             array('jquery', 'jquery-ui-sortable', 'jquery-ui-draggable'),
             WPCF_VERSION);
-    wp_enqueue_style('wpcf-custom-fields-control', WPCF_RES_RELPATH . '/css/basic.css',
-            array(), WPCF_VERSION);
+    wp_enqueue_style('wpcf-custom-fields-control',
+            WPCF_RES_RELPATH . '/css/basic.css', array(), WPCF_VERSION);
     require_once WPCF_INC_ABSPATH . '/fields.php';
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
     require_once WPCF_INC_ABSPATH . '/fields-control.php';
-    
+
     if (isset($_REQUEST['_wpnonce'])
-            && wp_verify_nonce($_REQUEST['_wpnonce'], 'custom_fields_control_bulk')
+            && wp_verify_nonce($_REQUEST['_wpnonce'],
+                    'custom_fields_control_bulk')
             && (isset($_POST['action']) || isset($_POST['action2'])) && !empty($_POST['fields'])) {
         // @todo Is this right action
         $action = $_POST['action'] == '-1' ? $_POST['action2'] : $_POST['action'];
         wpcf_admin_custom_fields_control_bulk_actions($action);
     }
-    
+
     global $wpcf_control_table;
     $wpcf_control_table = new WPCF_Custom_Fields_Control_Table(array(
                 'ajax' => true,
@@ -447,11 +522,12 @@ function wpcf_admin_form_fieldset_is_collapsed($fieldset) {
  * @param type $screen
  * @return type 
  */
-function wpcf_admin_plugin_help($page) {
+function wpcf_admin_plugin_help($hook, $page) {
+    global $wp_version;
     $call = false;
     $contextual_help = '';
     $page = $page;
-    if (isset($page)) {
+    if (isset($page) && isset($_GET['page']) && $_GET['page'] == $page) {
         switch ($page) {
             case 'wpcf':
                 $call = 'custom_fields';
@@ -481,6 +557,21 @@ function wpcf_admin_plugin_help($page) {
     if ($call) {
         require_once WPCF_ABSPATH . '/help.php';
         $contextual_help = wpcf_admin_help($call, $contextual_help);
+        // WP 3.3 changes
+        if (version_compare($wp_version, '3.2.1', '>')) {
+            set_current_screen($hook);
+            $screen = get_current_screen();
+            if (!is_null($screen)) {
+                $args = array(
+                    'title' => __('Types', 'wpcf'),
+                    'id' => 'wpcf',
+                    'content' => $contextual_help,
+                    'callback' => false,
+                );
+                $screen->add_help_tab($args);
+            }
+        } else {
+            add_contextual_help($hook, $contextual_help);
+        }
     }
-    return $contextual_help;
 }

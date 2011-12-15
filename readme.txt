@@ -3,8 +3,8 @@ Contributors: brucepearson, AmirHelzer, jozik, mihaimihai
 Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types
 Requires at least: 3.0
-Tested up to: 3.2.1
-Stable tag: 0.9.1
+Tested up to: 3.3
+Stable tag: 0.9.2
 
 The complete solution for custom post types, custom taxonomy and custom fields. Craft your edit screens and use shortcodes to display fields.
 
@@ -18,7 +18,7 @@ Types is your one-stop solution for creating custom content with WordPress. You 
 
 Once you've defined your custom post types and custom fields, use Types shortcode to include them in your content, without resorting to PHP.
 
-Check out this 2 minutes Types intro: (beware, includes spicy Milonga!)
+Check out this 2 minutes Types intro:
 
 [vimeo http://vimeo.com/32661608]
 
@@ -38,18 +38,30 @@ Choose how your custom taxonomy relates to post types and holds together related
 
 Types lets you define meta boxes with custom fields. You can assign these boxes to posts, pages or any custom type. Your meta boxes can include standard and advanced fields:
 
-* **Checkbox** - yes / no fields. You can control the text output for on and off.
-* **Date** - shows a date-picker in the editor screen and lets you choose output formats when displaying
-* **Email** - inputs and validates correct email format
-* **File** - allows uploading files to posts and displays a download link on public pages
-* **Image** - allows uploading images and displaying them at different sizes with a resize cache
-* **Numeric** - lets writers enter number data only by validating its content
-* **Phone** - validates format for phone numbers and allows to display them with special styling
-* **Radio** - displays multiple text options as radio buttons
-* **Select** - displays multiple text options as a drop-down select input
-* **Skype** - displays the Skype graphics, showing when you're available
+**Text (translatable) custom fields:**
+
 * **Single-line text** - a single text line
 * **Multi-line text** - a paragraph of text
+* **WYSIWYG** - Visual editor in custom fields (requires WordPress 3.3 and above)
+
+**Selector custom fields:**
+
+* **Checkbox** - yes / no fields. You can control the text output for on and off.
+* **Radio** - displays multiple text options as radio buttons
+* **Select** - displays multiple text options as a drop-down select input
+
+**File upload custom fields:**
+
+* **File** - allows uploading files to posts and displays a download link on public pages
+* **Image** - allows uploading images and displaying them at different sizes with a resize cache
+
+**Speciality custom fields:**
+
+* **Date** - shows a date-picker in the editor screen and lets you choose output formats when displaying
+* **Email** - inputs and validates correct email format
+* **Numeric** - lets writers enter number data only by validating its content
+* **Phone** - validates format for phone numbers and allows to display them with special styling
+* **Skype** - displays the Skype graphics, showing when you're available
 * **URL** - validates URL format and displays a link on public pages
 
 = Embed Types into Your Themes and Plugins =
@@ -64,11 +76,13 @@ The same folks who wrote [WPML](http://wpml.org) have created this plugin. Types
 
 When you translate content that includes custom fields, these fields will appear in WPML's Translation Editor. Also, content synchronization between different languages is fully supported.
 
-= Use Shortcodes to Display Custom Fields =
+= Display Custom Fields using Shortcodes =
 
 Types creates shortcodes for inserting custom fields into the WordPress editor. Your new fields will be available to editors. Just click on the T menu and choose which field to insert.
 
-= Display Custom Content Without Coding =
+You can use Types API to add custom fields to templates.
+
+= Add Custom Fields to Templates, Query Content and Display It =
 
 To display custom content in whatever way you choose, discover [Views](http://wp-types.com) - the perfect companion for Types. Together, Types and Views allow building complex WordPress sites, without any coding.
 
@@ -91,6 +105,7 @@ Types includes its own import and export features. If you create a development s
 1. Define custom post types and taxonomy
 2. Define custom fields (meta-groups)
 3. Editing custom fields
+4. Inserting custom fields to content
 
 == Changelog ==
 
@@ -102,7 +117,20 @@ Types includes its own import and export features. If you create a development s
 * Allows to manage existing custom fields with Types
 * Added a .po file for translating Types interface
 
+= 0.9.2 =
+* Added WYSIWYG custom fields
+* Improved the usability for setting up custom taxonomies
+* Date fields use the date format specified by WordPress
+* Fixed a few bugs for WordPress 3.3
+* Checks that fields cannot be created twice
+* Checks that only local images are resized
+* Added bulk-delete for custom fields
+* Fixed a few issues with WPML support
+
 == Upgrade Notice ==
 
 = 0.9.1 =
 * The new Embedded mode allows integrating Types functionality in WordPress plugins and themes.
+
+= 0.9.2 =
+* Check out the new WYSIWYG custom fields.

@@ -7,7 +7,9 @@ if (!class_exists('Editor_addon')) {
     }
     
     define('EDITOR_ADDON_ABSPATH', dirname(__FILE__));
-    define('EDITOR_ADDON_RELPATH', icl_get_file_relpath(__FILE__));
+    if (!defined('EDITOR_ADDON_RELPATH')) {
+        define('EDITOR_ADDON_RELPATH', icl_get_file_relpath(__FILE__));
+    }
     add_action('admin_print_styles', 'add_menu_css');
     
     function add_menu_css() {
@@ -39,7 +41,13 @@ if (!class_exists('Editor_addon')) {
             if ($media_button_image != '') {            
                 // Media buttons
                 //Adding "embed form" button
-                add_action('media_buttons_context', array($this, 'add_form_button'));
+                // WP 3.3 changes
+                global $wp_version;
+                if (version_compare($wp_version, '3.2.1', '>')) {
+                    add_action('media_buttons', array($this, 'add_form_button'), 10, 2);
+                } else {
+                    add_action('media_buttons_context', array($this, 'add_form_button'), 10, 2);
+                }
             }
             
 //            add_action('media_buttons', array($this, 'media_buttons'), 11);
@@ -73,7 +81,11 @@ if (!class_exists('Editor_addon')) {
         }
         
         function add_form_button($context, $text_area = 'textarea#content') {
-            
+            global $wp_version;
+            // WP 3.3 changes ($context arg is actually a editor ID now)
+            if (version_compare($wp_version, '3.2.1', '>') && !empty($context)) {
+                $text_area = $context;
+            }
             // Apply filters
             $this->items = apply_filters('editor_addon_items_' . $this->name, $this->items);
             
@@ -105,8 +117,13 @@ if (!class_exists('Editor_addon')) {
             $direct_links = implode(' ', $this->_media_menu_direct_links);
             $out = '
 <ul class="editor_addon_wrapper"><li><img src="' . $this->media_button_image . '"><ul class="editor_addon_dropdown"><li><div class="title">' . $this->button_text . '</div><div class="close">&nbsp;</div></li><li><div class="direct-links">' . $direct_links . '</div><div class="scroll">' . $menus_output . '</div></li></ul></li></ul>';
-            return $context . $out;
-            
+
+            // WP 3.3 changes
+            if (version_compare($wp_version, '3.2.1', '>')) {
+                echo $out;
+            } else {
+                return $context . $out;
+            }
         }
 
         function _output_media_menu($menu, $text_area) {
@@ -117,8 +134,9 @@ if (!class_exists('Editor_addon')) {
                     if ($menu_item[3] != '') {
                         $out .= '<a href="javascript:void(0);" class="item" onclick="'. $menu_item[3] . '">' . $menu_item[0] . "</a>\n";
                     } else {
-                        $short_code = '[' . str_replace('"', '\\\'', $menu_item[1]) . ']';
-                        $out .= '<a href="javascript:void(0);" class="item" onclick="insert_shortcode_to_editor(\'' . $short_code . '\', \'' . $text_area . '\')">' . $menu_item[0] . "</a>\n";
+                        $short_code = '[' . $menu_item[1] . ']';
+                        $short_code = base64_encode($short_code);
+                        $out .= '<a href="javascript:void(0);" class="item" onclick="insert_b64_shortcode_to_editor(\'' . $short_code . '\', \'' . $text_area . '\')">' . $menu_item[0] . "</a>\n";
                     }
                 } else {
                     // a sum menu.

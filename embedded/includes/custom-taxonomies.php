@@ -64,7 +64,7 @@ function wpcf_custom_taxonomies_register($taxonomy, $data) {
                     ENT_QUOTES) : '';
     $data['public'] = (empty($data['public']) || strval($data['public']) == 'hidden') ? false : true;
     $data['show_ui'] = (empty($data['show_ui']) || !$data['public']) ? false : true;
-    $data['hierarchical'] = !empty($data['hierarchical']);
+    $data['hierarchical'] = (empty($data['hierarchical']) || $data['hierarchical'] == 'flat')  ? false : true;
     $data['show_in_nav_menus'] = !empty($data['show_in_nav_menus']);
     if (empty($data['query_var_enabled'])) {
         $data['query_var'] = false;

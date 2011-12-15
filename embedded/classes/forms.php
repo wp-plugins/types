@@ -131,9 +131,11 @@ class Enlimbo_Forms_Wpcf
                 if (isset($element['#name'])
                         && !in_array($element['#type'], array('submit', 'reset'))) {
                     // Set submitted data
-                    if (!in_array($element['#type'], array('checkboxes'))) {
+                    if (!in_array($element['#type'], array('checkboxes'))
+                            && empty($element['#forced_value'])) {
                         $element['#value'] = $this->getSubmittedData($element);
-                    } else if (!empty($element['#options'])) {
+                    } else if (!empty($element['#options'])
+                            && empty($element['#forced_value'])) {
                         foreach ($element['#options'] as $option_key => $option) {
                             $option['#type'] = 'checkbox';
                             $element['#options'][$option_key]['#value'] = $this->getSubmittedData($option);
@@ -637,6 +639,7 @@ class Enlimbo_Forms_Wpcf
         $element = $this->_setRender($element);
         $element['_render']['element'] = '';
         foreach ($element['#options'] as $ID => $value) {
+            $this->_count('radio');
             if (!is_array($value)) {
                 $value = array('#title' => $ID, '#value' => $value);
                 $value['#inline'] = true;

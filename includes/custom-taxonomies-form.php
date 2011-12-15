@@ -195,11 +195,13 @@ function wpcf_admin_custom_taxonomies_form() {
                     'wpcf')),
         'new_item_name' => array('title' => __('New %s Name', 'wpcf'), 'description' => __("The new item name text. Default is __( 'New Tag Name' ) or __( 'New Category Name' ).",
                     'wpcf')),
-        'separate_items_with_commas' => array('title' => __('Separate %s with commas', 'wpcf'), 'description' => __("The separate item with commas text used in the taxonomy meta box. This string isn't used on hierarchical taxonomies. Default is __( 'Separate tags with commas' ), or null.",
+        'separate_items_with_commas' => array('title' => __('Separate %s with commas',
+                    'wpcf'), 'description' => __("The separate item with commas text used in the taxonomy meta box. This string isn't used on hierarchical taxonomies. Default is __( 'Separate tags with commas' ), or null.",
                     'wpcf')),
         'add_or_remove_items' => array('title' => __('Add or remove %s', 'wpcf'), 'description' => __("the add or remove items text and used in the meta box when JavaScript is disabled. This string isn't used on hierarchical taxonomies. Default is __( 'Add or remove tags' ) or null.",
                     'wpcf')),
-        'choose_from_most_used' => array('title' => __('Choose from the most used %s', 'wpcf'), 'description' => __("The choose from most used text used in the taxonomy meta box. This string isn't used on hierarchical taxonomies. Default is __( 'Choose from the most used tags' ) or null.",
+        'choose_from_most_used' => array('title' => __('Choose from the most used %s',
+                    'wpcf'), 'description' => __("The choose from most used text used in the taxonomy meta box. This string isn't used on hierarchical taxonomies. Default is __( 'Choose from the most used tags' ) or null.",
                     'wpcf')),
         'menu_name' => array('title' => __('Menu Name', 'wpcf'), 'description' => __("The menu name text. This string is the name to give menu items. Defaults to value of name.",
                     'wpcf')),
@@ -223,6 +225,21 @@ function wpcf_admin_custom_taxonomies_form() {
         '#type' => 'markup',
         '#markup' => '<table id="wpcf-types-form-supports-table" class="wpcf-types-form-table widefat"><thead><tr><th>' . __('Advanced',
                 'wpcf') . '</th></tr></thead><tbody><tr><td>',
+    );
+    $form['make-hierarchical'] = array(
+        '#type' => 'radios',
+        '#name' => 'ct[hierarchical]',
+        '#default_value' => (empty($ct['hierarchical']) || $ct['hierarchical'] == 'flat')  ? 'flat' : 'hierarchical',
+//        '#title' => __('hierarchical', 'wpcf'),
+//        '#description' => __('Is this taxonomy hierarchical (have descendants) like categories or not hierarchical like tags.',
+//                'wpcf') . '<br />' . __('Default: false.', 'wpcf'),
+        '#inline' => true,
+        '#options' => array(
+            __('Hierarchical - like post categories, with parent / children relationship and checkboxes to select taxonomy',
+                    'wpcf') => 'hierarchical',
+            __('Flat - like post tags, with a text input to enter terms', 'wpcf') => 'flat'
+        ),
+        '#after' => '<br /><br />',
     );
     $form['rewrite-enabled'] = array(
         '#type' => 'checkbox',
@@ -299,14 +316,6 @@ function wpcf_admin_custom_taxonomies_form() {
                         'wpcf'),
                 '#inline' => true,
             ),
-            'hierarchical' => array(
-                '#name' => 'ct[hierarchical]',
-                '#default_value' => !empty($ct['hierarchical']),
-                '#title' => __('hierarchical', 'wpcf'),
-                '#description' => __('Is this taxonomy hierarchical (have descendants) like categories or not hierarchical like tags.',
-                        'wpcf') . '<br />' . __('Default: false.', 'wpcf'),
-                '#inline' => true,
-            ),
         ),
     );
     $query_var = isset($ct['query_var']) ? $ct['query_var'] : '';
@@ -318,8 +327,8 @@ function wpcf_admin_custom_taxonomies_form() {
         '#description' => __('False to prevent queries, or string to customize query var. Default will use $taxonomy as query var.',
                 'wpcf') . '<br />' . __('Default: $taxonomy.', 'wpcf'),
         '#default_value' => !empty($ct['query_var_enabled']),
-        '#after' => '<div id="wpcf-types-form-queryvar-toggle"' . $hidden . '><input type="text" name="ct[query_var]" value="' . $query_var . '" class="wpcf-form-textfield form-textfield textfield" /><div class="description wpcf-form-description wpcf-form-description-checkbox description-checkbox">' . __('Optional', 'wpcf') . '. ' . __('String to customize query var',
-                'wpcf') . '</div></div>',
+        '#after' => '<div id="wpcf-types-form-queryvar-toggle"' . $hidden . '><input type="text" name="ct[query_var]" value="' . $query_var . '" class="wpcf-form-textfield form-textfield textfield" /><div class="description wpcf-form-description wpcf-form-description-checkbox description-checkbox">' . __('Optional',
+                'wpcf') . '. ' . __('String to customize query var', 'wpcf') . '</div></div>',
         '#inline' => true,
     );
     $form['update_count_callback'] = array(
@@ -437,7 +446,7 @@ function wpcf_admin_custom_taxonomies_form_submit($form) {
 
     $custom_taxonomies[$tax] = $data;
     update_option('wpcf-custom-taxonomies', $custom_taxonomies);
-    
+
     wpcf_admin_message_store(__('Custom taxonomy saved', 'wpcf'));
 
     // Redirect

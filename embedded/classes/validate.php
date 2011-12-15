@@ -22,6 +22,7 @@ class Wpcf_Validate
         'digits' => 'numeric',
         'number' => 'numeric',
         'alphanumeric' => 'alphaNumericWhitespaces',
+        'nospecialchars' => 'noSpecialChars',
     );
     /**
      * Current validation has 'required' method.

@@ -926,6 +926,10 @@ class Wpcf_Cake_Validation  {
 	function userDefined($check, $object, $method, $args = null) {
 		return call_user_func_array(array(&$object, $method), array($check, $args));
 	}
+    
+    function noSpecialChars($check) {
+        return preg_match('#[^a-zA-Z0-9\s\_\-]#', $check) ? false : true;
+    }
 
 /**
  * Attempts to pass unhandled Validation locales to a class starting with $classPrefix

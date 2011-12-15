@@ -51,6 +51,14 @@ function wpcf_fields_date_meta_box_form($field) {
  */
 function wpcf_fields_date_meta_box_js_inline() {
 
+    $date_format = get_option('date_format');
+    $date_format = str_replace('d', 'dd', $date_format);
+    $date_format = str_replace('j', 'd', $date_format);
+    $date_format = str_replace('l', 'DD', $date_format);
+    $date_format = str_replace('m', 'mm', $date_format);
+    $date_format = str_replace('n', 'm', $date_format);
+    $date_format = str_replace('F', 'MM', $date_format);
+    $date_format = str_replace('Y', 'yy', $date_format);
     ?>
     <script type="text/javascript">
         //<![CDATA[
@@ -62,10 +70,12 @@ function wpcf_fields_date_meta_box_js_inline() {
                             showOn: "button",
                             buttonImage: "<?php echo WPCF_EMBEDDED_RES_RELPATH; ?>/images/calendar.gif",
                             buttonImageOnly: true,
-                            buttonText: "<?php _e('Select date',
-                    'wpcf'); ?>"
+                            buttonText: "<?php _e('Select date', 'wpcf'); ?>",
+                            dateFormat: "<?php echo $date_format; ?>",
+                            altFormat: "<?php echo $date_format; ?>",
                                 });
                         }
+                    
                     });
                     }
                 });
@@ -89,7 +99,7 @@ function wpcf_fields_date_value_get_filter($value) {
     if (empty($value)) {
         return $value;
     }
-    return date('m/d/Y', intval($value));
+    return date(get_option('date_format'), intval($value));
 }
 
 /**

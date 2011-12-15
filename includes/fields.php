@@ -131,20 +131,26 @@ function wpcf_admin_fields_remove_field_from_group_bulk($group_id, $fields) {
  * @param type $field_id
  */
 function wpcf_admin_fields_delete_field($field_id) {
-    // @todo finish this
     global $wpdb;
     $fields = get_option('wpcf-fields', array());
     if (isset($fields[$field_id])) {
-        echo 'deleting';
+        // Remove from groups
+        $groups = wpcf_admin_fields_get_groups();
+        foreach ($groups as $key => $group) {
+            wpcf_admin_fields_remove_field_from_group($group['id'], $field_id);
+        }
+        // Remove from posts
+        if (!wpcf_types_cf_under_control('check_outsider', $field_id)) {
+            $results = $wpdb->get_results("SELECT post_id, meta_key FROM $wpdb->postmeta WHERE meta_key = '" . wpcf_types_get_meta_prefix($fields[$field_id]) . strval($field_id) . "'");
+            foreach ($results as $result) {
+                delete_post_meta($result->post_id, $result->meta_key);
+            }
+        }
         unset($fields[$field_id]);
         wpcf_admin_fields_save_fields($fields, true);
-        // Remove from groups
-        // Remove from posts
-//        $results = $wpdb->get_results("SELECT meta_id, meta_value FROM $wpdb->post_meta WHERE meta_value LIKE '%," . strval($field_id) . ",%'");
-//        foreach ($results as $result) {
-//            
-//        }
-//        print_r($results);
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -252,11 +258,12 @@ function wpcf_admin_fields_save_field($field) {
             $field['data']['name'], $field['data']['description'],
             $field['data']['user_id'], $field['data']['id'],
             $field['data']['data']);
-    
+
     // Merge previous data (added because of outside fields)
     $field_previous_data = wpcf_admin_fields_get_field($field['id']);
     if (!empty($field_previous_data['data'])) {
-        $field['data'] = array_merge($field_previous_data['data'], $field['data']);
+        $field['data'] = array_merge($field_previous_data['data'],
+                $field['data']);
     }
 
     $field['data'] = apply_filters('wpcf_fields_' . $field['type'] . '_meta_data',
@@ -281,7 +288,7 @@ function wpcf_admin_fields_save_field($field) {
     $save_data['name'] = $field['name'];
     $save_data['description'] = $field['description'];
     $save_data['data'] = $field['data'];
-    
+
     // @todo Check if it's OK to be here
     $save_data['data']['disabled_by_type'] = 0;
 
@@ -393,19 +400,20 @@ function wpcf_admin_custom_fields_change_type($fields, $type) {
     $fields = wpcf_types_cf_under_control('add',
             array('fields' => $fields, 'type' => $type));
     $allowed = array(
-        'textfield' => array('textfield', 'textarea', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
-        'textarea' => array('textfield', 'textarea', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
-        'date' => array('date', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'image', 'numeric'),
-        'email' => array('email', 'textarea', 'textfield', 'date', 'url', 'phone', 'file', 'image', 'numeric'),
-        'file' => array('file', 'textarea', 'textfield', 'email', 'url', 'phone', 'fdate', 'image', 'numeric'),
-        'image' => array('image', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'idate', 'numeric'),
-        'numeric' => array('numeric', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'image', 'date'),
-        'phone' => array('phone', 'textarea', 'textfield', 'email', 'url', 'date', 'file', 'image', 'numeric'),
-        'select' => array('select', 'textarea', 'textfield', 'date', 'email', 'url', 'phone', 'file', 'image', 'numeric'),
-        'skype' => array('skype', 'textarea', 'textfield', 'date', 'email', 'url', 'phone', 'file', 'image', 'numeric'),
-        'url' => array('url', 'textarea', 'textfield', 'email', 'date', 'phone', 'file', 'image', 'numeric'),
-        'checkbox' => array('checkbox', 'textarea', 'textfield', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
-        'radio' => array('radio', 'textarea', 'textfield', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
+        'textfield' => array('wysiwyg', 'textfield', 'textarea', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
+        'textarea' => array('wysiwyg', 'textfield', 'textarea', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
+        'date' => array('wysiwyg', 'date', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'image', 'numeric'),
+        'email' => array('wysiwyg', 'email', 'textarea', 'textfield', 'date', 'url', 'phone', 'file', 'image', 'numeric'),
+        'file' => array('wysiwyg', 'file', 'textarea', 'textfield', 'email', 'url', 'phone', 'fdate', 'image', 'numeric'),
+        'image' => array('wysiwyg', 'image', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'idate', 'numeric'),
+        'numeric' => array('wysiwyg', 'numeric', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'image', 'date'),
+        'phone' => array('wysiwyg', 'phone', 'textarea', 'textfield', 'email', 'url', 'date', 'file', 'image', 'numeric'),
+        'select' => array('wysiwyg', 'select', 'textarea', 'textfield', 'date', 'email', 'url', 'phone', 'file', 'image', 'numeric'),
+        'skype' => array('wysiwyg', 'skype', 'textarea', 'textfield', 'date', 'email', 'url', 'phone', 'file', 'image', 'numeric'),
+        'url' => array('wysiwyg', 'url', 'textarea', 'textfield', 'email', 'date', 'phone', 'file', 'image', 'numeric'),
+        'checkbox' => array('wysiwyg', 'checkbox', 'textarea', 'textfield', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
+        'radio' => array('wysiwyg', 'radio', 'textarea', 'textfield', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
+        'wysiwyg' => array('wysiwyg', 'textarea'),
     );
     $all_fields = wpcf_admin_fields_get_fields();
     foreach ($fields as $field_id) {
@@ -414,7 +422,9 @@ function wpcf_admin_custom_fields_change_type($fields, $type) {
         }
         $field = $all_fields[$field_id];
         if (!in_array($type, $allowed[$field['type']])) {
-            wpcf_admin_message_store(sprintf(__('Field "%s" type was converted from %s to %s. You need to set some further settings in the group editor.', 'wpcf'), $field['name'], $field['type'], $type));
+            wpcf_admin_message_store(sprintf(__('Field "%s" type was converted from %s to %s. You need to set some further settings in the group editor.',
+                                    'wpcf'), $field['name'], $field['type'],
+                            $type));
             $all_fields[$field_id]['data']['disabled_by_type'] = 1;
         } else {
             $all_fields[$field_id]['data']['disabled'] = 0;
@@ -553,8 +563,15 @@ function wpcf_admin_fields_get_available_types() {
     foreach (glob(WPCF_EMBEDDED_INC_ABSPATH . '/fields/*.php') as $filename) {
         require_once $filename;
         if (function_exists('wpcf_fields_' . basename($filename, '.php'))) {
-            $data[basename($filename, '.php')] = call_user_func('wpcf_fields_' . basename($filename,
+            $data_field = call_user_func('wpcf_fields_' . basename($filename,
                             '.php'));
+            if (!empty($data_field['wp_version'])) {
+                if (wpcf_compare_wp_version($data_field['wp_version'], '>=')) {
+                    $data[basename($filename, '.php')] = $data_field;
+                }
+            } else {
+                $data[basename($filename, '.php')] = $data_field;
+            }
         }
     }
     return $data;

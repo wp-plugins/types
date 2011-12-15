@@ -25,7 +25,7 @@ function wpcf_embedded_init() {
     
     // Define necessary constants if plugin is not present
     if (!defined('WPCF_VERSION')) {
-        define('WPCF_VERSION', '0.9.1');
+        define('WPCF_VERSION', '0.9.2');
         define('WPCF_META_PREFIX', 'wpcf-');
         define('WPCF_EMBEDDED_RELPATH', icl_get_file_relpath(__FILE__));
     } else {
@@ -225,6 +225,15 @@ function wpcf_types_cf_under_control($action = 'add', $args = array()) {
             }
             return false;
             break;
+            
+        case 'check_outsider':
+            $fields = wpcf_admin_fields_get_fields();
+            $field = $args;
+            if (array_key_exists($field, $fields) && !empty($fields[$field]['data']['controlled'])) {
+                return true;
+            }
+            return false;
+            break;
 
         default:
             break;
@@ -244,4 +253,17 @@ function wpcf_types_get_meta_prefix($field = array()) {
         return '';
     }
     return WPCF_META_PREFIX;
+}
+
+
+/**
+ * Compares WP versions
+ * @global type $wp_version
+ * @param type $version
+ * @param type $operator
+ * @return type 
+ */
+function wpcf_compare_wp_version($version = '3.2.1', $operator = '>') {
+    global $wp_version;
+    return version_compare($wp_version, $version, $operator);
 }

@@ -98,16 +98,16 @@ function wpcf_fields_skype_shortcode_filter($shortcode, $field) {
  * Edit Skype button submit.
  */
 function wpcf_fields_skype_meta_box_submit() {
-    $update = $_GET['update'];
-    $preview = wpcf_fields_skype_get_button_image($_POST['skypename'],
-            $_POST['buttonstyle']);
+    $update = esc_attr($_GET['update']);
+    $preview = wpcf_fields_skype_get_button_image(esc_attr($_POST['skypename']),
+            esc_attr($_POST['buttonstyle']));
 
     ?>
     <script type="text/javascript">
         //<![CDATA[
         jQuery(document).ready(function(){
-            window.parent.jQuery('#<?php echo $update; ?>-skypename').val('<?php echo $_POST['skypename']; ?>');
-            window.parent.jQuery('#<?php echo $update; ?>-style').val('<?php echo $_POST['buttonstyle']; ?>');
+            window.parent.jQuery('#<?php echo $update; ?>-skypename').val('<?php echo esc_js($_POST['skypename']); ?>');
+            window.parent.jQuery('#<?php echo $update; ?>-style').val('<?php echo esc_js($_POST['buttonstyle']); ?>');
             window.parent.jQuery('#<?php echo $update; ?>-preview').html('<?php echo $preview; ?>');
             window.parent.jQuery('#TB_closeWindowButton').trigger('click');
         });

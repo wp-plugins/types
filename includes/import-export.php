@@ -21,9 +21,32 @@ function wpcf_admin_import_export_form() {
         if (isset($_POST['import-final'])) {
             if ($_POST['mode'] == 'file' && !empty($_POST['file'])
                     && file_exists(urldecode($_POST['file']))) {
-                $data = @file_get_contents(urldecode($_POST['file']));
+                $info = pathinfo(urldecode($_POST['file']));
+                $is_zip = $info['extension'] == 'zip' ? true : false;
+                if ($is_zip) {
+                    $zip = zip_open(urldecode($_POST['file']));
+                    if (is_resource($zip)) {
+                        while (($zip_entry = zip_read($zip)) !== false) {
+                            if (zip_entry_name($zip_entry) == 'settings.xml') {
+                                $data = @zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
+                            }
+                        }
+                    } else {
+                        echo '<div class="message error"><p>'
+                        . __('Unable to open zip file', 'wpcf')
+                        . '</p></div>';
+                        return array();
+                    }
+                } else {
+                    $data = @file_get_contents(urldecode($_POST['file']));
+                }
                 if ($data) {
                     wpcf_admin_import_data(html_entity_decode($data));
+                } else {
+                    echo '<div class="message error"><p>'
+                    . __('Unable to process file', 'wpcf')
+                    . '</p></div>';
+                    return array();
                 }
             }
             if ($_POST['mode'] == 'text' && !empty($_POST['text'])) {
@@ -35,7 +58,9 @@ function wpcf_admin_import_export_form() {
             $mode = 'none';
             $data = '';
             if (!empty($_POST['import-file']) && !empty($_FILES['file']['tmp_name'])) {
-                $_FILES['file']['name'] .= '.txt';
+                if ($_FILES['file']['type'] == 'text/xml') {
+                    $_FILES['file']['name'] .= '.txt';
+                }
                 $_POST['action'] = 'wp_handle_upload';
                 $uploaded_file = wp_handle_upload($_FILES['file'],
                         array(
@@ -46,7 +71,31 @@ function wpcf_admin_import_export_form() {
                 if (isset($uploaded_file['error'])) {
                     return array();
                 }
-                $data = @file_get_contents($uploaded_file['file']);
+                if (empty($uploaded_file['file'])) {
+                    echo '<div class="message error"><p>'
+                    . __('Error uploading file', 'wpcf')
+                    . '</p></div>';
+                    return array();
+                }
+                $info = pathinfo($uploaded_file['file']);
+                $is_zip = $info['extension'] == 'zip' ? true : false;
+                if ($is_zip) {
+                    $zip = zip_open($uploaded_file['file']);
+                    if (is_resource($zip)) {
+                        while (($zip_entry = zip_read($zip)) !== false) {
+                            if (zip_entry_name($zip_entry) == 'settings.xml') {
+                                $data = @zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
+                            }
+                        }
+                    } else {
+                        echo '<div class="message error"><p>'
+                        . __('Unable to open zip file', 'wpcf')
+                        . '</p></div>';
+                        return array();
+                    }
+                } else {
+                    $data = @file_get_contents($uploaded_file['file']);
+                }
                 $form['file'] = array(
                     '#type' => 'hidden',
                     '#name' => 'file',
@@ -185,7 +234,7 @@ function wpcf_admin_import_export_form() {
  * @param type $error_msg 
  */
 function wpcf_admin_import_export_file_upload_error($file, $error_msg) {
-    wpcf_admin_message(addslashes($error_msg), 'error');
+    echo '<div class="message error"><p>' . $error_msg . '</p></div>';
 }
 
 /**
@@ -261,7 +310,7 @@ function wpcf_admin_import_export_settings($data) {
                 '#type' => 'checkbox',
                 '#name' => 'groups[' . $group['ID'] . '][add]',
                 '#default_value' => true,
-                '#title' => '<strong>' . $group['post_title'] . '</strong>',
+                '#title' => '<strong>' . esc_html($group['post_title']) . '</strong>',
                 '#inline' => true,
                 '#after' => '<br /><br />',
             );
@@ -490,7 +539,7 @@ function wpcf_admin_export_data() {
             foreach ($fields as $field_id => $field) {
                 // @todo Fix for added fields
                 if (isset($iclTranslationManagement->settings['custom_fields_translation'][wpcf_types_get_meta_prefix($field) . $field_id])) {
-                    $fields[$field_id]['wpml_action'] = $iclTranslationManagement->settings['custom_fields_translation'][wpcf_types_get_meta_prefix($field) .$field_id];
+                    $fields[$field_id]['wpml_action'] = $iclTranslationManagement->settings['custom_fields_translation'][wpcf_types_get_meta_prefix($field) . $field_id];
                 }
             }
         }
@@ -529,11 +578,11 @@ function wpcf_admin_export_data() {
     $code = "<?php\r\n";
     $code .= '$timestamp = ' . time() . ';' . "\r\n";
     $code .= '$auto_import = ';
-    $code .=  (isset($_POST['embedded-settings']) && $_POST['embedded-settings'] == 'ask') ? 0 : 1;
+    $code .= (isset($_POST['embedded-settings']) && $_POST['embedded-settings'] == 'ask') ? 0 : 1;
     $code .= ';' . "\r\n";
     $code .= "\r\n?>";
     $zipname = $sitename . 'types.' . date('Y-m-d') . '.zip';
-    
+
     $file = tempnam("tmp", "zip");
     $zip = new ZipArchive();
     $zip->open($file, ZipArchive::OVERWRITE);
@@ -550,9 +599,4 @@ function wpcf_admin_export_data() {
     echo $data;
     unlink($file);
     die();
-//    header('Content-Description: File Transfer');
-//    header('Content-Disposition: attachment; filename=' . $filename);
-//    header('Content-Type: text/xml; charset=' . get_option('blog_charset'), true);
-//    echo $data;
-//    die();
 }

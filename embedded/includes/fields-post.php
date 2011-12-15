@@ -97,7 +97,28 @@ function wpcf_admin_post_meta_box($post, $group) {
         }
         foreach ($group['args']['fields'] as $field_slug => $field) {
             // Render form elements
-            echo wpcf_form_simple(array($field['#id'] => $field));
+            if (wpcf_compare_wp_version() && $field['#type'] == 'wysiwyg') {
+                // Especially for WYSIWYG
+                unset($field['#before'], $field['#after']);
+                echo '<div class="wpcf-wysiwyg">';
+                echo '<div id="wpcf-textarea-textarea-wrapper" class="form-item form-item-textarea wpcf-form-item wpcf-form-item-textarea">
+<label class="wpcf-form-label wpcf-form-textarea-label">' . $field['#title'] . '</label>';
+                echo '<div class="description wpcf-form-description wpcf-form-description-textarea description-textarea">
+' . wpautop($field['#description']) . '</div>';
+                wp_editor($field['#value'], $field['#id'],
+                        $field['#editor_settings']);
+                $field['slug'] = str_replace(WPCF_META_PREFIX . 'wysiwyg-', '',
+                        $field_slug);
+                $field['type'] = 'wysiwyg';
+                echo '</div><div class="wpcf-shortcode">' . sprintf(__('Shortcode: %s',
+                                'wpcf'),
+                        '<span class="code">' . wpcf_fields_get_shortcode($field) . '</span>') . '</div></div><br /><br />';
+            } else {
+                if ($field['#type'] == 'wysiwyg') {
+                    $field['#type'] = 'textarea';
+                }
+                echo wpcf_form_simple(array($field['#id'] => $field));
+            }
             do_action('wpcf_fields_' . $field_slug . '_meta_box_form', $field);
             if (isset($field['wpcf-type'])) { // May be ignored
                 do_action('wpcf_fields_' . $field['wpcf-type'] . '_meta_box_form',
@@ -172,7 +193,8 @@ function wpcf_admin_post_save_post_hook($post_ID, $post) {
                             . '_value_save', $field_value);
 
                     // Save field
-                    update_post_meta($post_ID, wpcf_types_get_meta_prefix($field) . $field_slug,
+                    update_post_meta($post_ID,
+                            wpcf_types_get_meta_prefix($field) . $field_slug,
                             $field_value);
 
                     do_action('wpcf_fields_slug_' . $field_slug . '_save',
@@ -260,14 +282,16 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
             $field['value'] = '';
             if ($post) {
                 $field['value'] = get_post_meta($post->ID,
-                        wpcf_types_get_meta_prefix($field) . $field['slug'], true);
+                        wpcf_types_get_meta_prefix($field) . $field['slug'],
+                        true);
             } else {
                 // see if it's in the original custom fields to copy.
                 if (!empty($original_cf['fields'])) {
                     foreach ($original_cf['fields'] as $cf_id) {
                         if (wpcf_types_get_meta_prefix($field) . $field['slug'] == $cf_id) {
                             $field['value'] = get_post_meta($original_cf['original_post_id'],
-                                    wpcf_types_get_meta_prefix($field) . $field['slug'], true);
+                                    wpcf_types_get_meta_prefix($field) . $field['slug'],
+                                    true);
                             break;
                         }
                     }
@@ -301,15 +325,22 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
                         continue;
                     }
                     $deps = !empty($data['deps']) ? $data['deps'] : array();
-                    wp_enqueue_script($handle, $data['src'], $deps, WPCF_VERSION);
+                    $in_footer = !empty($data['in_footer']) ? $data['in_footer'] : false;
+                    wp_register_script($handle, $data['src'], $deps, WPCF_VERSION, $in_footer);
+                    wp_enqueue_script($handle);
                 }
             }
 
             // Process CSS
             if (!empty($field_init_data['meta_box_css'])) {
                 foreach ($field_init_data['meta_box_css'] as $handle => $data) {
-                    $deps = !empty($data['deps']) ? $data['deps'] : array();
-                    wp_enqueue_style($handle, $data['src'], $deps, WPCF_VERSION);
+                    if (isset($data['src'])) {
+                        $deps = !empty($data['deps']) ? $data['deps'] : array();
+                        wp_enqueue_style($handle, $data['src'], $deps,
+                                WPCF_VERSION);
+                    } else if (isset($data['inline'])) {
+                        add_action('admin_head', $data['inline']);
+                    }
                 }
             }
 
@@ -344,7 +375,7 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
             if (isset($field['description_extra'])) {
                 $element['#description'] .= wpautop($field['description_extra']);
             }
-            
+
             // Set atributes #1
             if (isset($field['disable'])) {
                 $field['#disable'] = $field['disable'];
@@ -405,7 +436,7 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
                     }
                 }
             }
-            
+
             // Set atributes #2 (override)
             if (isset($field['disable'])) {
                 $element['#disable'] = $field['disable'];
@@ -493,7 +524,8 @@ function wpcf_admin_post_get_post_groups_fields($post = false) {
                     foreach ($groups_by_term as $group) {
                         if (!isset($groups[$group['id']])) {
                             $groups[$group['id']] = $group;
-                            $groups[$group['id']]['fields'] = wpcf_admin_fields_get_fields_by_group($group['id'], 'slug', true, false, true);
+                            $groups[$group['id']]['fields'] = wpcf_admin_fields_get_fields_by_group($group['id'],
+                                    'slug', true, false, true);
                         }
                     }
                 }
@@ -507,7 +539,8 @@ function wpcf_admin_post_get_post_groups_fields($post = false) {
             foreach ($groups_by_term as $group) {
                 if (!isset($groups[$group['id']])) {
                     $groups[$group['id']] = $group;
-                    $groups[$group['id']]['fields'] = wpcf_admin_fields_get_fields_by_group($group['id'], 'slug', true, false, true);
+                    $groups[$group['id']]['fields'] = wpcf_admin_fields_get_fields_by_group($group['id'],
+                            'slug', true, false, true);
                 }
             }
         }
@@ -519,7 +552,8 @@ function wpcf_admin_post_get_post_groups_fields($post = false) {
     if (!empty($groups_by_post_type)) {
         foreach ($groups_by_post_type as $key => $group) {
             $groups[$group['id']] = $group;
-            $groups[$group['id']]['fields'] = wpcf_admin_fields_get_fields_by_group($group['id'], 'slug', true, false, true);
+            $groups[$group['id']]['fields'] = wpcf_admin_fields_get_fields_by_group($group['id'],
+                    'slug', true, false, true);
         }
     }
 
@@ -599,7 +633,8 @@ function wpcf_admin_post_editor_addon_menus_filter($items) {
     $add = array();
     if (!empty($groups)) {
         foreach ($groups as $group_id => $group) {
-            $fields = wpcf_admin_fields_get_fields_by_group($group['id'], 'slug', true, false, true);
+            $fields = wpcf_admin_fields_get_fields_by_group($group['id'],
+                    'slug', true, false, true);
             if (!empty($fields)) {
                 foreach ($fields as $field_id => $field) {
                     // Get field data
@@ -640,6 +675,11 @@ function wpcf_admin_post_editor_addon_menus_filter($items) {
                     if (!empty($data['meta_box_css'])) {
                         foreach ($data['meta_box_css'] as $handle => $data_script) {
                             $deps = !empty($data_script['deps']) ? $data_script['deps'] : array();
+                            if (isset($data_script['inline'])) {
+                                add_action('admin_header',
+                                        $data_script['inline']);
+                                continue;
+                            }
                             wp_enqueue_style($handle, $data_script['src'],
                                     $deps, WPCF_VERSION);
                         }

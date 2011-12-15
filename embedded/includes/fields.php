@@ -49,15 +49,26 @@ function wpcf_admin_fields_get_fields($only_active = false,
     $required_data = array('id', 'name', 'type', 'slug');
     $fields = get_option('wpcf-fields', array());
     foreach ($fields as $k => $v) {
+        $data = wpcf_fields_type_action($v['type']);
+        if (isset($data['wp_version'])
+                && wpcf_compare_wp_version($data['wp_version'], '<')) {
+            unset($fields[$k]);
+            continue;
+        }
         if ($strictly_active) {
             if (!empty($v['data']['disabled']) || !empty($v['data']['disabled_by_type'])) {
                 unset($fields[$k]);
                 continue;
             }
-        } else if (($only_active && !empty($v['data']['disabled']))
-                && (!$disabled_by_type && !empty($v['data']['disabled_by_type']))) {
-            unset($fields[$k]);
-            continue;
+        } else {
+            if (($only_active && !empty($v['data']['disabled']))) {
+                unset($fields[$k]);
+                continue;
+            }
+            if (!$disabled_by_type && !empty($v['data']['disabled_by_type'])) {
+                unset($fields[$k]);
+                continue;
+            }
         }
         foreach ($required_data as $required) {
             if (!isset($v[$required])) {
@@ -91,6 +102,11 @@ function wpcf_admin_fields_get_fields($only_active = false,
 function wpcf_admin_fields_get_field($field_id, $only_active = false) {
     $fields = wpcf_admin_fields_get_fields();
     if (!empty($fields[$field_id])) {
+        $data = wpcf_fields_type_action($fields[$field_id]['type']);
+        if (isset($data['wp_version'])
+                && wpcf_compare_wp_version($data['wp_version'], '<')) {
+            return array();
+        }
         $fields[$field_id]['id'] = $field_id;
         return $fields[$field_id];
     }
@@ -354,7 +370,16 @@ function wpcf_admin_fields_popup_insert_shortcode_js($shortcode) {
     <script type="text/javascript">
         //<![CDATA[
         window.parent.jQuery('#TB_closeWindowButton').trigger('click');
-        if (window.parent.wpcfInsertMetaHTML == false) {
+        if (window.parent.wpcfActiveEditor != false) {
+            if (window.parent.jQuery('textarea#'+window.parent.wpcfActiveEditor+':visible').length) {
+                // HTML editor
+                window.parent.jQuery('textarea#'+window.parent.wpcfActiveEditor).insertAtCaret('<?php echo $shortcode; ?>');
+            } else {
+                // Visual editor
+                window.parent.tinyMCE.execCommand('mceFocus', false, window.parent.wpcfActiveEditor);
+                window.parent.tinyMCE.activeEditor.execCommand('mceInsertContent', false, '<?php echo $shortcode; ?>');
+            }
+        } else if (window.parent.wpcfInsertMetaHTML == false) {
             if (window.parent.jQuery('textarea#content:visible').length) {
                 // HTML editor
                 window.parent.jQuery('textarea#content').insertAtCaret('<?php echo $shortcode; ?>');
@@ -366,7 +391,7 @@ function wpcf_admin_fields_popup_insert_shortcode_js($shortcode) {
             window.parent.jQuery('#'+window.parent.wpcfInsertMetaHTML).insertAtCaret('<?php echo $shortcode; ?>');
             window.parent.wpcfInsertMetaHTML = false;
         }
-                                        
+                                                    
         //]]>
     </script>
     <?php

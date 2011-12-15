@@ -46,8 +46,8 @@ class WPCF_Custom_Fields_Control_Table extends WP_List_Table
                 $output_temp[] = __('None', 'wpcf');
             }
             $cf_types[$cf_id]['groups_txt'] = implode(', ', $output_temp);
-			$cf_types[$cf_id]['groups_ids'] = $groups_temp;
-		}
+            $cf_types[$cf_id]['groups_ids'] = $groups_temp;
+        }
 
         // Get others (cache this result?)
         $cf_other = $wpdb->get_results("
@@ -76,6 +76,9 @@ class WPCF_Custom_Fields_Control_Table extends WP_List_Table
                     } else {
                         unset($cf_other[$type_id]);
                     }
+                } else if (wpcf_types_cf_under_control('check_exists',
+                                $type_data->meta_key)) {
+                    unset($cf_other[$type_id]);
                 } else {
                     $cf_types[$type_data->meta_key] = array(
                         'id' => $type_data->meta_key,
@@ -232,11 +235,12 @@ class WPCF_Custom_Fields_Control_Table extends WP_List_Table
         if (!empty($item['data']['disabled_by_type'])) {
             $add = '<br /><span style="color:red;">(' . __("This field was disabled during conversion. You need to set some further settings in the group editor.",
                             'wpcf') . ')</span>';
-			if (isset($item['groups_ids']) && sizeof($item['groups_ids'])) {
-				$group_ids = array_keys($item['groups_ids']);
-				$group_id = $group_ids[0];
-				$add .= ' <a href="' . admin_url('admin.php?page=wpcf-edit&group_id=' . $group_id) . '">' . __('Edit', 'wpcf') . '</a>';
-			}
+            if (isset($item['groups_ids']) && sizeof($item['groups_ids'])) {
+                $group_ids = array_keys($item['groups_ids']);
+                $group_id = $group_ids[0];
+                $add .= ' <a href="' . admin_url('admin.php?page=wpcf-edit&group_id=' . $group_id) . '">' . __('Edit',
+                                'wpcf') . '</a>';
+            }
         }
         return $item['type'] . $add;
     }
@@ -250,16 +254,17 @@ class WPCF_Custom_Fields_Control_Table extends WP_List_Table
         $actions['wpcf-activate-bulk'] = __("Add to Types control", 'wpcf');
         $actions['wpcf-deactivate-bulk'] = __("Stop controlling with Types",
                 'wpcf');
+        $actions['wpcf-delete-bulk'] = __("Delete", 'wpcf');
         return $actions;
     }
 
     function view_switcher() {
         echo '<div style="clear:both; margin: 20px 0 10px 0; float: right;"><a class="button button-secondary" href="';
         if (empty($_GET['display_all'])) {
-            echo $_SERVER['REQUEST_URI'] . '&amp;display_all=1">' . __('Display all items',
+            echo esc_url($_SERVER['REQUEST_URI']) . '&amp;display_all=1">' . __('Display all items',
                     'wpcf');
         } else {
-            echo $_SERVER['REQUEST_URI'] . '&amp;display_all=0">' . __('Show pagination',
+            echo esc_url($_SERVER['REQUEST_URI']) . '&amp;display_all=0">' . __('Show pagination',
                     'wpcf');
         }
         echo '</a></div>';
@@ -282,7 +287,7 @@ function wpcf_admin_custom_fields_control_js() {
                 return wpcfAdminCustomFieldsControlSubmit(jQuery(this).prev());
             });
         });
-                                                                                    
+                                                                                                        
         function wpcfAdminCustomFieldsControlSubmit(action_field) {
             var action = action_field.val();
             var open_popup = false;
@@ -300,8 +305,17 @@ function wpcf_admin_custom_fields_control_js() {
                 tb_show(title, url);
                 return false;
             }
-            return true;
-        }
+            if (action == 'wpcf-delete-bulk') {
+                var answer = confirm('<?php _e('Deleting fields will remove fields from groups and delete post meta. Continue?',
+            'wpcf') ?>');
+                        if (answer){
+                            jQuery('#wpcf-custom-fields-control-form').submit();
+                        } else{
+                            return false;
+                        }
+                    }
+                    return true;
+                }
     </script>
     <?php
 }
@@ -332,6 +346,26 @@ function wpcf_admin_custom_fields_control_bulk_actions($action = '') {
                                     'wpcf'), $field_id));
         }
         wpcf_admin_fields_save_fields($fields);
+    } else if ($action == 'wpcf-delete-bulk') {
+        require_once WPCF_INC_ABSPATH . '/fields.php';
+        $failed = array();
+        $success = array();
+        foreach ($_POST['fields'] as $field_id) {
+            $response = wpcf_admin_fields_delete_field($field_id);
+            if (!$response) {
+                $failed[] = str_replace('_' . md5('wpcf_not_controlled'), '', $field_id);
+            } else {
+                $success[] = $field_id;
+            }
+        }
+        if (!empty($success)) {
+            wpcf_admin_message_store(sprintf(__('Fields %s have been deleted.',
+                                    'wpcf'), implode(', ', $success)));
+        }
+        if (!empty($failed)) {
+            wpcf_admin_message_store(sprintf(__('Fields %s are not Types fields. Types wont delete these fields.',
+                                    'wpcf'), implode(', ', $failed)));
+        }
     }
     wp_redirect($_SERVER['REQUEST_URI']);
     die();
@@ -403,7 +437,7 @@ function wpcf_admin_custom_fields_control_bulk_ajax() {
     echo wpcf_form_simple($output);
     echo get_submit_button();
     wp_nonce_field('custom_fields_control_bulk');
-    echo '<input type="hidden" name="action" value="' . $_GET['wpcf_bulk_action'] . '" />';
+    echo '<input type="hidden" name="action" value="' . esc_attr($_GET['wpcf_bulk_action']) . '" />';
     echo '</form>';
 }
 

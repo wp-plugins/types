@@ -204,6 +204,9 @@ function wpcf_admin_import_data($data = '', $redirect = true) {
         // Delete fields
         if ($delete_fields) {
             foreach ($fields_existing as $k => $v) {
+                if (!empty($v['data']['controlled'])) {
+                    continue;
+                }
                 if (!in_array($k, $fields_check)) {
                     wpcf_admin_message_store(sprintf(__('Field "%s" deleted',
                                             'wpcf'),
@@ -262,7 +265,7 @@ function wpcf_admin_import_data($data = '', $redirect = true) {
                 if (!in_array($k, $types_check)) {
                     unset($types_existing[$k]);
                     wpcf_admin_message_store(sprintf(__('Custom post type "%s" deleted',
-                                            'wpcf'), $k));
+                                            'wpcf'), esc_html($k)));
                 }
             }
         } else {

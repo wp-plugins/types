@@ -23,13 +23,13 @@ function wpcf_admin_save_fields_groups_submit($form) {
     $group_slug = $_POST['wpcf']['group']['slug'] = sanitize_title($_POST['wpcf']['group']['name']);
 
     // Basic check
-    if (isset($_POST['group-id'])) {
+    if (isset($_REQUEST['group_id'])) {
         // Check if group exists
-        $post = get_post($_POST['group-id']);
+        $post = get_post($_REQUEST['group_id']);
         if (empty($post) || $post->post_type != 'wp-types-group') {
             $form->triggerError();
             wpcf_admin_message(sprintf(__("Wrong group ID %d", 'wpcf'),
-                            intval($_POST['group-id'])), 'error');
+                            intval($_REQUEST['group_id'])), 'error');
             return false;
         }
         $group_id = $post->ID;
@@ -42,7 +42,7 @@ function wpcf_admin_save_fields_groups_submit($form) {
     if (!empty($_POST['wpcf']['fields'])) {
         // Before anything - search unallowed characters
         foreach ($_POST['wpcf']['fields'] as $key => $field) {
-            if (preg_match('#[^a-zA-Z0-9\s_-]#', $field['name'])) {
+            if (preg_match('#[^a-zA-Z0-9\s\_\-]#', $field['name'])) {
                 $form->triggerError();
                 wpcf_admin_message(sprintf(__('Field names cannot contain non-English characters. Please edit this field name %s and save again.',
                                         'wpcf'), $field['name']), 'error');
@@ -50,6 +50,15 @@ function wpcf_admin_save_fields_groups_submit($form) {
             }
         }
         foreach ($_POST['wpcf']['fields'] as $key => $field) {
+            if (!empty($field['is_new'])) {
+                if (wpcf_types_cf_under_control('check_exists',
+                                sanitize_title($field['name']))) {
+                    $form->triggerError();
+                    wpcf_admin_message(sprintf(__('Field with name "%s" already exists',
+                                            'wpcf'), $field['name']), 'error');
+                    return false;
+                }
+            }
             $slug = $_POST['wpcf']['fields'][$key]['slug'] = sanitize_title($field['name']);
             $field_id = wpcf_admin_fields_save_field($field);
             if (!empty($field_id)) {
@@ -73,8 +82,8 @@ function wpcf_admin_save_fields_groups_submit($form) {
         }
     }
     // Rename if needed
-    if (isset($_POST['group-id'])) {
-        $_POST['wpcf']['group']['id'] = $_POST['group-id'];
+    if (isset($_REQUEST['group_id'])) {
+        $_POST['wpcf']['group']['id'] = $_REQUEST['group_id'];
     }
 
     $group_id = wpcf_admin_fields_save_group($_POST['wpcf']['group']);
@@ -118,16 +127,16 @@ function wpcf_admin_fields_form() {
 
     // If it's update, get data
     $update = false;
-    if (isset($_GET['group_id'])) {
-        $update = wpcf_admin_fields_get_group($_GET['group_id']);
+    if (isset($_REQUEST['group_id'])) {
+        $update = wpcf_admin_fields_get_group(intval($_REQUEST['group_id']));
         if (empty($update)) {
             $update = false;
             wpcf_admin_message(sprintf(__("Group with ID %d do not exist",
-                                    'wpcf'), intval($_GET['group_id'])));
+                                    'wpcf'), intval($_REQUEST['group_id'])));
         } else {
-            $update['fields'] = wpcf_admin_fields_get_fields_by_group($_GET['group_id']);
-            $update['post_types'] = wpcf_admin_get_post_types_by_group($_GET['group_id']);
-            $update['taxonomies'] = wpcf_admin_get_taxonomies_by_group($_GET['group_id']);
+            $update['fields'] = wpcf_admin_fields_get_fields_by_group($_REQUEST['group_id']);
+            $update['post_types'] = wpcf_admin_get_post_types_by_group($_REQUEST['group_id']);
+            $update['taxonomies'] = wpcf_admin_get_taxonomies_by_group($_REQUEST['group_id']);
         }
     }
 
@@ -150,6 +159,9 @@ function wpcf_admin_fields_form() {
         require_once $filename;
         if (function_exists('wpcf_fields_' . basename($filename, '.php'))) {
             $data = call_user_func('wpcf_fields_' . basename($filename, '.php'));
+            if (isset($data['wp_version']) && wpcf_compare_wp_version($data['wp_version'], '<')) {
+                continue;
+            }
             $form['fields'][basename($filename, '.php')] = array(
                 '#type' => 'markup',
                 '#markup' => '<a href="' . admin_url('admin-ajax.php'
@@ -162,7 +174,7 @@ function wpcf_admin_fields_form() {
     }
 
     // Get fields created by user
-    $fields = wpcf_admin_fields_get_fields();
+    $fields = wpcf_admin_fields_get_fields(true, true);
     if (!empty($fields)) {
         $form['fields-existing'] = array(
             '#type' => 'fieldset',
@@ -170,15 +182,37 @@ function wpcf_admin_fields_form() {
             '#id' => 'wpcf-form-groups-user-fields',
         );
         foreach ($fields as $key => $field) {
+            if (isset($update['fields']) && array_key_exists($key,
+                            $update['fields'])) {
+                continue;
+            }
+            if (!empty($field['data']['removed_from_history'])) {
+                continue;
+            }
             $form['fields-existing'][$key] = array(
                 '#type' => 'markup',
-                '#markup' => '<a href="' . admin_url('admin-ajax.php'
+                '#markup' => '<div id="wpcf-user-created-fields-wrapper-' . $field['id'] . '" style="float:left; margin-right: 10px;"><a href="' . admin_url('admin-ajax.php'
                         . '?action=wpcf_ajax'
                         . '&amp;wpcf_action=fields_insert_existing'
                         . '&amp;field=' . $field['id']) . '&amp;_wpnonce='
                 . wp_create_nonce('fields_insert_existing') . '" '
-                . 'class="wpcf-fields-add-ajax-link button-secondary">'
-                . htmlspecialchars(stripslashes($field['name'])) . '</a> ',
+                . 'class="wpcf-fields-add-ajax-link button-secondary" onclick="jQuery(this).parent().fadeOut();">'
+                . htmlspecialchars(stripslashes($field['name'])) . '</a>'
+                . '<a href="' . admin_url('admin-ajax.php'
+                        . '?action=wpcf_ajax'
+                        . '&amp;wpcf_action=remove_from_history'
+                        . '&amp;field_id=' . $field['id']) . '&amp;_wpnonce='
+                . wp_create_nonce('remove_from_history') . '&amp;wpcf_warning='
+                . sprintf(__('Are you sure that you want to remove field %s from history?',
+                                'wpcf'),
+                        htmlspecialchars(stripslashes($field['name'])))
+                . '&amp;wpcf_ajax_update=wpcf-user-created-fields-wrapper-'
+                . $field['id'] . '" title="'
+                . sprintf(__('Remove field %s', 'wpcf'),
+                        htmlspecialchars(stripslashes($field['name'])))
+                . '" class="wpcf-ajax-link"><img src="'
+                . WPCF_RES_RELPATH
+                . '/images/delete-2.png" style="postion:absolute;margin-top:5px;margin-left:-4px;" /></a></div>',
             );
         }
     }
@@ -197,7 +231,7 @@ function wpcf_admin_fields_form() {
     $form['title'] = array(
         '#type' => 'textfield',
         '#name' => 'wpcf[group][name]',
-//        '#title' => __('Group title', 'wpcf'),
+        '#id' => 'wpcf-group-name',
         '#value' => $update ? $update['name'] : __('Enter group title', 'wpcf'),
         '#inline' => true,
         '#attributes' => array('style' => 'width:100%;margin-bottom:10px;'),
@@ -215,6 +249,7 @@ function wpcf_admin_fields_form() {
     }
     $form['description'] = array(
         '#type' => 'textarea',
+        '#id' => 'wpcf-group-description',
         '#name' => 'wpcf[group][description]',
         '#value' => $update ? $update['description'] : __('Enter a description for this group',
                         'wpcf'),
@@ -514,10 +549,11 @@ function wpcf_admin_fields_form() {
 
     // If update, create ID field
     if ($update) {
-        $form['group-id'] = array(
+        $form['group_id'] = array(
             '#type' => 'hidden',
-            '#name' => 'group-id',
+            '#name' => 'group_id',
             '#value' => $update['id'],
+            '#forced_value' => true,
         );
     }
 
@@ -672,7 +708,7 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
             '#type' => 'textfield',
             '#name' => 'name',
             '#attributes' => array('class' => 'wpcf-forms-set-legend', 'style' => 'width:100%;margin:10px 0 10px 0;'),
-            '#validate' => array('required' => array('value' => true), 'alphanumeric' => array('value' => true)),
+            '#validate' => array('required' => array('value' => true), 'nospecialchars' => array('value' => true)),
             '#inline' => true,
             '#value' => __('Enter field name', 'wpcf'),
         );
@@ -745,7 +781,7 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
         if (function_exists('wpml_cf_translation_preferences')) {
             // @todo Fix for added fields
             $custom_field = !empty($form_data['slug']) ? wpcf_types_get_meta_prefix($form_data) . $form_data['slug'] : false;
-            $translatable = array('textfield', 'textarea');
+            $translatable = array('textfield', 'textarea', 'wysiwyg');
             $action = in_array($type, $translatable) ? 'translate' : 'copy';
             $form['wpcf-' . $id]['wpml-preferences'] = array(
                 '#type' => 'fieldset',
@@ -756,6 +792,14 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
                 '#type' => 'markup',
                 '#markup' => wpml_cf_translation_preferences($id, $custom_field,
                         'wpcf', false, $action),
+            );
+        }
+
+        if (empty($form_data) || isset($form_data['is_new'])) {
+            $form['wpcf-' . $id]['is_new'] = array(
+                '#type' => 'hidden',
+                '#name' => 'wpcf[fields][' . $id . '][is_new]',
+                '#value' => '1',
             );
         }
 
@@ -774,14 +818,17 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
  */
 function wpcf_admin_fields_form_validation($name, $field, $form_data = array()) {
     $form = array();
-    $form['validate-table-open'] = array(
-        '#type' => 'markup',
-        '#markup' => '<table class="wpcf-fields-form-validate-table" '
-        . 'cellspacing="0" cellpadding="0"><thead><tr><td>'
-        . __('Validation', 'wpcf') . '</td><td>' . __('Error message', 'wpcf')
-        . '</td></tr></thead><tbody>',
-    );
+
     if (isset($field['validate'])) {
+
+        $form['validate-table-open'] = array(
+            '#type' => 'markup',
+            '#markup' => '<table class="wpcf-fields-form-validate-table" '
+            . 'cellspacing="0" cellpadding="0"><thead><tr><td>'
+            . __('Validation', 'wpcf') . '</td><td>' . __('Error message',
+                    'wpcf')
+            . '</td></tr></thead><tbody>',
+        );
 
         // Process methods
         foreach ($field['validate'] as $k => $method) {
@@ -834,11 +881,12 @@ function wpcf_admin_fields_form_validation($name, $field, $form_data = array()) 
                 $form = $form + $form_validate;
             }
         }
+        $form['validate-table-close'] = array(
+            '#type' => 'markup',
+            '#markup' => '</tbody></table>',
+        );
     }
-    $form['validate-table-close'] = array(
-        '#type' => 'markup',
-        '#markup' => '</tbody></table>',
-    );
+
     return $form;
 }
 
@@ -879,8 +927,8 @@ function wpcf_admin_fields_form_save_open_fieldset($action, $fieldset,
  * @param type $group_id 
  */
 function wpcf_admin_fields_form_fieldset_is_collapsed($fieldset) {
-    if (isset($_GET['group_id'])) {
-        $group_id = intval($_GET['group_id']);
+    if (isset($_REQUEST['group_id'])) {
+        $group_id = intval($_REQUEST['group_id']);
     } else {
         $group_id = -1;
     }
