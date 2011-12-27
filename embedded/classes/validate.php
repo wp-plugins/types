@@ -51,13 +51,13 @@ class Wpcf_Validate
         // Loop over validation array
         foreach ($args as $method => $v) {
             // Use this class method
-            if (method_exists('Wpcf_Validate',  $method)) {
+            if (is_callable(array('Wpcf_Validate', $method))) {
                 $check = call_user_func_array(array('Wpcf_Validate', $method),
                         array($v, $value));
                 // Use CakePHP method
             } else if ((isset(self::$_cake_aliases[$method])
-                    && method_exists('Wpcf_Cake_Validation', self::$_cake_aliases[$method]))
-                    || method_exists('Wpcf_Cake_Validation', $method)) {
+                    && is_callable(array('Wpcf_Cake_Validation', self::$_cake_aliases[$method])))
+                    || is_callable(array('Wpcf_Cake_Validation', $method))) {
 
                 // Check if validation pattern is set
                 if (isset($v['pattern'])) {
@@ -76,7 +76,7 @@ class Wpcf_Validate
                 }
 
                 // Validate
-                if (isset(self::$_cake_aliases[$method]) && method_exists('Wpcf_Cake_Validation', self::$_cake_aliases[$method])) {
+                if (isset(self::$_cake_aliases[$method]) && is_callable(array('Wpcf_Cake_Validation', self::$_cake_aliases[$method]))) {
                     $check = @call_user_func_array(array('Wpcf_Cake_Validation', self::$_cake_aliases[$method]),
                                     array_values($v));
                 } else {
@@ -114,10 +114,10 @@ class Wpcf_Validate
      */
     public static function canValidate($method)
     {
-        return (method_exists('Wpcf_Validate',  $method)
+        return (is_callable(array('Wpcf_Validate',  $method))
         || (isset(self::$_cake_aliases[$method])
-        && method_exists('Wpcf_Cake_Validation', self::$_cake_aliases[$method]))
-        || method_exists('Wpcf_Cake_Validation',  $method));
+        && is_callable(array('Wpcf_Cake_Validation', self::$_cake_aliases[$method])))
+        || is_callable(array('Wpcf_Cake_Validation',  $method)));
     }
 
     /**
@@ -128,7 +128,7 @@ class Wpcf_Validate
      */
     public static function hasForm($method)
     {
-        return method_exists('Wpcf_Validate', $method . '_form');
+        return is_callable(array('Wpcf_Validate', $method . '_form'));
     }
 
     /**

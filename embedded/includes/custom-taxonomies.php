@@ -81,5 +81,7 @@ function wpcf_custom_taxonomies_register($taxonomy, $data) {
     } else {
         $data['rewrite'] = false;
     }
+    // Force removing capabilities here
+    unset($data['capabilities']);
     register_taxonomy($taxonomy, $object_types, $data);
 }

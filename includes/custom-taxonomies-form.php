@@ -448,6 +448,9 @@ function wpcf_admin_custom_taxonomies_form_submit($form) {
     update_option('wpcf-custom-taxonomies', $custom_taxonomies);
 
     wpcf_admin_message_store(__('Custom taxonomy saved', 'wpcf'));
+    
+    // Flush rewrite rules
+    flush_rewrite_rules();
 
     // Redirect
     wp_redirect(admin_url('admin.php?page=wpcf-edit-tax&wpcf-tax=' . $tax . '&wpcf-rewrite=1'));

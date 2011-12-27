@@ -110,9 +110,7 @@ function wpcf_admin_post_meta_box($post, $group) {
                 $field['slug'] = str_replace(WPCF_META_PREFIX . 'wysiwyg-', '',
                         $field_slug);
                 $field['type'] = 'wysiwyg';
-                echo '</div><div class="wpcf-shortcode">' . sprintf(__('Shortcode: %s',
-                                'wpcf'),
-                        '<span class="code">' . wpcf_fields_get_shortcode($field) . '</span>') . '</div></div><br /><br />';
+                echo '</div></div><br /><br />';
             } else {
                 if ($field['#type'] == 'wysiwyg') {
                     $field['#type'] = 'textarea';
@@ -289,6 +287,7 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
                 if (!empty($original_cf['fields'])) {
                     foreach ($original_cf['fields'] as $cf_id) {
                         if (wpcf_types_get_meta_prefix($field) . $field['slug'] == $cf_id) {
+                            $field['wpml_action'] = 'copy';
                             $field['value'] = get_post_meta($original_cf['original_post_id'],
                                     wpcf_types_get_meta_prefix($field) . $field['slug'],
                                     true);
@@ -302,8 +301,9 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
             if (!empty($original_cf['fields'])) {
                 foreach ($original_cf['fields'] as $cf_id) {
                     if (wpcf_types_get_meta_prefix($field) . $field['slug'] == $cf_id) {
-                        $field['description_extra'] = $original_cf['copy_message'];
+//                        $field['description_extra'] = $original_cf['copy_message'];
                         $field['readonly'] = true;
+                        $field['wpml_action'] = 'copy';
                         break;
                     }
                 }
@@ -326,7 +326,8 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
                     }
                     $deps = !empty($data['deps']) ? $data['deps'] : array();
                     $in_footer = !empty($data['in_footer']) ? $data['in_footer'] : false;
-                    wp_register_script($handle, $data['src'], $deps, WPCF_VERSION, $in_footer);
+                    wp_register_script($handle, $data['src'], $deps,
+                            WPCF_VERSION, $in_footer);
                     wp_enqueue_script($handle);
                 }
             }
@@ -444,8 +445,26 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
             if (!empty($field['disable'])) {
                 $element['#attributes']['disabled'] = 'disabled';
             }
+
             if (!empty($field['readonly'])) {
                 $element['#attributes']['readonly'] = 'readonly';
+                if (!empty($element['#options'])) {
+                    foreach ($element['#options'] as $key => $option) {
+                        if (!is_array($option)) {
+                            $element['#options'][$key] = array(
+                                '#title' => $key,
+                                '#value' => $option,
+                            );
+                        }
+                        $element['#options'][$key]['#attributes']['readonly'] = 'readonly';
+                        if ($element['#type'] == 'select') {
+                            $element['#options'][$key]['#attributes']['disabled'] = 'disabled';
+                        }
+                    }
+                }
+                if ($element['#type'] == 'select') {
+                    $element['#attributes']['disabled'] = 'disabled';
+                }
             }
 
             // Set validation element
@@ -460,20 +479,29 @@ function wpcf_admin_post_process_fields($post = false, $fields = array()) {
                 }
             }
 
+            // Set WPML locked icon
+            if (isset($field['wpml_action']) && $field['wpml_action'] == 'copy') {
+                $element['#title'] .= '<img src="' . WPCF_EMBEDDED_RES_RELPATH . '/images/locked.png" alt="'
+                        . __('This field is locked for editing because WPML will copy its value from the original language.',
+                                'wpcf') . '" title="'
+                        . __('This field is locked for editing because WPML will copy its value from the original language.',
+                                'wpcf') . '" style="position:relative;left:2px;top:2px;" />';
+            }
+
             // Add to editor
             wpcf_admin_post_add_to_editor($field);
 
             // Add shortcode info
-            $shortcode = '<div class="wpcf-shortcode">'
-                    . __('Shortcode:', 'wpcf') . ' '
-                    . '<span class="code">' . wpcf_fields_get_shortcode($field)
-                    . '</span></div>';
-            if (isset($element['#after']) && strpos($element['#after'],
-                            'class="wpcf-shortcode"') === FALSE) {
-                $element['#after'] .= $shortcode;
-            } else {
-                $element['#after'] = $shortcode;
-            }
+//            $shortcode = '<div class="wpcf-shortcode">'
+//                    . __('Shortcode:', 'wpcf') . ' '
+//                    . '<span class="code">' . wpcf_fields_get_shortcode($field)
+//                    . '</span></div>';
+//            if (isset($element['#after']) && strpos($element['#after'],
+//                            'class="wpcf-shortcode"') === FALSE) {
+//                $element['#after'] .= $shortcode;
+//            } else {
+//                $element['#after'] = $shortcode;
+//            }
 
             $fields_processed[$element['#id']] = $element;
         }

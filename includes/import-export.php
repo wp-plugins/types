@@ -581,22 +581,34 @@ function wpcf_admin_export_data() {
     $code .= (isset($_POST['embedded-settings']) && $_POST['embedded-settings'] == 'ask') ? 0 : 1;
     $code .= ';' . "\r\n";
     $code .= "\r\n?>";
-    $zipname = $sitename . 'types.' . date('Y-m-d') . '.zip';
 
-    $file = tempnam("tmp", "zip");
-    $zip = new ZipArchive();
-    $zip->open($file, ZipArchive::OVERWRITE);
-
-    $zip->addFromString('settings.xml', $data);
-    $zip->addFromString('settings.php', $code);
-    $zip->close();
-    $data = file_get_contents($file);
-    header("Content-Description: File Transfer");
-    header("Content-Disposition: attachment; filename=" . $zipname);
-    header("Content-Type: application/zip");
-    header("Content-length: " . strlen($data) . "\n\n");
-    header("Content-Transfer-Encoding: binary");
-    echo $data;
-    unlink($file);
-    die();
+    if (class_exists('ZipArchive')) { 
+        $zipname = $sitename . 'types.' . date('Y-m-d') . '.zip';
+    
+        $file = tempnam("tmp", "zip");
+        $zip = new ZipArchive();
+        $zip->open($file, ZipArchive::OVERWRITE);
+    
+        $zip->addFromString('settings.xml', $data);
+        $zip->addFromString('settings.php', $code);
+        $zip->close();
+        $data = file_get_contents($file);
+        header("Content-Description: File Transfer");
+        header("Content-Disposition: attachment; filename=" . $zipname);
+        header("Content-Type: application/zip");
+        header("Content-length: " . strlen($data) . "\n\n");
+        header("Content-Transfer-Encoding: binary");
+        echo $data;
+        unlink($file);
+        die();
+    } else {
+        // download the xml.
+        
+        header("Content-Description: File Transfer");
+        header("Content-Disposition: attachment; filename=" . $filename);
+        header("Content-Type: application/xml");
+        header("Content-length: " . strlen($data) . "\n\n");
+        echo $data;
+        die();
+    }
 }

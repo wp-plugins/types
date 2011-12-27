@@ -52,33 +52,34 @@ class Enlimbo_Forms_Wpcf
         $this->_id = $id;
         $this->_elements = $form;
 
-        do_action('wpcf_form_autohandle', $id, $form, &$this);
-        do_action('wpcf_form_autohandle_' . $id, $form, &$this);
+        do_action('wpcf_form_autohandle', $id, $form, $this);
+        do_action('wpcf_form_autohandle_' . $id, $form, $this);
 
         // get submitted data
         if ($this->isSubmitted()) {
 
-            do_action('wpcf_form_autohandle_submit', $id, $form, &$this);
-            do_action('wpcf_form_autohandle_submit_' . $id, $form, &$this);
+            do_action('wpcf_form_autohandle_submit', $id, $form, $this);
+            do_action('wpcf_form_autohandle_submit_' . $id, $form, $this);
 
             // check if errors (validation)
             $this->validate($this->_elements);
 
-            do_action('wpcf_form_autohandle_validate', $id, $form, &$this);
-            do_action('wpcf_form_autohandle_validate_' . $id, $form, &$this);
+            do_action('wpcf_form_autohandle_validate', $id, $form, $this);
+            do_action('wpcf_form_autohandle_validate_' . $id, $form, $this);
 
             // callback
             if (empty($this->_errors)) {
+
                 if (isset($form['#form']['callback'])) {
                     if (is_array($form['#form']['callback'])) {
                         foreach ($form['#form']['callback'] as $callback) {
                             if (is_callable($callback)) {
-                                call_user_func($callback, &$this);
+                                call_user_func($callback, $this);
                             }
                         }
                     } else {
                         if (is_callable($form['#form']['callback'])) {
-                            call_user_func($form['#form']['callback'], &$this);
+                            call_user_func($form['#form']['callback'], $this);
                         }
                     }
                 }
@@ -86,9 +87,9 @@ class Enlimbo_Forms_Wpcf
                 if (empty($this->_errors)) {
                     // redirect
                     do_action('wpcf_form_autohandle_redirection', $id, $form,
-                            &$this);
+                            $this);
                     do_action('wpcf_form_autohandle_redirection_' . $id, $form,
-                            &$this);
+                            $this);
                     if (!isset($form['#form']['redirection'])) {
                         header('Location: ' . $_SERVER['REQUEST_URI']);
                     } else if ($form['#form']['redirection'] != false) {
@@ -144,13 +145,13 @@ class Enlimbo_Forms_Wpcf
                 }
                 // Validate
                 if (isset($element['#validate'])) {
-                    $this->validateElement(&$element);
+                    $this->validateElement($element);
                 }
             } else if (isset($element['#type'])
                     && $element['#type'] == 'fieldset') {
-                $this->validate(&$element);
+                $this->validate($element);
             } else if (is_array($element)) {
-                $this->validate(&$element);
+                $this->validate($element);
             }
         }
     }
@@ -672,7 +673,7 @@ class Enlimbo_Forms_Wpcf
         $count = 1;
         foreach ($element['#options'] as $id => $value) {
             if (!is_array($value)) {
-                $value = array('#title' => $id, '#value' => $value);
+                $value = array('#title' => $id, '#value' => $value, '#type' => 'option');
             }
             if (!isset($value['#value'])) {
                 $value['#value'] = $this->_count['select'] . '-' . $count;
@@ -682,6 +683,7 @@ class Enlimbo_Forms_Wpcf
                     . htmlspecialchars($value['#value']) . '"';
             $element['_render']['element'] .= ( $element['#default_value']
                     == $value['#value']) ? ' selected="selected"' : '';
+            $element['_render']['element'] .= $this->_setElementAttributes($value);
             $element['_render']['element'] .= '>';
             $element['_render']['element'] .= isset($value['#title']) ? $value['#title'] : $value['#value'];
             $element['_render']['element'] .= "</option>\r\n";
@@ -710,7 +712,7 @@ class Enlimbo_Forms_Wpcf
         if (isset($element['#disable']) && $element['#disable']) {
             $element['_render']['element'] .= ' disabled="disabled"';
         }
-        $element['_render']['element'] .=  ' />';
+        $element['_render']['element'] .= ' />';
         $pattern = isset($element['#pattern']) ? $element['#pattern'] : '<BEFORE><LABEL><ERROR><PREFIX><ELEMENT><SUFFIX><DESCRIPTION><AFTER>';
         $output = $this->_pattern($pattern, $element);
         $output = $this->_wrapElement($element, $output);
@@ -734,7 +736,7 @@ class Enlimbo_Forms_Wpcf
         if (isset($element['#disable']) && $element['#disable']) {
             $element['_render']['element'] .= ' disabled="disabled"';
         }
-        $element['_render']['element'] .=  ' />';
+        $element['_render']['element'] .= ' />';
         $pattern = isset($element['#pattern']) ? $element['#pattern'] : '<BEFORE><LABEL><ERROR><PREFIX><ELEMENT><SUFFIX><DESCRIPTION><AFTER>';
         $output = $this->_pattern($pattern, $element);
         $output = $this->_wrapElement($element, $output);
@@ -784,7 +786,7 @@ class Enlimbo_Forms_Wpcf
         if (isset($element['#disable']) && $element['#disable']) {
             $element['_render']['element'] .= ' disabled="disabled"';
         }
-        $element['_render']['element'] .=  ' />';
+        $element['_render']['element'] .= ' />';
         $pattern = isset($element['#pattern']) ? $element['#pattern'] : '<BEFORE><LABEL><ERROR><PREFIX><ELEMENT><DESCRIPTION><SUFFIX><AFTER>';
         $output = $this->_pattern($pattern, $element);
         $output = $this->_wrapElement($element, $output);
@@ -877,7 +879,8 @@ class Enlimbo_Forms_Wpcf
             if ($element['#type'] == 'file') {
                 return $_FILES[$name]['tmp_name'];
             }
-            return isset($_REQUEST[$name]) ? $_REQUEST[$name] : in_array($element['#type'], array('textfield', 'textarea')) ? '' : 0;
+            return isset($_REQUEST[$name]) ? $_REQUEST[$name] : in_array($element['#type'],
+                            array('textfield', 'textarea')) ? '' : 0;
         }
 
         $parts = explode('[', $name);

@@ -136,6 +136,11 @@ function wpcf_fields_get_field_by_slug($slug) {
 function wpcf_admin_fields_get_fields_by_group($group_id, $key = 'slug',
         $only_active = false, $disabled_by_type = false,
         $strictly_active = false) {
+    static $cache = array();
+    $cache_key = md5($group_id . $key . $only_active . $disabled_by_type . $strictly_active);
+    if (isset($cache[$cache_key])) {
+        return $cache[$cache_key];
+    }
     $group_fields = get_post_meta($group_id, '_wp_types_group_fields', true);
     if (empty($group_fields)) {
         return array();
@@ -153,6 +158,7 @@ function wpcf_admin_fields_get_fields_by_group($group_id, $key = 'slug',
             $results[$field_id] = $field;
         }
     }
+    $cache[$cache_key] = $results;
     return $results;
 }
 
@@ -274,23 +280,23 @@ function wpcf_admin_get_groups_by_post_type($post_type, $fetch_empty = true,
     // Distinct terms
     if (!is_null($terms)) {
         if (!empty($terms)) {
-            $args['meta_query'] = array('relation' => 'OR');
+//            $args['meta_query'] = array('relation' => 'OR');
+            $terms_sql = array();
+            $add = '';
             if ($fetch_empty) {
-                $args['meta_query'][] = array(
-                    'key' => '_wp_types_group_terms',
-                    'value' => 'all',
-                    'compare' => '=',
-                );
+                $add = " OR m.meta_value LIKE 'all'";
             }
             foreach ($terms as $term) {
-                $args['meta_query'][] = array(
-                    'key' => '_wp_types_group_terms',
-                    'value' => ',' . $term . ',',
-                    'compare' => 'LIKE',
-                );
+                $terms_sql[] = $term;
             }
-            // Get posts by terms
-            $groups = get_posts($args);
+            $terms_sql = "AND (m.meta_value LIKE '%%," . implode(",%%' OR m.meta_value LIKE '%%,", $terms) . ",%%' $add)";
+            global $wpdb;
+            $terms_sql = "SELECT * FROM $wpdb->posts p
+                    JOIN $wpdb->postmeta m
+                    WHERE p.post_type='wp-types-group' AND p.post_status='publish'
+                    AND p.ID = m.post_id AND m.meta_key='_wp_types_group_terms'
+                    $terms_sql";
+            $groups = $wpdb->get_results($terms_sql);
             if (!empty($groups)) {
                 foreach ($groups as $key => $group) {
                     $group = wpcf_admin_fields_adjust_group($group);
@@ -391,7 +397,7 @@ function wpcf_admin_fields_popup_insert_shortcode_js($shortcode) {
             window.parent.jQuery('#'+window.parent.wpcfInsertMetaHTML).insertAtCaret('<?php echo $shortcode; ?>');
             window.parent.wpcfInsertMetaHTML = false;
         }
-                                                    
+                                                        
         //]]>
     </script>
     <?php

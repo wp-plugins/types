@@ -42,9 +42,10 @@ function wpcf_admin_save_fields_groups_submit($form) {
     if (!empty($_POST['wpcf']['fields'])) {
         // Before anything - search unallowed characters
         foreach ($_POST['wpcf']['fields'] as $key => $field) {
-            if (preg_match('#[^a-zA-Z0-9\s\_\-]#', $field['name'])) {
+            if ((empty($field['slug']) && preg_match('#[^a-zA-Z0-9\s\_\-]#', $field['name']))
+                    || (!empty($field['slug']) && preg_match('#[^a-zA-Z0-9\s\_\-]#', $field['slug']))) {
                 $form->triggerError();
-                wpcf_admin_message(sprintf(__('Field names cannot contain non-English characters. Please edit this field name %s and save again.',
+                wpcf_admin_message(sprintf(__('Field slugs cannot contain non-English characters. Please edit this field name %s and save again.',
                                         'wpcf'), $field['name']), 'error');
                 return false;
             }
@@ -59,7 +60,8 @@ function wpcf_admin_save_fields_groups_submit($form) {
                     return false;
                 }
             }
-            $slug = $_POST['wpcf']['fields'][$key]['slug'] = sanitize_title($field['name']);
+            // Field ID and slug are same thing
+//            $slug = $_POST['wpcf']['fields'][$key]['slug'] = sanitize_title($field['name']);
             $field_id = wpcf_admin_fields_save_field($field);
             if (!empty($field_id)) {
                 $fields[] = $field_id;
@@ -67,7 +69,7 @@ function wpcf_admin_save_fields_groups_submit($form) {
             // WPML
             if (function_exists('wpml_cf_translation_preferences_store')) {
                 $wpml_save_cf = wpml_cf_translation_preferences_store($key,
-                        wpcf_types_get_meta_prefix(wpcf_admin_fields_get_field($field_id)) . $slug);
+                        wpcf_types_get_meta_prefix(wpcf_admin_fields_get_field($field_id)) . $field_id);
             }
         }
     }
@@ -694,21 +696,15 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
         if (isset($field_init_data['inherited_field_type'])) {
             $inherited_field_data = wpcf_fields_type_action($field_init_data['inherited_field_type']);
         }
-
-        // If insert form callback is not provided, use generic form data
-        if (function_exists('wpcf_fields_' . $type . '_insert_form')) {
-            $form_field = call_user_func('wpcf_fields_' . $type
-                    . '_insert_form', $form_data,
-                    'wpcf[fields]['
-                    . $id . ']');
-        }
-
+        
+        $form_field = array();
+        
         // Force name and description
         $form_field['name'] = array(
             '#type' => 'textfield',
             '#name' => 'name',
             '#attributes' => array('class' => 'wpcf-forms-set-legend', 'style' => 'width:100%;margin:10px 0 10px 0;'),
-            '#validate' => array('required' => array('value' => true), 'nospecialchars' => array('value' => true)),
+            '#validate' => array('required' => array('value' => true)),
             '#inline' => true,
             '#value' => __('Enter field name', 'wpcf'),
         );
@@ -718,6 +714,33 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
             $form_field['name']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(\''
                     . __('Enter field name', 'wpcf') . '\') }';
         }
+        $form_field['slug'] = array(
+            '#type' => 'textfield',
+            '#name' => 'slug',
+            '#attributes' => array('style' => 'width:100%;margin:0 0 10px 0;'),
+            '#validate' => array('nospecialchars' => array('value' => true)),
+            '#inline' => true,
+            '#value' => __('Enter field slug', 'wpcf'),
+        );
+        if (empty($form_data['slug'])) {
+            $form_field['slug']['#attributes']['onclick'] = 'if (jQuery(this).val() == \''
+                    . __('Enter field slug', 'wpcf') . '\') { jQuery(this).val(\'\'); }';
+            $form_field['slug']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(\''
+                    . __('Enter field slug', 'wpcf') . '\') }';
+        }
+
+        // If insert form callback is not provided, use generic form data
+        if (function_exists('wpcf_fields_' . $type . '_insert_form')) {
+            $form_field_temp = call_user_func('wpcf_fields_' . $type
+                    . '_insert_form', $form_data,
+                    'wpcf[fields]['
+                    . $id . ']');
+            if (is_array($form_field_temp)) {
+                unset($form_field_temp['name'], $form_field_temp['slug']);
+                $form_field = $form_field + $form_field_temp;
+            }
+        }
+ 
         $form_field['description'] = array(
             '#type' => 'textarea',
             '#name' => 'description',
@@ -779,7 +802,6 @@ function wpcf_fields_get_field_form_data($type, $form_data = array()) {
 
         // WPML Translation Preferences
         if (function_exists('wpml_cf_translation_preferences')) {
-            // @todo Fix for added fields
             $custom_field = !empty($form_data['slug']) ? wpcf_types_get_meta_prefix($form_data) . $form_data['slug'] : false;
             $translatable = array('textfield', 'textarea', 'wysiwyg');
             $action = in_array($type, $translatable) ? 'translate' : 'copy';

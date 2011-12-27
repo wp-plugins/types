@@ -594,6 +594,8 @@ function wpcf_admin_custom_types_form_submit($form) {
     
     wpcf_admin_message_store(__('Custom post type saved', 'wpcf'));
     
+    // Flush rewrite rules
+    flush_rewrite_rules();
 
     // Redirect
     wp_redirect(admin_url('admin.php?page=wpcf-edit-type&wpcf-post-type=' . $post_type . '&wpcf-rewrite=1'));

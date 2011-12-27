@@ -1,4 +1,42 @@
 <?php
+
+global $supported_date_formats, $supported_date_formats_text;
+$supported_date_formats = array('F j, Y', //December 23, 2011
+                                'Y/m/d', // 2011/12/23
+                                'm/d/Y', // 12/23/2011
+                                'd/m/Y' // 23/22/2011
+                               );
+
+$supported_date_formats_text = array('F j, Y' => 'Month dd, yyyy',
+                                'Y/m/d' => 'yyyy/mm/dd', 
+                                'm/d/Y' => 'mm/dd/yyyy',
+                                'd/m/Y' => 'dd/mm/yyyy'
+                               );
+
+function wpcf_get_date_format() {
+    global $supported_date_formats;
+    
+    $date_format = get_option('date_format');
+    if (!in_array($date_format, $supported_date_formats)) {
+        // Choose the Month day, Year fromat
+        $date_format = 'F j, Y';
+    }
+    
+    return $date_format;
+}
+
+function wpcf_get_date_format_text() {
+    global $supported_date_formats, $supported_date_formats_text;
+    
+    $date_format = get_option('date_format');
+    if (!in_array($date_format, $supported_date_formats)) {
+        // Choose the Month day, Year fromat
+        $date_format = 'F j, Y';
+    }
+    
+    return $supported_date_formats_text[$date_format];
+}
+
 add_filter('wpcf_fields_type_date_value_get',
         'wpcf_fields_date_value_get_filter');
 add_filter('wpcf_fields_type_date_value_save',
@@ -40,18 +78,18 @@ function wpcf_fields_date() {
  * @param type $field 
  */
 function wpcf_fields_date_meta_box_form($field) {
+    if (isset($field['wpml_action']) && $field['wpml_action'] == 'copy') {
+        $attributes = array('style' => 'width:150px;');
+    } else {
+        $attributes = array('class' => 'wpcf-datepicker', 'style' => 'width:150px;');
+    }
     return array(
         '#type' => 'textfield',
-        '#attributes' => array('class' => 'wpcf-datepicker', 'style' => 'width:150px;'),
+        '#attributes' => $attributes,
     );
 }
 
-/**
- * Renders inline JS.
- */
-function wpcf_fields_date_meta_box_js_inline() {
-
-    $date_format = get_option('date_format');
+function _wpcf_date_convert_wp_to_js($date_format) {
     $date_format = str_replace('d', 'dd', $date_format);
     $date_format = str_replace('j', 'd', $date_format);
     $date_format = str_replace('l', 'DD', $date_format);
@@ -59,6 +97,20 @@ function wpcf_fields_date_meta_box_js_inline() {
     $date_format = str_replace('n', 'm', $date_format);
     $date_format = str_replace('F', 'MM', $date_format);
     $date_format = str_replace('Y', 'yy', $date_format);
+    
+    return $date_format;
+}
+
+/**
+ * Renders inline JS.
+ */
+function wpcf_fields_date_meta_box_js_inline() {
+
+    $date_format = wpcf_get_date_format();
+    $date_format = _wpcf_date_convert_wp_to_js($date_format);
+    
+    $date_format_note = '<span style="margin-left:10px"><i>' . sprintf(__('Input format: %s', 'wpcf'), wpcf_get_date_format_text()) . '</i></span>';
+    
     ?>
     <script type="text/javascript">
         //<![CDATA[
@@ -74,6 +126,8 @@ function wpcf_fields_date_meta_box_js_inline() {
                             dateFormat: "<?php echo $date_format; ?>",
                             altFormat: "<?php echo $date_format; ?>",
                                 });
+                            
+                        jQuery(this).next().after('<?php echo $date_format_note;?>');
                         }
                     
                     });
@@ -112,15 +166,52 @@ function wpcf_fields_date_value_save_filter($value) {
     if (empty($value)) {
         return $value;
     }
+    
+    $date_format = wpcf_get_date_format();
+    if ($date_format == 'd/m/Y') {
+        // strtotime requires a dash or dot separator to determine dd/mm/yyyy format
+        $value = str_replace('/', '-', $value);
+    }
     return strtotime(strval($value));
 }
 
+/**
+ *
+ * Convert a format from date() to strftime() format
+ *
+ */
+
+function wpcf_date_to_strftime($format) {
+
+    $format = str_replace('d', '%d', $format);
+    $format = str_replace('D', '%a', $format);
+    $format = str_replace('j', '%e', $format);
+    $format = str_replace('l', '%A', $format);
+    $format = str_replace('N', '%u', $format);
+    $format = str_replace('w', '%w', $format);
+
+    $format = str_replace('W', '%W', $format);
+    
+    $format = str_replace('F', '%B', $format);
+    $format = str_replace('m', '%m', $format);
+    $format = str_replace('M', '%b', $format);
+    $format = str_replace('n', '%m', $format);
+    
+    $format = str_replace('o', '%g', $format);
+    $format = str_replace('Y', '%Y', $format);
+    $format = str_replace('y', '%y', $format);
+    
+    return $format;    
+}
 /**
  * View function.
  * 
  * @param type $params 
  */
 function wpcf_fields_date_view($params) {
+
+    global $wp_locale;
+    
     $defaults = array(
         'format' => get_option('date_format'),
     );
@@ -133,8 +224,34 @@ function wpcf_fields_date_view($params) {
 
         default:
             $field_name = '';
+
+            
+            // Extract the Full month and Short month from the format.
+            // We'll replace with the translated months if possible.
+            $format = $params['format'];
+            $format = str_replace('F', '#111111#', $format);
+            $format = str_replace('M', '#222222#', $format);
+
+            // Same for the Days
+            $format = str_replace('D', '#333333#', $format);
+            $format = str_replace('l', '#444444#', $format);
+
+            $date_out = date($format, intval($params['field_value']));
+
+            $month = date('m', intval($params['field_value']));
+            $month_full = $wp_locale->get_month($month);
+            $date_out = str_replace('#111111#', $month_full, $date_out);
+            $month_short = $wp_locale->get_month_abbrev($month_full);
+            $date_out = str_replace('#222222#', $month, $date_out);
+
+            $day = date('w', intval($params['field_value']));
+            $day_full = $wp_locale->get_weekday($day);
+            $date_out = str_replace('#333333#', $day_full, $date_out);
+            $day_short = $wp_locale->get_weekday_abbrev($day_full);
+            $date_out = str_replace('#444444#', $day_short, $date_out);
+            
             $field_value = wpcf_frontend_wrap_field_value($params['field'],
-                    date($params['format'], intval($params['field_value'])),
+                    $date_out,
                     $params);
             $output = wpcf_frontend_wrap_field($params['field'], $field_value,
                     $params);

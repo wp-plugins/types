@@ -27,7 +27,7 @@ function wpcf_admin_custom_fields_control_form($table) {
 class WPCF_Custom_Fields_Control_Table extends WP_List_Table
 {
 
-    function prepare_items() {
+    function prepare_items() {$time = time();
         global $wpdb;
         $wpcf_per_page = 15;
         $this->wpcf_groups = wpcf_admin_fields_get_groups();

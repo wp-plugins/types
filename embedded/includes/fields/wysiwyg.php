@@ -18,11 +18,6 @@ function wpcf_fields_wysiwyg() {
             ),
         ),
     );
-    $settings['meta_box_js'] = array(
-        'wpcf-jquery-fields-wysiwyg-tinymce' => array(
-            'inline' => 'wpcf_fields_wysiwyg_tiny_mce_js',
-        ),
-    );
     $settings['wp_version'] = '3.3';
     return $settings;
 }
@@ -108,21 +103,6 @@ function wpcf_fields_wysiwyg_css() {
     <?php
 }
 
-function wpcf_fields_wysiwyg_tiny_mce_js() {
-
-    ?>
-    <script type="text/javascript">
-        jQuery(document).ready(function(){
-            // Set active editor
-            window.wpcfActiveEditor = false;
-            jQuery('.wpcf-wysiwyg .editor_addon_wrapper .item').click(function(){
-                window.wpcfActiveEditor = jQuery(this).parents('.wpcf-wysiwyg').find('textarea').attr('id');
-            });
-        });
-    </script>
-    <?php
-}
-
 /**
  * View function.
  * 
@@ -130,6 +110,9 @@ function wpcf_fields_wysiwyg_tiny_mce_js() {
  * @return type 
  */
 function wpcf_fields_wysiwyg_view($params) {
+//    return apply_filters('the_content',
+//                    htmlspecialchars_decode(stripslashes($params['field_value'])));
+
     $content = htmlspecialchars_decode(stripslashes($params['field_value']));
     $content = do_shortcode($content);
     $content = wpautop($content);

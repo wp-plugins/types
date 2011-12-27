@@ -54,8 +54,8 @@ function wpcf_admin_ctt_list() {
                     . __('Delete Permanently', 'wpcf') . '</a>';
             $name .= '<div id="wpcf_list_ajax_response_' . $post_type . '"></div>';
             $rows[$post_type]['name'] = $name;
-            $rows[$post_type]['description'] = htmlspecialchars(stripslashes($type['description']),
-                    ENT_QUOTES);
+            $rows[$post_type]['description'] = isset($type['description']) ? htmlspecialchars(stripslashes($type['description']),
+                    ENT_QUOTES) : '';
             $rows[$post_type]['active-' . $post_type] = !empty($type['disabled']) ? __('No', 'wpcf') : __('Yes', 'wpcf');
             $output = !empty($type['taxonomies']) ? implode(', ',
                             array_keys($type['taxonomies'])) : __('None', 'wpcf');
@@ -95,8 +95,8 @@ function wpcf_admin_ctt_list() {
                     . __('Delete Permanently', 'wpcf') . '</a>';
             $name .= '<div id="wpcf_list_ajax_response_' . $taxonomy . '"></div>';
             $rows[$taxonomy]['name'] = $name;
-            $rows[$taxonomy]['description'] = htmlspecialchars(stripslashes($data['description']),
-                    ENT_QUOTES);
+            $rows[$taxonomy]['description'] = isset($data['description']) ? htmlspecialchars(stripslashes($data['description']),
+                    ENT_QUOTES) : '';
             $rows[$taxonomy]['active-' . $taxonomy] = !empty($data['disabled']) ? __('No', 'wpcf') : __('Yes', 'wpcf');
             $output = !empty($data['supports']) ? implode(', ',
                             array_keys($data['supports'])) : __('None', 'wpcf');

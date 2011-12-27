@@ -13,6 +13,9 @@ function wpcf_embedded_admin_init_hook() {
     // Add callbacks for post edit pages
     add_action('load-post.php', 'wpcf_admin_post_page_load_hook');
     add_action('load-post-new.php', 'wpcf_admin_post_page_load_hook');
+    
+    // Add callback for 'media-upload.php'
+    add_filter('get_media_item_args', 'wpcf_get_media_item_args_filter');
 
     // Add save_post callback
     add_action('save_post', 'wpcf_admin_save_post_hook', 10, 2);
@@ -493,6 +496,8 @@ function wpcf_admin_get_var_from_referer($var) {
 function wpcf_admin_add_js_settings($id, $setting = '') {
     static $settings = array();
     $settings['wpcf_nonce_ajax_callback'] = '\'' . wp_create_nonce('execute') . '\'';
+    $settings['wpcf_cookiedomain'] = '\'' . $_SERVER['SERVER_NAME'] . '\'';
+    $settings['wpcf_cookiepath'] = '\'' . COOKIEPATH . '\'';
     if ($id == 'get') {
         $temp = $settings;
         $settings = array();
@@ -545,3 +550,20 @@ function wpcf_get_post_meta_field_names() {
     return $field_names;
 }
 
+
+/**
+ * Forces 'Insert into post' link when called from our WYSIWYG.
+ * 
+ * @param array $args
+ * @return boolean 
+ */
+function wpcf_get_media_item_args_filter($args) {
+    if (strpos($_SERVER['SCRIPT_NAME'], '/media-upload.php') === false) {
+        return $args;
+    }
+    if (!empty($_COOKIE['wpcfActiveEditor'])
+            && strpos($_COOKIE['wpcfActiveEditor'], 'wpcf-wysiwyg-') !== false) {
+        $args['send'] = true;
+    }
+    return $args;
+}

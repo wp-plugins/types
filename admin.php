@@ -11,7 +11,9 @@ if (defined('DOING_AJAX')) {
 /**
  * admin_init hook.
  */
-function wpcf_admin_init_hook() {}
+function wpcf_admin_init_hook() {
+    
+}
 
 /**
  * admin_menu hook.
@@ -76,6 +78,17 @@ function wpcf_admin_menu_hook() {
                 wpcf_admin_plugin_help($hook, 'wpcf-edit-tax');
                 break;
         }
+    }
+
+    // Check if migration from other plugin is needed
+    // @todo Check for network active may be needed
+    if (class_exists('Acf') || defined('CPT_VERSION')) {
+        $hook = add_submenu_page('wpcf', __('Migration', 'wpcf'),
+                __('Migration', 'wpcf'), 'manage_options',
+                'wpcf-migration',
+                'wpcf_admin_menu_migration');
+        add_action('load-' . $hook, 'wpcf_admin_menu_migration_hook');
+        wpcf_admin_plugin_help($hook, 'wpcf-migration');
     }
 }
 
@@ -185,9 +198,13 @@ function wpcf_admin_menu_edit_fields() {
             'wpcf') . '\') {
             jQuery(this).val(\'\');
         }
-        if (jQuery(this).next().val() == \'' . __('Describe this field',
+        if (jQuery(this).next().val() == \'' . __('Enter field slug',
             'wpcf') . '\') {
             jQuery(this).next().val(\'\');
+        }
+        if (jQuery(this).next().next().val() == \'' . __('Describe this field',
+            'wpcf') . '\') {
+            jQuery(this).next().next().val(\'\');
         }
 });';
     echo '">';
@@ -403,6 +420,36 @@ function wpcf_admin_menu_custom_fields_control() {
     . 'wpcf-form-validate" enctype="multipart/form-data">';
     echo wpcf_admin_custom_fields_control_form($wpcf_control_table);
     wp_nonce_field('custom_fields_control_bulk');
+    echo '</form>';
+    echo wpcf_add_admin_footer();
+}
+
+/**
+ * Menu page hook.
+ */
+function wpcf_admin_menu_migration_hook() {
+    wp_enqueue_style('wpcf-migration',
+            WPCF_RES_RELPATH . '/css/basic.css', array(), WPCF_VERSION);
+    wp_enqueue_script('wpcf-migration', WPCF_RES_RELPATH . '/js/basic.js',
+            array('jquery', 'jquery-ui-sortable', 'jquery-ui-draggable'),
+            WPCF_VERSION);
+    require_once WPCF_INC_ABSPATH . '/fields.php';
+    require_once WPCF_INC_ABSPATH . '/custom-types.php';
+    require_once WPCF_INC_ABSPATH . '/custom-taxonomies.php';
+    require_once WPCF_INC_ABSPATH . '/migration.php';
+    $form = wpcf_admin_migration_form();
+    wpcf_form('wpcf_form_migration', $form);
+}
+
+/**
+ * Menu page display.
+ */
+function wpcf_admin_menu_migration() {
+    echo wpcf_add_admin_header(__('Migration', 'wpcf'));
+    echo '<br /><form method="post" action="" id="wpcf-migration-form" class="wpcf-migration-form '
+    . 'wpcf-form-validate" enctype="multipart/form-data">';
+    $form = wpcf_form('wpcf_form_migration');
+    echo $form->renderForm();
     echo '</form>';
     echo wpcf_add_admin_footer();
 }

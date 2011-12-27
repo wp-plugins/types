@@ -1,15 +1,7 @@
-
 jQuery(document).ready(function(){
-    
-    // Datepicker
-    // Moved to fields-post.php
-    //    if (jQuery.isFunction(jQuery.fn.datepicker)) {
-    //        jQuery('.wpcf-datepicker').datepicker({
-    //			showOn: "button",
-    //			buttonImage: "http://jqueryui.com/demos/datepicker/images/calendar.gif",
-    //			buttonImageOnly: true
-    //		});
-    //    }
+    // Set active editor
+    window.wpcfActiveEditor = false;
+    jQuery('.wpcf-wysiwyg .editor_addon_wrapper .item, #postdivrich .editor_addon_wrapper .item').click(function(){
+        window.wpcfActiveEditor = jQuery(this).parents('.wpcf-wysiwyg, #postdivrich').find('textarea').attr('id');
+    });
 });
-
-
