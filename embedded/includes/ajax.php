@@ -25,14 +25,15 @@ function wpcf_ajax_embedded() {
             require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
             $field = wpcf_admin_fields_get_field($_GET['field_id']);
             if (!empty($field)) {
-                $file = WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . $field['type'] . '.php';
-                if (file_exists($file)) {
-                    require_once $file;
+                // TODO Remove
+//                $file = WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . $field['type'] . '.php';
+//                if (file_exists($file)) {
+//                    require_once $file;
                     $function = 'wpcf_fields_' . $field['type'] . '_editor_callback';
                     if (function_exists($function)) {
                         call_user_func($function);
                     }
-                }
+//                }
             }
             break;
             

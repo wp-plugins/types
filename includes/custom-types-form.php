@@ -137,7 +137,7 @@ function wpcf_admin_custom_types_form() {
         '#type' => 'textfield',
         '#name' => 'ct[menu_position]',
         '#title' => __('Menu position', 'wpcf'),
-        '#value' => isset($ct['menu_position']) ? $ct['menu_position'] : 20,
+        '#value' => isset($ct['menu_position']) ? $ct['menu_position'] : '',
         '#validate' => array('number' => array('value' => true)),
         '#inline' => true,
         '#pattern' => '<div' . $hidden . ' id="wpcf-types-form-visiblity-toggle"><table><tr><td><LABEL></td><td><ELEMENT><ERROR></td></tr>',
@@ -212,7 +212,8 @@ function wpcf_admin_custom_types_form() {
                     'wpcf')),
         'not_found' => array('title' => __('No %s found', 'wpcf'), 'description' => __('The not found text. Default is No posts found/No pages found.',
                     'wpcf')),
-        'not_found_in_trash' => array('title' => __('No %s found in Trash', 'wpcf'), 'description' => __('The not found in trash text. Default is No posts found in Trash/No pages found in Trash.',
+        'not_found_in_trash' => array('title' => __('No %s found in Trash',
+                    'wpcf'), 'description' => __('The not found in trash text. Default is No posts found in Trash/No pages found in Trash.',
                     'wpcf')),
         'parent_item_colon' => array('title' => __('Parent text', 'wpcf'), 'description' => __("The parent text. This string isn't used on non-hierarchical types. In hierarchical ones the default is Parent Page.",
                     'wpcf')),
@@ -367,12 +368,13 @@ function wpcf_admin_custom_types_form() {
     $form['rewrite-slug'] = array(
         '#type' => 'textfield',
         '#name' => 'ct[rewrite][slug]',
-        '#description' =>  __('Optional.', 'wpcf') . ' ' . __("Prepend posts with this slug - defaults to post type's name.",
+        '#description' => __('Optional.', 'wpcf') . ' ' . __("Prepend posts with this slug - defaults to post type's name.",
                 'wpcf'),
         '#value' => isset($ct['rewrite']['slug']) ? $ct['rewrite']['slug'] : '',
         '#inline' => true,
         '#before' => '<div id="wpcf-types-form-rewrite-toggle"' . $hidden . '>',
         '#after' => '</div>',
+        '#validate' => array('rewriteslug' => array('value' => 'true')),
     );
     $form['rewrite-with_front'] = array(
         '#type' => 'checkbox',
@@ -423,7 +425,8 @@ function wpcf_admin_custom_types_form() {
                 '#title' => __('show_in_menu', 'wpcf'),
                 '#description' => __('Whether to show the post type in the admin menu and where to show that menu. Note that show_ui must be true.',
                         'wpcf') . '<br />' . __('Default: null.', 'wpcf'),
-                '#after' => '<div id="wpcf-types-form-showinmenu-toggle"' . $hidden . '><input type="text" name="ct[show_in_menu_page]" style="width:50%;" value="' . $show_in_menu_page . '" /><div class="description wpcf-form-description wpcf-form-description-checkbox description-checkbox">' . __('Optional.', 'wpcf') . ' ' . __("Top level page like 'tools.php' or 'edit.php?post_type=page'",
+                '#after' => '<div id="wpcf-types-form-showinmenu-toggle"' . $hidden . '><input type="text" name="ct[show_in_menu_page]" style="width:50%;" value="' . $show_in_menu_page . '" /><div class="description wpcf-form-description wpcf-form-description-checkbox description-checkbox">' . __('Optional.',
+                        'wpcf') . ' ' . __("Top level page like 'tools.php' or 'edit.php?post_type=page'",
                         'wpcf') . '</div></div>',
                 '#inline' => true,
             ),
@@ -488,10 +491,11 @@ function wpcf_admin_custom_types_form() {
         '#name' => 'ct[query_var_enabled]',
         '#title' => 'query_var',
         '#description' => __('False to prevent queries, or string value of the query var to use for this post type.',
-                'wpcf') . '<br />' . __('Default: true - set to $post_type.', 'wpcf'),
+                'wpcf') . '<br />' . __('Default: true - set to $post_type.',
+                'wpcf'),
         '#default_value' => !empty($ct['query_var_enabled']),
-        '#after' => '<div id="wpcf-types-form-queryvar-toggle"' . $hidden . '><input type="text" name="ct[query_var]" value="' . $query_var . '" style="width:50%;" /><div class="description wpcf-form-description wpcf-form-description-checkbox description-checkbox">' . __('Optional', 'wpcf') . '. ' . __('String to customize query var',
-                'wpcf') . '</div></div>',
+        '#after' => '<div id="wpcf-types-form-queryvar-toggle"' . $hidden . '><input type="text" name="ct[query_var]" value="' . $query_var . '" style="width:50%;" /><div class="description wpcf-form-description wpcf-form-description-checkbox description-checkbox">' . __('Optional',
+                'wpcf') . '. ' . __('String to customize query var', 'wpcf') . '</div></div>',
         '#inline' => true,
     );
     $form['permalink_epmask'] = array(
@@ -543,7 +547,9 @@ function wpcf_admin_custom_types_form_submit($form) {
         $data['slug'] = sanitize_title($data['slug']);
     }
     if (isset($data['rewrite']['slug'])) {
-        $data['rewrite']['slug'] = sanitize_title($data['rewrite']['slug']);
+        $data['rewrite']['slug'] = remove_accents($data['rewrite']['slug']);
+        $data['rewrite']['slug'] = strtolower($data['rewrite']['slug']);
+        $data['rewrite']['slug'] = trim($data['rewrite']['slug']);
     }
 
     // Set post type name
@@ -567,7 +573,8 @@ function wpcf_admin_custom_types_form_submit($form) {
 
     // Check overwriting
     if (!$update && array_key_exists($post_type, $custom_types)) {
-        wpcf_admin_message(__('Custom post type already exists', 'wpcf'), 'error');
+        wpcf_admin_message(__('Custom post type already exists', 'wpcf'),
+                'error');
 //            $form->triggerError();
         return false;
     }
@@ -589,11 +596,24 @@ function wpcf_admin_custom_types_form_submit($form) {
         $data['disabled'] = $custom_types[$post_type]['disabled'];
     }
 
+    // Sync taxes with custom taxes
+    if (!empty($data['taxonomies'])) {
+        $taxes = get_option('wpcf-custom-taxonomies', array());
+        foreach ($taxes as $id => $tax) {
+            if (array_key_exists($id, $data['taxonomies'])) {
+                $taxes[$id]['supports'][$data['slug']] = 1;
+            } else {
+                unset($taxes[$id]['supports'][$data['slug']]);
+            }
+        }
+        update_option('wpcf-custom-taxonomies', $taxes);
+    }
+
     $custom_types[$post_type] = $data;
     update_option('wpcf-custom-types', $custom_types);
-    
+
     wpcf_admin_message_store(__('Custom post type saved', 'wpcf'));
-    
+
     // Flush rewrite rules
     flush_rewrite_rules();
 

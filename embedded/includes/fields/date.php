@@ -242,7 +242,7 @@ function wpcf_fields_date_view($params) {
             $month_full = $wp_locale->get_month($month);
             $date_out = str_replace('#111111#', $month_full, $date_out);
             $month_short = $wp_locale->get_month_abbrev($month_full);
-            $date_out = str_replace('#222222#', $month, $date_out);
+            $date_out = str_replace('#222222#', $month_short, $date_out);
 
             $day = date('w', intval($params['field_value']));
             $day_full = $wp_locale->get_weekday($day);

@@ -1,13 +1,6 @@
 <?php
 /*
  * Custom Fields Control Screen
- * 
- * @todo Cache fetching all meta_keys? May be large DB
- * @todo Order by ?
- * @todo Bulk action disable/delete
- * @todo saving post without prefix
- * @todo Bug in bulk assigning type?
- * @todo check activation/deactivation BUG when putting again under control
  */
 require_once ABSPATH . '/wp-admin/includes/class-wp-list-table.php';
 
@@ -450,7 +443,7 @@ function wpcf_admin_custom_fields_control_change_type_dropdown() {
     $options = array();
     $types = wpcf_admin_fields_get_available_types();
     foreach ($types as $type => $type_data) {
-        $options[$type] = $type;
+        $options[$type_data['title']] = $type;
     }
     return array(
         '#type' => 'radios',

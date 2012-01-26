@@ -3,8 +3,8 @@ Contributors: brucepearson, AmirHelzer, jozik, mihaimihai
 Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types
 Requires at least: 3.0
-Tested up to: 3.3
-Stable tag: 0.9.3
+Tested up to: 3.3.1
+Stable tag: 0.9.4
 
 The complete solution for custom post types, custom taxonomy and custom fields. Craft your edit screens and use shortcodes to display fields.
 
@@ -135,6 +135,10 @@ Types includes its own import and export features. If you create a development s
 * Check if fields already exist with the same name before creating them
 * Improved compatibility with WPML
 
+= 0.9.4 =
+* Added an option to display custom field groups on specific templates only
+* Fixed a number of bugs with Javascript and with Windows servers
+
 == Upgrade Notice ==
 
 = 0.9.1 =
@@ -145,3 +149,6 @@ Types includes its own import and export features. If you create a development s
 
 = 0.9.3 =
 * This version streamlines the admin screens and includes a importers from other plugins
+
+= 0.9.4 =
+* You can now enable custom field groups for content with specific templates

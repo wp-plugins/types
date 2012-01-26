@@ -34,6 +34,8 @@ function wpcf_admin_fields_adjust_group($post) {
     $group['meta_box_context'] = 'normal';
     $group['meta_box_priority'] = 'high';
     $group['is_active'] = $post->post_status == 'publish' ? true : false;
+    $group['filters_association'] = get_post_meta($post->ID,
+            '_wp_types_group_filters_association', true);
 
     return $group;
 }
@@ -50,6 +52,10 @@ function wpcf_admin_fields_get_fields($only_active = false,
     $fields = get_option('wpcf-fields', array());
     foreach ($fields as $k => $v) {
         $data = wpcf_fields_type_action($v['type']);
+        if (empty($data)) {
+            unset($fields[$k]);
+            continue;
+        }
         if (isset($data['wp_version'])
                 && wpcf_compare_wp_version($data['wp_version'], '<')) {
             unset($fields[$k]);
@@ -99,8 +105,10 @@ function wpcf_admin_fields_get_fields($only_active = false,
  * @param type $only_active
  * @return type 
  */
-function wpcf_admin_fields_get_field($field_id, $only_active = false) {
-    $fields = wpcf_admin_fields_get_fields();
+function wpcf_admin_fields_get_field($field_id, $only_active = false,
+        $disabled_by_type = false, $strictly_active = false) {
+    $fields = wpcf_admin_fields_get_fields($only_active, $disabled_by_type,
+            $strictly_active);
     if (!empty($fields[$field_id])) {
         $data = wpcf_fields_type_action($fields[$field_id]['type']);
         if (isset($data['wp_version'])
@@ -182,44 +190,42 @@ function wpcf_admin_fields_get_groups_by_term($term_id = false,
     }
     // Fetch empty
     if ($fetch_empty) {
-        $args['meta_query'] = array(
-            array(
-                'key' => '_wp_types_group_terms',
-                'value' => ',' . $term_id . ',',
-                'compare' => 'LIKE',
-            ),
-            array(
-                'key' => '_wp_types_group_terms',
-                'value' => 'all',
-                'compare' => '=',
-            ),
-        );
-    } else {
-        $args['meta_query'] = array(
-            array(
-                'key' => '_wp_types_group_terms',
-                'value' => ',' . $term_id . ',',
-                'compare' => 'LIKE',
-            ),
-        );
-    }
-    // Distinct post type
-    if ($post_type) {
-        if ($fetch_empty) {
+        if ($term_id) {
+            $args['meta_query']['relation'] = 'OR';
             $args['meta_query'][] = array(
-                'key' => '_wp_types_group_post_types',
-                'value' => 'all',
-                'compare' => '=',
+                'key' => '_wp_types_group_terms',
+                'value' => ',' . $term_id . ',',
+                'compare' => 'LIKE',
             );
         }
         $args['meta_query'][] = array(
-            'key' => '_wp_types_group_post_types',
-            'value' => ',' . $post_type . ',',
-            'compare' => 'LIKE',
+            'key' => '_wp_types_group_terms',
+            'value' => 'all',
+            'compare' => '=',
         );
+    } else if ($term_id) {
+        $args['meta_query'] = array(
+            array(
+                'key' => '_wp_types_group_terms',
+                'value' => ',' . $term_id . ',',
+                'compare' => 'LIKE',
+            ),
+        );
+    } else {
+        return array();
     }
-
-    return get_posts($args);
+    $groups = get_posts($args);
+    foreach ($groups as $k => $post) {
+        $temp = get_post_meta($post->ID, '_wp_types_group_post_types', true);
+        if ($fetch_empty && $temp == 'all') {
+            $groups[$k] = wpcf_admin_fields_adjust_group($post);
+        } else if (strpos($temp, ',' . $post_type . ',') !== false) {
+            $groups[$k] = wpcf_admin_fields_adjust_group($post);
+        } else {
+            unset($groups[$k]);
+        }
+    }
+    return $groups;
 }
 
 /**
@@ -289,7 +295,8 @@ function wpcf_admin_get_groups_by_post_type($post_type, $fetch_empty = true,
             foreach ($terms as $term) {
                 $terms_sql[] = $term;
             }
-            $terms_sql = "AND (m.meta_value LIKE '%%," . implode(",%%' OR m.meta_value LIKE '%%,", $terms) . ",%%' $add)";
+            $terms_sql = "AND (m.meta_value LIKE '%%," . implode(",%%' OR m.meta_value LIKE '%%,",
+                            $terms) . ",%%' $add)";
             global $wpdb;
             $terms_sql = "SELECT * FROM $wpdb->posts p
                     JOIN $wpdb->postmeta m
@@ -315,6 +322,62 @@ function wpcf_admin_get_groups_by_post_type($post_type, $fetch_empty = true,
 }
 
 /**
+ * Gets groups that have specific template.
+ * 
+ * @global type $wpdb
+ * @param type $post_type
+ * @param type $fetch_empty
+ * @param type $only_active
+ * @return type 
+ */
+function wpcf_admin_get_groups_by_template($templates = array('default'),
+        $fetch_empty = true, $only_active = true) {
+    $args = array();
+    $args['post_type'] = 'wp-types-group';
+    $args['numberposts'] = -1;
+    $meta_query = array();
+    // Active
+    if ($only_active) {
+        $args['post_status'] = 'publish';
+    }
+
+    // Fetch empty
+    if ($fetch_empty) {
+        $args['meta_query'] = array(
+            'relation' => 'OR',
+            array(
+                'key' => '_wp_types_group_templates',
+                'value' => 'all',
+                'compare' => '=',
+            ),
+        );
+    } else {
+        $args['meta_query'] = array(
+            'relation' => 'OR');
+    }
+    foreach ($templates as $template) {
+        $args['meta_query'][] = array(
+            'key' => '_wp_types_group_templates',
+            'value' => ',' . $template . ',',
+            'compare' => 'LIKE',
+        );
+    }
+
+    $results_by_template = array();
+
+    // Get posts by template
+    $groups = get_posts($args);
+    if (!empty($groups)) {
+        foreach ($groups as $key => $group) {
+            $group = wpcf_admin_fields_adjust_group($group);
+            $results_by_template[$group['id']] = $group;
+        }
+    }
+
+    return $results_by_template;
+}
+
+/**
  * Loads type configuration file and calls action.
  * 
  * @param type $type
@@ -322,7 +385,10 @@ function wpcf_admin_get_groups_by_post_type($post_type, $fetch_empty = true,
  * @param type $args 
  */
 function wpcf_fields_type_action($type, $func = '', $args = array()) {
-    if (defined('WPCF_INC_ABSPATH')) {
+    $fields_registered = wpcf_admin_fields_get_available_types();
+    if (isset($fields_registered[$type]) && isset($fields_registered[$type]['path'])) {
+        $file = $fields_registered[$type]['path'];
+    } else if (defined('WPCF_INC_ABSPATH')) {
         $file = WPCF_INC_ABSPATH . '/fields/' . $type . '.php';
     } else {
         $file = '';
@@ -397,7 +463,7 @@ function wpcf_admin_fields_popup_insert_shortcode_js($shortcode) {
             window.parent.jQuery('#'+window.parent.wpcfInsertMetaHTML).insertAtCaret('<?php echo $shortcode; ?>');
             window.parent.wpcfInsertMetaHTML = false;
         }
-                                                        
+                                                                                            
         //]]>
     </script>
     <?php
@@ -426,4 +492,30 @@ function wpcf_admin_fields_get_field_last_settings($field_id) {
         return $data[$field_id];
     }
     return array();
+}
+
+/**
+ * Gets all available types.
+ */
+function wpcf_admin_fields_get_available_types() {
+    static $data = array();
+    if (!empty($data)) {
+        return $data;
+    }
+    foreach (glob(WPCF_EMBEDDED_INC_ABSPATH . '/fields/*.php') as $filename) {
+        require_once $filename;
+        if (function_exists('wpcf_fields_' . basename($filename, '.php'))) {
+            $data_field = call_user_func('wpcf_fields_' . basename($filename,
+                            '.php'));
+            if (!empty($data_field['wp_version'])) {
+                if (wpcf_compare_wp_version($data_field['wp_version'], '>=')) {
+                    $data[basename($filename, '.php')] = $data_field;
+                }
+            } else {
+                $data[basename($filename, '.php')] = $data_field;
+            }
+        }
+    }
+    $data = apply_filters('types_register_fields', $data);
+    return $data;
 }

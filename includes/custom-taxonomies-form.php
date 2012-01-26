@@ -262,6 +262,7 @@ function wpcf_admin_custom_taxonomies_form() {
         '#inline' => true,
         '#before' => '<div id="wpcf-types-form-rewrite-toggle"' . $hidden . '>',
         '#after' => '</div>',
+        '#validate' => array('rewriteslug' => array('value' => 'true')),
     );
     $form['rewrite-with_front'] = array(
         '#type' => 'checkbox',
@@ -337,7 +338,7 @@ function wpcf_admin_custom_taxonomies_form() {
         '#title' => 'update_count_callback', 'wpcf',
         '#description' => __('Function name that will be called to update the count of an associated $object_type, such as post, is updated.',
                 'wpcf') . '<br />' . __('Default: None.', 'wpcf'),
-        '#value' => $ct['update_count_callback'],
+        '#value' => !empty($ct['update_count_callback']) ? $ct['update_count_callback'] : '',
         '#inline' => true,
     );
     $form['table-6-close'] = array(
@@ -378,7 +379,9 @@ function wpcf_admin_custom_taxonomies_form_submit($form) {
         $data['slug'] = sanitize_title($data['slug']);
     }
     if (isset($data['rewrite']['slug'])) {
-        $data['rewrite']['slug'] = sanitize_title($data['rewrite']['slug']);
+        $data['rewrite']['slug'] = remove_accents($data['rewrite']['slug']);
+        $data['rewrite']['slug'] = strtolower($data['rewrite']['slug']);
+        $data['rewrite']['slug'] = trim($data['rewrite']['slug']);
     }
 
     // Set tax name
@@ -442,6 +445,19 @@ function wpcf_admin_custom_taxonomies_form_submit($form) {
     // Check if active
     if (isset($custom_taxonomies[$tax]['disabled'])) {
         $data['disabled'] = $custom_taxonomies[$tax]['disabled'];
+    }
+    
+    // Sync with post types
+    if (!empty($data['supports'])) {
+        $post_types = get_option('wpcf-custom-types', array());
+        foreach ($post_types as $id => $type) {
+            if (array_key_exists($id, $data['supports'])) {
+                $post_types[$id]['taxonomies'][$data['slug']] = 1;
+            } else {
+                unset($post_types[$id]['taxonomies'][$data['slug']]);
+            }
+        }
+        update_option('wpcf-custom-types', $post_types);
     }
 
     $custom_taxonomies[$tax] = $data;

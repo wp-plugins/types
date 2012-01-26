@@ -55,8 +55,8 @@ jQuery(document).ready(function(){
             if (jQuery(this).parents('form').hasClass('wpcf-fields-form')) {
                 // Get group id
                 var group_id = false;
-                if (jQuery('input:[name="group-id"]').length > 0) {
-                    group_id = jQuery('input:[name="group-id"]').val();
+                if (jQuery('input:[name="group_id"]').length > 0) {
+                    group_id = jQuery('input:[name="group_id"]').val();
                 } else {
                     group_id = -1;
                 }
@@ -167,8 +167,8 @@ jQuery(document).ready(function(){
                     }
                     if (typeof data.execute != 'undefined'
                         && (typeof data.wpcf_nonce_ajax_callback != 'undefined'
-                        && data.wpcf_nonce_ajax_callback == wpcf_nonce_ajax_callback)) {
-                            eval(data.execute);
+                            && data.wpcf_nonce_ajax_callback == wpcf_nonce_ajax_callback)) {
+                        eval(data.execute);
                     }
                 }
                 if (callback != false) {
@@ -241,6 +241,25 @@ jQuery(document).ready(function(){
             jQuery('#wpcf-types-form-queryvar-toggle').slideUp();
         }
     });
+    wpcfFieldsFormFiltersSummary();
+    jQuery('.wpcf-groups-form-ajax-update-tax-ok, .wpcf-groups-form-ajax-update-post-types-ok, .wpcf-groups-form-ajax-update-templates-ok').click(function(){
+        var count = 0;
+        if (jQuery('.wpcf-groups-form-ajax-update-tax-ok').parent().find("input:checked").length > 0) {
+            count += 1;
+        }
+        if (jQuery('.wpcf-groups-form-ajax-update-post-types-ok').parent().find("input:checked").length > 0) {
+            count += 1;
+        }
+        if (jQuery('.wpcf-groups-form-ajax-update-templates-ok').parent().find("input:checked").length > 0) {
+            count += 1;
+        }
+        if (count > 1) {
+            jQuery('#wpcf-fields-form-filters-association-form').show();
+        } else {
+            jQuery('#wpcf-fields-form-filters-association-form').hide();
+        }
+        wpcfFieldsFormFiltersSummary();
+    });
 });
 
 /**
@@ -274,4 +293,37 @@ function wpcfFieldsFormCountOptions(obj) {
     var count = wpcfGetParameterByName('count', obj.attr('href'));
     count++;
     obj.attr('href',  obj.attr('href').replace(/count=.*/, 'count='+count));
+}
+
+function wpcfFieldsFormFiltersSummary() {
+    if (jQuery('#wpcf-fields-form-filters-association-form').find("input:checked").val() == 'all') {
+        var string = wpcf_filters_association_and;
+    } else {
+        var string = wpcf_filters_association_or;
+    }
+    var pt = new Array();
+    jQuery('#wpcf-form-fields-post_types').find("input:checked").each(function(){
+        pt.push(jQuery(this).next().html());
+    });
+    var tx = new Array();
+    jQuery('#wpcf-form-fields-taxonomies').find("input:checked").each(function(){
+        tx.push(jQuery(this).next().html());
+    });
+    var vt = new Array();
+    jQuery('#wpcf-form-fields-templates').find("input:checked").each(function(){
+        vt.push(jQuery(this).next().html());
+    });
+    if (pt.length < 1) {
+        pt.push(wpcf_filters_association_all_pages);
+    }
+    if (tx.length < 1) {
+        tx.push(wpcf_filters_association_all_taxonomies);
+    }
+    if (vt.length < 1) {
+        vt.push(wpcf_filters_association_all_templates);
+    }
+    string = string.replace('%pt%', pt.join(', '));
+    string = string.replace('%tx%', tx.join(', '));
+    string = string.replace('%vt%', vt.join(', '));
+    jQuery('#wpcf-fields-form-filters-association-summary').html(string);
 }

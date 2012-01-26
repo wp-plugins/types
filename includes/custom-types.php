@@ -32,7 +32,7 @@ function wpcf_custom_types_default() {
         'description' => '',
         'public' => true,
         'capabilities' => false,
-        'menu_position' => 20,
+        'menu_position' => null,
         'menu_icon' => '',
         'taxonomies' => array(
             'category' => false,

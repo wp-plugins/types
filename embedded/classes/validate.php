@@ -218,6 +218,23 @@ class Wpcf_Validate
         }
         return true;
     }
+    
+    /**
+     * Checks 'rewriteslug'.
+     * 
+     * @param type $args
+     * @param type $value
+     * @return type 
+     */
+    public static function rewriteslug($args, $value)
+    {
+        if (preg_match('#[^a-zA-Z0-9\/\_\-]#', $value) === false) {
+            return array(
+                'error' => 1,
+            );
+        }
+        return true;
+    }
 
     /**
      * Returns form data.

@@ -147,7 +147,7 @@ function wpcf_form_simple_validate(&$elements) {
     if (is_null($form)) {
         $form = new Enlimbo_Forms_Wpcf();
     }
-    $form->validate(&$elements);
+    $form->validate($elements);
     return $form;
 }
 
@@ -271,6 +271,8 @@ function wpcf_admin_validation_messages($method = false) {
         'alphanumeric' => __('Letters, numbers, spaces or underscores only please',
                 'wpcf'),
         'nospecialchars' => __('Letters, numbers, spaces, underscores and dashes only please',
+                'wpcf'),
+        'rewriteslug' => __('Letters, numbers, slashes, underscores and dashes only please',
                 'wpcf')
     );
     if ($method) {

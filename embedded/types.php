@@ -1,6 +1,7 @@
 <?php
 if (!defined('WPCF_VERSION')) {
     define('WPCF_RUNNING_EMBEDDED', true);
+    add_action('init', 'wpcf_embedded_init');
 }
 
 define('WPCF_EMBEDDED_ABSPATH', dirname(__FILE__));
@@ -11,21 +12,41 @@ if (!defined('ICL_COMMON_FUNCTIONS')) {
     require_once WPCF_EMBEDDED_ABSPATH . '/common/functions.php';
 }
 
-add_action('init', 'wpcf_embedded_init');
+wpcf_embedded_after_setup_theme_hook();
+/**
+ * after_setup_theme hook.
+ */
+function wpcf_embedded_after_setup_theme_hook() {
+    $custom_types = get_option('wpcf-custom-types', array());
+    if (!empty($custom_types)) {
+        foreach ($custom_types as $post_type => $data) {
+            if (!empty($data['supports']['thumbnail'])) {
+                if (!current_theme_supports('post-thumbnails')) {
+                    add_theme_support('post-thumbnails');
+                    remove_post_type_support('post', 'thumbnail');
+                    remove_post_type_support('page', 'thumbnail');
+                } else {
+                    add_post_type_support($post_type, 'thumbnail');
+                }
+            }
+        }
+    }
+}
 
 /**
  * Main init hook.
  */
 function wpcf_embedded_init() {
-    
-    load_plugin_textdomain( 'wpcf', false, WPCF_EMBEDDED_ABSPATH . '/locale');
+
+    load_plugin_textdomain('wpcf', false, WPCF_EMBEDDED_ABSPATH . '/locale');
     if (!defined('WPV_VERSION')) {
-        load_plugin_textdomain( 'wpv-views', false, WPCF_EMBEDDED_ABSPATH . '/locale/locale-views');
+        load_plugin_textdomain('wpv-views', false,
+                WPCF_EMBEDDED_ABSPATH . '/locale/locale-views');
     }
-    
+
     // Define necessary constants if plugin is not present
     if (!defined('WPCF_VERSION')) {
-        define('WPCF_VERSION', '0.9.3');
+        define('WPCF_VERSION', '0.9.4');
         define('WPCF_META_PREFIX', 'wpcf-');
         define('WPCF_EMBEDDED_RELPATH', icl_get_file_relpath(__FILE__));
     } else {
@@ -46,7 +67,6 @@ function wpcf_embedded_init() {
         require_once WPCF_EMBEDDED_ABSPATH . '/frontend.php';
     }
     wpcf_embedded_check_import();
-    
 }
 
 /**
@@ -225,7 +245,7 @@ function wpcf_types_cf_under_control($action = 'add', $args = array()) {
             }
             return false;
             break;
-            
+
         case 'check_outsider':
             $fields = wpcf_admin_fields_get_fields();
             $field = $args;
@@ -254,7 +274,6 @@ function wpcf_types_get_meta_prefix($field = array()) {
     }
     return WPCF_META_PREFIX;
 }
-
 
 /**
  * Compares WP versions

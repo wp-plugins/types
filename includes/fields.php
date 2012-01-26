@@ -65,6 +65,37 @@ function wpcf_admin_get_taxonomies_by_group($group_id) {
 }
 
 /**
+ * Gets templates supported by specific group.
+ * 
+ * @global type $wpdb
+ * @param type $group_id
+ * @return type 
+ */
+function wpcf_admin_get_templates_by_group($group_id) {
+    global $wpdb;
+    $data = get_post_meta($group_id, '_wp_types_group_templates', true);
+    if ($data == 'all') {
+        return array();
+    }
+    $data = explode(',', trim($data, ','));
+    $templates = get_page_templates();
+    $templates[] = 'default';
+    $templates_views = get_posts('post_type=view-template&numberposts=-1&status=publish');
+    foreach ($templates_views as $template_view) {
+        $templates[] = $template_view->ID;
+    }
+    $result = array();
+    if (!empty($data)) {
+        foreach ($templates as $template) {
+            if (in_array($template, $data)) {
+                $result[] = $template;
+            }
+        }
+    }
+    return $result;
+}
+
+/**
  * Activates group.
  * 
  * @global type $wpdb
@@ -208,6 +239,12 @@ function wpcf_admin_fields_save_group($group) {
         if (is_wp_error($group_id)) {
             return false;
         }
+    }
+    
+    if (!empty($group['filters_association'])) {
+        update_post_meta($group_id, '_wp_types_group_filters_association', $group['filters_association']);
+    } else {
+        delete_post_meta($group_id, '_wp_types_group_filters_association');
     }
 
     // WPML register strings
@@ -501,6 +538,22 @@ function wpcf_admin_fields_save_group_terms($group_id, $terms) {
 }
 
 /**
+ * Saves group's templates.
+ * 
+ * @global type $wpdb
+ * @param type $group_id
+ * @param type $terms 
+ */
+function wpcf_admin_fields_save_group_templates($group_id, $templates) {
+    if (empty($templates)) {
+        update_post_meta($group_id, '_wp_types_group_templates', 'all');
+        return true;
+    }
+    $templates = ',' . implode(',', (array) $templates) . ',';
+    update_post_meta($group_id, '_wp_types_group_templates', $templates);
+}
+
+/**
  * Returns HTML formatted AJAX activation link.
  * 
  * @param type $group_id
@@ -553,26 +606,4 @@ function wpcf_admin_fields_get_groups_by_field($field_id) {
     }
     $cache['groups'][$group_id] = $fields;
     return $return;
-}
-
-/**
- * Gets all available types.
- */
-function wpcf_admin_fields_get_available_types() {
-    $data = array();
-    foreach (glob(WPCF_EMBEDDED_INC_ABSPATH . '/fields/*.php') as $filename) {
-        require_once $filename;
-        if (function_exists('wpcf_fields_' . basename($filename, '.php'))) {
-            $data_field = call_user_func('wpcf_fields_' . basename($filename,
-                            '.php'));
-            if (!empty($data_field['wp_version'])) {
-                if (wpcf_compare_wp_version($data_field['wp_version'], '>=')) {
-                    $data[basename($filename, '.php')] = $data_field;
-                }
-            } else {
-                $data[basename($filename, '.php')] = $data_field;
-            }
-        }
-    }
-    return $data;
 }

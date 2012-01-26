@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Inits custom types.
  */
@@ -57,7 +58,11 @@ function wpcf_custom_types_register($post_type, $data) {
     $data['publicly_queryable'] = !empty($data['publicly_queryable']);
     $data['exclude_from_search'] = !empty($data['exclude_from_search']);
     $data['show_ui'] = (empty($data['show_ui']) || !$data['public']) ? false : true;
-    $data['menu_position'] = !empty($data['menu_position']) ? intval($data['menu_position']) : 20;
+    if (empty($data['menu_position'])) {
+        unset($data['menu_position']);
+    } else {
+        $data['menu_position'] = intval($data['menu_position']);
+    }
     $data['hierarchical'] = !empty($data['hierarchical']);
     $data['supports'] = !empty($data['supports']) && is_array($data['supports']) ? array_keys($data['supports']) : array();
     $data['taxonomies'] = !empty($data['taxonomies']) && is_array($data['taxonomies']) ? array_keys($data['taxonomies']) : array();
@@ -77,6 +82,9 @@ function wpcf_custom_types_register($post_type, $data) {
         unset($data['menu_icon']);
     } else {
         $data['menu_icon'] = stripslashes($data['menu_icon']);
+        if (strpos($data['menu_icon'], '[theme]') !== false) {
+            $data['menu_icon'] = str_replace('[theme]', get_stylesheet_directory_uri(), $data['menu_icon']);
+        }
     }
     if (!empty($data['rewrite']['enabled'])) {
         $data['rewrite']['with_front'] = !empty($data['rewrite']['with_front']);

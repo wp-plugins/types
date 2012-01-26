@@ -24,7 +24,7 @@ function icl_get_file_relpath($file) {
     }
     $relpath = $base_root
             . str_replace(
-                    str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT'])
+                    str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT']))
                     , '', str_replace('\\', '/', dirname($file))
     );
     return $relpath;

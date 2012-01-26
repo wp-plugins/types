@@ -41,7 +41,7 @@ function wpcf_admin_import_export_form() {
                     $data = @file_get_contents(urldecode($_POST['file']));
                 }
                 if ($data) {
-                    wpcf_admin_import_data(html_entity_decode($data));
+                    wpcf_admin_import_data($data);
                 } else {
                     echo '<div class="message error"><p>'
                     . __('Unable to process file', 'wpcf')
@@ -175,18 +175,20 @@ function wpcf_admin_import_export_form() {
             '#after' => '<br /><br />',
         );
         if (extension_loaded('simplexml')) {
+            $attributes = !wpcf_admin_import_dir() ? array('disabled' => 'disabled') : array();
             $form['file'] = array(
                 '#type' => 'file',
                 '#name' => 'file',
                 '#prefix' => __('Upload XML file', 'wpcf') . '<br />',
                 '#before' => '<h2>' . __('Import Types data file', 'wpcf') . '</h2>',
                 '#inline' => true,
+                '#attributes' => $attributes,
             );
             $form['submit-file'] = array(
                 '#type' => 'submit',
                 '#name' => 'import-file',
                 '#value' => __('Import file', 'wpcf'),
-                '#attributes' => array('class' => 'button-primary'),
+                '#attributes' => array_merge($attributes, array('class' => 'button-primary')),
                 '#prefix' => '<br />',
                 '#suffix' => '<br /><br />',
             );
@@ -611,4 +613,14 @@ function wpcf_admin_export_data() {
         echo $data;
         die();
     }
+}
+
+/**
+ * Check upload dir.
+ * 
+ * @return type 
+ */
+function wpcf_admin_import_dir() {
+    $dir = get_temp_dir();
+    return is_writable($dir);
 }

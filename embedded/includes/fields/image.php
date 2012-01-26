@@ -496,6 +496,8 @@ function wpcf_fields_image_resize_image($url_path, $width = 300, $height = 200,
     } else {
         $suffix .= '_wpcf_' . $dst_w . 'x' . $dst_h;
     }
+    
+    $image_data['extension'] = in_array($image_data['extension'], array('gif', 'png')) ? $image_data['extension'] : 'jpg';
 
     $image_relpath = $image_data['relpath'] . '/' . $image_data['image_name'] . '-'
             . $suffix . '.' . $image_data['extension'];
@@ -517,7 +519,7 @@ function wpcf_fields_image_resize_image($url_path, $width = 300, $height = 200,
     }
 
     // Resize image
-    $resized_image = image_resize(
+    $resized_image = @image_resize(
             $image_data['fullabspath'], $width, $height, $crop, $suffix,
             $dest_path, $quality
     );
@@ -580,8 +582,8 @@ function wpcf_fields_image_get_data($image) {
     $check_dir_url = explode('//', $url);
     $check_dir_url = explode('/', $check_dir_url[1]);
     // Check in both ways
-    if (strpos($check_image_url[0], $check_dir_url[0]) !== false
-            || strpos($check_dir_url[0], $check_image_url[0]) !== false) {
+    if (@strpos($check_image_url[0], $check_dir_url[0]) !== false
+            || @strpos($check_dir_url[0], $check_image_url[0]) !== false) {
         $is_outsider = 0;
     }
 
@@ -638,9 +640,9 @@ function wpcf_fields_image_get_data($image) {
         'image' => basename($image),
         'image_name' => basename($image, '.' . $extension),
         'extension' => $extension,
-        'abspath' => $abspath,
+        'abspath' => realpath($abspath),
         'relpath' => dirname($image),
-        'fullabspath' => $abspath . DIRECTORY_SEPARATOR . basename($image),
+        'fullabspath' => realpath($abspath . DIRECTORY_SEPARATOR . basename($image)),
         'fullrelpath' => $image,
         'is_outsider' => $is_outsider,
         'is_in_upload_path' => $is_in_upload_path,
