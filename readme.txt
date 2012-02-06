@@ -4,7 +4,7 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types
 Requires at least: 3.0
 Tested up to: 3.3.1
-Stable tag: 0.9.4
+Stable tag: 0.9.4.1
 
 The complete solution for custom post types, custom taxonomy and custom fields. Craft your edit screens and use shortcodes to display fields.
 
@@ -139,6 +139,11 @@ Types includes its own import and export features. If you create a development s
 * Added an option to display custom field groups on specific templates only
 * Fixed a number of bugs with Javascript and with Windows servers
 
+= 0.9.4.1 =
+* Fixed a problem adding custom fields to a group on some servers
+* Fixed so that standard tags and categories work again with custom post types
+* Fixed custom field groups not being shown for some content templates
+
 == Upgrade Notice ==
 
 = 0.9.1 =
@@ -152,3 +157,6 @@ Types includes its own import and export features. If you create a development s
 
 = 0.9.4 =
 * You can now enable custom field groups for content with specific templates
+
+= 0.9.4.1 =
+* Fix a few problems found in the 0.9.4 release

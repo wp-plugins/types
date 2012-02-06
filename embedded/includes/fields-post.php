@@ -575,8 +575,8 @@ function wpcf_admin_post_get_post_groups_fields($post = false) {
                         $groups[$group['id']]['fields'] = wpcf_admin_fields_get_fields_by_group($group['id'],
                                 'slug', true, false, true);
                     }
+                    $groups[$group['id']]['__wpcf_terms'] = 1;
                 }
-                $groups[$group['id']]['__wpcf_terms'] = 1;
             }
         }
     } else {

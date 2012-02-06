@@ -289,7 +289,10 @@ function wpcf_admin_fields_save_field($field) {
     $field['id'] = $field['slug'];
 
     // Set field specific data
-    $field['data'] = $field;
+    // NOTE: This was $field['data'] = $field and seemed to work on most systems.
+    // I changed it to asign via a temporary variable to fix on one system.
+    $temp_field = $field; 
+    $field['data'] = $temp_field;
     // Unset default fields
     unset($field['data']['type'], $field['data']['slug'],
             $field['data']['name'], $field['data']['description'],

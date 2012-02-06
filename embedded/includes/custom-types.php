@@ -98,4 +98,20 @@ function wpcf_custom_types_register($post_type, $data) {
         $data['rewrite'] = false;
     }
     register_post_type($post_type, $data);
+    
+    // Add the standard tags and categoires if the're set.
+    $body = '';
+    if (in_array('post_tag', $data['taxonomies'])) {
+        $body = 'register_taxonomy_for_object_type("post_tag", "'.$post_type.'");';
+    }
+    if (in_array('category', $data['taxonomies'])) {
+        $body .= 'register_taxonomy_for_object_type("category", "'.$post_type.'");';
+    }
+    
+    // make sure the function name is OK
+    $post_type = str_replace('-', '_', $post_type);
+    if ($body != '' && ! function_exists($post_type.'_add_default_taxes')) {
+        eval('function '.$post_type.'_add_default_taxes() { '.$body.' }');
+        add_action('init', $post_type.'_add_default_taxes');    
+    }
 }
