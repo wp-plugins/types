@@ -4,7 +4,7 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types
 Requires at least: 3.0
 Tested up to: 3.3.1
-Stable tag: 0.9.4.1
+Stable tag: 0.9.4.2
 
 The complete solution for custom post types, custom taxonomy and custom fields. Craft your edit screens and use shortcodes to display fields.
 

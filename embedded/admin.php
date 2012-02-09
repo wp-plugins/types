@@ -405,7 +405,9 @@ function wpcf_icl_editor_cf_style_filter($style, $cf_name) {
     if (isset($fields[$cf_name]['type']) && $fields[$cf_name]['type'] == 'textarea') {
         $style = 1;
     }
-
+    if (isset($fields[$cf_name]['type']) && $fields[$cf_name]['type'] == 'wysiwyg') {
+        $style = 2;
+    }
     return $style;
 }
 

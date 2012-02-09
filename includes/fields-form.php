@@ -109,10 +109,11 @@ function wpcf_admin_save_fields_groups_submit($form) {
         wpcf_admin_fields_save_group_fields($group_id, $fields);
         wpcf_admin_fields_save_group_post_types($group_id, $post_types);
         wpcf_admin_fields_save_group_terms($group_id, $terms);
-        if (!empty($_POST['wpcf']['group']['templates'])) {
-            wpcf_admin_fields_save_group_templates($group_id,
-                    $_POST['wpcf']['group']['templates']);
+        if (empty($_POST['wpcf']['group']['templates'])) {
+            $_POST['wpcf']['group']['templates'] = array();
         }
+        wpcf_admin_fields_save_group_templates($group_id,
+                $_POST['wpcf']['group']['templates']);
         $_POST['wpcf']['group']['fields'] = isset($_POST['wpcf']['fields']) ? $_POST['wpcf']['fields'] : array();
         do_action('wpcf_save_group', $_POST['wpcf']['group']);
         wpcf_admin_message_store(__('Group saved', 'wpcf'));
@@ -208,7 +209,8 @@ function wpcf_admin_fields_form() {
             foreach ($data['group_form_css'] as $handle => $script) {
                 if (isset($script['src'])) {
                     $deps = !empty($script['deps']) ? $script['deps'] : array();
-                    wp_enqueue_style($handle, $script['src'], $deps, WPCF_VERSION);
+                    wp_enqueue_style($handle, $script['src'], $deps,
+                            WPCF_VERSION);
                 } else if (isset($script['inline'])) {
                     add_action('admin_head', $script['inline']);
                 }

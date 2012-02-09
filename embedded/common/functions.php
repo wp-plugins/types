@@ -84,8 +84,27 @@ function wpv_condition($atts) {
 	extract(
         shortcode_atts( array('evaluate' => FALSE), $atts )
     );
-
+    
     global $post;
+    
+    // if in admin, get the post from the URL
+    if(is_admin()) {
+        // Get post
+        if (isset($_GET['post'])) {
+            $post_id = (int) $_GET['post'];
+        } else if (isset($_POST['post_ID'])) {
+            $post_id = (int) $_POST['post_ID'];
+        } else {
+            $post_id = 0;
+        }
+        if ($post_id) {
+            $post = get_post($post_id);
+        }
+    }
+    
+    global $wplogger;
+
+    $logging_string = "Original expression: ". $evaluate;
     
     // evaluate empty() statements for variables
     $empties = preg_match_all("/empty\(\s*\\$(\w+)\s*\)/", $evaluate, $matches);
@@ -133,7 +152,7 @@ function wpv_condition($atts) {
 	    	// don't do string comparison if variables are numbers 
 	    	if(!(is_numeric($first_string) && is_numeric($second_string))) {
 	    		// compare string and return true or false
-	    		$compared_str_result = compare_strings($first_string, $second_string, $math_sign);
+	    		$compared_str_result = wpv_compare_strings($first_string, $second_string, $math_sign);
 	    	
 		    	if($compared_str_result) {
 					$evaluate = str_replace($matches[0][$i], '1=1', $evaluate);
@@ -147,17 +166,25 @@ function wpv_condition($atts) {
     // find all variable placeholders in expression
     $count = preg_match_all('/\$(\w+)/', $evaluate, $matches);
     
+    $logging_string .= "; Variable placeholders: ". var_export($matches[1], true); 
+    
     // replace all variables with their values listed as shortcode parameters
     if($count && $count > 0) {
+    	// sort array by length desc, fix str_replace incorrect replacement
+    	wpv_sort_matches_by_length(&$matches[1]);
+    	
 	    foreach($matches[1] as $match) {
             $meta = get_post_meta($post->ID, $atts[$match], true);
             if (empty($meta)) {
-                return false;
+                $meta = "0";
             }
-	    	$evaluate = str_replace('$'.$match . ' ', $meta . ' ', $evaluate);
+	    	$evaluate = str_replace('$'.$match, $meta, $evaluate);
 	    }
     }
     
+    $logging_string .= "; End evaluated expression: ". $evaluate;
+    
+    $wplogger->log($logging_string, WPLOG_DEBUG);
     // evaluate the prepared expression using the custom eval script
     $result = wpv_evaluate_expression($evaluate);
     
@@ -169,6 +196,36 @@ function wpv_eval_check_syntax($code) {
     return @eval('return true;' . $code);
 }
 
+/**
+ * 
+ * Sort matches array by length so evaluate longest variable names first
+ * 
+ * Otherwise the str_replace would break a field named $f11 if there is another field named $f1
+ * 
+ * @param array $matches all variable names
+ */
+function wpv_sort_matches_by_length($matches) {
+	$length = count($matches);
+	for($i = 0; $i < $length; $i++) {
+		$max = strlen($matches[$i]);
+		$max_index = $i;
+		
+		// find the longest variable
+		for($j = $i+1; $j < $length; $j++) {
+			if(strlen($matches[$j]) > $max ) {
+				$max = $matches[$j];
+				$max_index = $j;
+			}
+		}
+		
+		// swap
+		$temp = $matches[$i];
+		$matches[$i] = $matches[$max_index];
+		$matches[$max_index] = $temp;
+	}
+	
+}
+
 
 /**
  * Boolean function for string comparison
@@ -178,7 +235,7 @@ function wpv_eval_check_syntax($code) {
  * 
  * 
  */
-function compare_strings($first, $second, $sign) {
+function wpv_compare_strings($first, $second, $sign) {
 	// get comparison results
 	$comparison = strcmp($first, $second);
 	
