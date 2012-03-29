@@ -181,8 +181,9 @@ function wpcf_pr_post_type_form_filter($form, $post_type) {
         . '<br />' . __("Click on the 'edit' button to select them for each parent.",
                 'wpcf')
         . '<br />'
-        . sprintf(__('Learn about %sPost Type Relationships%s',
-                'wpcf'), '<a href="http://wp-types.com/documentation/user-guides/creating-post-type-relationships/" target="_blank">', '</a>')
+        . sprintf(__('Learn about %sPost Type Relationships%s', 'wpcf'),
+                '<a href="http://wp-types.com/documentation/user-guides/creating-post-type-relationships/" target="_blank">',
+                '</a>')
         . '</div>',
     );
     return $form;
@@ -197,9 +198,11 @@ function wpcf_pr_custom_types_save_action($data) {
     $relationships = get_option('wpcf_post_relationship', array());
     $save_has_data = array();
     // Reset has
-    foreach ($relationships[$data['slug']] as $post_type_has => $rel_data) {
-        if (!isset($data['post_relationship']['has'][$post_type_has])) {
-            unset($relationships[$data['slug']][$post_type_has]);
+    if (!empty($relationships[$data['slug']])) {
+        foreach ($relationships[$data['slug']] as $post_type_has => $rel_data) {
+            if (!isset($data['post_relationship']['has'][$post_type_has])) {
+                unset($relationships[$data['slug']][$post_type_has]);
+            }
         }
     }
     if (!empty($data['post_relationship']['has'])) {

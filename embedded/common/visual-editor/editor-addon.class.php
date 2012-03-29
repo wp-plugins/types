@@ -105,17 +105,16 @@ if (!class_exists('Editor_addon')) {
             if (version_compare($wp_version, '3.2.1', '>') && !empty($context)) {
                 $text_area = $context;
             }
+            
             // Apply filters
             $this->items = apply_filters('editor_addon_items_' . $this->name,
                     $this->items);
-
             
             // add_filter('editor_addon_parent_items', array($this, 'wpv_add_parent_items'), 10, $this->items);
             // Apply filter parent items
             //apply_filters('editor_addon_parent_items', $this->items);
             // sort the items into menu levels.
 
-            
             $menus = array();
             $sub_menus = array();
             
@@ -135,7 +134,8 @@ if (!class_exists('Editor_addon')) {
 
             // Apply filters
             $menus = apply_filters('editor_addon_menus_' . $this->name, $menus);
-			// add View Template links to the "Add Field" button
+
+            // add View Template links to the "Add Field" button
             if(!$standard_v) {
             	$this->add_view_templates(&$menus);
 			}
