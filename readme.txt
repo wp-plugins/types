@@ -4,7 +4,7 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types, relationships
 Requires at least: 3.0
 Tested up to: 3.3.1
-Stable tag: 0.9.5.1
+Stable tag: 0.9.5.2
 
 The complete solution for custom post types, custom taxonomy and custom fields. Craft your edit screens and use shortcodes to display fields.
 
@@ -210,6 +210,10 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 = 0.9.5.1 =
 * Fixed a last-minute bug with post relationship
+
+= 0.9.5.2 =
+* Fixed a bug with image resize on non-Linux servers (Mac and Windows)
+* Changed the default status of Types credit footer
 
 == Upgrade Notice ==
 
