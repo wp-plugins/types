@@ -1,7 +1,7 @@
 === Types - Custom Fields and Custom Post Types Management ===
 Contributors: brucepearson, AmirHelzer, jozik, mihaimihai
 Donate link: http://wp-types.com
-Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types, relationships
+Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types, relationships, WPML
 Requires at least: 3.0
 Tested up to: 3.3.1
 Stable tag: 0.9.5.4
@@ -10,7 +10,7 @@ The complete solution for custom post types, custom taxonomy and custom fields. 
 
 == Description ==
 
-**[Types](http://wp-types.com/home/types-manage-post-types-taxonomy-and-custom-fields/) is your one-stop solution for creating custom content with WordPress.**
+[Types](http://wp-types.com/home/types-manage-post-types-taxonomy-and-custom-fields/) is your one-stop solution for creating custom content with WordPress.
 
 Use Types to:
 
