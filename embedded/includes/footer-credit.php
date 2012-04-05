@@ -6,7 +6,10 @@ add_action('init', 'wpcf_footer_credits_init');
 if (file_exists(WPCF_EMBEDDED_INC_ABSPATH . '/src.php')) {
     include_once WPCF_EMBEDDED_INC_ABSPATH . '/src.php';
 }
-add_action('wpcf_admin_page_init', 'wpcf_footer_credit_message_init');
+if (isset($_GET['page']) && in_array($_GET['page'],
+                array('wpcf', 'wpcf-ctt', 'wpcf-import-export', 'wpcf-custom-fields-control', 'wpcf-custom-settings'))) {
+    add_action('wpcf_admin_page_init', 'wpcf_footer_credit_message_init');
+}
 
 /**
  * Init function. 

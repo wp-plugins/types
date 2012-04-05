@@ -1,16 +1,16 @@
 === Types - Custom Fields and Custom Post Types Management ===
 Contributors: brucepearson, AmirHelzer, jozik, mihaimihai
 Donate link: http://wp-types.com
-Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types, relationships, WPML
+Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types, relationships
 Requires at least: 3.0
 Tested up to: 3.3.1
-Stable tag: 0.9.5.3
+Stable tag: 0.9.5.4
 
 The complete solution for custom post types, custom taxonomy and custom fields. Craft your edit screens and use shortcodes to display fields.
 
 == Description ==
 
-[Types](http://wp-types.com/home/types-manage-post-types-taxonomy-and-custom-fields/) is your one-stop solution for creating custom content with WordPress.
+**[Types](http://wp-types.com/home/types-manage-post-types-taxonomy-and-custom-fields/) is your one-stop solution for creating custom content with WordPress.**
 
 Use Types to:
 
@@ -211,12 +211,8 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 = 0.9.5.1 =
 * Fixed a last-minute bug with post relationship
 
-= 0.9.5.2 =
-* Fixed a bug with image resize on non-Linux servers (Mac and Windows)
-* Changed the default status of Types credit footer
-
-= 0.9.5.3 =
-* Version bump to reset the WP listing page
+= 0.9.5.4 =
+* Fixed a javascript bug on group edit pages
 
 == Upgrade Notice ==
 
@@ -240,3 +236,6 @@ Try the new parent/child relationship between different post types!
 
 = 0.9.5.1 =
 Fixed a last-minute bug with post relationship
+
+= 0.9.5.4 =
+Fixed a javascript bug on group edit pages
