@@ -2,6 +2,7 @@
 Contributors: brucepearson, AmirHelzer, jozik, mihaimihai
 Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types, relationships, WPML
+License: GPLv2
 Requires at least: 3.1
 Tested up to: 3.3.1
 Stable tag: 1.0.1
@@ -10,7 +11,7 @@ The complete solution for custom post types, custom taxonomy and custom fields. 
 
 == Description ==
 
-[Types](http://wp-types.com/home/types-manage-post-types-taxonomy-and-custom-fields/) is your one-stop solution for creating custom content with WordPress.
+**Types** is your one-stop solution for creating custom content with WordPress.
 
 Use Types to:
 
@@ -22,6 +23,8 @@ Use Types to:
 It's powerful enough to help you build any site with WordPress, but also simple and friendly for non-techies.
 
 Once you've defined your custom post types and custom fields, you can display them using Types' PHP API or Views.
+
+[Types home page](http://wp-types.com/home/types-manage-post-types-taxonomy-and-custom-fields/) | [Support forum](http://wp-types.com/forums/)
 
 = Custom post types and taxonomy =
 
