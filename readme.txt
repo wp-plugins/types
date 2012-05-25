@@ -7,26 +7,55 @@ Requires at least: 3.1
 Tested up to: 3.3.1
 Stable tag: 1.0.1
 
-The complete solution for custom post types, custom taxonomy and custom fields. Craft your edit screens and use shortcodes to display fields.
+The complete solution for custom post types, custom taxonomy and custom fields. Fully customize WordPress using a single plugin.
 
 == Description ==
 
-**Types** is your one-stop solution for creating custom content with WordPress.
+**Types** is your one-stop solution for customizing WordPress.
 
-Use Types to:
+Use Types to create:
 
-* Add **custom post types** to WordPress
-* Organize content with **custom taxonomy**
-* Enhance editing screens with **custom fields**
-* Define **parent / child** relationship between post types
+* **Custom Fields** (including repeater fields)
+* **Custom Post Types**
+* **Custom Taxonomy**
+* **Parent / Child Relationship** between different post types
 
-It's powerful enough to help you build any site with WordPress, but also simple and friendly for non-techies.
-
-Once you've defined your custom post types and custom fields, you can display them using Types' PHP API or Views.
+Types comes from [OnTheGoSystems](http://www.onthegosystems.com). The makers of WPML, Types and Views. We use Types in all our sites and we don't tolerate bugs. When you choose Types, you enjoy our development, testing, QA and support. You're getting a solid product from an established company.
 
 [Types home page](http://wp-types.com/home/types-manage-post-types-taxonomy-and-custom-fields/) | [Support forum](http://wp-types.com/forums/)
 
-= Custom post types and taxonomy =
+= Custom Fields =
+
+Types lets you create the exact editing screens that you need, using custom fields.
+
+Choose which fields to display, group them together into 'meta boxes' and select on what edit pages they will display. You can make each field repeatable, or group repeating fields using Types Field Tables.
+
+Types supports these custom field kinds:
+
+* **Single-line text**
+* **Multi-line text**
+* **WYSIWYG** (WordPress Visual Editor)
+* **Checkbox**
+* **Multi-value Checkboxes**
+* **Radio group**
+* **Drop-down Select**
+* **File upload**
+* **Image** (Types includes a robust image-resize and caching engine)
+* **Date** (includes a JS date-picker)
+* **Email**
+* **Numeric**
+* **Phone**
+* **Skype**
+* **URL**
+* **Post reference** (using Types Parent / Child relationships management)
+
+Watch this video for a quick intro to custom fields. For the complete reference, go to our [WordPress custom fields tutorial](http://wp-types.com/documentation/user-guides/using-custom-fields/).
+
+[vimeo http://vimeo.com/37320858]
+
+Besides defining custom fields, Types can also validate correct user-input. You can enable format validation for every field type and make different fields optional or required.
+
+= Custom Post Types and Taxonomy =
 
 Types lets you define custom post types and taxonomy from within the WordPress GUI.
 
@@ -34,42 +63,11 @@ This video shows how to define custom post types and custom taxonomy. You're als
 
 [vimeo http://vimeo.com/37267854]
 
-**New in Types 0.9.5 - define parent / child relationship between different post types!**
-
 You can create complex content hierarchies in Types. For example, if you're building a site for artists, each *Artist* can have many *Show* child items. You can add and edit Shows right from within the Artist edit page in one neat table.
 
 When you setup post relationships, different content types become interconnected. Field Tables let you bulk-edit child items when you're editing parents. This takes the concept of repeater fields to a whole new level.
 
-= Custom fields =
-
-Types lets you completely customize the WordPress editing interface with different kinds of custom fields. You can display the custom fields using Types API functions or with Views.
-
-Watch this video for a quick intro to custom fields. For the complete reference, go to our [WordPress custom fields tutorial](http://wp-types.com/documentation/user-guides/using-custom-fields/).
-
-[vimeo http://vimeo.com/37320858]
-
-Choose which fields to display, group them together into 'meta boxes' and select on what edit pages they will display.
-
-Types supports these custom field kinds:
-
-* **Single-line text** - a single text line
-* **Multi-line text** - a paragraph of text
-* **WYSIWYG** - Visual editor in custom fields (requires WordPress 3.3 and above)
-* **Checkbox** - yes / no fields. You can control the text output for on and off.
-* **Radio** - displays multiple text options as radio buttons
-* **Select** - displays multiple text options as a drop-down select input
-* **File** - allows uploading files to posts and displays a download link on public pages
-* **Image** - allows uploading images and displaying them at different sizes with a resize cache
-* **Date** - shows a date-picker in the editor screen and lets you choose output formats when displaying
-* **Email** - inputs and validates correct email format
-* **Numeric** - lets writers enter number data only by validating its content
-* **Phone** - validates format for phone numbers and allows to display them with special styling
-* **Skype** - displays the Skype graphics, showing when you're available
-* **URL** - validates URL format and displays a link on public pages
-
-Besides defining custom fields, Types can also validate correct user-input. You can enable format validation for every field type and make different fields optional or required.
-
-= Displaying custom fields in PHP templates using Types API =
+= Displaying Custom Fields in PHP Templates Using Types API =
 
 If you're convenient with PHP and WordPress API, Types makes it super-easy for you to display custom fields. It includes a complete API that will display each custom field in a unique way.
 
@@ -79,24 +77,20 @@ See how to insert custom fields into WordPress template files in PHP. Types incl
 
 [vimeo http://vimeo.com/37725539]
 
-= Display custom content types and fields with Views and no coding =
+= Use Views for Rapid Site Development =
 
-**[Views](http://wp-types.com/home/views-create-elegant-displays-for-your-content/) is the display companion for Types.** It's a commercial plugin that costs just $49 USD, which will turn weeks of programming and debug into a few hours of fun. With Views you don't need a programmer to create complex sites. It's like having your own developer, instantly building whatever you want.
+**[Views](http://wp-types.com/home/views-create-elegant-displays-for-your-content/) is the display companion for Types.** It lets you build complete sites much faster than coding everything from scratch.
 
 Views lets you:
 
-* Load any content from the database and display it with [Views](http://wp-types.com/documentation/user-guides/views/).
-* Create templates right from within the WordPress editor using [View Templates](http://wp-types.com/documentation/user-guides/view-templates/).
-* Insert custom fields anywhere.
+* Load content from the database and display it
+* Create templates right from within the WordPress editor
+* Insert custom fields anywhere
 
 Watch this video for a quick teaser:
 [vimeo http://vimeo.com/37376736]
 
-You're welcome to visit our [learn section](http://wp-types.com/learn/) to see complete working examples of classified sites, magazine layout, real-estate sites and other complete and functional designs we've built with Types and Views and no PHP at all.
-
-Views is designed for both non-techies and developers alike. If you're just starting with custom content types for WordPress, you'll appreciate how quickly you can have a fully-working site that uses custom post types, taxonomy and fields.
-
-Then, when you're more convenient with Types and Views and want to get more, you'll discover power-features such as nested output, conditional display, post relationship and other features that turn WordPress into a top-notch CMS.
+Views cuts down development time from weeks to days. It will do all the routine work for you, allowing you to focus on the unique functionality of every site. Visit our [learn section](http://wp-types.com/learn/) to get some inspiration about what you can do with Views.
 
 = Need to build multilingual sites? =
 
