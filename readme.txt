@@ -4,33 +4,30 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types, relationships, WPML
 License: GPLv2
 Requires at least: 3.1
-Tested up to: 3.3.2
+Tested up to: 3.4
 Stable tag: 1.0.1
 
-The complete solution for custom post types, custom taxonomy and custom fields. Fully customize WordPress using a single plugin.
+The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
 == Description ==
 
-**Types** is your one-stop solution for customizing WordPress.
+Types lets you fully customize the WordPress admin. Create your own content types using custom posts and taxonomy. Redesign editing screens using custom fields.
 
-Use Types to create:
+[vimeo http://vimeo.com/43104695]
 
-* **Custom Fields** (including repeater fields)
-* **Custom Post Types**
-* **Custom Taxonomy**
-* **Parent / Child Relationship** between different post types
+= BUILT FOR STABILITY =
 
-Types comes from [OnTheGoSystems](http://www.onthegosystems.com). The makers of WPML, Types and Views. We use Types in all our sites and we don't tolerate bugs. When you choose Types, you enjoy our development, testing, QA and support. You're getting a solid product from an established company.
+Types is part of a family of plugins, developed and maintained by [OnTheGoSystems](http://www.onthegosystems.com). Our plugins power over 100,000 commercial sites, using WordPress as a complete CMS. While we love features, we know that stability, performance, usability and security are critical. All our plugins go through comprehensive testing, QA and security analysis before every release.
 
-[Types home page](http://wp-types.com/home/types-manage-post-types-taxonomy-and-custom-fields/) | [Support forum](http://wp-types.com/forums/)
+= DEVELOPER TO DEVELOPER SUPPORT =
 
-= Custom Fields =
+When you need help, we're there for you. We have a dedicated team of expert supporters, who can help with anything from a simple how-to advice to complex problem solving. Depending on your needs, you can get free community support, or dedicated high-availability commercial support. See for yourself in our [support forum](http://wp-types.com/forums/).
 
-Types lets you create the exact editing screens that you need, using custom fields.
+= LOTS OF FEATURES =
 
-Choose which fields to display, group them together into 'meta boxes' and select on what edit pages they will display. You can make each field repeatable, or group repeating fields using Types Field Tables.
+Just because we care about stability, doesn't mean that we don't love features :-)
 
-Types supports these custom field kinds:
+**CUSTOM FIELDS**
 
 * **Single-line text**
 * **Multi-line text**
@@ -49,54 +46,21 @@ Types supports these custom field kinds:
 * **URL**
 * **Post reference** (using Types Parent / Child relationships management)
 
-Watch this video for a quick intro to custom fields. For the complete reference, go to our [WordPress custom fields tutorial](http://wp-types.com/documentation/user-guides/using-custom-fields/).
+And yes, with Types, **repeater fields are build-in**.
 
-[vimeo http://vimeo.com/37320858]
+Types includes a complete [API for displaying custom fields with PHP](http://wp-types.com/documentation/functions/). It also integrates with [Views](http://wp-types.com/home/views-create-elegant-displays-for-your-content/), for fast and easy display of custom content.
 
-Besides defining custom fields, Types can also validate correct user-input. You can enable format validation for every field type and make different fields optional or required.
+**CUSTOM POST TYPES AND TAXONOMY**
 
-= Custom Post Types and Taxonomy =
+* Quick setup mode
+* Full control over every feature
+* Associate taxonomy with custom post types
+* Define parent-child relationships between different post types
+* Edit child items within parent editor (field tables)
 
-Types lets you define custom post types and taxonomy from within the WordPress GUI.
+= MULTILINGUAL READY =
 
-This video shows how to define custom post types and custom taxonomy. You're also welcome to read the complete tutorial on [WordPress custom Post Types](http://wp-types.com/documentation/user-guides/create-a-custom-post-type/).
-
-[vimeo http://vimeo.com/37267854]
-
-You can create complex content hierarchies in Types. For example, if you're building a site for artists, each *Artist* can have many *Show* child items. You can add and edit Shows right from within the Artist edit page in one neat table.
-
-When you setup post relationships, different content types become interconnected. Field Tables let you bulk-edit child items when you're editing parents. This takes the concept of repeater fields to a whole new level.
-
-= Displaying Custom Fields in PHP Templates Using Types API =
-
-If you're convenient with PHP and WordPress API, Types makes it super-easy for you to display custom fields. It includes a complete API that will display each custom field in a unique way.
-
-For example, when you display an image, Types will output the IMG tag with all its attributes. It also includes an image resizer and cache that let you display images in any size, without loading you server.
-
-See how to insert custom fields into WordPress template files in PHP. Types includes a comprehensive [custom fields API](http://wp-types.com/documentation/functions/), which lets you insert any field, anywhere in the site.
-
-[vimeo http://vimeo.com/37725539]
-
-= Use Views for Rapid Site Development =
-
-**[Views](http://wp-types.com/home/views-create-elegant-displays-for-your-content/) is the display companion for Types.** It lets you build complete sites much faster than coding everything from scratch.
-
-Views lets you:
-
-* Load content from the database and display it
-* Create templates right from within the WordPress editor
-* Insert custom fields anywhere
-
-Watch this video for a quick teaser:
-[vimeo http://vimeo.com/37376736]
-
-Views cuts down development time from weeks to days. It will do all the routine work for you, allowing you to focus on the unique functionality of every site. Visit our [learn section](http://wp-types.com/learn/) to get some inspiration about what you can do with Views.
-
-= Need to build multilingual sites? =
-
-The same folks who wrote [WPML](http://wpml.org) have created Types, so the two plugins play perfectly together. You can translate all labels via WPML's String Translation, without any configuration.
-
-When you translate content that includes custom fields, these fields will appear in WPML's Translation Editor. Also, content synchronization between different languages is fully supported.
+Types is the only custom fields and post types plugin that's built multilingual-ready. It plays perfectly with [WPML](http://wpml.org). You'll be able to translate everything, including texts and labels in the WordPress admin and user-content for front-page.
 
 == Installation ==
 
