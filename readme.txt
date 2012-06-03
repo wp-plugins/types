@@ -11,23 +11,15 @@ The complete and reliable plugin for managing custom post types, custom taxonomy
 
 == Description ==
 
-Types lets you fully customize the WordPress admin. Create your own content types using custom posts and taxonomy. Redesign editing screens using custom fields.
+Types makes it easy to customize the WordPress admin. Define your own content using **custom post types** and **custom taxonomy**. Redesign editing screens using **custom fields**.
+
+The integration between custom post types, taxonomy and fields lets you do things that no other custom-fields plugin can do.
 
 [vimeo http://vimeo.com/43104695]
 
-= BUILT FOR STABILITY =
+= CUSTOM FIELDS =
 
-Types is part of a family of plugins, developed and maintained by [OnTheGoSystems](http://www.onthegosystems.com). Our plugins power over 100,000 commercial sites, using WordPress as a complete CMS. While we love features, we know that stability, performance, usability and security are critical. All our plugins go through comprehensive testing, QA and security analysis before every release.
-
-= DEVELOPER TO DEVELOPER SUPPORT =
-
-When you need help, we're there for you. We have a dedicated team of expert supporters, who can help with anything from a simple how-to advice to complex problem solving. Depending on your needs, you can get free community support, or dedicated high-availability commercial support. See for yourself in our [support forum](http://wp-types.com/forums/).
-
-= LOTS OF FEATURES =
-
-Just because we care about stability, doesn't mean that we don't love features :-)
-
-**CUSTOM FIELDS**
+Types includes support for a wide list of custom fields.
 
 * **Single-line text**
 * **Multi-line text**
@@ -46,17 +38,27 @@ Just because we care about stability, doesn't mean that we don't love features :
 * **URL**
 * **Post reference** (using Types Parent / Child relationships management)
 
-And yes, with Types, **repeater fields are build-in**.
+Types custom fields use the standard WordPress post-meta table, making it cross-compatible with any theme or plugin. Additionally, all fields can be **repeating fields**.
 
 Types includes a complete [API for displaying custom fields with PHP](http://wp-types.com/documentation/functions/). It also integrates with [Views](http://wp-types.com/home/views-create-elegant-displays-for-your-content/), for fast and easy display of custom content.
 
-**CUSTOM POST TYPES AND TAXONOMY**
+= CUSTOM POST TYPES AND TAXONOMY =
+
+Types lets you easily setup custom post types and taxonomy. You can create new post types in seconds and use the advanced settings to customize every aspect.
 
 * Quick setup mode
 * Full control over every feature
 * Associate taxonomy with custom post types
 * Define parent-child relationships between different post types
 * Edit child items within parent editor (field tables)
+
+= BUILT FOR STABILITY =
+
+Types is part of a family of plugins, developed and maintained by [OnTheGoSystems](http://www.onthegosystems.com). Our plugins power over 100,000 commercial sites, using WordPress as a complete CMS. While we love features, we know that stability, performance, usability and security are critical. All our plugins go through comprehensive testing, QA and security analysis before every release.
+
+= RELIABLE SUPPORT =
+
+When you need help, we're here for you. We have a dedicated team of expert supporters, who can help with anything from a simple how-to advice to complex problem solving. Depending on your needs, you can get free community support, or dedicated high-availability commercial support. See for yourself in our [support forum](http://wp-types.com/forums/).
 
 = MULTILINGUAL READY =
 
