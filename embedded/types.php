@@ -7,6 +7,9 @@ if (!defined('WPCF_VERSION')) {
 define('WPCF_EMBEDDED_ABSPATH', dirname(__FILE__));
 define('WPCF_EMBEDDED_INC_ABSPATH', WPCF_EMBEDDED_ABSPATH . '/includes');
 define('WPCF_EMBEDDED_RES_ABSPATH', WPCF_EMBEDDED_ABSPATH . '/resources');
+if (!defined('WPCF_DEBUG')) {
+    define('WPCF_DEBUG', false);
+}
 
 if (!defined('ICL_COMMON_FUNCTIONS')) {
     require_once WPCF_EMBEDDED_ABSPATH . '/common/functions.php';
@@ -49,7 +52,7 @@ function wpcf_embedded_init() {
 
     // Define necessary constants if plugin is not present
     if (!defined('WPCF_VERSION')) {
-        define('WPCF_VERSION', '1.0.4');
+        define('WPCF_VERSION', '1.1.3');
         define('WPCF_META_PREFIX', 'wpcf-');
         define('WPCF_EMBEDDED_RELPATH', icl_get_file_relpath(__FILE__));
     } else {
@@ -392,6 +395,11 @@ function types_child_posts($post_type, $args = array()) {
     $args = apply_filters('types_child_posts_args', $args);
     $child_posts = get_posts($args);
     foreach ($child_posts as $child_post_key => $child_post) {
+        if ($child_posts[$child_post_key]->post_status=='trash')
+        {
+            unset($child_posts[$child_post_key]);
+            continue;
+        }
         $child_posts[$child_post_key]->fields = array();
         $groups = wpcf_admin_post_get_post_groups_fields($child_post);
         foreach ($groups as $group) {
@@ -400,7 +408,10 @@ function types_child_posts($post_type, $args = array()) {
                 foreach ($group['fields'] as $k => $field) {
                     $child_posts[$child_post_key]->fields[$k] = get_post_meta($child_post->ID,
                             wpcf_types_get_meta_prefix($field) . $field['slug'],
-                            true);
+                            false /*true*/); // get all field instances
+                    // handle checkboxes which are one value serialized
+                    if ($field['type']=='checkboxes' && isset($child_posts[$child_post_key]->fields[$k][0]))
+                        $child_posts[$child_post_key]->fields[$k]=maybe_unserialize($child_posts[$child_post_key]->fields[$k][0]);
                 }
             }
         }
@@ -415,8 +426,12 @@ function wpcf_get_settings($specific = false) {
     $defaults = array(
         'add_resized_images_to_library' => 0,
         'register_translations_on_import' => 1,
+        'images_remote' => 0,
+        'images_remote_cache_time' => '36',
+        'help_box' => 'by_types',
     );
     $settings = wp_parse_args(get_option('wpcf_settings', array()), $defaults);
+    $settings = apply_filters('types_settings', $settings);
     if ($specific) {
         return isset($settings[$specific]) ? $settings[$specific] : false;
     }

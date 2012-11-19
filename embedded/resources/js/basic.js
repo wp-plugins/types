@@ -7,6 +7,7 @@ jQuery(document).ready(function(){
     jQuery('.wpcf-fields-add-ajax-link').click(function(){
         jQuery.ajax({
             url: jQuery(this).attr('href'),
+            cache: false,
             beforeSend: function() {
                 jQuery('#wpcf-fields-under-title').hide();
                 jQuery('#wpcf-ajax-response').addClass('wpcf-ajax-loading');
@@ -68,12 +69,14 @@ jQuery(document).ready(function(){
                 }
                 jQuery.ajax({
                     url: ajaxurl,
+                    cache: false,
                     type: 'get',
                     data: 'action=wpcf_ajax&wpcf_action=group_form_collapsed&id='+collapsed+'&toggle='+toggle+'&group_id='+group_id+'&_wpnonce='+wpcf_nonce_toggle_group
                 });
             } else {
                 jQuery.ajax({
                     url: ajaxurl,
+                    cache: false,
                     type: 'get',
                     data: 'action=wpcf_ajax&wpcf_action=form_fieldset_toggle&id='+collapsed+'&toggle='+toggle+'&_wpnonce'+wpcf_nonce_toggle_fieldset
                 });

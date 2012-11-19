@@ -242,7 +242,7 @@ function wpcf_cd_admin_form_single_filter($data, $condition, $key = null,
         }
         $options[$field_id] = array(
             '#value' => $field_id,
-            '#title' => $field['name'],
+            '#title' => stripslashes($field['name']),
             '#attributes' => array('class' => 'wpcf-conditional-select-' . $field['type']),
         );
     }
@@ -255,7 +255,7 @@ function wpcf_cd_admin_form_single_filter($data, $condition, $key = null,
             )
         );
     }
-    $id = !is_null($key) ? $key : strval('condition_' . mt_rand());
+    $id = !is_null($key) ? $key : strval('condition_' . wpcf_unique_id(serialize($data) . serialize($condition) . $key . $group));
     $form = array();
     $before = '<div class="wpcf-cd-entry"><br />';
     $form['cd']['field_' . $id] = array(
@@ -303,7 +303,7 @@ function wpcf_cd_admin_form_single_filter($data, $condition, $key = null,
  */
 function wpcf_cd_fields_form_additional_filters($filters, $update) {
     $data = array();
-    $data['id'] = !empty($update) ? $update['name'] : mt_rand();
+    $data['id'] = !empty($update) ? $update['name'] : wpcf_unique_id(serialize($filters));
     if ($update) {
         $data['data']['conditional_display'] = get_post_meta($update['id'],
                 '_wpcf_conditional_display', true);

@@ -446,6 +446,8 @@ function wpcf_admin_fields_form() {
     $form_tax = array();
     $form_tax_single = array();
 
+    //print_r($update);
+    //echo '<hr />';
     foreach ($taxonomies as $category_slug => $category) {
         if ($category_slug == 'nav_menu' || $category_slug == 'link_category'
                 || $category_slug == 'post_format') {
@@ -456,27 +458,29 @@ function wpcf_admin_fields_form() {
             $options = array();
             $add_title = '<div class="taxonomy-title">' . $category->labels->name . '</div>';
             $title = '';
+            //print_r($terms);
+            //echo '<hr />';
             foreach ($terms as $term) {
                 $checked = 0;
                 if ($update && !empty($update['taxonomies']) && array_key_exists($category_slug,
                                 $update['taxonomies'])) {
-                    if (array_key_exists($term->term_id,
+                    if (array_key_exists($term->term_taxonomy_id,
                                     $update['taxonomies'][$category_slug])) {
                         $checked = 1;
-                        $tax_currently_supported[$term->term_id] = $title . $term->name;
+                        $tax_currently_supported[$term->term_taxonomy_id] = $title . $term->name;
                         $title = '';
                     }
                 }
-                $options[$term->term_id]['#name'] = 'wpcf[group][taxonomies]['
-                        . $category_slug . '][' . $term->term_id . ']';
-                $options[$term->term_id]['#title'] = $term->name;
-                $options[$term->term_id]['#default_value'] = $checked;
-                $options[$term->term_id]['#value'] = $term->term_id;
-                $options[$term->term_id]['#inline'] = true;
-                $options[$term->term_id]['#prefix'] = $add_title;
-                $options[$term->term_id]['#suffix'] = '<br />';
-                $options[$term->term_id]['#id'] = 'wpcf-form-groups-support-tax-' . $term->term_id;
-                $options[$term->term_id]['#attributes'] = array('class' => 'wpcf-form-groups-support-tax');
+                $options[$term->term_taxonomy_id]['#name'] = 'wpcf[group][taxonomies]['
+                        . $category_slug . '][' . $term->term_taxonomy_id . ']';
+                $options[$term->term_taxonomy_id]['#title'] = $term->name;
+                $options[$term->term_taxonomy_id]['#default_value'] = $checked;
+                $options[$term->term_taxonomy_id]['#value'] = $term->term_taxonomy_id;
+                $options[$term->term_taxonomy_id]['#inline'] = true;
+                $options[$term->term_taxonomy_id]['#prefix'] = $add_title;
+                $options[$term->term_taxonomy_id]['#suffix'] = '<br />';
+                $options[$term->term_taxonomy_id]['#id'] = 'wpcf-form-groups-support-tax-' . $term->term_taxonomy_id;
+                $options[$term->term_taxonomy_id]['#attributes'] = array('class' => 'wpcf-form-groups-support-tax');
                 $add_title = '';
             }
             $form_tax_single['taxonomies-' . $category_slug] = array(
@@ -1124,7 +1128,7 @@ function wpcf_admin_fields_form_validation($name, $field, $form_data = array()) 
                 foreach ($form_validate as $key => $element) {
                     if (isset($element['#type'])) {
                         $form_validate[$key]['#id'] = $element['#type'] . '-'
-                                . mt_rand();
+                                . wpcf_unique_id(serialize($element));
                     }
                     if (isset($element['#name']) && strpos($element['#name'],
                                     '[message]') !== FALSE) {
@@ -1168,11 +1172,16 @@ function wpcf_admin_fields_form_save_open_fieldset($action, $fieldset,
     if ($group_id && $action == 'open') {
         $data[intval($group_id)][$fieldset] = 1;
     } else if ($group_id && $action == 'close') {
-        unset($data[intval($group_id)][$fieldset]);
+        $group_id = intval($group_id);
+        if (isset($data[$group_id][$fieldset])) {
+            unset($data[$group_id][$fieldset]);
+        }
     } else if ($action == 'open') {
         $data[-1][$fieldset] = 1;
     } else if ($action == 'close') {
-        unset($data[-1][$fieldset]);
+        if (isset($data[-1][$fieldset])) {
+            unset($data[-1][$fieldset]);
+        }
     }
     update_user_meta(get_current_user_id(), 'wpcf-group-form-toggle', $data);
 }
