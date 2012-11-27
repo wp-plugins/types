@@ -5,7 +5,7 @@ Tags: CMS, custom field, custom fields, custom post type, custom post types, pos
 License: GPLv2
 Requires at least: 3.1
 Tested up to: 3.4.1
-Stable tag: 1.1.3
+Stable tag: 1.1.3.1
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -213,6 +213,10 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 * Fixed many small bugs and glitches
 * Sync with Views 1.1.3
 
+= 1.1.3.1 =
+* Fix saving fields in WP 3.5
+* Fixed a bug displaying Types credit footer when not asked to do so
+
 == Upgrade Notice ==
 
 = 0.9.1 =
@@ -250,3 +254,6 @@ Better support for multilingual sites with repeating fields
 
 = 1.1.3 =
 Includes support for resizing remote images
+
+= 1.1.3.1 =
+Fix for WP 3.5
