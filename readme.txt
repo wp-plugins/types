@@ -4,8 +4,8 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields, types, relationships, WPML
 License: GPLv2
 Requires at least: 3.1
-Tested up to: 3.4.1
-Stable tag: 1.1.3.2
+Tested up to: 3.5.0
+Stable tag: 1.1.3.3
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -52,7 +52,7 @@ Types lets you easily setup custom post types and taxonomy. You can create new p
 
 Types lets you define parent / child relationship between different post types. You'll easily setup one-to-many and many-to-many relationships and build powerful sites.
 
-= MADE FOR EXPERIENCED PHP DEVELOPERS AND FOR NEWBIES =
+= MADE FOR EXPERIENCED PHP DEVELOPERS AND FOR NON-CODERS =
 If you're an experienced PHP developer, you'll appreciate Types comprehensive [PHP API](http://wp-types.com/documentation/functions/) and [documentation](http://wp-types.com/documentation/user-guides/).
 
 Even without being a WordPress guro or an expert PHP developer, you can still build complete WordPress sites using the complete [Toolset](http://wp-types.com) package. Besides Types, you'll find:
