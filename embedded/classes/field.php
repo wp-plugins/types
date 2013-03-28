@@ -323,7 +323,7 @@ class WPCF_Field
         delete_post_meta( $this->post->ID, $this->slug );
 
         // Save
-        if ( !empty( $value ) ) {
+        if ( !empty( $value ) || is_numeric( $value ) ) {
 
             // Trim
             if ( is_string( $value ) ) {
@@ -641,10 +641,11 @@ class WPCF_Field
     function html( $html, $params ) {
         /*
          * 
-         * Exception when RAW
+         * Exception when RAW = TRUE.
+         * Return unchanged value.
          */
         if ( isset( $params['raw'] ) && $params['raw'] == 'true' ) {
-            // If raw skip htmlspecialchars()
+            return $html;
         } else {
             $html = htmlspecialchars( $html );
         }

@@ -2,14 +2,17 @@
 add_filter( 'wpcf_fields_type_image_value_get', 'wpcf_fields_image_value_filter' );
 add_filter( 'wpcf_fields_type_image_value_save',
         'wpcf_fields_image_value_filter' );
-add_filter( 'upload_dir', 'wpcf_fields_image_uploads_realpath' );
 
 /*
  * Win specific
+ * 
+ * 'upload_dir' filter added in 1.1.3.3 version
+ * 'update_attached_file' added in 1.2 version to fix issues caused by previous filter
  */
-if ( wpcf_is_windows() ) {
-    add_filter( 'update_attached_file',
-            'wpcf_fields_image_win32_update_attached_file_filter', 10, 2 );
+if ( wpcf_is_windows() && !is_multisite() ) {
+//    add_filter( 'upload_dir', 'wpcf_fields_image_uploads_realpath' );
+//    add_filter( 'update_attached_file',
+//            'wpcf_fields_image_win32_update_attached_file_filter', 10, 2 );
 }
 
 /**

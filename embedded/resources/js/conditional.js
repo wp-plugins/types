@@ -13,13 +13,8 @@ jQuery(document).ready(function(){
  */
 function wpcfConditionalInit(selector) {
     selector = typeof selector !== 'undefined' ? selector+' ' : '';
+    var triggered = false;
     jQuery(selector+'.wpcf-conditional-check-trigger').each(function(){
-        
-        
-        /*
-         *
-         * Why are we triggering on all inputs?
-         */
         
         // If triggered from relationship table send just row
         if (jQuery(this).parents('.wpcf-pr-table-wrapper').length > -1) {
@@ -27,9 +22,6 @@ function wpcfConditionalInit(selector) {
         } else {
             var inputs = jQuery(this).parents('.inside').find(':input');
         }
-        
-        // Find all inputs inside same meta-box
-        //        inputs.each(function(){
             
         // Already binded!
         if (jQuery(this).hasClass('wpcf-cd-binded')) {
@@ -58,26 +50,14 @@ function wpcfConditionalInit(selector) {
                 wpcfConditionalVerify(jQuery(this), jQuery(this).attr('name'), jQuery(this).val());
             });
         }
-        //        });
         /*
-         * 
-         * 
-         * 
-         * TODO Not sure what this check is about
-         * 
-         * Whynew post have to have init?
-         * Don't all?
+         * Trigger initial check only once
          */
-        //        if (typeof adminpage !== 'undefined' && adminpage == 'post-new-php') {
-        //            wpcfConditionalVerify(jQuery(this), jQuery(this).attr('name'), jQuery(this).val());
-        //        }
-        wpcfConditionalVerify(jQuery(this), jQuery(this).attr('name'), jQuery(this).val());
-        
-        /*
-         * Since Types 1.1.5
-         * We're triggering groups
-         */
-        wpcfCdGroupVerify(jQuery(this), jQuery(this).attr('name'), jQuery(this).val(), jQuery(this).parents('.postbox').one().attr('id'));
+        if (triggered == false) {
+            wpcfConditionalVerify(jQuery(this), jQuery(this).attr('name'), jQuery(this).val());
+            wpcfCdGroupVerify(jQuery(this), jQuery(this).attr('name'), jQuery(this).val(), jQuery(this).parents('.postbox').one().attr('id'));
+            triggered = true;
+        }
     });
 }
                                                                                                                                         
@@ -92,8 +72,14 @@ function wpcfConditionalVerify(object, name, value) {
         return false;
     }
     
-    // Define Form
-    var form = object.parents('.postbox').find(':input');
+    /*
+    * Define Form
+    * 
+    * Fields can depend on fields from other meta-groups.
+    * So we should submit whole #post form without #_wpnonce
+    */
+    //    var form = object.parents('.postbox').find(':input');
+    var form = jQuery('#post').find(':input').not('#_wpnonce');
     
     // Get group slug
     var group = object.parents('.postbox').attr('id');
@@ -172,15 +158,9 @@ function wpcfCdGroupVerify(object, name, value, group_id) {
     });
 }
 
-/*
- * 
- * 
- * 
- * Since Types 1.1.5 we moved this from
- */
-
 /**
  * Trigger JS
+ * TODO Check if obsolete
  */
 jQuery(document).ready(function(){
     jQuery('.wpcf-cd-fieldset, #wpcf-cd-group').each(function(){

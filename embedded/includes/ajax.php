@@ -244,6 +244,16 @@ function wpcf_ajax_embedded() {
                 require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
                 $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
                 $post_id = intval( $_GET['post_id'] );
+
+                /*
+                 * When post is new - post_id is 0
+                 * We can safely set post_id to 1 cause
+                 * values compared are filtered anyway.
+                 */
+                if ( $post_id == 0 ) {
+                    $post_id = 1;
+                }
+
                 $post = get_post( $post_id );
 
                 global $wpcf;
@@ -434,7 +444,7 @@ function wpcf_ajax_embedded() {
                             $wpcf->relationship->cf->set( $post, $field_id );
                             $_child = $wpcf->relationship->get_child();
                             $_child->form->cf->set( $post, $field_id );
-                            $_relationship_name = $_child->form->alter_form_name( 'wpcf[' . $wpcf->conditional->cf['id'] .']' );
+                            $_relationship_name = $_child->form->alter_form_name( 'wpcf[' . $wpcf->conditional->cf['id'] . ']' );
                         }
 
                         if ( !$_relationship_name ) {
@@ -446,7 +456,7 @@ function wpcf_ajax_embedded() {
 
                         $name = $_relationship_name;
                     } else {
-                        $name = 'wpcf[' . $wpcf->conditional->cf['id'] .']';
+                        $name = 'wpcf[' . $wpcf->conditional->cf['id'] . ']';
                     }
 
                     /*

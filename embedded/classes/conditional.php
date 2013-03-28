@@ -149,6 +149,21 @@ class WPCF_Conditional extends WPCF_Field
             $element['#attributes']['class'] = $this->css_class_trigger;
         }
 
+        /*
+         * 
+         * Radios needs per option
+         */
+        if ( $element['#type'] == 'radios'
+                && ( isset( $element['#options'] ) && is_array( $element['#options'] )) ) {
+            foreach ( $element['#options'] as $_k => $_v ) {
+                if ( isset( $_v['#attributes']['class'] ) ) {
+                    $element['#options'][$_k]['#attributes']['class'] .= ' ' . $this->css_class_trigger;
+                } else {
+                    $element['#options'][$_k]['#attributes']['class'] = $this->css_class_trigger;
+                }
+            }
+        }
+
         return apply_filters( 'types_conditional_field_trigger', $element, $this );
     }
 
