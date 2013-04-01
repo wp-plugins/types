@@ -268,14 +268,18 @@ function wpcf_admin_fields_save_fields($fields, $forced = false) {
  * @return type 
  */
 function wpcf_admin_fields_save_field($field) {
-    if (!isset($field['name']) || !isset($field['type'])) {
-        return false;
+    
+    if ( !isset( $field['name'] ) || !isset( $field['type'] ) ) {
+        return new WP_Error( 'wpcf_save_field_no_name_or_type', __( "Error saving field",
+                                'wpcf' ) );
     }
-    if (empty($field['slug'])) {
-        $field['slug'] = sanitize_title($field['name']);
-    } else {
-        $field['slug'] = sanitize_title($field['slug']);
+
+    $field = wpcf_sanitize_field( $field );
+    if ( empty( $field['name'] ) ) {
+        return new WP_Error( 'wpcf_save_field_no_name', __( "Please set name for field",
+                                'wpcf' ) );
     }
+    
     $field['id'] = $field['slug'];
 
     // Set field specific data

@@ -112,6 +112,7 @@ function wpcf_admin_fields_get_fields( $only_active = false,
                 continue;
             }
         }
+        $fields[$k] = wpcf_sanitize_field( $v );
     }
     return $fields;
 }
@@ -135,7 +136,7 @@ function wpcf_admin_fields_get_field( $field_id, $only_active = false,
             return array();
         }
         $fields[$field_id]['id'] = $field_id;
-        return $fields[$field_id];
+        return wpcf_sanitize_field( $fields[$field_id] );
     }
     return array();
 }
@@ -520,4 +521,24 @@ function wpcf_admin_fields_get_available_types() {
     }
     $data = apply_filters( 'types_register_fields', $data );
     return $data;
+}
+
+/**
+ * Sanitizes field.
+ * 
+ * @param type $field
+ */
+function wpcf_sanitize_field( $field ) {
+    // Sanitize name
+    if ( isset( $field['name'] ) ) {
+        $field['name'] = sanitize_text_field( $field['name'] );
+    }
+    // Sanitize slug
+    if ( isset( $field['slug'] ) ) {
+        $field['slug'] = sanitize_title( $field['slug'] );
+    } else if ( isset( $field['name'] ) ) {
+        $field['slug'] = sanitize_title( $field['name'] );
+    }
+
+    return $field;
 }

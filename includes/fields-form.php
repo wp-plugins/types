@@ -117,6 +117,11 @@ function wpcf_admin_save_fields_groups_submit( $form ) {
             }
             // Field ID and slug are same thing
             $field_id = wpcf_admin_fields_save_field( $field );
+            if ( is_wp_error( $field_id ) ) {
+                $form->triggerError();
+                wpcf_admin_message( $field_id->get_error_message(), 'error' );
+                return $form;
+            }
             if ( !empty( $field_id ) ) {
                 $fields[] = $field_id;
             }
@@ -929,6 +934,9 @@ function wpcf_fields_get_field_form_data( $type, $form_data = array() ) {
         } else {
             $id = $type . '-' . rand();
         }
+
+        // Sanitize
+        $form_data = wpcf_sanitize_field( $form_data );
 
         // Set remove link
         $remove_link = isset( $form_data['group_id'] ) ? admin_url( 'admin-ajax.php?'
