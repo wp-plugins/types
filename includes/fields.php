@@ -275,7 +275,7 @@ function wpcf_admin_fields_save_field($field) {
     }
 
     $field = wpcf_sanitize_field( $field );
-    if ( empty( $field['name'] ) ) {
+    if ( empty( $field['name'] ) || empty( $field['slug'] ) ) {
         return new WP_Error( 'wpcf_save_field_no_name', __( "Please set name for field",
                                 'wpcf' ) );
     }
