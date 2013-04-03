@@ -11,7 +11,7 @@ The complete and reliable plugin for managing custom post types, custom taxonomy
 
 == Description ==
 
-Types let's you customize the WordPress admin by adding content types, custom fields and taxonomy. You will be able to craft the WordPress admin and turn it into your very own content management system.
+Types let's you customize the WordPress admin by adding **content types**, **custom fields** and **taxonomy**. You will be able to craft the WordPress admin and turn it into your very own content management system.
 
 [vimeo http://vimeo.com/43104695]
 
