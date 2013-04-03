@@ -534,7 +534,7 @@ function wpcf_sanitize_field( $field ) {
         $field['name'] = sanitize_text_field( $field['name'] );
     }
     // Sanitize slug
-    if ( isset( $field['slug'] ) ) {
+    if ( !empty( $field['slug'] ) ) {
         $field['slug'] = sanitize_title( $field['slug'] );
     } else if ( isset( $field['name'] ) ) {
         $field['slug'] = sanitize_title( $field['name'] );
