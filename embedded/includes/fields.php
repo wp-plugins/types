@@ -101,13 +101,6 @@ function wpcf_admin_fields_get_fields( $only_active = false,
         }
         foreach ( $required_data as $required ) {
             if ( !isset( $v[$required] ) ) {
-                if ( !defined( 'WPCF_RUNNING_EMBEDDED' ) ) {
-                    $link = admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=delete_field&amp;field_id=' . $v['id'] . '&amp;_wpnonce=' . wp_create_nonce( 'delete_field' ) );
-                    $message = sprintf( __( 'Invalid field "%s". %sDelete it%s',
-                                    'wpcf' ), $v['id'],
-                            '<a href="' . $link . '" class="wpcf-ajax-link" onclick="jQuery(this).parent().parent().fadeOut();">',
-                            '</a>' );
-                }
                 unset( $fields[$k] );
                 continue;
             }

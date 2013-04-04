@@ -5,7 +5,7 @@ Tags: CMS, custom field, custom fields, custom post type, custom post types, pos
 License: GPLv2
 Requires at least: 3.1
 Tested up to: 3.5.1
-Stable tag: 1.2.1.2
+Stable tag: 1.2.2
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -135,6 +135,9 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 5. Bulk editing child content using Field Tables
 
 == Changelog ==
+
+= 1.2.2 =
+* Add full support for Module Manager plugin
 
 = 1.2.1.2 =
 * Fix security exploit
@@ -323,3 +326,6 @@ Drag and Drop ordering of repeating fields
 
 = 1.2.1 =
 Just bug fixes. Usermeta fields are coming in Types 1.3!
+
+= 1.2.2 =
+Full support for Module Manager added
