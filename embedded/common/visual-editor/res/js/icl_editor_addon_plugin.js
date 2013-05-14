@@ -1,65 +1,36 @@
 
-/**
- * Insert into editor callback
- */
-jQuery.fn.extend({
-    insertAtCaret: function(myValue){
-        return this.each(function(i) {
-            if (document.selection) {
-                this.focus();
-                sel = document.selection.createRange();
-                sel.text = myValue;
-                this.focus();
-            }
-            else if (this.selectionStart || this.selectionStart == '0') {
-                var startPos = this.selectionStart;
-                var endPos = this.selectionEnd;
-                var scrollTop = this.scrollTop;
-                this.value = this.value.substring(0, startPos)+myValue+this.value.substring(endPos,this.value.length);
-                this.focus();
-                this.selectionStart = startPos + myValue.length;
-                this.selectionEnd = startPos + myValue.length;
-                this.scrollTop = scrollTop;
-            } else {
-                this.value += myValue;
-                this.focus();
-            }
-        })
-    }
-});
-
 var iclEditorWidth = 550;
 var iclEditorWidthMin = 195;
 var iclEditorHeight = 420;
 var iclEditorHeightMin = 195;
+var iclCodemirror = new Array();
 
 jQuery(document).ready(function(){
     /*
      * Set active editor
      * Important when switching between editor instances.
+     * 
+     * Used on WP editor, Types WYSIWYG, Views Filter Meta HTML,
+     * Views Layout Meta HTML, CRED form.
      */
-    window.wpcfActiveEditor = false;
-    jQuery('.wp-media-buttons a, .wpcf-wysiwyg .editor_addon_wrapper .item, #postdivrich .editor_addon_wrapper .item').click(function(){
-        window.wpcfActiveEditor = jQuery(this).parents('.wpcf-wysiwyg, #postdivrich')
-        .find('textarea').attr('id');
+    window.wpcfActiveEditor = 'content';
+    jQuery('.wp-media-buttons a, .wpcf-wysiwyg .editor_addon_wrapper .item, #postdivrich .editor_addon_wrapper .item, #wpv_filter_meta_html_admin_edit .item, #wpv_layout_meta_html_admin_edit .item').click(function(){
+        window.wpcfActiveEditor = jQuery(this).parents('.wpcf-wysiwyg, #postdivrich, #wpv_layout_meta_html_admin, #wpv_filter_meta_html_admin')
+        .find('textarea#content, textarea.wpcf-wysiwyg, textarea#wpv_layout_meta_html_content, textarea#wpv_filter_meta_html_content').attr('id');
         
-        /*
+    /*
          *
          * TODO 1.3 Why we do not have saving cookie in common?
          */
-//        document.cookie = "wpcfActiveEditor="+window.wpcfActiveEditor+"; expires=Monday, 31-Dec-2020 23:59:59 GMT; path="+wpcf_cookiepath+"; domain="+wpcf_cookiedomain+";";
+    //        document.cookie = "wpcfActiveEditor="+window.wpcfActiveEditor+"; expires=Monday, 31-Dec-2020 23:59:59 GMT; path="+wpcf_cookiepath+"; domain="+wpcf_cookiedomain+";";
     });
     
     /*
-     *
      * Handle the "Add Field" boxes - some layout changes.
-     *
-     * SRDJAN
-     * Removed resizing and setting CSS from here.
-     * Use:
-     * icl_editor_popup(element)
      */
     jQuery('.wpv_add_fields_button').click(function(e) {
+        
+        // Set dropdown
         var dropdown_list = jQuery('#add_field_popup .editor_addon_dropdown');
         
         if (dropdown_list.css('visibility') == 'hidden') {
@@ -88,25 +59,17 @@ jQuery(document).ready(function(){
 	
     /*
      *
-     * This manages the "V" button
+     * This manages clicking on dropdown icon
      */
     jQuery('.editor_addon_wrapper img').click(function(e){
         
+        // Set dropdown
         var drop_down = jQuery(this).parent().find('.editor_addon_dropdown');
-        /*
-         *
-         * Check if visible
-         */
+
         if (drop_down.css('visibility') == 'hidden') {
-            
-            // TODO Remove
-            // Close others possibly opened
-            // Handled in icl_editor_resize_popup()
+
+            // Hide top links if div too small
             wpv_hide_top_groups(jQuery(this).parent());
-            //            jQuery('.editor_addon_dropdown').css('visibility', 'hidden')
-            //            .css('display', 'inline');
-            //            jQuery(this).parent().find('.editor_addon_dropdown')
-            //            .css('visibility', 'visible').css('display', 'inline');
             
             // Popup
             icl_editor_popup(drop_down);
@@ -147,104 +110,12 @@ jQuery(document).ready(function(){
     jQuery('.editor_addon_wrapper .item, .editor_addon_dropdown .close').click(function(e){
         jQuery('.editor_addon_dropdown').css('visibility', 'hidden').css('display', 'inline');
     });
-    
-    /*
-     *
-     *
-     * SRDJAN
-     * TODO Remove - I think this is not necessary and cludges browser response
-     */
-    // Resize dropdowns if necessary (in #media-buttons)
-    //    jQuery('#media-buttons .editor_addon_dropdown, ' +
-    //        '#wp-content-media-buttons .editor_addon_dropdown, ' +
-    //        '#wpv-layout-v-icon-posts .editor_addon_dropdown').each(function(){
-    //		
-    //        icl_editor_resize_popup(jQuery(this));
-    //		
-    //    });
-    
-    
-    
-    
-    /*
-     *
-     * SRDJAN
-     * TODO I think this is not used anymore so to remove it?
-     * I think we stopped using <a> as trigger
-     */
-    // For hidden in Meta HTML set scroll when visible
-    jQuery('#wpv_layout_meta_html_admin_show a, #wpv_filter_meta_html_admin_show a').click(function(){
-        alert('DEPRECATED');
-        jQuery(this).parent().parent().find('.editor_addon_dropdown').each(function(){
-            var scrollDiv = jQuery(this).find('.scroll');
-            var divWidth = 400;
-            var divHeight = 250;
-            jQuery(this).width(divWidth).css('width', divWidth+'px');
-            scrollDiv.width(Math.round(divWidth-40)).css('width', (Math.round(divWidth-40))+'px');
-            jQuery(this).height(divHeight).css('height', divHeight+'px');
-            var scrollHeight = Math.round(divHeight-jQuery(this).find('.direct-links').height()-50);
-            scrollDiv.height(scrollHeight).css('height', scrollHeight+'px');
-            //            scrollDiv.jScrollPane();
-            if (jQuery(this).find('.jspPane').height() < scrollDiv.height()) {
-                jQuery(this).find('.direct-links').hide();
-                scrollDiv.height(Math.round(divHeight-50)).css('height', (Math.round(divHeight-50))+'px');
-            }
-        });
-    });
-    
-    
-    /*
-     *
-     *
-     *
-     * Set Meta HTML dropdown to insert in active editor
-     */
-    window.wpcfInsertMetaHTML = false;
-    jQuery('#wpv_filter_meta_html_admin_edit .item').click(function(){
-        window.wpcfInsertMetaHTML = jQuery(this).parents('.editor_addon_wrapper').parent().find('textarea').attr('id');
-    });
-    jQuery('#wpv_layout_meta_html_admin_edit .item').click(function(){
-        window.wpcfInsertMetaHTML = jQuery(this).parents('.editor_addon_wrapper').parent().parent().find('textarea').attr('id');
-    });
-
-
 
     /*
      * 
      * Direct links
-     * 
-     * Types 1.2 & WP 3.5
-     * 
-     * Removed .scroll - I can not see if .scroll div has any role anymore
-     * Removed all classes and code related to it.
-     * 3rd party scroll.js is not used anywhere in code.
-     * 
-     * @see http://api.jquery.com/scrollTop/
-     * @see http://api.jquery.com/offset/
-     * @see http://api.jquery.com/position/
      */
     jQuery('.editor-addon-top-link').click(function(){
-        /*
-         * SRDJAN
-         * Before Types 1.2 and WP 3.5
-         * TODO Remove
-         */
-        // get position of elements
-        //        var positionNested = jQuery('#'+jQuery(this).attr('id')+'-target').offset();
-        //        var positionParent = jQuery('#'+jQuery(this).attr('id')+'-target').parent().parent().offset();
-        //        if (positionParent.top > positionNested.top) {
-        //            var scrollTo = positionParent.top - positionNested.top;
-        //        } else {
-        //            var scrollTo = positionNested.top - positionParent.top;
-        //        }
-        //        jQuery(this).parents('.editor_addon_dropdown').find('.scroll').animate({
-        //            scrollTop:Math.round(scrollTo)
-        //        }, 'fast');
-
-        /*
-         * SRDJAN Types 1.2 and WP 3.5
-         * Lets re-define vars
-         */
         var scrollTargetDiv = jQuery(this).parents('.editor_addon_dropdown');
         var target = jQuery(this).parents('li')
         .find('.'+jQuery(this).data('editor_addon_target')+'-target');
@@ -284,23 +155,12 @@ function icl_editor_popup(e) {
             
     // Set popup
     icl_editor_resize_popup(e);
-        
-    // TODO Scroll window if popup title is out of screen
-    // Not sure why other elements fail for
-    // offset()
-    //    var t = e.parents('ul').one().offset();
-    //    alert(t.top);
-    //    if (e.parents('ul').one().is(':icl_offscreen')) {alert('off screen');
-    //        jQuery('html, body').animate({
-    //            scrollTop: title.offset().top
-    //            }, 2000);
-    //    }
             
     // Bind window click to auto-hide
     icl_editor_bind_auto_close();
 }
 
-// TODO
+// TODO Document this
 jQuery.expr.filters.icl_offscreen = function(el) {
     var t = jQuery(el).offset();
     return (
@@ -330,13 +190,6 @@ function icl_editor_toggle(element) {
             }
         }
     });
-    
-// Toggle current
-//    if (visible == 'visible') {
-//        jQuery(element).css('visibility', 'hidden');
-//    } else {
-//        jQuery(element).css('visibility', 'visible').css('display', 'inline');
-//    }
 }
 
 /**
@@ -387,49 +240,6 @@ function icl_editor_resize_popup(element) {
      */
     jQuery(element).css('overflow', 'auto');
     jQuery(element).css('padding', '0px');
-
-/*
-     *
-     * TODO REMOVE
-     * SRDJAN
-     * Before we calculated if popup felloff screen.
-     * Popup appeals more solid when fixed to 550px which is most often width
-     * of WPs editor or meta-box.
-     */
-//    var width = jQuery(element).width();
-//    var height = jQuery(element).height();
-//    var scrollHeight = jQuery(element).find('li:last-child').outerHeight();
-//    alert(height);
-//    alert(scrollHeight);
-//    if (height < scrollHeight) {
-//        alert('small');
-//    }
-//    var document_height = jQuery(document).height();
-//    var offset = jQuery(element).offset();
-//
-//    if (offset.top+height > document_height) {
-//        alert('off the screen');
-//        var resizedHeight = Math.round(document_height-offset.top-20);
-//        if (resizedHeight < 250) {
-//            resizedHeight = 250;
-//        }
-//        jQuery(element).height(resizedHeight);
-//        jQuery(element).css('height', resizedHeight+'px');
-//        var scrollHeight = Math.round(resizedHeight-jQuery(element).find('.direct-links').height()-50);
-//        jQuery(element).find('.scroll').css('height', scrollHeight+'px');
-//    } else {
-//        alert('no need for resize');
-//        jQuery(element).find('.direct-links').hide();
-//        jQuery(element).find('.editor-addon-link-to-top').hide();
-//    }
-//
-//    // make sure the popup is not too wide.		
-//    var screenWidth = jQuery(window).width();
-//    if (offset.left + width > screenWidth) {
-//        alert('too wide');
-//        var resizedWidth = Math.round(screenWidth - offset.left - 20);
-//        jQuery(element).height(resizedWidth).css('width', resizedWidth + 'px');
-//    }
 }
 
 /**
@@ -530,37 +340,9 @@ function insert_b64_shortcode_to_editor(b64_shortcode, text_area) {
     if(shortcode.indexOf('[types') == 0 && shortcode.indexOf('[/types') === false) {
         shortcode += '[/types]';
     }
-    
-    if (text_area == 'textarea#content') {
-        // the main editor
-        if (window.parent.jQuery('textarea#content:visible').length) {
-            // HTML editor
-            window.parent.jQuery('textarea#content').insertAtCaret(shortcode);
-        } else {
-            // Visual editor
-            window.parent.tinyMCE.activeEditor.execCommand('mceInsertContent', false, shortcode);
-        }
-    } else {
-        // the other editor
-        if (window.parent.jQuery('textarea#'+text_area+':visible').length) {
-            // HTML editor
-            window.parent.jQuery('textarea#'+text_area).insertAtCaret(shortcode);
-        } else {
-            //CodeMirror
-            if(window.parent.tinyMCE==undefined){
-                if (typeof HTMLCodeMirrorActive!='undefined'){
-                    InsertAtCursor(shortcode, text_area);
-                }else if (window.parent.cred_cred) {
-                    window.parent.cred_cred.insert(shortcode);
-                }else{
 
-                }
-            }else{
-                window.parent.tinyMCE.execCommand('mceFocus', false, text_area);
-                window.parent.tinyMCE.activeEditor.execCommand('mceInsertContent', false, shortcode);
-            }
-        }
-    }
+    window.wpcfActiveEditor = text_area;
+    icl_editor.insert(shortcode);
 }
 
 /**
@@ -593,9 +375,7 @@ function wpv_on_search_filter(el) {
 }
 
 /**
- * SRDJAN
- * @TODO Check if this is cloned elsewhere
- * @TODO Appears not working
+ * @TODO Document this
  */
 function wpv_hide_top_groups(parent) {
     var groupTitles = jQuery(parent).find('.group-title');
@@ -638,30 +418,11 @@ function icl_editor_bind_auto_close() {
      */
     jQuery('body').bind('click',function(e){
         
-        // This is simplifyed version
-        // Try to find dropdown inside clicked item.
-        // If not found that means element is child of dropdown
-        //        if (jQuery(e.target).find('.editor_addon_dropdown').length != 0) {
-        //        }
-        
         var dropdownAddField = jQuery('#add_field_popup .editor_addon_dropdown');
           
         // Exception for 'Add field' button
         if (jQuery(e.target).hasClass('wpv_add_fields_button')) {
         // Do nothing other dropdowns will take care
-        //            if (dropdownAddField.css('visibility') == 'visible') {
-        //            if (dropdownAddField.hasClass('icl_editor_click_binded')) {
-        //                        
-        //                // Hide all
-        //                jQuery('.editor_addon_dropdown').css('visibility', 'hidden')
-        //                .css('display', 'inline');
-        //                        
-        //                jQuery(this).unbind(e);
-        //                    
-        //            } else {
-        //                dropdownAddField.addClass('icl_editor_click_binded');
-        //            }
-        //            }
         } else if (jQuery(e.target).parents('.editor_addon_wrapper').length < 1) {
     
             // Hide all
@@ -675,3 +436,213 @@ function icl_editor_bind_auto_close() {
         }
     });
 }
+
+/**
+ * 
+ * Inserts content into active editor.
+ */
+var icl_editor = (function(window, $){
+
+    function isTinyMce($textarea)
+    {
+        var editor, ed=$textarea.attr('id');
+        if (ed && ed.charAt(0)=='#') ed=ed.substring(1);
+        
+        // if tinyMCE
+        if (
+            window.tinyMCE && ed &&
+            null != (editor=window.tinyMCE.get(ed)) && 
+            false == editor.isHidden()
+                )
+            return editor;
+        return false;
+    };
+    
+    function isCodeMirror($textarea)
+    {
+        var textareaNext = $textarea[0].nextSibling;
+        // if CodeMirror
+        if (
+            textareaNext && $textarea.is('textarea')&&
+            //$(textareaNext).is('textarea')&&
+            textareaNext.CodeMirror &&
+            $textarea[0]==textareaNext.CodeMirror.getTextArea()
+                )
+            return textareaNext.CodeMirror;
+        return false;
+    };
+    
+    function getContent($area)
+    {
+        if (!$area) $area=$('#content');
+        //var tinymce=aux.isTinyMce($area);
+        var codemirror=isCodeMirror($area);
+        if (codemirror)
+            return codemirror.getValue();
+        return $area.val();
+    };
+    
+    function InsertAtCursor(myField, myValue1, myValue2)
+    {
+        var $myField=myField;
+        var tinymce=isTinyMce($myField);
+        var codemirror=isCodeMirror($myField);
+        // if tinyMCE
+        if (tinymce)
+        {
+            //            alert('tinymce');
+            tinymce.focus();
+            if (typeof(myValue2)!='undefined' && myValue2) // wrap
+                tinymce.execCommand("mceReplaceContent",false, myValue1 + tinymce.selection.getContent({
+                    format : 'raw'
+                }) + myValue2);
+            else
+                tinymce.execCommand("mceInsertContent",false, myValue1);
+        }
+        // else if CodeMirror
+        else if (codemirror)
+        {
+            //            alert('codemirror');
+            codemirror.focus();
+
+            if (!codemirror.somethingSelected())
+            {
+                // set at current cursor
+                var current_cursor=codemirror.getCursor(true);
+                codemirror.setSelection(current_cursor, current_cursor);
+            }
+            if (typeof(myValue2)!='undefined' && myValue2) { // wrap
+                codemirror.replaceSelection(myValue1 + codemirror.getSelection() + myValue2, 'end');
+            } else {
+                codemirror.replaceSelection(myValue1, 'end');
+            }
+        }
+        // else other text fields
+        else
+        {
+            //            alert('other');
+            myField=$myField[0]; //$(myField)[0];
+            myField.focus();
+            if (document.selection)
+            {
+                sel = document.selection.createRange();
+                if (typeof(myValue2)!='undefined' && myValue2) // wrap
+                    sel.text = myValue1 + sel.text + myValue2;
+                else
+                    sel.text = myValue1;
+            }
+            else if ((myField.selectionStart != null) && (myField.selectionStart != undefined)/* == 0 || myField.selectionStart == '0'*/)
+            {
+                var startPos = parseInt(myField.selectionStart);
+                var endPos = parseInt(myField.selectionEnd);
+                if (typeof(myValue2)!='undefined' && myValue2) // wrap
+                {
+                    var sel = myField.value.substring(startPos, endPos);
+                    myField.value = myField.value.substring(0, startPos) + myValue1 + sel + myValue2 +
+                    myField.value.substring(endPos, myField.value.length);
+                }
+                else
+                    myField.value = myField.value.substring(0, startPos) + myValue1 +
+                    myField.value.substring(endPos, myField.value.length);
+            }
+            else
+            {
+                if (typeof(myValue2)!='undefined' && myValue2) // wrap
+                    myField.value += myValue1 + myValue2;
+                else
+                    myField.value += myValue1;
+            }
+        }
+    //        $myField.trigger('paste');
+    };
+    
+    function insertContent(content)
+    {
+        //        alert(window.wpcfActiveEditor);
+        InsertAtCursor($('#'+window.wpcfActiveEditor), content);
+    }
+    
+    /**
+     * Toggles Codemirror on textarea (#ID, toggle).
+     * 
+     * We could record mouse position on Codemirror to restore it.
+     */
+    function toggleCodeMirror(textarea, on)
+    {
+        // if codemirror activated, enable syntax highlight
+        if (window.CodeMirror)
+        {
+            if (!on && window.iclCodemirror[textarea])
+            {
+                window.iclCodemirror[textarea].toTextArea();
+                window.iclCodemirror[textarea] = false;
+                jQuery('#'+textarea).focus();
+                return !on;
+            }
+            else if (on && !window.iclCodemirror[textarea])
+            {
+//                CodeMirror.defineMode("myshortcodes", codemirror_shortcodes_overlay);
+                    
+                var $_metabox=$('#'+textarea).closest('.postbox'),
+                _metabox_closed=false,
+                _metabox_display=false;
+                        
+                if ($_metabox.hasClass('closed') || 'none'==$_metabox.css('display'))
+                {
+                    _metabox_closed=true;
+                    $_metabox.removeClass('closed');
+                }
+                if ('none'==$_metabox.css('display'))
+                {
+                    _metabox_display='none';
+                    $_metabox.css('display','block');
+                }
+                window.iclCodemirror[textarea] = CodeMirror.fromTextArea(document.getElementById(textarea), {
+                    mode: 'myshortcodes',//"text/html",
+                    tabMode: "indent",
+                    lineWrapping: true,
+                    lineNumbers : true,
+                    autofocus: true
+                });
+                
+                // TODO is resizing needed?
+                // needed for scrolling
+//                var height=Math.min(5000, Math.max(50, 200));
+//                $('#'+textarea).css('resize', 'none').height( height + 'px' );
+//                window.iclCodemirror[textarea].setSize( $('#'+textarea).width(), height );
+                    
+                if ('none'==_metabox_display)
+                {
+                    $_metabox.css('display','none');
+                }
+                if (_metabox_closed)
+                {
+                    $_metabox.addClass('closed');
+                }
+                
+                jQuery('#'+textarea).focus();
+
+                return window.iclCodemirror[textarea];
+            }
+        }
+        return false;
+    };
+    
+    return {
+        isTinyMce : isTinyMce,
+        isCodeMirror : isCodeMirror,
+        getContent : getContent,
+        InsertAtCursor : InsertAtCursor,
+        toggleCodeMirror : toggleCodeMirror,
+        insert : function(text) {
+            insertContent(text);
+        },
+        codemirror : function(textarea, on) {
+            return toggleCodeMirror(textarea, on);
+        },
+        codemirrorGet : function(textarea) {
+            return window.iclCodemirror[textarea];
+        }
+    };
+
+})(window, jQuery, undefined);

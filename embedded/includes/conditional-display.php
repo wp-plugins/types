@@ -373,34 +373,7 @@ function wpcf_cd_meta_ajax_validation_filter( $null, $object_id, $meta_key,
         $single ) {
     $meta_key = str_replace( 'wpcf-', '', $meta_key );
     $field = wpcf_admin_fields_get_field( $meta_key );
-    if ( isset( $_POST['wpcf'][$meta_key] ) && !empty( $field ) && $field['type'] == 'date' ) {
-        $time = strtotime( $_POST['wpcf'][$meta_key] );
-        if ( $time ) {
-            return $time;
-        }
-    }
-    return isset( $_POST['wpcf'][$meta_key] ) ? $_POST['wpcf'][$meta_key] : '';
-}
-
-/**
- * Passes $_POST values for AJAX call.
- * 
- * @param type $null
- * @param type $object_id
- * @param type $meta_key
- * @param type $single
- * @return type 
- */
-function wpcf_cd_pr_meta_ajax_validation_filter( $null, $object_id, $meta_key,
-        $single ) {
-    $field = wpcf_admin_fields_get_field( $meta_key );
-    if ( isset( $_POST['wpcf_post_relationship'][$meta_key] ) && !empty( $field ) && $field['type'] == 'date' ) {
-        $time = strtotime( $_POST['wpcf_post_relationship'][$meta_key] );
-        if ( $time ) {
-            return $time;
-        }
-    }
-    return isset( $_POST['wpcf_post_relationship'][$meta_key] ) ? $_POST['wpcf_post_relationship'][$meta_key] : '';
+    return !empty( $field ) && isset( $_POST['wpcf'][$meta_key] ) ? $_POST['wpcf'][$meta_key] : '';
 }
 
 /**

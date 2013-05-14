@@ -114,6 +114,8 @@ function wpv_condition( $atts ) {
     }
 
     global $wplogger;
+    
+    do_action( 'wpv_condition', $post );
 
     $logging_string = "Original expression: " . $evaluate;
 
@@ -129,7 +131,10 @@ function wpv_condition( $atts ) {
             $is_empty = '1=0';
 
             // mark as empty only nulls and ""  
-            if ( is_null( $match_var ) || strlen( $match_var ) == 0 ) {
+//            if ( is_null( $match_var ) || strlen( $match_var ) == 0 ) {
+            if ( is_null( $match_var )
+                    || ( is_string( $match_var ) && strlen( $match_var ) == 0 )
+                    || ( is_array( $match_var ) && empty( $match_var ) ) ) {
                 $is_empty = '1=1';
             }
 
@@ -263,6 +268,8 @@ function wpv_condition( $atts ) {
     $wplogger->log( $logging_string, WPLOG_DEBUG );
     // evaluate the prepared expression using the custom eval script
     $result = wpv_evaluate_expression( $evaluate );
+    
+    do_action( 'wpv_condition_end', $post );
 
     // return true, false or error string to the conditional caller
     return $result;
@@ -495,7 +502,7 @@ function WPV_wpcf_record_post_relationship_belongs( $content ) {
     global $post, $WPV_wpcf_post_relationship;
     static $related = array();
 
-    if ( isset( $post ) && function_exists( 'wpcf_pr_get_belongs' ) ) {
+    if ( !empty( $post->ID ) && function_exists( 'wpcf_pr_get_belongs' ) ) {
 
         if ( !isset( $related[$post->post_type] ) ) {
             $related[$post->post_type] = wpcf_pr_get_belongs( $post->post_type );

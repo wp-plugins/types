@@ -118,7 +118,7 @@ if ( wp_script_is( 'customize-loader', 'queue' ) && current_user_can( 'edit_them
     wp_customize_support_script();
 
 ?>
-
+<div id="wpcf-ajax">
     <div id="wpwrap">
         <!--<a tabindex="1" href="#wpbody-content" class="screen-reader-shortcut"><?php _e( 'Skip to main content' ); ?></a>-->
                 <?php //require(ABSPATH . 'wp-admin/menu-header.php'); ?>

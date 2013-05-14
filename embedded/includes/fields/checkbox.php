@@ -1,8 +1,6 @@
 <?php
 //add_action('wpcf_relationship_save_child', 'wpcf_fields_checkbox_save_check',
 //        10, 3);
-
-
 // Trigger after main hook
 add_action( 'save_post', 'wpcf_fields_checkbox_save_check', 15, 3 );
 
@@ -38,6 +36,10 @@ function wpcf_fields_checkbox_meta_box_form( $field, $field_object ) {
     if ( $pagenow == 'post-new.php' && !empty( $field['data']['checked'] ) ) {
         $checked = true;
     }
+    // This means post is new
+    if ( !isset( $field_object->post->ID ) ) {
+        $field_object->post = (object)array('ID'=>0);
+    }
     return array(
         '#type' => 'checkbox',
         '#value' => $field['data']['set_value'],
@@ -59,7 +61,15 @@ function wpcf_fields_checkbox_editor_callback() {
     $value_not_selected = '';
     $value_selected = '';
     if ( isset( $_GET['field_id'] ) ) {
-        $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+        // Get field
+        if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
+            //If usermeta
+            $field = wpcf_admin_fields_get_field( $_GET['field_id'], false,
+                    false, false, 'wpcf-usermeta' );
+        } else {
+            //If postmeta
+            $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+        }
         if ( !empty( $field ) ) {
             if ( isset( $field['data']['display_value_not_selected'] ) ) {
                 $value_not_selected = $field['data']['display_value_not_selected'];
@@ -133,7 +143,11 @@ function wpcf_fields_checkbox_editor_callback() {
 
     $help = array('url' => "http://wp-types.com/documentation/functions/checkbox/",
         'text' => __( 'Checkbox help', 'wpcf' ));
-
+    // add usermeta form addon
+    if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
+        $temp_form = wpcf_get_usermeta_form_addon();
+        $form = $form + $temp_form;
+    }
     $form = wpcf_form_popup_helper( $form, __( 'Insert', 'wpcf' ),
             __( 'Cancel', 'wpcf' ), $help );
 
@@ -175,17 +189,33 @@ function wpcf_fields_checkbox_form_script() {
  */
 function wpcf_fields_checkbox_editor_submit() {
     $add = '';
-    $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+
+    $types_attr = 'field';
+    if ( !empty( $_POST['is_usermeta'] ) ) {
+        $field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false,
+                false, 'wpcf-usermeta' );
+        $types_attr = 'usermeta';
+    } else {
+        $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+    }
+    /* End if */
+    if ( !empty( $_POST['is_usermeta'] ) ) {
+        $add .= wpcf_get_usermeta_form_addon_submit();
+    }
     if ( !empty( $field ) ) {
         if ( $_POST['display'] == 'value' ) {
-            $shortcode = '[types field="' . $field['slug'] . '" state="checked"]'
+            $shortcode = '[types ' . $types_attr . '="' . $field['slug'] . '" ' . $add . ' state="checked"]'
                     . $_POST['display_value_selected']
                     . '[/types] ';
-            $shortcode .= '[types field="' . $field['slug'] . '" state="unchecked"]'
+            $shortcode .= '[types ' . $types_attr . '="' . $field['slug'] . '" ' . $add . ' state="unchecked"]'
                     . $_POST['display_value_not_selected']
                     . '[/types]';
         } else {
-            $shortcode = wpcf_fields_get_shortcode( $field, $add );
+            if ( $types_attr == 'usermeta' ) {
+                $shortcode = wpcf_usermeta_get_shortcode( $field, $add );
+            } else {
+                $shortcode = wpcf_fields_get_shortcode( $field, $add );
+            }
         }
 
         $shortcode = wpcf_fields_add_optionals_to_shortcode( $shortcode );
@@ -201,6 +231,13 @@ function wpcf_fields_checkbox_editor_submit() {
  */
 function wpcf_fields_checkbox_view( $params ) {
     $output = '';
+    $option_name = 'wpcf-fields';
+	if ( isset($params['usermeta']) && !empty($params['usermeta']) ){
+		$option_name = 'wpcf-usermeta';
+	}
+    if ( isset( $params['option_name'] ) ) {
+        $option_name = $params['option_name'];
+    }
     if ( isset( $params['state'] )
             && $params['state'] == 'unchecked'
             && empty( $params['field_value'] ) ) {
@@ -233,7 +270,8 @@ function wpcf_fields_checkbox_view( $params ) {
     }
 
     if ( $params['field']['data']['display'] == 'db' && $params['field_value'] != '' ) {
-        $field = wpcf_fields_get_field_by_slug( $params['field']['slug'] );
+        $field = wpcf_fields_get_field_by_slug( $params['field']['slug'],
+                $option_name );
         $output = $field['data']['set_value'];
 
         // Show the translated value if we have one.
@@ -262,12 +300,10 @@ function wpcf_fields_checkbox_view( $params ) {
  * 
  * Currently used on Relationship saving. May be expanded to general code.
  * 
- * @param type $value
- * @param type $field
- * @param type $cf
+ * @param type $post_id
  */
-function wpcf_fields_checkbox_save_check() {
-    
+function wpcf_fields_checkbox_save_check( $post_id ) {
+
     $meta_to_unset = array();
     $cf = new WPCF_Field();
 
@@ -296,7 +332,7 @@ function wpcf_fields_checkbox_save_check() {
         // Loop and search in $_POST
         foreach ( $_POST['_wpcf_check_checkbox'] as $child_id => $slugs ) {
             foreach ( $slugs as $slug => $true ) {
-                
+
                 $cf->set( $child_id, $cf->__get_slug_no_prefix( $slug ) );
 
                 // First check main post
@@ -307,13 +343,24 @@ function wpcf_fields_checkbox_save_check() {
                     }
                     continue;
                 }
+
+                // If new post
+                if ( $mode == 'save_main' && $child_id == 0 ) {
+                    if ( !isset( $_POST['wpcf'][$cf->cf['slug']] ) ) {
+                        $meta_to_unset[$post_id][$cf->slug] = true;
+                    }
+                    continue;
+                }
                 /*
                  * 
                  * Relationship check
                  */
-                if ( !isset( $_POST['wpcf_post_relationship'] ) ) {
-                    $meta_to_unset[$child_id][$cf->slug] = true;
-                } else {
+                if ( $mode == 'save_main' ) {
+                    if ( !isset( $_POST['wpcf'][$cf->cf['slug']] ) ) {
+                        $meta_to_unset[$post_id][$cf->slug] = true;
+                    }
+                    continue;
+                } else if ( !empty( $_POST['wpcf_post_relationship'] ) ) {
                     foreach ( $_POST['wpcf_post_relationship'] as $_parent =>
                                 $_children ) {
                         foreach ( $_children as $_child_id => $_slugs ) {

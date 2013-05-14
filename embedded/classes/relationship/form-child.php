@@ -220,7 +220,7 @@ class WPCF_Relationship_Child_Form
                     $row[] = $this->field_form();
                     $this->_field_triggers();
                     // Add to header
-                    $this->headers[] = $field_key;
+                    $this->headers[] = WPCF_META_PREFIX . $field_key;
                 }
             }
             // Add parent forms
@@ -268,7 +268,7 @@ class WPCF_Relationship_Child_Form
                     $row[] = $this->field_form();
                     $this->_field_triggers();
                     // Add to header{
-                    $this->headers[] = $field_key;
+                    $this->headers[] = WPCF_META_PREFIX . $field_key;
                 }
             }
 
@@ -543,9 +543,8 @@ class WPCF_Relationship_Child_Form
             } else if ( strpos( $header, WPCF_META_PREFIX ) === 0
                     && isset( $wpcf_fields[str_replace( WPCF_META_PREFIX, '',
                                     $header )] ) ) {
-                wpcf_admin_post_field_load_js_css( $post,
-                        wpcf_fields_type_action( $wpcf_fields[str_replace( WPCF_META_PREFIX,
-                                        '', $header )]['type'] ) );
+                wpcf_field_enqueue_scripts( $wpcf_fields[str_replace( WPCF_META_PREFIX,
+                                '', $header )]['type'] );
                 $field_dir = $sort_field == $header ? $dir : $dir_default;
                 $headers[$header] = '';
                 $headers[$header] .= $sort_field == $header ? '<div class="wpcf-pr-sort-' . $dir . '"></div>' : '';
@@ -554,10 +553,6 @@ class WPCF_Relationship_Child_Form
                                 . $post_type . '&amp;_wpnonce='
                                 . wp_create_nonce( 'pr_sort' ) ) . '">' . stripslashes( $wpcf_fields[str_replace( WPCF_META_PREFIX,
                                         '', $header )]['name'] ) . '</a>';
-                if ( wpcf_admin_is_repetitive( $wpcf_fields[str_replace( WPCF_META_PREFIX,
-                                        '', $header )] ) ) {
-                    $repetitive_warning = true;
-                }
             } else {
                 $field_dir = $sort_field == $header ? $dir : $dir_default;
                 $headers[$header] = '';

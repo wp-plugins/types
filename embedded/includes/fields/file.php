@@ -95,7 +95,7 @@ function wpcf_fields_file_meta_box_form( $field ) {
  */
 function wpcf_fields_file_meta_box_js_inline() {
     global $post;
-
+	$for_post = (isset($post) ? 'post_id=' . $post->ID . '&' : '');
     ?>
     <script type="text/javascript">
         //<![CDATA[
@@ -106,7 +106,7 @@ function wpcf_fields_file_meta_box_js_inline() {
                 tb_show('<?php
     _e( 'Upload file', 'wpcf' );
 
-    ?>', 'media-upload.php?post_id=<?php echo $post->ID; ?>&type=file&wpcf-fields-media-insert=1&TB_iframe=true');
+    ?>', 'media-upload.php?<?php echo $for_post?>type=file&wpcf-fields-media-insert=1&TB_iframe=true');
                 return false;
             });
         });
@@ -202,9 +202,16 @@ function wpcf_fields_file_view( $params ) {
 function wpcf_fields_file_editor_callback() {
     wp_enqueue_style( 'wpcf-fields-file',
             WPCF_EMBEDDED_RES_RELPATH . '/css/basic.css', array(), WPCF_VERSION );
-
-    // Get field
-    $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+	// Get field
+	if ( isset($_GET['field_type']) && $_GET['field_type'] == 'usermeta' ){
+		//If usermeta
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false, false, 'wpcf-usermeta' );	
+	}else{ 
+		//If postmeta
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'] );	
+	}
+    
+    
     if ( empty( $field ) ) {
         _e( 'Wrong field specified', 'wpcf' );
         die();
@@ -216,17 +223,24 @@ function wpcf_fields_file_editor_callback() {
         $post_ID = intval( $_POST['post_id'] );
     } else {
         $http_referer = explode( '?', $_SERVER['HTTP_REFERER'] );
-        parse_str( $http_referer[1], $http_referer );
+		if ( !isset($http_referer[1]) ){
+        	parse_str( $http_referer[1], $http_referer );
+		}
         if ( isset( $http_referer['post'] ) ) {
             $post_ID = $http_referer['post'];
         }
     }
-
+	
     // Get attachment
     $attachment_id = false;
     if ( $post_ID ) {
         $file = get_post_meta( $post_ID,
                 wpcf_types_get_meta_prefix( $field ) . $field['slug'], true );
+		if ( empty ($file)){
+			$user_id = wpcf_usermeta_get_user();
+			$file = get_user_meta( $user_id,
+                wpcf_types_get_meta_prefix( $field ) . $field['slug'], true );	
+		}
         if ( !empty( $file ) ) {
             // Get attachment by guid
             global $wpdb;
@@ -235,6 +249,7 @@ function wpcf_fields_file_editor_callback() {
                             $file ) );
         }
     }
+	
 
     $last_settings = wpcf_admin_fields_get_field_last_settings( $_GET['field_id'] );
 
@@ -265,12 +280,17 @@ function wpcf_fields_file_editor_callback() {
         '#name' => 'class',
         '#value' => isset( $last_settings['class'] ) ? $last_settings['class'] : '',
     );
-    $form['style'] = array(
+	$form['style'] = array(
         '#type' => 'textfield',
         '#title' => __( 'Style', 'wpcf' ),
         '#name' => 'style',
         '#value' => isset( $last_settings['style'] ) ? $last_settings['style'] : '',
     );
+	// add usermeta form addon
+	if ( isset($_GET['field_type']) && $_GET['field_type'] == 'usermeta' ){
+		$temp_form = wpcf_get_usermeta_form_addon();
+		$form = $form + $temp_form;
+	}
     $form['submit'] = array(
         '#type' => 'submit',
         '#name' => 'submit',
@@ -285,11 +305,13 @@ function wpcf_fields_file_editor_callback() {
     wpcf_admin_ajax_footer();
 }
 
+
 /**
  * Editor callback form submit.
  */
 function wpcf_fields_file_editor_submit() {
     $add = '';
+	$types_attr = 'field';
     if ( !empty( $_POST['link'] ) ) {
         $add .= ' link="true"';
         if ( !empty( $_POST['title'] ) ) {
@@ -302,9 +324,23 @@ function wpcf_fields_file_editor_submit() {
     if ( !empty( $_POST['style'] ) ) {
         $add .= ' style="' . $_POST['style'] . '"';
     }
-    $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
-    if ( !empty( $field ) ) {
-        $shortcode = wpcf_fields_get_shortcode( $field, $add );
+	if ( !empty($_POST['is_usermeta']) ){
+		$add .= wpcf_get_usermeta_form_addon_submit();
+	}
+	//Get Field
+	if ( !empty($_POST['is_usermeta']) ){
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false, false, 'wpcf-usermeta' );
+		$types_attr = 'usermeta';
+	}else{
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'] );	
+	}
+  	if ( !empty( $field ) ) {
+        if ($types_attr == 'usermeta'){
+			$shortcode = wpcf_usermeta_get_shortcode( $field, $add );
+		}
+		else{
+			$shortcode = wpcf_fields_get_shortcode( $field, $add );
+		}
         wpcf_admin_fields_save_field_last_settings( $_GET['field_id'], $_POST );
         echo editor_admin_popup_insert_shortcode_js( $shortcode );
         die();

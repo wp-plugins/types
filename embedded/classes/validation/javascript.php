@@ -47,7 +47,20 @@ class WPCF_Validation_Javascript
         $output .= "\r\n" . '<script type="text/javascript">' . "\r\n" . '/* <![CDATA[ */'
                 . "\r\n" . 'jQuery(document).ready(function(){' . "\r\n"
                 . 'if (jQuery("' . $selector . '").length > 0){' . "\r\n"
-                . 'jQuery("' . $selector . '").validate({
+                . 'jQuery("' . $selector . '").validate({';
+        
+        /*
+         * 
+         * 
+         * We noticed browser temporary stuck when too much terms.
+         * We do not need terms validated on Group edit screen.
+         * :hidden is kept because it's default value.
+         * All accepted by jQuery.not() can be added.
+         */
+        $output .= '
+                    ignore: \':hidden, .wpcf-form-groups-support-post-type, .wpcf-form-groups-support-tax, .wpcf-form-groups-support-templates\',';
+        
+        $output .= '
         errorPlacement: function(error, element){
             error.insertBefore(element);
         },
@@ -151,6 +164,7 @@ class WPCF_Validation_Javascript
              * 
              * $args may be used to pass other useful properties
              */
+			 
             foreach ( $element['#validate'] as $method => $args ) {
 
                 // Set generic value 'true'
@@ -161,16 +175,33 @@ class WPCF_Validation_Javascript
                 // Set rule
                 // since Types 1.1.5 we use element ID
                 $rules[$id][$method] = $method . ': ' . $args['value'];
-
+				
+                //Check if wordpress date format is d/m/Y and use ITA validation
+				if ( $method == 'date'
+                        && isset($element['wpcf-type'])
+                        && $element['wpcf-type'] == 'date'
+                        && get_option('date_format') == 'd/m/Y'){
+					$rules[$id][$method] = 'dateITA:true';
+				}
+                
                 // Set message
                 if ( empty( $args['message'] ) ) {
                     $args['message'] = wpcf_admin_validation_messages( $method );
                 }
                 // since Types 1.1.5 we use element ID
                 $messages[$id][$method] = $method . ': \'' . esc_js( $args['message'] ) . '\'';
-
+				
+                //Check if wordpress date format is d/m/Y and set ITA validation message
+				if ( $method == 'date'
+                        && isset($element['wpcf-type'])
+                        && $element['wpcf-type'] == 'date'
+                        && get_option('date_format') == 'd/m/Y'){
+					$messages[$id][$method] = 'dateITA : \'' . esc_js( $args['message'] ) . '\'';
+				}
                 // Collect!
                 $collected[$id][$method] = $args;
+				//print get_option('date_format');
+				//print_r($rules[$id][$method]);exit;
             }
 
             /*
@@ -182,7 +213,7 @@ class WPCF_Validation_Javascript
             foreach ( $_rules_o as $_rules ) {
                 $output .= implode( ',' . "\r\n", $_rules );
             }
-
+			
             /*
              * 
              * Add messages to output

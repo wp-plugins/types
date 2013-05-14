@@ -13,6 +13,10 @@ var wpcfFormGroupsSupportTemplatesState = new Array();
 var wpcfFieldsEditorCallback_redirect = null;
 
 jQuery(document).ready(function(){
+	//user suggestion
+	if(jQuery.isFunction(jQuery.suggest)) {
+		jQuery('.input').suggest("admin-ajax.php?action=wpcf_types_suggest_user&tax=post_tag", {multiple:false, multipleSep: ","});
+	}
     // Only for adding group
     jQuery('.wpcf-fields-add-ajax-link').click(function(){
         jQuery.ajax({
@@ -33,7 +37,7 @@ jQuery(document).ready(function(){
         return false;
     });
     // Sort and Drag
-    jQuery('.ui-sortable').sortable({
+    jQuery('#wpcf-fields-sortable').sortable({
         revert: true,
         handle: 'img.wpcf-fields-form-move-field',
         containment: 'parent'
@@ -166,6 +170,7 @@ jQuery(document).ready(function(){
             jQuery('.wpcf-forms-field-name').live('keyup', function(){
                 jQuery(this).removeClass('wpcf-name-checked-error').prev('.wpcf-form-error-unique-value').fadeOut(function(){
                     jQuery(this).remove();
+					wpcfLoadingButtonStop();
                 });
             });
             return false;
@@ -321,12 +326,12 @@ jQuery(document).ready(function(){
         }
     });
 
-    jQuery('.wpcf-groups-form-ajax-update-tax-ok, .wpcf-groups-form-ajax-update-post-types-ok, .wpcf-groups-form-ajax-update-templates-ok').click(function(){
+    jQuery('.wpcf-groups-form-ajax-update-custom_taxonomies-ok, .wpcf-groups-form-ajax-update-custom_post_types-ok, .wpcf-groups-form-ajax-update-templates-ok').click(function(){
         var count = 0;
-        if (jQuery('.wpcf-groups-form-ajax-update-tax-ok').parent().find("input:checked").length > 0) {
+        if (jQuery('.wpcf-groups-form-ajax-update-custom_taxonomies-ok').parent().find("input:checked").length > 0) {
             count += 1;
         }
-        if (jQuery('.wpcf-groups-form-ajax-update-post-types-ok').parent().find("input:checked").length > 0) {
+        if (jQuery('.wpcf-groups-form-ajax-update-custom_post_types-ok').parent().find("input:checked").length > 0) {
             count += 1;
         }
         if (jQuery('.wpcf-groups-form-ajax-update-templates-ok').parent().find("input:checked").length > 0) {
@@ -468,10 +473,20 @@ function wpcfTitleEditorCheck() {
 /**
  * Editor callback func.
  */
-function wpcfFieldsEditorCallback(field_id) {
-    var url = ajaxurl+'?action=wpcf_ajax&wpcf_action=editor_callback&_wpnonce='+window.wpcfEditorCallbackNonce+'&field_id='+field_id+'&keepThis=true&TB_iframe=true&height=400&width=400'
+function wpcfFieldsEditorCallback(field_id , filed_type, is_popup) {
+	if (is_popup == 'nonpopup'){
+		var url = ajaxurl+'?action=wpcf_ajax&wpcf_action=editor_callback&_wpnonce='+window.wpcfEditorCallbackNonce+'&field_id='+field_id+'&field_type=usermeta&nonpopup=true&keepThis=true&TB_iframe=true&height=400&width=400'
+	}
+	else{
+		if( filed_type == 'usermeta'){
+			var url = ajaxurl+'?action=wpcf_ajax&wpcf_action=editor_callback&_wpnonce='+window.wpcfEditorCallbackNonce+'&field_id='+field_id+'&field_type=usermeta&keepThis=true&TB_iframe=true&height=400&width=400'
+		}else{
+			var url = ajaxurl+'?action=wpcf_ajax&wpcf_action=editor_callback&_wpnonce='+window.wpcfEditorCallbackNonce+'&field_id='+field_id+'&keepThis=true&TB_iframe=true&height=400&width=400'
+		}
+	}
     tb_show(window.wpcfEditorTbTitle, url);
 }
+
 
 /**
  * TODO Document this!
@@ -482,4 +497,23 @@ function wpcfFieldsEditorCallback_set_redirect(function_name, params) {
         'function' : function_name, 
         'params' : params
     };
+}
+//Usermeta shortocde addon
+function wpcf_showmore(show){
+	if (show){
+		jQuery('#specific_user_div').css('display','block');
+		jQuery('#display_username_for_author').removeAttr('checked');
+	}
+	else{
+		jQuery('#specific_user_div').css('display','none');
+		jQuery('#display_username_for_suser').removeAttr('checked');	
+	}
+}
+//Usermeta shortocde addon
+function hideControls(control_id1,control_id2){
+	control_id1 = '#'+control_id1;
+	control_id2 = '#'+control_id2;
+	jQuery(control_id1).css('display','none');
+	jQuery(control_id2).css('display','inline');
+	jQuery(control_id2).focus();
 }

@@ -10,7 +10,109 @@ function wpcf_ajax() {
         die();
     }
     switch ($_REQUEST['wpcf_action']) {
-        case 'fields_insert':
+        /* User meta actions*/
+		case 'user_fields_control_bulk':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+            require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+            require_once WPCF_INC_ABSPATH . '/fields-control.php';
+			require_once WPCF_INC_ABSPATH . '/usermeta-control.php';
+            wpcf_admin_user_fields_control_bulk_ajax();
+            break;
+
+        case 'usermeta_delete':
+        case 'delete_usermeta':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+            if (isset($_GET['field_id'])) {
+                wpcf_admin_fields_delete_field($_GET['field_id'],'wp-types-user-group','wpcf-usermeta');
+            }
+            if (isset($_GET['field'])) {
+                wpcf_admin_fields_delete_field($_GET['field'],'wp-types-user-group','wpcf-usermeta');
+            }
+            echo json_encode(array(
+                'output' => ''
+            ));
+            break;
+			
+		case 'remove_from_history2':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+            $fields = wpcf_admin_fields_get_fields( true, true,false,'wpcf-usermeta');
+            if (isset($_GET['field_id']) && isset($fields[$_GET['field_id']])) {
+                $fields[$_GET['field_id']]['data']['removed_from_history'] = 1;
+                wpcf_admin_fields_save_fields($fields, true, 'wpcf-usermeta');
+            }
+            echo json_encode(array(
+                'output' => ''
+            ));
+            break;	
+			
+		case 'deactivate_user_group':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+			require_once WPCF_INC_ABSPATH . '/usermeta.php';
+	        $success = wpcf_admin_fields_deactivate_group(intval($_GET['group_id']), 'wp-types-user-group');
+            if ($success) {
+                echo json_encode(array(
+                    'output' => __('Group deactivated', 'wpcf'),
+                    'execute' => 'jQuery("#wpcf-list-activate-'
+                    . intval($_GET['group_id']) . '").replaceWith(\''
+                    . wpcf_admin_usermeta_get_ajax_activation_link(intval($_GET['group_id']))
+                    . '\');jQuery(".wpcf-table-column-active-'
+                    . intval($_GET['group_id']) . '").html("' . __('No', 'wpcf') . '");',
+                    'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
+                ));
+            } else {
+                echo json_encode(array(
+                    'output' => __('Error occured', 'wpcf')
+                ));
+            }
+            break;
+			
+		case 'activate_user_group':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+			require_once WPCF_INC_ABSPATH . '/usermeta.php';
+            $success = wpcf_admin_fields_activate_group(intval($_GET['group_id']), 'wp-types-user-group');
+            if ($success) {
+                echo json_encode(array(
+                    'output' => __('Group activated', 'wpcf'),
+                    'execute' => 'jQuery("#wpcf-list-activate-'
+                    . intval($_GET['group_id']) . '").replaceWith(\''
+                    . wpcf_admin_usermeta_get_ajax_deactivation_link(intval($_GET['group_id']))
+                    . '\');jQuery(".wpcf-table-column-active-'
+                    . intval($_GET['group_id']) . '").html("' . __('Yes', 'wpcf') . '");',
+                    'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
+                ));
+            } else {
+                echo json_encode(array(
+                    'output' => __('Error occured', 'wpcf')
+                ));
+            }
+            break;	
+			
+		case 'delete_usermeta_group':
+            require_once WPCF_INC_ABSPATH . '/fields.php';
+			require_once WPCF_INC_ABSPATH . '/usermeta.php';
+            wpcf_admin_fields_delete_group(intval($_GET['group_id']), 'wp-types-user-group');
+            echo json_encode(array(
+                'output' => '',
+                'execute' => 'jQuery("#wpcf-list-activate-'
+                . intval($_GET['group_id'])
+                . '").parents("tr").css("background-color", "#FF0000").fadeOut();',
+                'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
+            ));
+            break;	
+        
+		case 'usermeta_insert_existing':
+			require_once WPCF_INC_ABSPATH . '/fields.php';
+            require_once WPCF_INC_ABSPATH . '/fields-form.php';
+			require_once WPCF_INC_ABSPATH . '/usermeta-form.php';
+            wpcf_usermeta_insert_existing_ajax();
+            wpcf_form_render_js_validation();
+            break;
+		/* End Usertmeta actions*/
+		
+		
+		
+		
+		case 'fields_insert':
             require_once WPCF_INC_ABSPATH . '/fields.php';
             require_once WPCF_INC_ABSPATH . '/fields-form.php';
             wpcf_fields_insert_ajax();
@@ -422,24 +524,6 @@ function wpcf_ajax() {
             }
             update_option('wpcf_toggle', $option);
             break;
-
-        case 'footer_credits':
-            // TODO Remove
-//            require_once WPCF_EMBEDDED_INC_ABSPATH . '/footer-credit.php';
-//            wpcf_footer_credit_settings();
-//            break;
-
-        case 'footer_credit_activate_message':
-            // TODO Remove
-//            require_once WPCF_EMBEDDED_INC_ABSPATH . '/footer-credit.php';
-//            $option = get_option('wpcf_footer_credit', array());
-//            if (!isset($option['message'])) {
-//                $data = wpcf_footer_credit_defaults();
-//                shuffle($data);
-//                $option['message'] = rand(0, count($data));
-//            }
-//            update_option('wpcf_footer_credit',
-//                    array('active' => 1, 'message' => $option['message']));
 
         case 'cb_save_empty_migrate':
             $output = '<span style="color:red;">'

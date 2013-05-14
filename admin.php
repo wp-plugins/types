@@ -46,6 +46,14 @@ function wpcf_admin_menu_hook() {
             'wpcf_admin_menu_summary' );
     wpcf_admin_plugin_help( $hook, 'wpcf-cf' );
     add_action( 'load-' . $hook, 'wpcf_admin_menu_summary_hook' );
+	
+	// User Meta
+    $hook = add_submenu_page( 'wpcf',__( 'User Fields', 'wpcf' ),
+            __( 'User Fields', 'wpcf' ), 'manage_options',
+            'wpcf-um', 'wpcf_usermeta_summary',0 );
+	wpcf_admin_plugin_help( $hook, 'wpcf-um' );
+    add_action( 'load-' . $hook, 'wpcf_admin_menu_summary_hook' );	
+	
     // Custom types and tax
     $hook = add_submenu_page( 'wpcf',
             __( 'Custom Types and Taxonomies', 'wpcf' ),
@@ -66,6 +74,13 @@ function wpcf_admin_menu_hook() {
             'wpcf_admin_menu_custom_fields_control' );
     add_action( 'load-' . $hook, 'wpcf_admin_menu_custom_fields_control_hook' );
     wpcf_admin_plugin_help( $hook, 'wpcf-custom-fields-control' );
+	// User Fields Control
+    $hook = add_submenu_page( 'wpcf', __( 'User Fields Control', 'wpcf' ),
+            __( 'User Fields Control', 'wpcf' ), 'manage_options',
+            'wpcf-user-fields-control',
+            'wpcf_admin_menu_user_fields_control' );
+    add_action( 'load-' . $hook, 'wpcf_admin_menu_user_fields_control_hook' );
+    wpcf_admin_plugin_help( $hook, 'wpcf-user-fields-control' );
     // Settings
     $hook = add_submenu_page( 'wpcf', __( 'Settings', 'wpcf' ),
             __( 'Settings', 'wpcf' ), 'manage_options', 'wpcf-custom-settings',
@@ -104,6 +119,15 @@ function wpcf_admin_menu_hook() {
                 add_action( 'load-' . $hook, 'wpcf_admin_menu_edit_tax_hook' );
                 wpcf_admin_plugin_help( $hook, 'wpcf-edit-tax' );
                 break;
+			 case 'wpcf-edit-usermeta':
+                $title = isset( $_GET['group_id'] ) ? __( 'Edit User Fields Group', 'wpcf' ) : __( 'Add New User Fields Group',
+                                'wpcf' );
+                $hook = add_submenu_page( 'wpcf', $title, $title,
+                        'manage_options', 'wpcf-edit-usermeta',
+                        'wpcf_admin_menu_edit_user_fields' );
+                add_action( 'load-' . $hook, 'wpcf_admin_menu_edit_user_fields_hook' );
+                wpcf_admin_plugin_help( $hook, 'wpcf-edit-usermeta' );
+                break;	
         }
     }
 
@@ -206,6 +230,27 @@ function wpcf_admin_menu_edit_fields_hook() {
      */
     wp_enqueue_style( 'wpcf-scroll',
             WPCF_EMBEDDED_RELPATH . '/common/visual-editor/res/css/scroll.css' );
+			
+	//Css editor
+	wp_enqueue_script( 'wpcf-form-codemirror' , 
+		WPCF_RELPATH . '/resources/js/codemirror234/lib/codemirror.js', array('wpcf-js'));	
+	wp_enqueue_script( 'wpcf-form-codemirror-css-editor' , 
+		WPCF_RELPATH . '/resources/js/codemirror234/mode/css/css.js', array('wpcf-js'));
+	wp_enqueue_script( 'wpcf-form-codemirror-html-editor' , 
+		WPCF_RELPATH . '/resources/js/codemirror234/mode/xml/xml.js', array('wpcf-js'));
+	wp_enqueue_script( 'wpcf-form-codemirror-html-editor2' , 
+		WPCF_RELPATH . '/resources/js/codemirror234/mode/htmlmixed/htmlmixed.js', array('wpcf-js'));
+	wp_enqueue_script( 'wpcf-form-codemirror-editor-resize' , 
+		WPCF_RELPATH . '/resources/js/jquery_ui/jquery.ui.resizable.min.js', array('wpcf-js'));	
+	
+		
+				
+	wp_enqueue_style( 'wpcf-css-editor',
+            WPCF_RELPATH . '/resources/js/codemirror234/lib/codemirror.css' );
+	wp_enqueue_style( 'wpcf-css-editor-resize',
+            WPCF_RELPATH . '/resources/js/jquery_ui/jquery.ui.theme.min.css' );
+	wp_enqueue_style( 'wpcf-usermeta',
+                WPCF_EMBEDDED_RES_RELPATH . '/css/usermeta.css' );		
 
     add_action( 'admin_footer', 'wpcf_admin_fields_form_js_validation' );
     require_once WPCF_INC_ABSPATH . '/fields.php';

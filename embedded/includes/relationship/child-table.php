@@ -104,15 +104,6 @@ echo admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_save_all'
                 <?php
             endif;
 
-            // Trigger Conditional script 
-            // TODO Move to conditional
-            if ( defined( 'DOING_AJAX' ) ):
-
-                ?>
-                <script type="text/javascript">wpcfPrVerifyInit();</script>
-                <?php
-            endif;
-
             ?>
         </div>
     </div>

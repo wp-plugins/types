@@ -40,6 +40,7 @@ do_action( "admin_footer-" . $GLOBALS['hook_suffix'] );
 ?>
 
 <div class="clear"></div></div><!-- wpwrap -->
+</div><!-- #wpcf-ajax -->
 <script type="text/javascript">if(typeof wpOnload=='function')wpOnload();</script>
 </body>
 </html>

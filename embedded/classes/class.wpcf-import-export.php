@@ -28,14 +28,14 @@ class WPCF_Import_Export
         '_wp_types_group_templates',
         '_wpcf_conditional_display',
     );
-
+    
     /**
      * Restricted data - ommited from checksum, applies to all content types.
      * 
      * @var type 
      */
     var $_remove_data_keys = array('id', 'ID', 'menu_icon', 'wpml_action',
-        'wpcf-post-type', 'wpcf-tax', 'hash', 'checksum', '__types_id', '__types_title');
+        'wpcf-post-type', 'wpcf-tax', 'hash', 'checksum');
 
     /**
      * Required Group meta keys
@@ -57,7 +57,7 @@ class WPCF_Import_Export
 
         $_meta = array();
         $group = wpcf_admin_fields_get_group( $group_id );
-
+        
         if ( !empty( $group ) ) {
             $meta = get_post_custom( $group['id'] );
 
@@ -85,9 +85,7 @@ class WPCF_Import_Export
     function generate_checksum( $type, $item_id = null ) {
         switch ( $type ) {
             case 'group':
-                $checksum = wpcf_admin_fields_get_group( $item_id );
-                $checksum['meta'] = $this->get_group_meta( $item_id );
-                ksort( $checksum['meta'] );
+                $checksum = $this->get_group_meta( $item_id );
                 break;
 
             case 'field':
@@ -96,14 +94,7 @@ class WPCF_Import_Export
 
             case 'custom_post_type':
                 $checksum = wpcf_get_custom_post_type_settings( $item_id );
-                $checksum['relationship_settings']['has'] = wpcf_pr_get_has( $item_id );
-                if ( is_array( $checksum['relationship_settings']['has'] ) ) {
-                    ksort( $checksum['relationship_settings']['has'] );
-                }
-                $checksum['relationship_settings']['belongs'] = wpcf_pr_get_belongs( $item_id );
-                if ( is_array( $checksum['relationship_settings']['belongs'] ) ) {
-                    ksort( $checksum['relationship_settings']['belongs'] );
-                }
+
                 break;
 
             case 'custom_taxonomy':
@@ -124,12 +115,6 @@ class WPCF_Import_Export
                 unset( $checksum[$key] );
             }
         }
-
-        if ( is_array( $checksum ) ) {
-            ksort( $checksum );
-        }
-
-//        debug( $checksum, false );
 
         return md5( maybe_serialize( $checksum ) );
     }

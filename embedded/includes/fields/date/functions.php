@@ -6,8 +6,6 @@
 /**
  * Calculate time
  * 
- * Called from wpcf_fields_date_value_get_filter().
- * 
  * @param array $value Full data
  */
 function wpcf_fields_date_calculate_time( $value ) {
@@ -20,10 +18,10 @@ function wpcf_fields_date_calculate_time( $value ) {
     }
 
     // Fix hour and minute
-    if ( strval( $hour ) == '00' ) {
+    if ( empty( $hour ) || strval( $hour ) == '00' ) {
         $hour = 0;
     }
-    if ( strval( $minute ) == '00' ) {
+    if ( empty( $minute ) || strval( $minute ) == '00' ) {
         $minute = 0;
     }
 
@@ -36,105 +34,44 @@ function wpcf_fields_date_calculate_time( $value ) {
 /**
  * Converts date to time on post saving.
  * 
- * @todo SWITCH TO wpcf_fields_date_value_get_filter()
- * 
- * @param type $value
+ * @param array $value Use 'datepicker' to convert to timestamp.
  * @return int timestamp 
  */
 function wpcf_fields_date_value_save_filter( $value, $field, $field_object ) {
 
-    if ( empty( $value ) ) {
-        return $value;
-    }
-
-    // TODO Check Why we had this earlier (obsolete?)
-    //    $date_format = wpcf_get_date_format();
-//    if ($date_format == 'd/m/Y') {
-//        // strtotime requires a dash or dot separator to determine dd/mm/yyyy format
-//        $value = str_replace('/', '-', $value);
-//    }
-//    return strtotime(strval($value));
-
-    /*
-     * This is submitted data so we use datepicker as timestamp.
-     * Do not use any other hook for this.
-     */
-    $value['timestamp'] = strtotime( strval( $value['datepicker'] ) );
-
-    // Return timestamp
-    return wpcf_fields_date_value_get_filter( $value, $field_object, 'timestamp' );
-}
-
-/**
- * Fix missing items.
- * 
- * @param type $value
- * @param type $field_object
- * @return type
- */
-function wpcf_fields_date_get_submitted_data( $value, $field_object ) {
-    // Return Full data
-    if ( isset( $field_object->cf['type'] ) && $field_object->cf['type'] == 'date' ) {
-        return wpcf_fields_date_value_get_filter( $value, $field_object,
-                        'array', 'save' );
-    }
-    return $value;
-}
-
-/**
- * 
- * @param type $post_id
- * @param type $field_id
- * @return type
- */
-function wpcf_fields_date_get_hour_and_minute( $post_id, $field_id ) {
-    return get_post_meta(
-                    $post_id, '_wpcf_' . $field_id . '_hour_and_minute', true );
-}
-
-/**
- * Collects after meta is created.
- * 
- * We'll be holding Hour and Minute in separate meta.
- * 
- * @param type $value
- * @param type $field
- * @param type $this
- * @param type $meta_id
- */
-function wpcf_fields_date_collect_hour_and_minute( $value, $field,
-        $field_object, $meta_id, $meta_value_original ) {
     global $wpcf;
-    // Use Field in Loop
-    if ( isset( $wpcf->field->cf['type'] ) && $wpcf->field->cf['type'] == 'date' ) {
-        $wpcf->field->__date->additional_meta[$field['id']][$meta_id] = $meta_value_original;
+
+    // Remove additional meta if any
+    if ( isset( $field_object->post->ID ) ) {
+        delete_post_meta(
+                $field_object->post->ID,
+                '_wpcf_' . $field_object->cf['id'] . '_hour_and_minute' );
     }
+
+    if ( empty( $value ) || empty( $value['datepicker'] ) ) {
+        return false;
+    }
+
+    $value['timestamp'] = wpcf_fields_date_convert_datepicker_to_timestamp( $value['datepicker'] );
+
+    if ( !wpcf_fields_date_timestamp_is_valid( $value['timestamp'] ) ) {
+        $wpcf->debug->errors['date_save_failed'][] = array(
+            'value' => $value,
+            'field' => $field,
+        );
+        return false;
+    }
+
+    // Append Hour and Minute
+    if ( isset( $value['hour'] ) && isset( $value['minute'] ) ) {
+        $value['timestamp'] = wpcf_fields_date_calculate_time( $value );
+    }
+
+    return $value['timestamp'];
 }
 
 /**
- * Saves Hour and Minute after meta is created.
- * 
- * We'll be holding Hour and Minute in separate meta.
- * 
- * @param type $value
- * @param type $field
- * @param type $this
- * @param type $meta_id
- */
-function wpcf_fields_date_save_hour_and_minute( $post_id, $field ) {
-    global $wpcf;
-    // Use Field in Loop
-    if ( isset( $wpcf->field->cf['type'] ) && $wpcf->field->cf['type'] == 'date' ) {
-        if ( !empty( $wpcf->field->__date->additional_meta[$field['id']] ) ) {
-            update_post_meta(
-                    $post_id, '_wpcf_' . $field['id'] . '_hour_and_minute',
-                    $wpcf->field->__date->additional_meta[$field['id']] );
-        }
-    }
-}
-
-/**
- * Filters conditional display value for built-in Types Conditinal check.
+ * Filters conditional edited field value for built-in Types Conditinal check.
  * 
  * @param type $value
  * @param type $field
@@ -146,41 +83,49 @@ function wpcf_fields_date_save_hour_and_minute( $post_id, $field ) {
 function wpcf_fields_date_conditional_value_filter( $value, $field, $operation,
         $field_compared, $post ) {
 
-    $field = wpcf_admin_fields_get_field( $field );
-    if ( !empty( $field ) && $field['type'] == 'date' ) {
+    global $wpcf;
 
-        /*
-         * 
-         * 
-         * 
-         * 
-         * Here we need to determine data
-         */
+    $field = wpcf_admin_fields_get_field( $wpcf->field->__get_slug_no_prefix( $field ) );
+    if ( !empty( $field ) && isset( $field['type'] ) && $field['type'] == 'date' ) {
+        $value['timestamp'] = wpcf_fields_date_convert_datepicker_to_timestamp( $value['datepicker'] );
+        $value = wpcf_fields_date_calculate_time( $value );
+    }
+    return $value;
+}
 
-        $_field = new WPCF_Field();
-        $_field->set( $post, $field );
+/**
+ * Filters conditional condition value - converts dates to timestamps.
+ * 
+ * @param type $value
+ * @param type $field
+ * @param type $operation
+ * @param type $field_compared
+ * @param type $post
+ */
+function wpcf_fields_date_conditional_condition_filter( $value, $field,
+        $operation, $field_compared, $post ) {
+    global $wpcf;
 
-        return wpcf_fields_date_value_get_filter( $value, $_field, 'timestamp',
-                        'skip_hour_and_minute' );
-
-        // TODO Date revise why needed.
-        // Check dates
-        $value = wpv_filter_parse_date( $value );
+    $field = wpcf_admin_fields_get_field( $wpcf->field->__get_slug_no_prefix( $field ) );
+    if ( !empty( $field ) && isset( $field['type'] ) && $field['type'] == 'date' ) {
+        $_value = wpcf_fields_date_convert_datepicker_to_timestamp( $value );
+        if ( $_value ) {
+            $value = $_value;
+        } else {
+            $value = wpcf_fields_date_value_get_filter( $value, $field,
+                    'timestamp' );
+        }
     }
     return $value;
 }
 
 /**
  * Add post meta hook if Custom Conditinal Statement used.
- * 
- * @param type $field
  */
-function wpcf_fields_custom_conditional_statement_hook( $field ) {
-    if ( isset( $field->cf['type'] ) && $field->cf['type'] == 'date' ) {
-        // Enqueue after first filters in evaluate.php
-        add_filter( 'get_post_metadata',
-                'wpcf_fields_date_custom_conditional_statement_filter', 20, 4 );
-    }
+function wpcf_fields_custom_conditional_statement_hook() {
+    // Enqueue after first filters in evaluate.php
+    add_filter( 'get_post_metadata',
+            'wpcf_fields_date_custom_conditional_statement_filter', 20, 4 );
 }
 
 /**
@@ -198,19 +143,17 @@ function wpcf_fields_custom_conditional_statement_hook( $field ) {
 function wpcf_fields_date_custom_conditional_statement_filter( $null,
         $object_id, $meta_key, $single ) {
 
-    $post = get_post( $object_id );
+    global $wpcf;
 
-    if ( !empty( $post->ID ) ) {
+    $field = wpcf_admin_fields_get_field( $wpcf->field->__get_slug_no_prefix( $meta_key ) );
 
-        $field = wpcf_admin_fields_get_field( $single );
-        $field->set( $post, $meta_key );
-
-        if ( isset( $field->cf['type'] ) && $field->cf['type'] == 'date' ) {
-            $res = wpcf_fields_date_value_get_filter( $null, $field,
-                    'timestamp', 'skip_hour_and_minute' );
-            if ( is_int( $res ) ) {
-                return $res;
-            }
+    if ( !empty( $null ) && !empty( $field ) && isset( $field['type'] ) && $field['type'] == 'date' ) {
+        if ( is_array( $null ) && !isset( $null['datepicker'] ) ) {
+            $null = array_shift( $null );
+        }
+        $null = wpcf_fields_date_value_get_filter( $null, $field, 'timestamp' );
+        if ( !is_numeric( $null ) ) {
+            $null = -1;
         }
     }
 
@@ -294,65 +237,252 @@ function wpcf_date_to_strftime( $format ) {
 }
 
 /**
- * Sets data for Hour and Minute.
+ * Checks if Date value array has all required elements.
+ * 
+ * It will re-create missing elements if possible.
+ * If not possible - will return empty Date.
+ * 
+ * @param array $a
+ * @return null
+ */
+function wpcf_fields_date_value_check( $a ) {
+
+    $required = array('timestamp', 'datepicker', 'hour', 'minute');
+    $empty_date = array(
+        'timestamp' => null,
+        'hour' => 8,
+        'minute' => 0,
+        'datepicker' => '',
+    );
+
+    // Return empty date if can not be calculated
+    if ( empty( $a['timestamp'] ) && empty( $a['datepicker'] ) ) {
+        return $empty_date;
+    }
+
+    // Loop over and check if some missing or need fix
+    foreach ( $required as $key ) {
+        switch ( $key ) {
+            case 'timestamp':
+                // If not set or malformed - create from datepicker
+                if ( !isset( $a[$key] ) || !wpcf_fields_date_timestamp_is_valid( $a[$key] ) ) {
+                    $_t = wpcf_fields_date_convert_datepicker_to_timestamp( $a['datepicker'] );
+                    if ( !$_t ) {
+                        // Failed converting
+                        return $empty_date;
+                    }
+                    $a['timestamp'] = $_t;
+                }
+                $a['timestamp'] = intval( $a['timestamp'] );
+                break;
+
+            case 'datepicker':
+                // If not set - create it from timestamp.
+                if ( empty( $a[$key] ) ) {
+                    $_d = wpcf_fields_date_convert_timestamp_to_datepicker( $a['timestamp'] );
+                    if ( !$_d ) {
+                        // Failed converting
+                        return $empty_date;
+                    }
+                    $a['datepicker'] = $_d;
+                }
+                // Check if valid (already set value)
+                if ( !wpcf_fields_date_datepicker_is_valid( $a['datepicker'] ) ) {
+                    return $empty_date;
+                }
+                $a['datepicker'] = strval( $a['datepicker'] );
+                break;
+
+            case 'hour':
+                $_h = date( 'H', intval( $a['timestamp'] ) );
+                $a['hour'] = $_h;
+                break;
+
+            case 'minute':
+                $_m = date( 'i', intval( $a['timestamp'] ) );
+                $a['minute'] = $_m;
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    // Final test - make sure timestamp matches Datepicker
+    if ( date( wpcf_get_date_format(), $a['timestamp'] ) != $a['datepicker'] ) {
+        // In this case we'll give advantage to timestamp
+        $a['datepicker'] = wpcf_fields_date_convert_timestamp_to_datepicker( $a['timestamp'] );
+        if ( !$a['timestamp'] ) {
+            // Failed converting
+            return $empty_date;
+        }
+    }
+
+    ksort( $a );
+    return $a;
+}
+
+/**
+ * Converts timestamp to Datepicker and checks if valid.
+ * 
+ * @param type $timestamp
+ * @return boolean
+ */
+function wpcf_fields_date_convert_timestamp_to_datepicker( $timestamp ) {
+    // Check if timestamp valid
+    if ( !wpcf_fields_date_timestamp_is_valid( $timestamp ) ) {
+        return false;
+    }
+    $_d = date( wpcf_get_date_format(), intval( $timestamp ) );
+    if ( !wpcf_fields_date_datepicker_is_valid( $_d ) ) {
+        // Failed converting
+        return false;
+    }
+    return $_d;
+}
+
+/**
+ * Converts Datepicker to timestamp and checks if valid.
+ * @param type $datepicker
+ * @return boolean
+ */
+function wpcf_fields_date_convert_datepicker_to_timestamp( $datepicker ) {
+    $date_format = wpcf_get_date_format();
+    if ( $date_format == 'd/m/Y' ) {
+        // strtotime requires a dash or dot separator to determine dd/mm/yyyy format
+        $datepicker = str_replace( '/', '-', $datepicker );
+    }
+    $_t = strtotime( strval( $datepicker ) );
+    if ( $_t == false || !wpcf_fields_date_timestamp_is_valid( $_t ) ) {
+        // Failed converting
+        return false;
+    }
+    return $_t;
+}
+
+/**
+ * Checks if timestamp is numeric and within range.
+ * 
+ * @param type $timestamp
+ * @return type
+ */
+function wpcf_fields_date_timestamp_is_valid( $timestamp ) {
+    /*
+     * http://php.net/manual/en/function.strtotime.php
+     * The valid range of a timestamp is typically
+     * from Fri, 13 Dec 1901 20:45:54 UTC
+     * to Tue, 19 Jan 2038 03:14:07 UTC.
+     * (These are the dates that correspond to the minimum
+     * and maximum values for a 32-bit signed integer.)
+     * Additionally, not all platforms support negative timestamps,
+     * therefore your date range may be limited to no earlier than
+     * the Unix epoch.
+     * This means that e.g. dates prior to Jan 1, 1970 will not
+     * work on Windows, some Linux distributions,
+     * and a few other operating systems.
+     * PHP 5.1.0 and newer versions overcome this limitation though. 
+     */
+    // MIN 'Jan 1, 1970' - 0
+    $_min_timestamp = 0;
+    // MAX 'Tue, 19 Jan 2038 03:14:07 UTC' - 2147483647
+    $_max_timestamp = 2147483647;
+
+    return is_numeric( $timestamp ) && $_min_timestamp <= intval( $timestamp ) && intval( $timestamp ) <= $_max_timestamp;
+}
+
+/**
+ * Checks if Datepicker is valid by converting it to timestamp.
+ * @param type $datepicker
+ * @return boolean
+ */
+function wpcf_fields_date_datepicker_is_valid( $datepicker ) {
+    return (bool) wpcf_fields_date_convert_datepicker_to_timestamp( $datepicker );
+}
+
+/**
+ * Fix due to a bug saving date as array.
+ * 
+ * BUGS
+ * 'timestamp' is saved without Hour and Minute appended.
  * 
  * @param type $value
- * @param type $date_format
- * @return int
- */
-//function wpcf_fields_date_set_hour_and_minute( $value ) {
-//    $date_format = wpcf_get_date_format();
-//    $data = array();
-//    if ( is_array( $value ) ) {
-//        if ( $date_format == 'd/m/Y' ) {
-//            // strtotime requires a dash or dot separator to determine dd/mm/yyyy format
-//            $value['datepicker'] = str_replace( '/', '-',
-//                    strval( $value['datepicker'] ) );
-//        }
-//        $data['datepicker'] = strtotime( $value['datepicker'] );
-//        $data['hour'] = isset( $value['hour'] ) ? intval( $value['hour'] ) : 8;
-//        $data['minute'] = isset( $value['minute'] ) ? intval( $value['minute'] ) : 0;
-//    } else {
-//        if ( $date_format == 'd/m/Y' ) {
-//            // strtotime requires a dash or dot separator to determine dd/mm/yyyy format
-//            $value = str_replace( '/', '-', strval( $value ) );
-//        }
-//        // Check if date string
-//        $_v = strtotime( $value );
-//        $data['datepicker'] = $_v == false || $_v == -1 ? $value : $_v;
-//        $data['hour'] = 8;
-//        $data['minute'] = 0;
-//    }
-//
-//    return $data;
-//}
-
-/**
- * 
- * @param type $meta_value
- * @param type $params
- * @param type $post_id
- * @param type $field_id
- * @param type $meta_id
- * @return type
- */
-//function wpcf_fields_date_get_hour_and_minute_by_meta_key( $meta_value, $params,
-//        $post_id, $field_id, $meta_id ) {
-//    $meta = get_post_meta(
-//            $post_id, '_wpcf_' . $field_id . '_hour_and_minute', true );
-//    return isset( $meta[$meta_id] ) ? $meta[$meta_id] : $meta_value;
-//}
-
-/**
- * String to time.
- * 
- * @param type $posted
  * @param type $field
- * @return type
  */
-//function wpcf_fields_date_to_time( $value, $field ) {
-//    if ( isset( $field->cf['type'] ) && $field->cf['type'] == 'date' ) {
-//        return wpcf_fields_date_value_get_filter( $value, $field, 'timestamp' );
-//    }
-//    return $value;
-//}
+function __wpcf_fields_date_check_leftover( $value, $field, $use_cache = true ) {
+
+    if ( !is_object( $field ) ) {
+        $post_id = wpcf_get_post_id();
+        $field_id = isset( $field['id'] ) ? $field['id'] : false;
+        $meta_id = isset( $field['__meta_id'] ) ? $field['__meta_id'] : false;
+    } else {
+        $post_id = isset( $field->meta_object->post_id ) ? $field->meta_object->post_id : false;
+        $field_id = isset( $field->cf['id'] ) ? $field->cf['id'] : false;
+        $meta_id = isset( $field->meta_object->meta_id ) ? $field->meta_object->meta_id : false;
+    }
+
+    if ( empty( $post_id ) || empty( $meta_id ) || empty( $field_id ) ) {
+        return $value;
+    }
+
+    $field_slug = wpcf_types_get_meta_prefix() . $field_id;
+
+    // Check if cached
+    static $cache = array();
+    $cache_key = $meta_id;
+
+    if ( isset( $cache[$cache_key] ) && $use_cache ) {
+        return $cache[$cache_key];
+    }
+
+    $_meta = wpcf_get_post_meta( $post_id,
+            '_wpcf_' . $field_id . '_hour_and_minute', true );
+
+    /*
+     * If meta exists - it's outdated value
+     * and Hour and Minute should be appended and removed.
+     */
+    if ( !empty( $_meta ) && is_array( $_meta ) && isset( $_meta[$meta_id] ) ) {
+
+        $meta = $_meta[$meta_id];
+
+        // Return empty date if can not be calculated
+        if ( !empty( $meta['timestamp'] ) || !empty( $meta['datepicker'] ) ) {
+
+            $meta['timestamp'] = wpcf_fields_date_value_get_filter( $meta,
+                    $field, 'timestamp', 'check_leftover' );
+
+            // Check if calculation needed
+            if ( (isset( $meta['hour'] )
+                    && $meta['hour'] != date( 'H', $meta['timestamp'] ) )
+                    || (isset( $meta['minute'] )
+                    && $meta['minute'] != date( 'i', $meta['timestamp'] ) ) ) {
+
+                $value = wpcf_fields_date_calculate_time( $meta );
+
+                /*
+                 * 
+                 * If enabling clearing old values here,
+                 * pay attention if field is repetitive.
+                 * 
+                 * For now - old data is cleared on date save.
+                 * wpcf_fields_date_value_save_filter()
+                 */
+
+                // Update meta
+//                    $success = update_post_meta( $post_id, $field_slug, $value );
+                // Remove additional meta
+//                    if ( $success ) {
+//                        delete_post_meta( $post_id,
+//                                '_wpcf_' . $field_id . '_hour_and_minute' );
+//                    }
+            }
+        }
+    }
+
+    // Cache it
+    if ( $use_cache ) {
+        $cache[$cache_key] = $value;
+    }
+
+    return $value;
+}

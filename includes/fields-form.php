@@ -136,6 +136,7 @@ function wpcf_admin_save_fields_groups_submit( $form ) {
     // Save group
     $post_types = isset( $_POST['wpcf']['group']['supports'] ) ? $_POST['wpcf']['group']['supports'] : array();
     $taxonomies_post = isset( $_POST['wpcf']['group']['taxonomies'] ) ? $_POST['wpcf']['group']['taxonomies'] : array();
+    $admin_style = $_POST['wpcf']['group']['admin_styles'];
     $terms = array();
     foreach ( $taxonomies_post as $taxonomy ) {
         foreach ( $taxonomy as $tax => $term ) {
@@ -167,6 +168,7 @@ function wpcf_admin_save_fields_groups_submit( $form ) {
         wpcf_admin_fields_save_group_fields( $group_id, $fields );
         wpcf_admin_fields_save_group_post_types( $group_id, $post_types );
         wpcf_admin_fields_save_group_terms( $group_id, $terms );
+        wpcf_admin_fields_save_group_admin_styles( $group_id, $admin_style );
         if ( empty( $_POST['wpcf']['group']['templates'] ) ) {
             $_POST['wpcf']['group']['templates'] = array();
         }
@@ -198,6 +200,8 @@ function wpcf_admin_fields_form() {
     global $wpcf_button_style;
     global $wpcf_button_style30;
 
+    global $wpcf;
+
     // If it's update, get data
     $update = false;
     if ( isset( $_REQUEST['group_id'] ) ) {
@@ -211,6 +215,7 @@ function wpcf_admin_fields_form() {
             $update['post_types'] = wpcf_admin_get_post_types_by_group( $_REQUEST['group_id'] );
             $update['taxonomies'] = wpcf_admin_get_taxonomies_by_group( $_REQUEST['group_id'] );
             $update['templates'] = wpcf_admin_get_templates_by_group( $_REQUEST['group_id'] );
+            $update['admin_styles'] = wpcf_admin_get_groups_admin_styles_by_group( $_REQUEST['group_id'] );
         }
     }
 
@@ -281,15 +286,6 @@ function wpcf_admin_fields_form() {
         }
     }
 
-    // Link
-//    $form['fields-link-tutorial-1'] = array(
-//        '#type' => 'markup',
-//        '#markup' => '<strong>' . __('Looking for repeater fields?', 'wpcf')
-//        . '</strong><br />'
-//        . sprintf(__('Learn about Types %sfield tables%s', 'wpcf'),
-//                '<a href="http://wp-types.com/documentation/user-guides/bulk-content-editing-with-fields-table/" target="_blank">',
-//                ' &raquo;</a>'),
-//    );
     // Get fields created by user
     $fields = wpcf_admin_fields_get_fields( true, true );
     if ( !empty( $fields ) ) {
@@ -405,9 +401,7 @@ function wpcf_admin_fields_form() {
     $form_types = array();
 
     foreach ( $post_types as $post_type_slug => $post_type ) {
-        if ( in_array( $post_type_slug,
-                        array('attachment', 'revision', 'nav_menu_item',
-                    'view', 'view-template', 'cred-form') )
+        if ( in_array( $post_type_slug, $wpcf->excluded_post_types )
                 || !$post_type->show_ui ) {
             continue;
         }
@@ -481,7 +475,8 @@ function wpcf_admin_fields_form() {
      * 
      * TAXONOMIES FILTER QUERY
      */
-    $taxonomies = get_taxonomies( '', 'objects' );
+    $taxonomies = apply_filters( 'wpcf_group_form_filter_taxonomies',
+            get_taxonomies( '', 'objects' ) );
     $options = array();
     $tax_currently_supported = array();
     $form_tax = array();
@@ -498,7 +493,8 @@ function wpcf_admin_fields_form() {
                 || $category_slug == 'post_format' ) {
             continue;
         }
-        $terms = get_terms( $category_slug, array('hide_empty' => false) );
+        $terms = apply_filters( 'wpcf_group_form_filter_terms',
+                get_terms( $category_slug, array('hide_empty' => false) ) );
         if ( !empty( $terms ) ) {
             $options = array();
             $add_title = '<div class="taxonomy-title">' . $category->labels->name . '</div>';
@@ -506,7 +502,8 @@ function wpcf_admin_fields_form() {
 
             foreach ( $terms as $term ) {
                 $checked = 0;
-                if ( $update && !empty( $update['taxonomies'] ) && array_key_exists( $category_slug,
+                if ( $update && !empty( $update['taxonomies'] )
+                        && array_key_exists( $category_slug,
                                 $update['taxonomies'] ) ) {
                     if ( array_key_exists( $term->term_taxonomy_id,
                                     $update['taxonomies'][$category_slug] ) ) {
@@ -624,6 +621,11 @@ function wpcf_admin_fields_form() {
         $text = implode( ', ', $text );
     } else {
         $text = __( 'Not Selected', 'wpcf' );
+    }
+
+    // Add class
+    foreach ( $options as $_k => $_option ) {
+        $options[$_k]['#attributes'] = array('class' => 'wpcf-form-groups-support-templates');
     }
 
     $form_templates = array(
@@ -765,6 +767,107 @@ function wpcf_admin_fields_form() {
         '#markup' => '</td></tr></tbody></table><br />',
     );
 
+    /** Admin styles* */
+    $form['adminstyles-table-open'] = array(
+        '#type' => 'markup',
+        '#markup' => '<table class="widefat" id="wpcf-admin-styles-box"><thead><tr><th>'
+        . __( 'Styling Editor', 'wpcf' )
+        . '</th></tr></thead><tbody><tr><td>'
+        . '<p>'
+        . __( 'Customize Fields for admin panel.', 'wpcf' )
+        . '</p>',
+    );
+
+    $admin_styles_value = $preview_profile = $edit_profile = '';
+    if ( isset( $update['admin_styles'] ) ) {
+        $admin_styles_value = $update['admin_styles'];
+    }
+    $temp = '';
+
+    if ( $update ) {
+        require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+        require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta.php';
+        require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
+        require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta-post.php';
+        //Get sample post
+        $post = query_posts( 'posts_per_page=1' );
+		
+        
+		if ( !empty($post) && count($post)!='' ){
+			$post = $post[0];
+			$preview_profile = wpcf_admin_post_meta_box_preview( $post, $update, 1 );
+			$group = $update;
+			$group['fields'] = wpcf_admin_post_process_fields( $post,
+					$group['fields'], true );
+			$edit_profile = wpcf_admin_post_meta_box( $post, $group, 1 );
+		}
+    }
+
+    $temp[] = array(
+        '#type' => 'radio',
+        '#suffix' => '<br />',
+        '#value' => 'edit_mode',
+        '#title' => 'Edit mode',
+        '#name' => 'wpcf[group][preview]', '#default_value' => '',
+        '#before' => '<div class="wpcf-admin-css-preview-style-edit">',
+        '#inline' => true,
+        '#attributes' => array('onclick' => 'changePreviewHtml(\'editmode\')', 'checked' => 'checked')
+    );
+
+    $temp[] = array(
+        '#type' => 'radio',
+        '#title' => 'Read Only',
+        '#name' => 'wpcf[group][preview]', '#default_value' => '',
+        '#after' => '</div>',
+        '#inline' => true,
+        '#attributes' => array('onclick' => 'changePreviewHtml(\'readonly\')')
+    );
+
+    $temp[] = array(
+        '#type' => 'textarea',
+        '#name' => 'wpcf[group][admin_html_preview]',
+        '#inline' => true,
+        '#value' => '',
+        '#id' => 'wpcf-form-groups-admin-html-preview',
+        '#before' => '<h3>Field group HTML</h3>'
+    );
+
+    $temp[] = array(
+        '#type' => 'textarea',
+        '#name' => 'wpcf[group][admin_styles]',
+        '#inline' => true,
+        '#value' => $admin_styles_value,
+        '#default_value' => '',
+        '#id' => 'wpcf-form-groups-css-fields-editor',
+        '#after' => '
+		<div class="wpcf-update-preview-btn"><input type="button" value="Update preview" onclick="wpcfPreviewHtml()" style="float:right;" class="button-secondary"></div>
+		<h3>Field group preview</h3>
+		<div id="wpcf-update-preview-div">Preview here</div>
+		<script type="text/javascript">
+			var wpcfReadOnly = ' . json_encode( $preview_profile ) . ';
+			var wpcfEditMode = ' . json_encode( $edit_profile ) . ';
+			var wpcfDefaultCss = ' . json_encode( $admin_styles_value ) . ';
+		</script>
+		',
+        '#before' => '<h3>Your CSS</h3>'
+    );
+
+
+
+
+    $admin_styles = _wpcf_filter_wrap( 'admin_styles',
+            __( 'Admin styles for fields:', 'wpcf' ), '', '', $temp,
+            __( 'Open style editor', 'wpcf' ) );
+    $form['p_wrap_1_' . wpcf_unique_id( serialize( $admin_styles ) )] = array(
+        '#type' => 'markup',
+        '#markup' => '<p class="wpcf-filter-wrap">',
+    );
+    $form = $form + $admin_styles;
+    $form['adminstyles-table-close'] = array(
+        '#type' => 'markup',
+        '#markup' => '</td></tr></tbody></table><br />',
+    );
+    /** End admin Styles * */
     // Group fields
 
     $form['fields_title'] = array(
@@ -860,7 +963,7 @@ function wpcf_admin_fields_form() {
         '#markup' => '</div>',
     );
 
-    $form = apply_filters( 'wpcf_form_fields', $form );
+    $form = apply_filters( 'wpcf_form_fields', $form, $update );
 
     // Add JS settings
     wpcf_admin_add_js_settings( 'wpcfFormUniqueValuesCheckText',
@@ -1387,7 +1490,7 @@ function wpcf_admin_fields_form_nested_elements( $id, $element, $title, $list,
  * @param type $e
  * @return string
  */
-function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e ) {
+function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e, $edit_button = '' ) {
 
     global $wpcf_button_style;
     global $wpcf_button_style30;
@@ -1397,6 +1500,11 @@ function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e ) {
     $query = 'jQuery(this), \'' . esc_html( $id ) . '\', \'' . esc_html( $title )
             . '\', \'' . esc_html( $txt ) . '\', \'' . esc_html( $txt_empty ) . '\'';
 
+    if ( empty( $edit_button ) ) {
+        $edit = __( 'Edit', 'wpcf' );
+    } else {
+        $edit = $edit_button;
+    }
     /*
      * 
      * Title and Edit button
@@ -1409,7 +1517,7 @@ function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e ) {
         . '&nbsp;&nbsp;<a href="javascript:void(0);" ' . $wpcf_button_style30 . ' '
         . ' class="button-secondary wpcf-form-filter-edit" onclick="wpcfFilterEditClick('
         . $query . ');">'
-        . __( 'Edit', 'wpcf' ) . '</a><div class="hidden" id="wpcf-form-fields-' . $id . '">',
+        . $edit . '</a><div class="hidden" id="wpcf-form-fields-' . $id . '">',
     );
 
     /*
@@ -1437,7 +1545,8 @@ function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e ) {
     $form['filter_' . $unique_id . '_ok'] = array(
         '#type' => 'markup',
         '#markup' => '<a href="javascript:void(0);" ' . $wpcf_button_style . ' '
-        . 'class="button-primary  wpcf-form-filter-ok wpcf-groups-form-ajax-update-post-types-ok"'
+        . 'class="button-primary  wpcf-form-filter-ok wpcf-groups-form-ajax-update-'
+        . $id . '-ok"'
         . ' onclick="wpcfFilterOkClick('
         . $query . ');">'
         . __( 'OK', 'wpcf' ) . '</a>&nbsp;',
@@ -1451,7 +1560,8 @@ function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e ) {
     $form['filter_' . $unique_id . '_cancel'] = array(
         '#type' => 'markup',
         '#markup' => '<a href="javascript:void(0);" ' . $wpcf_button_style . ' '
-        . 'class="button-secondary wpcf-form-filter-cancel wpcf-groups-form-ajax-update-post-types-cancel"'
+        . 'class="button-secondary wpcf-form-filter-cancel wpcf-groups-form-ajax-update-'
+        . $id . '-cancel"'
         . ' onclick="wpcfFilterCancelClick('
         . $query . ');">'
         . __( 'Cancel', 'wpcf' ) . '</a>',

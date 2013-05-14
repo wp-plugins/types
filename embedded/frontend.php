@@ -42,11 +42,19 @@ add_shortcode( 'types', 'wpcf_shortcode' );
  */
 function wpcf_shortcode( $atts, $content = null, $code = '' ) {
 
+    global $wpcf;
+
     // Switch the post if there is an attribute of 'id' in the shortcode.
     $post_id_atts = new WPV_wpcf_switch_post_from_attr_id( $atts );
 
+    if ( !is_array( $atts ) ) {
+        $wpcf->errors['shortcode_malformed'][] = func_get_args();
+        return '';
+    }
+
     $atts = array_merge( array(
         'field' => false,
+        'usermeta' => false,
         'style' => '',
         'show_name' => false,
         'raw' => false,
@@ -54,6 +62,9 @@ function wpcf_shortcode( $atts, $content = null, $code = '' ) {
     );
     if ( $atts['field'] ) {
         return types_render_field( $atts['field'], $atts, $content, $code );
+    }
+    if ( $atts['usermeta'] ) {
+        return types_render_usermeta( $atts['usermeta'], $atts, $content, $code );
     }
     return '';
 }
@@ -83,6 +94,19 @@ function types_render_field( $field_id, $params, $content = null, $code = '' ) {
     // Get field
     $field = wpcf_fields_get_field_by_slug( $field_id );
 
+    //If Access plugin activated
+    if ( function_exists( 'wpcf_access_register_caps' ) ) {
+        require_once WPCF_ABSPATH . '/includes/fields.php';
+        $field_groups = wpcf_admin_fields_get_groups_by_field( $field_id );
+        if ( !empty( $field_groups ) ) {
+            foreach ( $field_groups as $field_group ) {
+                if ( !current_user_can( 'view_fields_on_site_' . $field_group['slug'] ) ) {
+                    return;
+                }
+            }
+        }
+    }
+
     // If field not found return empty string
     if ( empty( $field ) ) {
 
@@ -96,14 +120,16 @@ function types_render_field( $field_id, $params, $content = null, $code = '' ) {
 
         return '';
     }
+    
+    // Set field
+    $wpcf->field->set( $post, $field );
 
     // See if repetitive
     if ( wpcf_admin_is_repetitive( $field ) ) {
         $wpcf->repeater->set( $post_id, $field );
         $_meta = $wpcf->repeater->_get_meta();
         $meta = $_meta['custom_order'];
-//        $meta = get_post_meta( $post_id,
-//                wpcf_types_get_meta_prefix( $field ) . $field['slug'], false );
+
         // Sometimes if meta is empty - array(0 => '') is returned
         if ( (count( $meta ) == 1 ) ) {
             $meta_id = key( $meta );
@@ -163,16 +189,17 @@ function types_render_field( $field_id, $params, $content = null, $code = '' ) {
             return '';
         }
     } else {
-        $params['field_value'] = get_post_meta( $post_id,
+
+        // Non-repetitive field
+        $params['field_value'] = wpcf_get_post_meta( $post_id,
                 wpcf_types_get_meta_prefix( $field ) . $field['slug'], true );
         if ( $params['field_value'] == '' && $field['type'] != 'checkbox' ) {
             return '';
         }
-        $html = types_render_field_single( $field, $params, $content, $code );
+        $html = types_render_field_single( $field, $params, $content, $code,
+                $wpcf->field->meta_object->meta_id );
     }
 
-    // API filter
-    $wpcf->field->set( $post, $field );
     return $wpcf->field->html( $html, $params );
 }
 
@@ -186,6 +213,10 @@ function types_render_field( $field_id, $params, $content = null, $code = '' ) {
 function types_render_field_single( $field, $params, $content = null,
         $code = '', $meta_id = null ) {
     global $post;
+
+    if ( empty( $post ) ) {
+        $post = (object) array('ID' => '');
+    }
 
     // Count fields (if there are duplicates)
     static $count = array();
@@ -209,6 +240,9 @@ function types_render_field_single( $field, $params, $content = null,
     if ( is_string( $params['field_value'] ) ) {
         $params['field_value'] = trim( $params['field_value'] );
     }
+
+    $params = apply_filters( 'types_field_shortcode_parameters', $params,
+            $field, $post, $meta_id );
 
     $params['field_value'] = apply_filters( 'wpcf_fields_value_display',
             $params['field_value'], $params, $post->ID, $field['id'], $meta_id );
@@ -245,7 +279,6 @@ function types_render_field_single( $field, $params, $content = null,
     $params['__meta_id'] = $meta_id;
     $params['field']['__meta_id'] = $meta_id;
 
-
     $output = '';
     if ( isset( $params['raw'] ) && $params['raw'] == 'true' ) {
         // Skype is array
@@ -261,7 +294,6 @@ function types_render_field_single( $field, $params, $content = null,
          * This is place where view function is called
          */
         $output = wpcf_fields_type_action( $field['type'], 'view', $params );
-
         // Convert to string
         if ( !empty( $output ) ) {
             $output = strval( $output );
@@ -286,7 +318,6 @@ function types_render_field_single( $field, $params, $content = null,
                     'id="wpcf-field-' . $field['slug'] . $add . '"', $output );
         }
     }
-
     // Apply filters
     $output = strval( apply_filters( 'types_view', $output,
                     $params['field_value'], $field['type'], $field['slug'],

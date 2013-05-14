@@ -94,6 +94,8 @@ class WPCF_Evaluate
                 add_filter( 'get_post_metadata',
                         'wpcf_cd_meta_ajax_validation_filter', 10, 4 );
             }
+            do_action( 'types_custom_conditional_statement', $o );
+
             /*
              * 
              * Set statement
@@ -234,8 +236,13 @@ class WPCF_Evaluate
                  * BREAKPOINT
                  * This is where values for evaluation are set.
                  * Please do not allow other places - use hooks.
+                 * 
+                 * TODO Monitor this
+                 * 1.3 Change use of $c->_get_meta( 'POST' )
+                 * to $c->get_submitted_data()
                  */
-                $value = defined( 'DOING_AJAX' ) ? $c->_get_meta( 'POST' ) : $c->__meta;
+//                $value = defined( 'DOING_AJAX' ) ? $c->_get_meta( 'POST' ) : $c->__meta;
+                $value = defined( 'DOING_AJAX' ) ? $c->get_submitted_data() : $c->__meta;
 
                 /*
                  * 
@@ -269,11 +276,10 @@ class WPCF_Evaluate
              * Check OR/AND relation
              */
             if ( $count > 1 ) {
-                if ( !$passed_all && $field['data']['conditional_display']['relation'] == 'AND' ) {
-                    $passed = false;
-                }
-                if ( !$passed_one && $field['data']['conditional_display']['relation'] == 'OR' ) {
-                    $passed = false;
+                if ( $field['data']['conditional_display']['relation'] == 'AND' ) {
+                    $passed = $passed_all;
+                } else if ( $field['data']['conditional_display']['relation'] == 'OR' ) {
+                    $passed = $passed_one;
                 }
             }
         }

@@ -59,6 +59,7 @@
 #wpcf-post-relationship .wpcf-pr-has-title {
     font-weight: bold;
     margin-bottom: 0;
+    padding-right:250px;
 }
 #wpcf-post-relationship .actions a {
     /*line-height: 25px;*/

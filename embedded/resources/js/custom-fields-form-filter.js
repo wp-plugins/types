@@ -3,6 +3,7 @@
  */
 jQuery(document).ready(function(){
     wpcfFieldsFormFiltersSummary();
+	//jQuery('#wpfooter').css({'position':'relative'});
 });
     
 function wpcfFieldsFormFiltersSummary() {
@@ -47,7 +48,23 @@ function _wpcfFilterTitle(e, title, title_not_empty, title_empty) {
     }
 }
 
-
+//Autocomplete slugs
+jQuery('input.wpcf-forms-field-slug').live('blur focus click', function(){
+	var slug = jQuery(this).val();
+	var slug_name = jQuery(this).attr('name');
+	var name = '';
+	if (slug == '' || slug == 'Enter field slug'){
+		
+		//wpcf-forms-field-name
+		name = jQuery(this).parent().find('input.wpcf-forms-field-name');
+		jQuery(this).val(jQuery(name).val().toLowerCase().split(' ').join('-').split('\'').join(''));
+		//jQuery(this).trigger('keyup');
+		
+		
+	}
+});
+var CSSLayoutEditor = '';
+var HTMMLLayoutEditor = '';
 // Edit Button
 //
 //
@@ -109,14 +126,57 @@ function wpcfFilterEditClick(object, edit, title, title_not_empty, title_empty) 
         });
         jQuery(this).css('visibility', 'hidden');
     }
+	else if (edit == 'admin_styles') {
+        toggle.slideToggle();
+		//.CodeMirror-scroll{
+	//width:713px;	
+//}
+		jQuery("#wpcf-admin-styles-box").css({width:'700px','border-color':'#808080','box-shadow':'5px 5px 10px #888888','z-index':'10000'});
+		
+		if (CSSLayoutEditor == ''){
+			jQuery("#wpcf-update-preview-div").resizable({});
+			document.getElementById("wpcf-form-groups-admin-html-preview").innerHTML = wpcfEditMode;
+			CSSLayoutEditor = CodeMirror.fromTextArea(document.getElementById("wpcf-form-groups-css-fields-editor"), {mode: "css", tabMode: "indent",
+				 lineWrapping: true, lineNumbers: true});
+			HTMMLLayoutEditor = CodeMirror.fromTextArea(document.getElementById("wpcf-form-groups-admin-html-preview"), {mode: "text/html", tabMode: "indent",
+				 readOnly:true, lineWrapping: true, lineNumbers: true});
+			wpcfPreviewHtml();	 	
+			jQuery(".CodeMirror-scroll").css({width:'675px'});
+			jQuery(".CodeMirror").resizable({
+			  stop: function() { CSSLayoutEditor.refresh(); HTMMLLayoutEditor.refresh(); },
+			  resize: function() {
+				jQuery(this).find(".CodeMirror-scroll").height(jQuery(this).height());
+				jQuery(this).find(".CodeMirror-scroll").width(jQuery(this).width());
+				CSSLayoutEditor.refresh();HTMMLLayoutEditor.refresh();
+			  }
+			});
+			
+		}
+		
+			
+    }
     
     // Hide until OK or Cancel
     object.css('visibility', 'hidden');
 }
 
 
-
-
+function changePreviewHtml(mode){
+	if (mode == 'readonly'){
+		HTMMLLayoutEditor.setValue(wpcfReadOnly);
+	}
+	else{
+		HTMMLLayoutEditor.setValue(wpcfEditMode);
+	}
+	HTMMLLayoutEditor.refresh();
+	wpcfPreviewHtml();	 
+}
+function wpcfPreviewHtml(){
+	jQuery("#wpcf-update-preview-div").resizable( "destroy" );
+	jQuery("<style type='text/css'> "+ CSSLayoutEditor.getValue() +" </style>").appendTo("head");
+	document.getElementById("wpcf-update-preview-div").innerHTML = HTMMLLayoutEditor.getValue();
+	jQuery("#wpcf-update-preview-div").resizable({}); 
+}
 
 
 // OK Button
@@ -247,6 +307,11 @@ function wpcfFilterOkClick(object, edit, title, title_not_empty, title_empty) {
         }
             
     }
+	else if (edit == 'admin_styles') {
+		jQuery("#wpcf-admin-styles-box").css({width:'400px','border-color':'#dfdfdf','box-shadow':'none','z-index':'0'});
+		jQuery('html, body').animate({scrollTop:jQuery('#wpcf-admin-styles-box').position().top}, 'fast');
+        toggle.slideUp();
+    }
     
     parent.children('a').css('visibility', 'visible');
 }
@@ -364,6 +429,14 @@ function wpcfFilterCancelClick(object, edit, title, title_not_empty, title_empty
             .html(_wpcfFilterTitle('empty', title, title_not_empty, title_empty));
         }
     }
+	// Do admin styles
+	else if (edit == 'admin_styles') {
+	  jQuery("#wpcf-admin-styles-box").css({width:'400px','border-color':'#dfdfdf','box-shadow':'none','z-index':'0'});
+	  jQuery('html, body').animate({scrollTop:jQuery('#wpcf-admin-styles-box').position().top}, 'fast');
+      CSSLayoutEditor.setValue(wpcfDefaultCss); 
+	  toggle.slideUp();
+    }
+	
     
     parent.children('a').css('visibility', 'visible');
 }

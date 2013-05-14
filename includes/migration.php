@@ -245,14 +245,17 @@ function wpcf_admin_migration_form() {
                                 $option_value = trim($temp[0]);
                                 $option_title = trim($temp[1]);
                             }
-                            $form[$acf_post->ID . '_acf_field_' . $meta_name . '_option_' . $option_value . '_value'] = array(
+                            
+                            $_key = sanitize_title($option_value);
+                            
+                            $form[$acf_post->ID . '_acf_field_' . $meta_name . '_option_' . $_key . '_value'] = array(
                                 '#type' => 'hidden',
-                                '#name' => 'acf_posts[' . $acf_post->ID . '][fields][' . $meta_name . '][options][' . $option_value . '][value]',
+                                '#name' => 'acf_posts[' . $acf_post->ID . '][fields][' . $meta_name . '][options][' . $_key . '][value]',
                                 '#value' => esc_attr($option_value),
                             );
-                            $form[$acf_post->ID . '_acf_field_' . $meta_name . '_option_' . $option_value . '_title'] = array(
+                            $form[$acf_post->ID . '_acf_field_' . $meta_name . '_option_' . $_key . '_title'] = array(
                                 '#type' => 'hidden',
-                                '#name' => 'acf_posts[' . $acf_post->ID . '][fields][' . $meta_name . '][options][' . $option_value . '][title]',
+                                '#name' => 'acf_posts[' . $acf_post->ID . '][fields][' . $meta_name . '][options][' . $_key . '][title]',
                                 '#value' => esc_attr($option_title),
                             );
                         }

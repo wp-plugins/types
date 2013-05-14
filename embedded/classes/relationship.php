@@ -228,6 +228,10 @@ class WPCF_Relationship
             return new WP_Error( 'wpcf-relationship-save-child', 'no parent/child post' );
         }
 
+        // TODO Move to conditional.php
+        // Fix for Common Conditional check
+        $_POST['post_ID'] = $child->ID;
+
         // Save relationship
         update_post_meta( $child->ID,
                 '_wpcf_belongs_' . $parent->post_type . '_id', $parent->ID );
@@ -257,8 +261,10 @@ class WPCF_Relationship
         } else {
             $post_title = $save_fields['_wp_title'];
         }
+		
         $post_data['post_title'] = $post_title;
-        $post_data['post_content'] = !empty( $save_fields['_wp_body'] ) ? $save_fields['_wp_body'] : '';
+        $post_data['post_content'] = isset( $save_fields['_wp_body'] ) ? $save_fields['_wp_body'] : $child->post_content;
+		
         $post_data['post_type'] = $child->post_type;
         // TODO This should be revised
         $post_data['post_status'] = 'publish';
@@ -346,6 +352,8 @@ class WPCF_Relationship
         );
         $id = wp_insert_post( $new_post, true );
         if ( !is_wp_error( $id ) ) {
+            // Fix for Common Conditional check
+            $_POST['post_ID'] = $id;
             // Mark that it is new post
             update_post_meta( $id, '_wpcf_relationship_new', 1 );
             // Save relationship
@@ -374,7 +382,7 @@ class WPCF_Relationship
      * @return type
      */
     function get_submitted_data( $parent_id, $child_id, $field ) {
-        if (!is_string($field)) {
+        if ( !is_string( $field ) ) {
             $_field_slug = $field->slug;
         } else {
             $_field_slug = $field;

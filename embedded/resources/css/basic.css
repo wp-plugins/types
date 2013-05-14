@@ -421,3 +421,6 @@ input.wpcf-form-error {
 .types-ajax #screen-meta {
     display: none;
 }
+.ac_results{
+	width:200px !important;	
+}

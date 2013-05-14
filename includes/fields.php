@@ -86,30 +86,34 @@ function wpcf_admin_get_templates_by_group( $group_id ) {
 
 /**
  * Activates group.
+ * Modified by Gen, 13.02.2013
  * 
  * @global type $wpdb
  * @param type $group_id
  * @return type 
  */
-function wpcf_admin_fields_activate_group( $group_id ) {
+function wpcf_admin_fields_activate_group( $group_id,
+        $post_type = 'wp-types-group' ) {
     global $wpdb;
     return $wpdb->update( $wpdb->posts, array('post_status' => 'publish'),
-                    array('ID' => intval( $group_id ), 'post_type' => 'wp-types-group'),
+                    array('ID' => intval( $group_id ), 'post_type' => $post_type),
                     array('%s'), array('%d', '%s')
     );
 }
 
 /**
  * Deactivates group.
+ * Modified by Gen, 13.02.2013
  * 
  * @global type $wpdb
  * @param type $group_id
  * @return type 
  */
-function wpcf_admin_fields_deactivate_group( $group_id ) {
+function wpcf_admin_fields_deactivate_group( $group_id,
+        $post_type = 'wp-types-group' ) {
     global $wpdb;
     return $wpdb->update( $wpdb->posts, array('post_status' => 'draft'),
-                    array('ID' => intval( $group_id ), 'post_type' => 'wp-types-group'),
+                    array('ID' => intval( $group_id ), 'post_type' => $post_type),
                     array('%s'), array('%d', '%s')
     );
 }
@@ -147,27 +151,30 @@ function wpcf_admin_fields_remove_field_from_group_bulk( $group_id, $fields ) {
 
 /**
  * Deletes field.
+ * Modified by Gen, 13.02.2013
  * 
  * @param type $field_id
  */
-function wpcf_admin_fields_delete_field( $field_id ) {
+function wpcf_admin_fields_delete_field( $field_id,
+        $post_type = 'wp-types-group', $meta_name = 'wpcf-fields' ) {
     global $wpdb;
-    $fields = get_option( 'wpcf-fields', array() );
+    $fields = get_option( $meta_name, array() );
     if ( isset( $fields[$field_id] ) ) {
         // Remove from groups
-        $groups = wpcf_admin_fields_get_groups();
+        $groups = wpcf_admin_fields_get_groups( $post_type );
         foreach ( $groups as $key => $group ) {
             wpcf_admin_fields_remove_field_from_group( $group['id'], $field_id );
         }
         // Remove from posts
-        if ( !wpcf_types_cf_under_control( 'check_outsider', $field_id ) ) {
+        if ( !wpcf_types_cf_under_control( 'check_outsider', $field_id,
+                        $post_type, $meta_name ) ) {
             $results = $wpdb->get_results( "SELECT post_id, meta_key FROM $wpdb->postmeta WHERE meta_key = '" . wpcf_types_get_meta_prefix( $fields[$field_id] ) . strval( $field_id ) . "'" );
             foreach ( $results as $result ) {
                 delete_post_meta( $result->post_id, $result->meta_key );
             }
         }
         unset( $fields[$field_id] );
-        wpcf_admin_fields_save_fields( $fields, true );
+        wpcf_admin_fields_save_fields( $fields, true, $meta_name );
         return true;
     } else {
         return false;
@@ -176,14 +183,16 @@ function wpcf_admin_fields_delete_field( $field_id ) {
 
 /**
  * Deletes group by ID.
+ * Modified by Gen, 13.02.2013
  * 
  * @global type $wpdb
  * @param type $group_id
  * @return type 
  */
-function wpcf_admin_fields_delete_group( $group_id ) {
+function wpcf_admin_fields_delete_group( $group_id,
+        $post_type = 'wp-types-group' ) {
     $group = get_post( $group_id );
-    if ( empty( $group ) || $group->post_type != 'wp-types-group' ) {
+    if ( empty( $group ) || $group->post_type != $post_type ) {
         return false;
     }
     wp_delete_post( $group_id, true );
@@ -191,18 +200,19 @@ function wpcf_admin_fields_delete_group( $group_id ) {
 
 /**
  * Saves group.
+ * Modified by Gen, 13.02.2013
  * 
  * @param type $group
  * @return type 
  */
-function wpcf_admin_fields_save_group( $group ) {
+function wpcf_admin_fields_save_group( $group, $post_type = 'wp-types-group' ) {
     if ( !isset( $group['name'] ) ) {
         return false;
     }
 
     $post = array(
         'post_status' => 'publish',
-        'post_type' => 'wp-types-group',
+        'post_type' => $post_type,
         'post_title' => $group['name'],
         'post_content' => !empty( $group['description'] ) ? $group['description'] : '',
     );
@@ -211,7 +221,7 @@ function wpcf_admin_fields_save_group( $group ) {
     if ( isset( $group['id'] ) ) {
         $update = true;
         $post_to_update = get_post( $group['id'] );
-        if ( empty( $post_to_update ) || $post_to_update->post_type != 'wp-types-group' ) {
+        if ( empty( $post_to_update ) || $post_to_update->post_type != $post_type ) {
             return false;
         }
         $post['ID'] = $post_to_update->ID;
@@ -250,24 +260,28 @@ function wpcf_admin_fields_save_group( $group ) {
 
 /**
  * Saves all fields.
+ * Modified by Gen, 13.02.2013
  * 
  * @param type $fields 
  */
-function wpcf_admin_fields_save_fields( $fields, $forced = false ) {
-    $original = get_option( 'wpcf-fields', array() );
+function wpcf_admin_fields_save_fields( $fields, $forced = false,
+        $option_name = 'wpcf-fields' ) {
+    $original = get_option( $option_name, array() );
     if ( !$forced ) {
         $fields = array_merge( $original, $fields );
     }
-    update_option( 'wpcf-fields', $fields );
+    update_option( $option_name, $fields );
 }
 
 /**
  * Saves field.
+ * Modified by Gen, 13.02.2013
  * 
  * @param type $field
  * @return type 
  */
-function wpcf_admin_fields_save_field( $field ) {
+function wpcf_admin_fields_save_field( $field, $post_type = 'wp-types-group',
+        $meta_name = 'wpcf-fields' ) {
 
     if ( !isset( $field['name'] ) || !isset( $field['type'] ) ) {
         return new WP_Error( 'wpcf_save_field_no_name_or_type', __( "Error saving field",
@@ -296,8 +310,10 @@ function wpcf_admin_fields_save_field( $field ) {
 
     // Merge previous data (added because of outside fields)
     // @TODO Remember why
-    if ( wpcf_types_cf_under_control( 'check_outsider', $field['id'] ) ) {
-        $field_previous_data = wpcf_admin_fields_get_field( $field['id'] );
+    if ( wpcf_types_cf_under_control( 'check_outsider', $field['id'],
+                    $post_type, $meta_name ) ) {
+        $field_previous_data = wpcf_admin_fields_get_field( $field['id'], false,
+                false, false, $meta_name );
         if ( !empty( $field_previous_data['data'] ) ) {
             $field['data'] = array_merge( $field_previous_data['data'],
                     $field['data'] );
@@ -366,9 +382,9 @@ function wpcf_admin_fields_save_field( $field ) {
     }
 
     // Save field
-    $fields = get_option( 'wpcf-fields', array() );
+    $fields = get_option( $meta_name, array() );
     $fields[$field['slug']] = $save_data;
-    update_option( 'wpcf-fields', $fields );
+    update_option( $meta_name, $fields );
     $field_id = $field['slug'];
 
     // WPML register strings
@@ -460,16 +476,18 @@ function wpcf_admin_fields_save_field( $field ) {
 
 /**
  * Changes field type.
+ * Modified by Gen, 13.02.2013
  * 
  * @param type $fields
  * @param type $type 
  */
-function wpcf_admin_custom_fields_change_type( $fields, $type ) {
+function wpcf_admin_custom_fields_change_type( $fields, $type,
+        $post_type = 'wp-types-group', $meta_name = 'wpcf-fields' ) {
     if ( !is_array( $fields ) ) {
         $fields = array(strval( $fields ));
     }
     $fields = wpcf_types_cf_under_control( 'add',
-            array('fields' => $fields, 'type' => $type) );
+            array('fields' => $fields, 'type' => $type), $post_type, $meta_name );
     $allowed = array(
         'textfield' => array('wysiwyg', 'textfield', 'textarea', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
         'textarea' => array('wysiwyg', 'textfield', 'textarea', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
@@ -486,7 +504,7 @@ function wpcf_admin_custom_fields_change_type( $fields, $type ) {
         'radio' => array('wysiwyg', 'radio', 'textarea', 'textfield', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
         'wysiwyg' => array('wysiwyg', 'textarea'),
     );
-    $all_fields = wpcf_admin_fields_get_fields();
+    $all_fields = wpcf_admin_fields_get_fields( false, false, false, $meta_name );
     foreach ( $fields as $field_id ) {
         if ( !isset( $all_fields[$field_id] ) ) {
             continue;
@@ -503,20 +521,25 @@ function wpcf_admin_custom_fields_change_type( $fields, $type ) {
         }
         $all_fields[$field_id]['type'] = $type;
     }
-    update_option( 'wpcf-fields', $all_fields );
+    update_option( $meta_name, $all_fields );
 }
 
 /**
  * Saves group's fields.
+ * Modified by Gen, 13.02.2013
  * 
  * @global type $wpdb
  * @param type $group_id
  * @param type $fields 
  */
-function wpcf_admin_fields_save_group_fields( $group_id, $fields, $add = false ) {
-    $fields = wpcf_types_cf_under_control( 'add', array('fields' => $fields) );
+function wpcf_admin_fields_save_group_fields( $group_id, $fields, $add = false,
+        $post_type = 'wp-types-group' ) {
+    $meta_name = ($post_type == 'wp-types-group' ? 'wpcf-fields' : 'wpcf-usermeta');
+    $fields = wpcf_types_cf_under_control( 'add', array('fields' => $fields),
+            $post_type, $meta_name );
     if ( $add ) {
-        $existing_fields = wpcf_admin_fields_get_fields_by_group( $group_id );
+        $existing_fields = wpcf_admin_fields_get_fields_by_group( $group_id,
+                'slug', false, false, false, $post_type, $meta_name );
         $order = array();
         if ( !empty( $existing_fields ) ) {
             foreach ( $existing_fields as $field_id => $field ) {
@@ -620,19 +643,23 @@ function wpcf_admin_fields_get_ajax_deactivation_link( $group_id ) {
 
 /**
  * Gets all groups that contain specified field.
+ * Modified by Gen, 13.02.2013
  * 
  * @static $cache
  * @param type $field_id 
  */
-function wpcf_admin_fields_get_groups_by_field( $field_id ) {
+function wpcf_admin_fields_get_groups_by_field( $field_id,
+        $post_type = 'wp-types-group' ) {
     static $cache = array();
-    $groups = wpcf_admin_fields_get_groups();
+    $groups = wpcf_admin_fields_get_groups( $post_type );
+    $meta_name = ($post_type == 'wp-types-group' ? 'wpcf-fields' : 'wpcf-usermeta');
     $return = array();
     foreach ( $groups as $group_id => $group ) {
         if ( isset( $cache['groups'][$group_id] ) ) {
             $fields = $cache['groups'][$group_id];
         } else {
-            $fields = wpcf_admin_fields_get_fields_by_group( $group['id'] );
+            $fields = wpcf_admin_fields_get_fields_by_group( $group['id'],
+                    'slug', false, false, false, $post_type, $meta_name );
         }
         if ( array_key_exists( $field_id, $fields ) ) {
             $return[$group['id']] = $group;
@@ -788,7 +815,7 @@ function wpcf_admin_fields_get_filter_by_field( $field ) {
  * @return type 
  */
 function wpcf_admin_fields_get_posts_by_filter( $filter, $meta_query = '' ) {
-    global $wpdb;
+    global $wpdb, $wpcf;
     $query = array();
     $join = array();
     if ( $filter['types'] != 'all' && !empty( $filter['types'] ) ) {
@@ -796,9 +823,7 @@ function wpcf_admin_fields_get_posts_by_filter( $filter, $meta_query = '' ) {
     } else {
         $post_types = get_post_types( array('show_ui' => true), 'names' );
         foreach ( $post_types as $post_type_slug => $post_type ) {
-            if ( in_array( $post_type_slug,
-                            array('attachment', 'revision', 'nav_menu_item',
-                        'view', 'view-template') ) ) {
+            if ( in_array( $post_type_slug, $wpcf->excluded_post_types ) ) {
                 unset( $post_types[$post_type_slug] );
             }
         }
@@ -850,7 +875,7 @@ function wpcf_admin_fields_get_posts_by_filter( $filter, $meta_query = '' ) {
  */
 function wpcf_admin_fields_get_posts_by_filter_missing_meta( $filter,
         $meta_key = '' ) {
-    global $wpdb;
+    global $wpdb, $wpcf;
     $query = array();
     $join = array();
     if ( $filter['types'] != 'all' && !empty( $filter['types'] ) ) {
@@ -858,9 +883,7 @@ function wpcf_admin_fields_get_posts_by_filter_missing_meta( $filter,
     } else {
         $post_types = get_post_types( array('show_ui' => true), 'names' );
         foreach ( $post_types as $post_type_slug => $post_type ) {
-            if ( in_array( $post_type_slug,
-                            array('attachment', 'revision', 'nav_menu_item',
-                        'view', 'view-template') ) ) {
+            if ( in_array( $post_type_slug, $wpcf->excluded_post_types ) ) {
                 unset( $post_types[$post_type_slug] );
             }
         }

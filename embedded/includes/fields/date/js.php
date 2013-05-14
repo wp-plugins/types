@@ -36,6 +36,13 @@ function wpcf_fields_date_meta_box_js_inline() {
                             }
                         });
                         jQuery(this).next().after('<?php echo $date_format_note; ?>');
+                        // Wrap in CSS Scope
+                        jQuery("#ui-datepicker-div").each(function(){
+                            if (!jQuery(this).hasClass('wpcf-jquery-ui-wrapped')) {
+                                jQuery(this).wrap('<div class="wpcf-jquery-ui" />')
+                                .addClass('wpcf-jquery-ui-wrapped');
+                            }
+                        });
                     }
                 });
             }

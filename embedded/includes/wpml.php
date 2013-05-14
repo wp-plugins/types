@@ -9,6 +9,8 @@
  * 0 nothing, 1 copy, 2 translate
  */
 
+add_action( 'wpcf_after_init', 'wpcf_wpml_init' );
+
 // Only when WPML active
 if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
 
@@ -19,6 +21,32 @@ if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
     add_filter( 'types_fields', 'wpcf_wpml_fields_filter', 10, 3 );
     add_filter( 'types_post_type', 'wpcf_wpml_post_types_translate', 10, 3 );
     add_filter( 'types_taxonomy', 'wpcf_wpml_taxonomy_translate', 10, 3 );
+
+    /*
+     * 
+     * Filter terms used when:
+     * - Displaying Group form
+     * - Filtering Group on post edit screen
+     */
+    add_filter( 'wpcf_group_form_filter_terms',
+            'wpcf_wpml_group_form_filter_terms_filter' );
+    add_filter( 'wpcf_post_group_filter_settings',
+            'wpcf_wpml_post_group_filter_taxonomies', 10, 4 );
+    /*
+     * Add untranslated IDs to form
+     */
+    add_filter( 'wpcf_form_fields', 'wpcf_wpml_group_filter_add_missing_terms',
+            10, 2 );
+}
+
+function wpcf_wpml_init() {
+    global $wpcf;
+    // Init object
+    $wpcf->wpml = new stdClass();
+    // Holds all processed terms in current form
+    $wpcf->wpml->group_form_filter_taxonomies_filtered = array();
+    // Holds all translated terms if on language other than default
+    $wpcf->wpml->group_form_filter_taxonomies_translated = array();
 }
 
 /**
@@ -485,7 +513,7 @@ function wpcf_custom_taxonimies_register_translation( $taxonomy, $data ) {
  * @param type $data
  * @param type $context
  */
-function wpcf_wpml_register_labels( $prefix, $data, $context = 'post') {
+function wpcf_wpml_register_labels( $prefix, $data, $context = 'post' ) {
     foreach ( $data['labels'] as $label => $string ) {
         switch ( $context ) {
             case 'taxonomies':
@@ -632,4 +660,177 @@ function wpcf_wpml_taxonomy_translate( $data, $taxonomy ) {
         }
     }
     return $data;
+}
+
+/**
+ * Filters terms on Group form filter.
+ * 
+ * Do not complicate this, just replace term ID
+ * with corresponding original ID.
+ * 
+ * @param array $terms array of terms objects.
+ * @return array
+ */
+function wpcf_wpml_group_form_filter_terms_filter( $terms ) {
+
+    global $sitepress, $wpdb, $wpcf;
+
+    foreach ( $terms as $k => $term ) {
+
+        // Mark it
+        $wpcf->wpml->group_form_filter_taxonomies_filtered[$term->term_taxonomy_id] = $term->term_taxonomy_id;
+
+        // Only on other language
+        if ( $sitepress->get_default_language() != $sitepress->get_current_language() ) {
+
+            // Get original term
+            $original_term_id = icl_object_id( $term->term_id, $term->taxonomy,
+                    true, $sitepress->get_default_language() );
+
+            // Only if translation found
+            if ( $term->term_id != $original_term_id ) {
+                /*
+                 * 
+                 * Note that WPML will return term_id.
+                 */
+                $_term = $wpdb->get_row( $wpdb->prepare( "SELECT t.*, tt.* FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy = %s AND t.term_id = %d LIMIT 1",
+                                $term->taxonomy, $original_term_id ) );
+
+
+                if ( !empty( $_term ) ) {
+
+                    // Mark it
+                    $wpcf->wpml->group_form_filter_taxonomies_translated[$term->term_taxonomy_id] = array(
+                        'original_term_taxonomy_id' => $term->term_taxonomy_id,
+                        'term_taxonomy_id' => $_term->term_taxonomy_id,
+                        'term_id' => $_term->term_id,
+                    );
+
+                    // Adjust Ids
+                    $term->term_taxonomy_id = $_term->term_taxonomy_id;
+                    $term->term_id = $_term->term_id;
+                } else {
+                    $wpcf->debug->errors['wpml']['missing_original_term'][] = $term;
+                }
+            }
+
+            $terms[$k] = $term;
+        }
+    }
+
+    return $terms;
+}
+
+/**
+ * Adjusts term_id in group filter in post edit screen.
+ * 
+ * @global type $sitepress
+ * @global type $wpdb
+ * @param type $group
+ * @return type
+ */
+function wpcf_wpml_post_group_filter_taxonomies( $group, $post, $context,
+        $post_terms ) {
+
+    global $sitepress, $wpdb;
+
+    if ( empty( $post->ID ) ) {
+        return $group;
+    }
+
+    $post_language = $sitepress->get_language_for_element( $post->ID,
+            'post_' . $post->post_type );
+
+    // Only on other language
+    if ( empty( $post_language ) || $sitepress->get_default_language() == $post_language ) {
+        return $group;
+    }
+
+    if ( !empty( $group['_wp_types_group_terms'] ) ) {
+        foreach ( $group['_wp_types_group_terms'] as $key => $term ) {
+
+            // Skip 'all' setting
+            if ( strval( $term ) === 'all' ) {
+                continue;
+            }
+
+            // Get term
+            $_term = $wpdb->get_row( $wpdb->prepare( "SELECT t.*, tt.* FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.term_taxonomy_id = %d LIMIT 1",
+                            $term ) );
+            if ( !empty( $_term ) ) {
+                // Get translated term
+                $translated_term_id = icl_object_id( $_term->term_id,
+                        $_term->taxonomy, true, $post_language );
+
+                if ( $translated_term_id != $_term->term_id ) {
+                    $translated_term = $wpdb->get_row( $wpdb->prepare( "SELECT t.*, tt.* FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id WHERE t.term_id = %d LIMIT 1",
+                                    $translated_term_id ) );
+                    $group['_wp_types_group_terms'][$key] = $translated_term->term_taxonomy_id;
+                }
+            }
+        }
+    }
+
+    return $group;
+}
+
+/**
+ * Append missing terms from saved filter.
+ * 
+ * If terms are added in another language and still valid,
+ * append them as 'hidden' fields. That way we keep terms in sync if swithing
+ * languages in admin area.
+ * 
+ * @global type $wpcf
+ * @param type $form
+ * @param type $settings
+ * @return string
+ */
+function wpcf_wpml_group_filter_add_missing_terms( $form, $settings ) {
+
+    global $wpcf;
+
+    $add_terms = array();
+
+    // Loop over saved settings and see if omitted from form
+    if ( !empty( $settings['taxonomies'] ) ) {
+        foreach ( $settings['taxonomies'] as $taxonomy => $terms ) {
+            foreach ( $terms as $term_taxonomy_id => $term ) {
+                // skip 'Uncategorized' because WPML handles each per language
+                if ( $term_taxonomy_id == 1 ) {
+                    continue;
+                }
+                /*
+                 * Check if term is filtered out, but existing in saved option
+                 * and if it's not translated already. 
+                 */
+                if ( !isset( $wpcf->wpml->group_form_filter_taxonomies_filtered[$term_taxonomy_id] ) ) {
+                    $_add = true;
+                    foreach ( $wpcf->wpml->group_form_filter_taxonomies_translated as
+                                $_translated_term ) {
+                        if ( $_translated_term['term_taxonomy_id'] == $term_taxonomy_id ) {
+                            $_add = false;
+                        }
+                    }
+
+                    if ( $_add ) {
+                        // Now check if it's still valid
+                        $term_ok = get_term_by( 'id', $term_taxonomy_id,
+                                $taxonomy );
+                        // Add form extension to terms radios
+                        if ( !empty( $term_ok ) ) {
+                            $add_terms['wpml_add_terms_' . $term_taxonomy_id] = array(
+                                '#type' => 'hidden',
+                                '#name' => 'wpcf[group][taxonomies]['
+                                . $taxonomy . '][' . $term_taxonomy_id . ']',
+                                '#value' => $term_taxonomy_id,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return $form + $add_terms;
 }

@@ -27,6 +27,9 @@ add_filter('types_message_custom_taxonomy_saved',
 
 add_filter('types_message_custom_fields_saved',
         'types_marketing_message_custom_fields_saved', 10, 3);
+		
+add_filter('types_message_usermeta_saved',
+        'types_marketing_message_usermeta_saved', 10, 3);			
 
 /*
  * 
@@ -57,6 +60,15 @@ function types_marketing_message_custom_taxonomy_saved($message, $data, $update)
 
 function types_marketing_message_custom_fields_saved($message, $title, $update) {
     $type = 'fields';
+    ob_start();
+    include WPCF_ABSPATH . '/marketing/congrats-post-types/index.php';
+    $message = ob_get_contents();
+    ob_end_clean();
+    return $message;
+}
+
+function types_marketing_message_usermeta_saved($message, $title, $update) {
+    $type = 'usermeta';
     ob_start();
     include WPCF_ABSPATH . '/marketing/congrats-post-types/index.php';
     $message = ob_get_contents();

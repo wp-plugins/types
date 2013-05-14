@@ -59,7 +59,14 @@ function wpcf_fields_radio_meta_box_form($field) {
  */
 function wpcf_fields_radio_editor_callback() {
     wpcf_admin_ajax_head('Insert checkbox', 'wpcf');
-    $field = wpcf_admin_fields_get_field($_GET['field_id']);
+    // Get field
+	if ( isset($_GET['field_type']) && $_GET['field_type'] == 'usermeta' ){
+		//If usermeta
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false, false, 'wpcf-usermeta' );	
+	}else{ 
+		//If postmeta
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'] );	
+	}
     if (empty($field)) {
         echo '<div class="message error"><p>' . __('Wrong field specified',
                 'wpcf') . '</p></div>';
@@ -114,6 +121,11 @@ function wpcf_fields_radio_editor_callback() {
             '#markup' => '</table>',
         );
     }
+	// add usermeta form addon
+	if ( isset($_GET['field_type']) && $_GET['field_type'] == 'usermeta' ){
+		$temp_form = wpcf_get_usermeta_form_addon();
+		$form = $form + $temp_form;
+	}
     $form['submit'] = array(
         '#type' => 'submit',
         '#name' => 'submit',
@@ -133,17 +145,32 @@ function wpcf_fields_radio_editor_callback() {
  */
 function wpcf_fields_radio_editor_submit() {
     $add = '';
-    $field = wpcf_admin_fields_get_field($_GET['field_id']);
+	$types_attr = 'field';
+    //Get Field
+	if ( !empty($_POST['is_usermeta']) ){
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false, false, 'wpcf-usermeta' );
+		$types_attr = 'usermeta';
+	}else{
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'] );	
+	}
+	if ( !empty($_POST['is_usermeta']) ){
+		$add .= wpcf_get_usermeta_form_addon_submit();
+	}
     if (!empty($field)) {
         if ($_POST['display'] == 'value' && !empty($_POST['options'])) {
             $shortcode = '';
             foreach ($_POST['options'] as $option_id => $value) {
-                $shortcode .= '[types field="' . $field['slug']
-                        . '" option="' . $option_id . '"]' . $value
+                $shortcode .= '[types ' . $types_attr . '="' . $field['slug']
+                        . '" '. $add .' option="' . $option_id . '"]' . $value
                         . '[/types] ';
             }
         } else {
-            $shortcode = wpcf_fields_get_shortcode($field, $add);
+            if ($types_attr == 'usermeta'){
+			$shortcode = wpcf_usermeta_get_shortcode( $field, $add );
+			}
+			else{
+				$shortcode = wpcf_fields_get_shortcode( $field, $add );
+			}
         }
         echo editor_admin_popup_insert_shortcode_js($shortcode);
         die();
@@ -159,7 +186,13 @@ function wpcf_fields_radio_view($params) {
     if (isset($params['style']) && $params['style'] == 'raw') {
         return '';
     }
-    $field = wpcf_fields_get_field_by_slug($params['field']['slug']);
+    if ( isset($params['usermeta']) && !empty($params['usermeta']) ){
+		$field = wpcf_fields_get_field_by_slug( $params['field']['slug'] , 'wpcf-usermeta');
+	}
+	else{
+		$field = wpcf_fields_get_field_by_slug( $params['field']['slug'] );
+	}
+
     $output = '';
 
     // See if user specified output for each field

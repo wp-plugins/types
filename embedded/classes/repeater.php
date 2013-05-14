@@ -120,6 +120,10 @@ class WPCF_Repeater extends WPCF_Field
                 }
 
                 // Apply filters
+                $meta_value = apply_filters( 'types_field_get_submitted_data',
+                        $meta_value, $this );
+
+                // Apply other filters
                 $_meta_value = $this->_filter_save_value( $meta_value );
 
                 // Adding each field will return $mid
@@ -156,6 +160,12 @@ class WPCF_Repeater extends WPCF_Field
      */
     function _get_meta() {
         global $wpdb;
+
+        $cache_key = md5( 'repeater::_get_meta' . $this->post->ID . $this->slug );
+        if ( $this->use_cache && isset( $this->cache[$cache_key] ) ) {
+            return $this->cache[$cache_key];
+        }
+
         $this->order_meta_name = '_' . $this->slug . '-sort-order';
         $_meta = parent::_get_meta();
         $ordered = array();
@@ -168,6 +178,7 @@ class WPCF_Repeater extends WPCF_Field
                 AND meta_key=%s",
                         $this->post->ID, $this->slug )
         );
+
         if ( !empty( $r ) ) {
             $_meta = array();
             $_meta['by_meta_id'] = array();
@@ -198,6 +209,8 @@ class WPCF_Repeater extends WPCF_Field
                         $_meta['custom_order'][$meta_id] = $meta;
                     }
                 }
+            } else {
+                $_meta['custom_order'] = $_meta['by_meta_id'];
             }
         } else if ( !is_null( $this->meta_object ) ) {
             $_meta = array();
@@ -216,6 +229,9 @@ class WPCF_Repeater extends WPCF_Field
         if ( empty( $_meta['custom_order'] ) ) {
             $_meta['custom_order'] = $_meta['by_meta_id'];
         }
+
+        // Cache it
+        $this->cache[$cache_key] = $_meta;
 
         return $_meta;
     }
@@ -315,7 +331,7 @@ class WPCF_Repeater extends WPCF_Field
             . '_repetitive_wrapper_' . $unique_id
             . '" class="wpcf-wrap wpcf-repetitive-wrapper" style="' . $css_cd . '">',
         );
-        
+
         // Set title
         $form[$unique_id . '_main_title'] = array(
             '#type' => 'markup',

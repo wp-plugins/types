@@ -17,6 +17,11 @@ function wpcf_fields_checkboxes() {
     );
 }
 
+// Add filter when using wpv_condition()
+add_filter( 'wpv_condition', 'wpcf_fields_checkboxes_wpv_conditional_trigger' );
+add_filter( 'wpv_condition_end',
+        'wpcf_fields_checkboxes_wpv_conditional_trigger_end' );
+
 /**
  * Form data for post edit page.
  * 
@@ -90,7 +95,15 @@ function wpcf_fields_checkboxes_editor_callback() {
         '#inline' => true,
     );
     if ( isset( $_GET['field_id'] ) ) {
-        $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+        // Get field
+        if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
+            //If usermeta
+            $field = wpcf_admin_fields_get_field( $_GET['field_id'], false,
+                    false, false, 'wpcf-usermeta' );
+        } else {
+            //If postmeta
+            $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+        }
         if ( !empty( $field['data']['options'] ) ) {
             foreach ( $field['data']['options'] as $option_key => $option ) {
                 $form[$option_key . '-markup'] = array(
@@ -120,6 +133,11 @@ function wpcf_fields_checkboxes_editor_callback() {
             }
         }
     }
+    // add usermeta form addon
+    if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
+        $temp_form = wpcf_get_usermeta_form_addon();
+        $form = $form + $temp_form;
+    }
     $form['submit'] = array(
         '#type' => 'submit',
         '#name' => 'submit',
@@ -139,30 +157,49 @@ function wpcf_fields_checkboxes_editor_callback() {
  */
 function wpcf_fields_checkboxes_editor_submit() {
     $add = '';
-    $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+    $types_attr = 'field';
+    if ( !empty( $_POST['is_usermeta'] ) ) {
+        $field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false,
+                false, 'wpcf-usermeta' );
+        $types_attr = 'usermeta';
+    } else {
+        $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+    }
     $shortcode = '';
+    if ( !empty( $_POST['is_usermeta'] ) ) {
+        $add .= wpcf_get_usermeta_form_addon_submit();
+    }
     if ( !empty( $field ) ) {
         if ( !empty( $_POST['options'] ) ) {
             if ( $_POST['display'] == 'display_all' ) {
                 $separator = !empty( $_POST['separator'] ) ? $_POST['separator'] : '';
-                $shortcode .= '[types field="' . $field['slug'] . '" separator="'
+                $shortcode .= '[types ' . $types_attr . '="' . $field['slug'] . '" ' . $add . ' separator="'
                         . $separator . '"]' . '[/types] ';
             } else {
                 $i = 0;
                 foreach ( $_POST['options'] as $option_key => $option ) {
                     if ( $_POST['display'] == 'value' ) {
 
-                        $shortcode .= '[types field="' . $field['slug'] . '" option="'
+                        $shortcode .= '[types ' . $types_attr . '="' . $field['slug'] . '" ' . $add . ' option="'
                                 . $i . '" state="checked"]'
                                 . $option['display_value_selected']
                                 . '[/types] ';
-                        $shortcode .= '[types field="' . $field['slug'] . '" option="'
+                        $shortcode .= '[types ' . $types_attr . '="' . $field['slug'] . '" ' . $add . ' option="'
                                 . $i . '" state="unchecked"]'
                                 . $option['display_value_not_selected']
                                 . '[/types] ';
                     } else {
                         $add = ' option="' . $i . '"';
-                        $shortcode .= wpcf_fields_get_shortcode( $field, $add ) . ' ';
+                        if ( !empty( $_POST['is_usermeta'] ) ) {
+                            $add .= wpcf_get_usermeta_form_addon_submit();
+                        }
+                        if ( $types_attr == 'usermeta' ) {
+                            $shortcode .= wpcf_usermeta_get_shortcode( $field,
+                                            $add ) . ' ';
+                        } else {
+                            $shortcode .= wpcf_fields_get_shortcode( $field,
+                                            $add ) . ' ';
+                        }
                     }
                     $i++;
                 }
@@ -339,4 +376,50 @@ function wpcf_filds_checkboxes_relationship_form_filter( $form, $cf ) {
         );
     }
     return $form;
+}
+
+/**
+ * Triggers post_meta filter.
+ * 
+ * @param type $post
+ * @return type
+ */
+function wpcf_fields_checkboxes_wpv_conditional_trigger( $post ) {
+    add_filter( 'get_post_metadata',
+            'wpcf_fields_checkboxes_conditional_filter_post_meta', 10, 4 );
+}
+
+/**
+ * Returns string.
+ * 
+ * @global type $wpcf
+ * @param type $null
+ * @param type $object_id
+ * @param type $meta_key
+ * @param type $single
+ * @return type
+ */
+function wpcf_fields_checkboxes_conditional_filter_post_meta( $null, $object_id,
+        $meta_key, $single ) {
+    global $wpcf;
+    $field = wpcf_admin_fields_get_field( $wpcf->field->__get_slug_no_prefix( $meta_key ) );
+    if ( !empty( $field ) && $field['type'] == 'checkboxes' ) {
+        $_meta = maybe_unserialize( wpcf_get_post_meta( $object_id, $meta_key,
+                        $single ) );
+        if ( is_array( $_meta ) ) {
+            $null = empty( $_meta ) ? '1' : '';
+        }
+    }
+    return $null;
+}
+
+/**
+ * Triggers post_meta filter.
+ * 
+ * @param type $post
+ * @return type
+ */
+function wpcf_fields_checkboxes_wpv_conditional_trigger_end( $post ) {
+    remove_filter( 'get_post_metadata',
+            'wpcf_fields_checkboxes_conditional_filter_post_meta', 10, 4 );
 }

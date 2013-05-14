@@ -29,25 +29,33 @@ function wpcf_fields_wysiwyg() {
  * @param type $field
  * @return array 
  */
-function wpcf_fields_wysiwyg_meta_box_form( $field ) {
-    $set = array(
-        'wpautop' => true, // use wpautop?
-        'media_buttons' => true, // show insert/upload button(s)
-        'textarea_name' => 'wpcf[' . $field['id'] . ']', // set the textarea name to something different, square brackets [] can be used here
-        'textarea_rows' => get_option( 'default_post_edit_rows', 10 ), // rows="..."
-        'tabindex' => '',
-        'editor_css' => '', // intended for extra styles for both visual and HTML editors buttons, needs to include the <style> tags, can use "scoped".
-        'editor_class' => 'wpcf-wysiwyg', // add extra class(es) to the editor textarea
-        'teeny' => false, // output the minimal editor config used in Press This
-        'dfw' => false, // replace the default fullscreen with DFW (needs specific DOM elements and css)
-        'tinymce' => true, // load TinyMCE, can be used to pass settings directly to TinyMCE using an array()
-        'quicktags' => true // load Quicktags, can be used to pass settings directly to Quicktags using an array()
-    );
-    $form = array(
-        '#type' => 'wysiwyg',
-        '#attributes' => array('class' => 'wpcf-wysiwyg'),
-        '#editor_settings' => $set,
-    );
+function wpcf_fields_wysiwyg_meta_box_form( $field, $f ) {
+
+    if ( isset( $f->context ) && $f->context == 'relationship' ) {
+        $form = array(
+            '#type' => 'textarea',
+            '#attributes' => array('class' => 'wpcf-textarea'),
+        );
+    } else {
+        $set = array(
+            'wpautop' => true, // use wpautop?
+            'media_buttons' => true, // show insert/upload button(s)
+            'textarea_name' => 'wpcf[' . $field['id'] . ']', // set the textarea name to something different, square brackets [] can be used here
+            'textarea_rows' => get_option( 'default_post_edit_rows', 10 ), // rows="..."
+            'tabindex' => '',
+            'editor_css' => '', // intended for extra styles for both visual and HTML editors buttons, needs to include the <style> tags, can use "scoped".
+            'editor_class' => 'wpcf-wysiwyg', // add extra class(es) to the editor textarea
+            'teeny' => false, // output the minimal editor config used in Press This
+            'dfw' => false, // replace the default fullscreen with DFW (needs specific DOM elements and css)
+            'tinymce' => true, // load TinyMCE, can be used to pass settings directly to TinyMCE using an array()
+            'quicktags' => true // load Quicktags, can be used to pass settings directly to Quicktags using an array()
+        );
+        $form = array(
+            '#type' => 'wysiwyg',
+            '#attributes' => array('class' => 'wpcf-wysiwyg'),
+            '#editor_settings' => $set,
+        );
+    }
 
     return $form;
 }
@@ -122,6 +130,7 @@ function wpcf_fields_wysiwyg_view( $params ) {
         }
         $output .= '>';
     }
+
     $output .= apply_filters( 'the_content',
             htmlspecialchars_decode( stripslashes( $params['field_value'] ) ) );
     if ( !empty( $params['style'] ) || !empty( $params['class'] ) ) {
@@ -134,4 +143,60 @@ function wpcf_fields_wysiwyg_view( $params ) {
 //    $content = do_shortcode($content);
 //    $content = wpautop($content);
 //    return $content;
+}
+
+/**
+ * Editor callback form.
+ */
+function wpcf_fields_wysiwyg_editor_callback_nonpopup() {
+    wp_enqueue_style( 'wpcf-fields-file',
+            WPCF_EMBEDDED_RES_RELPATH . '/css/basic.css', array(), WPCF_VERSION );
+	$form = array();
+    $form['#form']['callback'] = 'wpcf_fields_wysiwyg_editor_submit_nonpopup';
+    
+	// add usermeta form addon
+	if ( isset($_GET['field_type']) && $_GET['field_type'] == 'usermeta' ){
+		$temp_form = wpcf_get_usermeta_form_addon();
+		$form = $form + $temp_form;
+	}
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#name' => 'submit',
+        '#value' => __( 'Insert shortcode', 'wpcf' ),
+        '#attributes' => array('class' => 'button-primary'),
+    );
+    $f = wpcf_form( 'wpcf-form', $form );
+    wpcf_admin_ajax_head( 'Insert select', 'wpcf' );
+    echo '<form method="post" action="">';
+    echo $f->renderForm();
+    echo '</form>';
+    wpcf_admin_ajax_footer();
+}
+
+
+/**
+ * Editor callback form submit.
+ */
+function wpcf_fields_wysiwyg_editor_submit_nonpopup() {
+    $add = '';
+    if ( !empty($_POST['is_usermeta']) ){
+		$add .= wpcf_get_usermeta_form_addon_submit();
+	}
+	//Get Field
+	if ( !empty($_POST['is_usermeta']) ){
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false, false, 'wpcf-usermeta' );
+		$types_attr = 'usermeta';
+	}else{
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'] );	
+	}
+  	if ( !empty( $field ) ) {
+        if ($types_attr == 'usermeta'){
+			$shortcode = wpcf_usermeta_get_shortcode( $field, $add );
+		}
+		else{
+			$shortcode = wpcf_fields_get_shortcode( $field, $add );
+		}
+        echo editor_admin_popup_insert_shortcode_js( $shortcode );
+        die();
+    }
 }

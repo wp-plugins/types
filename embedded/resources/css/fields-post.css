@@ -54,8 +54,13 @@ img.ui-datepicker-trigger {
 }
 .wpcf-pr-table-wrapper {
     width: 100%;
+	clear:both;
     overflow: auto;
 }
 .wpcf-pagination-boottom {
     margin-top: 5px;
+}
+.fields-preview img{
+	max-width:200px;
+	height:auto;	
 }

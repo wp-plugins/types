@@ -4,8 +4,59 @@
  * Since Types 1.2 moved from /embedded/types.php
  */
 
-// Bootstrap
-require_once dirname( __FILE__ ) . '/bootstrap.php';
+/**
+ * Caches get_post_meta() calls.
+ * 
+ * @staticvar array $cache
+ * @param type $post_id
+ * @param type $meta_key
+ * @param type $single
+ * @return string
+ */
+function wpcf_get_post_meta( $post_id, $meta_key, $single ) {
+
+    static $cache = array();
+
+    if ( !isset( $cache[$post_id] ) ) {
+        $cache[$post_id] = get_post_custom( $post_id );
+    }
+    if ( isset( $cache[$post_id][$meta_key] ) ) {
+        if ( $single && isset( $cache[$post_id][$meta_key][0] ) ) {
+            return maybe_unserialize( $cache[$post_id][$meta_key][0] );
+        } else if ( !$single && !empty( $cache[$post_id][$meta_key] ) ) {
+            return maybe_unserialize( $cache[$post_id][$meta_key] );
+        }
+    }
+    return '';
+}
+
+/**
+ * Calculates relative path for given file.
+ * 
+ * @param type $file Absolute path to file
+ * @return string Relative path
+ */
+function wpcf_get_file_relpath( $file ) {
+    $is_https = isset( $_SERVER['HTTPS'] ) && strtolower( $_SERVER['HTTPS'] ) == 'on';
+    $http_protocol = $is_https ? 'https' : 'http';
+    $base_root = $http_protocol . '://' . $_SERVER['HTTP_HOST'];
+    $base_url = $base_root;
+    $dir = rtrim( dirname( $file ), '\/' );
+    if ( $dir ) {
+        $base_path = $dir;
+        $base_url .= $base_path;
+        $base_path .= '/';
+    } else {
+        $base_path = '/';
+    }
+    $relpath = $base_root
+            . str_replace(
+                    str_replace( '\\', '/',
+                            realpath( $_SERVER['DOCUMENT_ROOT'] ) )
+                    , '', str_replace( '\\', '/', dirname( $file ) )
+    );
+    return $relpath;
+}
 
 /**
  * after_setup_theme hook.
@@ -95,7 +146,7 @@ function wpcf_embedded_check_import() {
                     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
                     require_once WPCF_EMBEDDED_INC_ABSPATH . '/import-export.php';
                     $data = @file_get_contents( WPCF_EMBEDDED_ABSPATH . '/settings.xml' );
-                    wpcf_admin_import_data( $data, false );
+                    wpcf_admin_import_data( $data, false, 'types-auto-import' );
                     update_option( 'wpcf-types-embedded-import', $timestamp );
                     wp_redirect( admin_url() );
                 } else {
@@ -143,61 +194,59 @@ function wpcf_promote_types_admin() {
  * 
  * @param type $action 
  */
-function wpcf_types_cf_under_control( $action = 'add', $args = array() ) {
+function wpcf_types_cf_under_control( $action = 'add', $args = array(),
+        $post_type = 'wp-types-group', $meta_name = 'wpcf-fields' ) {
     global $wpcf_types_under_control;
     $wpcf_types_under_control['errors'] = array();
     switch ( $action ) {
         case 'add':
-            $fields = wpcf_admin_fields_get_fields();
-            if ( is_array( $fields ) ) {
-                foreach ( $args['fields'] as $field_id ) {
-                    $field_type = !empty( $args['type'] ) ? $args['type'] : 'textfield';
-                    if ( strpos( $field_id, md5( 'wpcf_not_controlled' ) ) !== false ) {
-                        $field_id_add = str_replace( '_' . md5( 'wpcf_not_controlled' ),
-                                '', $field_id );
-                        // Activating field that previously existed in Types
-                        if ( array_key_exists( $field_id_add, $fields ) ) {
-                            $fields[$field_id_add]['data']['disabled'] = 0;
-                        } else { // Adding from outside
-                            $fields[$field_id_add]['id'] = $field_id_add;
-                            $fields[$field_id_add]['type'] = $field_type;
-                            $fields[$field_id_add]['name'] = $field_id_add;
-                            $fields[$field_id_add]['slug'] = $field_id_add;
-                            $fields[$field_id_add]['description'] = '';
-                            $fields[$field_id_add]['data'] = array();
-                            // @TODO WATCH THIS! MUST NOT BE DROPPED IN ANY CASE
-                            $fields[$field_id_add]['data']['controlled'] = 1;
-                        }
-                        $unset_key = array_search( $field_id, $args['fields'] );
-                        if ( $unset_key !== false ) {
-                            unset( $args['fields'][$unset_key] );
-                            $args['fields'][$unset_key] = $field_id_add;
-                        }
+            $fields = wpcf_admin_fields_get_fields( false, false, false,
+                    $meta_name, false );
+            foreach ( $args['fields'] as $field_id ) {
+                $field_type = !empty( $args['type'] ) ? $args['type'] : 'textfield';
+                if ( strpos( $field_id, md5( 'wpcf_not_controlled' ) ) !== false ) {
+                    $field_id_add = str_replace( '_' . md5( 'wpcf_not_controlled' ),
+                            '', $field_id );
+                    // Activating field that previously existed in Types
+                    if ( array_key_exists( $field_id_add, $fields ) ) {
+                        $fields[$field_id_add]['data']['disabled'] = 0;
+                    } else { // Adding from outside
+                        $fields[$field_id_add]['id'] = $field_id_add;
+                        $fields[$field_id_add]['type'] = $field_type;
+                        $fields[$field_id_add]['name'] = $field_id_add;
+                        $fields[$field_id_add]['slug'] = $field_id_add;
+                        $fields[$field_id_add]['description'] = '';
+                        $fields[$field_id_add]['data'] = array();
+                        // @TODO WATCH THIS! MUST NOT BE DROPPED IN ANY CASE
+                        $fields[$field_id_add]['data']['controlled'] = 1;
+                    }
+                    $unset_key = array_search( $field_id, $args['fields'] );
+                    if ( $unset_key !== false ) {
+                        unset( $args['fields'][$unset_key] );
+                        $args['fields'][$unset_key] = $field_id_add;
                     }
                 }
-                wpcf_admin_fields_save_fields( $fields, true );
             }
+            wpcf_admin_fields_save_fields( $fields, true, $meta_name );
             return $args['fields'];
             break;
 
         case 'check_exists':
-            $fields = wpcf_admin_fields_get_fields();
+            $fields = wpcf_admin_fields_get_fields( false, false, false,
+                    $meta_name, false );
             $field = $args;
-            if ( is_array( $fields ) ) {
-                if ( array_key_exists( $field, $fields ) && empty( $fields[$field]['data']['disabled'] ) ) {
-                    return true;
-                }
+            if ( array_key_exists( $field, $fields ) && empty( $fields[$field]['data']['disabled'] ) ) {
+                return true;
             }
             return false;
             break;
 
         case 'check_outsider':
-            $fields = wpcf_admin_fields_get_fields();
+            $fields = wpcf_admin_fields_get_fields( false, false, false,
+                    $meta_name, false );
             $field = $args;
-            if ( is_array( $fields ) ) {
-                if ( array_key_exists( $field, $fields ) && !empty( $fields[$field]['data']['controlled'] ) ) {
-                    return true;
-                }
+            if ( array_key_exists( $field, $fields ) && !empty( $fields[$field]['data']['controlled'] ) ) {
+                return true;
             }
             return false;
             break;
@@ -347,6 +396,10 @@ function types_child_posts( $post_type, $args = array() ) {
 
 
 
+
+
+
+
                         
 // handle checkboxes which are one value serialized
                     if ( $field['type'] == 'checkboxes' && isset( $child_posts[$child_post_key]->fields[$k] ) )
@@ -461,8 +514,18 @@ function wpcf_parse_array_to_string( $array ) {
  */
 function wpcf_get_post_id( $context = 'group' ) {
     if ( !is_admin() ) {
-        $post = get_post();
-        return !empty( $post->ID ) ? $post->ID : -1;
+        /*
+         * 
+         * TODO Check if frontend is fine (rendering children).
+         * get_post() previously WP 3.5 requires $post_id
+         */
+        $post_id = null;
+        if ( wpcf_compare_wp_version( '3.5', '<' ) ) {
+            global $post;
+            $post_id = !empty( $post->ID ) ? $post->ID : -1;
+        }
+        $_post = get_post( $post_id );
+        return !empty( $_post->ID ) ? $_post->ID : -1;
     }
     /*
      * TODO Explore possible usage for $context
@@ -495,6 +558,9 @@ function wpcf_enqueue_scripts() {
          * Settings
          */
         // _nonce for editor callback
+        wpcf_admin_add_js_settings( 'wpcfEditorCallbackNonce',
+                wp_create_nonce( 'editor_callback' ) );
+		// _nonce for editor callback (no popup fields usermeta)
         wpcf_admin_add_js_settings( 'wpcfEditorCallbackNonce',
                 wp_create_nonce( 'editor_callback' ) );
         // Thickbox generic title
@@ -608,15 +674,40 @@ function wpcf_get_custom_taxonomy_settings( $item ) {
     return !empty( $custom[$item] ) ? $custom[$item] : array();
 }
 
-// Local debug
-if ( ($_SERVER['SERVER_NAME'] == '192.168.1.2' || $_SERVER['SERVER_NAME'] == 'localhost') && !function_exists( 'debug' ) ) {
+/**
+ * Load JS and CSS for field type.
+ * 
+ * Core function. Works and stable. Do not move or change.
+ * If required, add hooks only.
+ * 
+ * @staticvar array $cache
+ * @param string $type
+ * @return string 
+ */
+function wpcf_field_enqueue_scripts( $type ) {
 
-    function debug( $data, $die = true ) {
-        echo '<pre>';
-        print_r( $data );
-        echo '</pre>';
-        if ( $die )
-            die();
+    global $wpcf;
+    static $cache = array();
+
+    $config = wpcf_fields_type_action( $type );
+
+    if ( !empty( $config ) ) {
+
+        // Check if cached
+        if ( isset( $cache[$config['id']] ) ) {
+            return $cache[$config['id']];
+        }
+
+        // Use field object
+        $wpcf->field->enqueue_script( $config );
+        $wpcf->field->enqueue_style( $config );
+
+        $cache[$config['id']] = $config;
+
+        return $config;
+    } else {
+        $wpcf->debug->errors['missing_type_config'][] = $type;
+        return array();
     }
 
 }

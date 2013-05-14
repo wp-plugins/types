@@ -53,5 +53,21 @@
             <?php
         endif;
 
+        // Trigger Conditional
+        // TODO Move to conditional.php
+        if ( defined( 'DOING_AJAX' ) ):
+
+            ?>
+            <script type="text/javascript">
+                //<![CDATA[
+                jQuery(document).ready(function(){
+                    wpcfConditionalInit('#types-child-row-<?php echo $child_id; ?>');
+                });
+                //]]>
+            </script>
+            <?php
+        endif;
+
         ?>
+    </td>
 </tr>

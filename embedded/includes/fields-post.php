@@ -48,7 +48,9 @@ function wpcf_admin_post_init( $post = false ) {
     $wpcf->post_types->set( $post_type );
 
     // Add items to View dropdown
-    if ( in_array( $post_type, array('view', 'view-template') ) ) {
+    if ( in_array( $post_type,
+                    apply_filters( 'wpcf_views_dropdown_add_on_post_type',
+                            array('view', 'view-template', 'cred-form') ) ) ) {
         add_filter( 'editor_addon_menus_wpv-views',
                 'wpcf_admin_post_editor_addon_menus_filter' );
         add_action( 'admin_footer', 'wpcf_admin_post_js_validation' );
@@ -93,13 +95,39 @@ function wpcf_admin_post_init( $post = false ) {
 
     // Get groups
     $groups = wpcf_admin_post_get_post_groups_fields( $post );
+
     foreach ( $groups as $group ) {
-        if ( !empty( $group['fields'] ) ) {
+
+        $only_preview = '';
+        /*
+         * 
+         * TODO Gen? Use hook for this.
+         * $only_preview is added here and other code.
+         * 
+         * For Access create file in includes
+         * access.php (like we have for wpml.php)
+         * add Access related code there and use hooks to intervene.
+         * Add hooks if needed here.
+         */
+        //If Access plugin activated
+        if ( function_exists( 'wpcf_access_register_caps' ) ) {
+            //If user can't view own profile fields
+
+            if ( !current_user_can( 'view_fields_in_edit_page_' . $group['slug'] ) ) {
+                continue;
+            }
+            //If user can modify current group in own profile
+            if ( !current_user_can( 'modify_fields_in_edit_page_' . $group['slug'] ) ) {
+                $only_preview = 1;
+            }
+        }
+        if ( !empty( $group['fields'] ) && empty( $only_preview ) ) {
             $wpcf_active = true;
             // Process fields
             $group['fields'] = wpcf_admin_post_process_fields( $post,
                     $group['fields'], true );
         }
+
         // Specially for CRED
         /*
          * 
@@ -107,16 +135,33 @@ function wpcf_admin_post_init( $post = false ) {
          * Use hooks
          */
         if ( !in_array( $post_type, array('cred-form') ) ) {
-            // Add meta boxes
-            add_meta_box( $group['slug'],
-                    wpcf_translate( 'group ' . $group['id'] . ' name',
-                            $group['name'] ), 'wpcf_admin_post_meta_box',
-                    $post_type, $group['meta_box_context'], 'high', $group );
+
+            // Check if hidden
+            if ( !isset( $group['__show_meta_box'] )
+                    || $group['__show_meta_box'] != false ) {
+
+                // Add meta boxes
+                if ( empty( $only_preview ) ) {
+                    add_meta_box( $group['slug'],
+                            wpcf_translate( 'group ' . $group['id'] . ' name',
+                                    $group['name'] ),
+                            'wpcf_admin_post_meta_box', $post_type,
+                            $group['meta_box_context'], 'high', $group );
+                } else {
+                    $wpcf_active = true;
+                    add_meta_box( $group['slug'],
+                            wpcf_translate( 'group ' . $group['id'] . ' name',
+                                    $group['name'] ),
+                            'wpcf_admin_post_meta_box_preview', $post_type,
+                            $group['meta_box_context'], 'high', $group );
+                }
+            }
         }
     }
 
     // Activate scripts
     if ( $wpcf_active ) {
+        wpcf_enqueue_scripts();
         wp_enqueue_script( 'wpcf-fields-post',
                 WPCF_EMBEDDED_RES_RELPATH . '/js/fields-post.js',
                 array('jquery'), WPCF_VERSION );
@@ -134,14 +179,182 @@ function wpcf_admin_post_init( $post = false ) {
         wp_enqueue_style( 'wpcf-fields-post',
                 WPCF_EMBEDDED_RES_RELPATH . '/css/fields-post.css',
                 array('wpcf-fields-basic'), WPCF_VERSION );
-        wpcf_enqueue_scripts();
+        wp_enqueue_style( 'wpcf-usermeta',
+                WPCF_EMBEDDED_RES_RELPATH . '/css/usermeta.css',
+                array('wpcf-fields-basic'), WPCF_VERSION );
     }
 
     // Add validation
     // TODO Move to wpcf_enqueue_scripts()
     add_action( 'admin_footer', 'wpcf_admin_post_js_validation' );
 
+    /*
+     * TODO Review
+     * This is forced because of various Child cases
+     * and when field are rendered via AJAX but not registered yet.
+     * 
+     * Basically all fields that require additional JS should be added here.
+     * 
+     * This is a must for now.
+     * These fields need init JS in various cases.
+     */
+    wpcf_field_enqueue_scripts( 'date' );
+    wpcf_field_enqueue_scripts( 'image' );
+    wpcf_field_enqueue_scripts( 'file' );
+    wpcf_field_enqueue_scripts( 'skype' );
+    wpcf_field_enqueue_scripts( 'numeric' );
+
     do_action( 'wpcf_admin_post_init', $post_type, $post, $groups, $wpcf_active );
+}
+
+/**
+ * Renders meta box content (preview).
+ * 
+ * 
+ * 
+ * @param type $post
+ * @param type $group 
+ */
+function wpcf_admin_post_meta_box_preview( $post, $group, $echo = '' ){
+
+    require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+    require_once WPCF_EMBEDDED_ABSPATH . '/frontend.php';
+    global $wpcf;
+
+    if ( isset( $group['args'] ) ) {
+        $fields = $group['args']['fields'];
+    } else {
+        $fields = $group['fields'];
+    }
+    if ( isset( $group['slug'] ) ) {
+        $slug = $group['slug'];
+        $name = $group['name'];
+    } else {
+        $slug = $group['id'];
+        $name = $group['title'];
+    }
+    $group_output = '';
+    if ( !empty( $echo ) ) {
+        $group_output = '<h3>This Preview generated for latest post "' . $post->post_title . '"</h3>';
+        $group_output .= '<div id="test-field-group" class="postbox " >
+<h3 class=\'hndle\'><span>' . $name . '</span></h3>
+<div class="inside">';
+    }
+
+    $group_output .= '<table class="form-table fields-preview fields-preview-' . $slug . '">
+<tbody>' . "\n\n";
+
+    $content = $code = '';
+    foreach ( $fields as $field ) {
+        $html = '';
+        $params['separator'] = ', ';
+        $field = wpcf_fields_get_field_by_slug( $field['slug'] );
+        if ( wpcf_admin_is_repetitive( $field ) ) {
+            $wpcf->repeater->set( $post, $field );
+            $_meta = $wpcf->repeater->_get_meta();
+            if ( isset( $_meta['custom_order'] ) ) {
+                $meta = $_meta['custom_order'];
+            } else {
+                $meta = array();
+            }
+            $content = $code = '';
+            // Sometimes if meta is empty - array(0 => '') is returned
+            if ( (count( $meta ) == 1 ) ) {
+                $meta_id = key( $meta );
+                $_temp = array_shift( $meta );
+                if ( strval( $_temp ) == '' ) {
+                    
+                } else {
+                    $params['field_value'] = $_temp;
+                    if ( !empty( $params['field_value'] ) ) {
+                        $html = types_render_field_single( $field, $params,
+                                $content, $code, $meta_id );
+                    }
+                }
+            } else if ( !empty( $meta ) ) {
+                $output = '';
+
+                if ( isset( $params['index'] ) ) {
+                    $index = $params['index'];
+                } else {
+                    $index = '';
+                }
+
+                // Allow wpv-for-each shortcode to set the index
+                $index = apply_filters( 'wpv-for-each-index', $index );
+
+                if ( $index === '' ) {
+                    $output = array();
+                    foreach ( $meta as $temp_key => $temp_value ) {
+                        $params['field_value'] = $temp_value;
+                        if ( !empty( $params['field_value'] ) ) {
+                            $temp_output = types_render_field_single( $field,
+                                    $params, $content, $code, $temp_key );
+                        }
+                        if ( !empty( $temp_output ) ) {
+                            $output[] = $temp_output;
+                        }
+                    }
+                    if ( !empty( $output ) && isset( $params['separator'] ) ) {
+                        $output = implode( $params['separator'], $output );
+                    } else if ( !empty( $output ) ) {
+                        $output = implode( '', $output );
+                    }
+                } else {
+                    // Make sure indexed right
+                    $_index = 0;
+                    foreach ( $meta as $temp_key => $temp_value ) {
+                        if ( $_index == $index ) {
+                            $params['field_value'] = $temp_value;
+                            if ( !empty( $params['field_value'] ) ) {
+                                $output = types_render_field_single( $field,
+                                        $params, $content, $code, $temp_key );
+                            }
+                        }
+                        $_index++;
+                    }
+                }
+                $html = $output;
+            }
+        } else {
+            $params['field_value'] = get_post_meta( $post->ID,
+                    wpcf_types_get_meta_prefix( $field ) . $field['slug'], true );
+
+            //  $html = types_render_field_single( $field, $params, $content, $code );
+            if ( !empty( $params['field_value'] ) && $field['type'] != 'date' ) {
+                $html = types_render_field_single( $field, $params, $content,
+                        $code );
+            }
+            if ( $field['type'] == 'date' && !empty( $params['field_value'] ) ) {
+                $html = types_render_field_single( $field, $params, $content,
+                        $code );
+                if ( $field['data']['date_and_time'] == 'and_time' ) {
+                    $html .= ' ' . date( "H", $params['field_value'] ) . ':' . date( "i",
+                                    $params['field_value'] );
+                }
+            }
+        }
+
+        // API filter
+        $wpcf->field->set( $post, $field );
+        $field_value = $wpcf->field->html( $html, array() );
+        $group_output .= '<tr class="wpcf-profile-field-line-' . $field['slug'] . '">
+	<td scope="row">' . $field['name'] . '</td>
+    <td>' . $field_value . '</td>
+</tr>' . "\n\n";
+    }
+    $group_output .= "\n\n</tbody>
+</table>";
+    if ( empty( $echo ) ) {
+        echo $group_output;
+    } else {
+        $group_output .= "\n\n</div></div>";
+        return $group_output;
+    }
+
+
+
+
 }
 
 /**
@@ -155,21 +368,38 @@ function wpcf_admin_post_init( $post = false ) {
  * @param type $post
  * @param type $group 
  */
-function wpcf_admin_post_meta_box( $post, $group ) {
+function wpcf_admin_post_meta_box( $post, $group, $echo = '' ) {
 
     global $wpcf;
 
     static $nonce_added = false;
+    $group_output = '';
+    if ( !isset( $group['title'] ) ) {
+        $temp = $group;
+        $group = '';
+        $group['args'] = $temp;
+        $group['id'] = $temp['slug'];
+        $group['title'] = $temp['name'];
+        $name = $temp['name'];
+    }
+    if ( !empty( $echo ) ) {
+        $group_output = '<h3>This Preview generated for latest post "' . $post->post_title . '"</h3>' . "\n" .
+                '<!-- Previous lines visible only in Admin Style Editor.-->' . "\n\n";
+        $group_output .= '<div id="' . $group['id'] . '" class="postbox " >
+<h3 class=\'hndle\'><span>' . $name . '</span></h3>
+<div class="inside">' . "\n";
+    }
+
 
     /*
      * TODO Document where this is used
      */
-    if ( !$nonce_added ) {
+    if ( !$nonce_added && empty( $echo ) ) {
         $nonce_action = 'update-' . $post->post_type . '_' . $post->ID;
         wp_nonce_field( $nonce_action, '_wpcf_post_wpnonce' );
         $nonce_added = true;
     }
-
+    $group_output .= "\n\n" . '<div id="wpcf-group-metabox-id-' . $group['id'] . '">' . "\n";
     /*
      * TODO Move to Conditional code
      * 
@@ -177,11 +407,12 @@ function wpcf_admin_post_meta_box( $post, $group ) {
      */
     if ( !empty( $group['args']['_conditional_display'] ) ) {
         if ( $group['args']['_conditional_display'] == 'failed' ) {
-            echo '<div class="wpcf-cd-group wpcf-cd-group-failed" style="display:none;">';
+            $group_output .= '<div class="wpcf-cd-group wpcf-cd-group-failed" style="display:none;">';
         } else {
-            echo '<div class="wpcf-cd-group wpcf-cd-group-passed">';
+            $group_output .= '<div class="wpcf-cd-group wpcf-cd-group-passed">';
         }
     }
+
 
     /*
      * TODO Move this into Field code
@@ -190,9 +421,9 @@ function wpcf_admin_post_meta_box( $post, $group ) {
     if ( !empty( $group['args']['fields'] ) ) {
         // Display description
         if ( !empty( $group['args']['description'] ) ) {
-            echo '<div class="wpcf-meta-box-description">'
-            . wpautop( wpcf_translate( 'group ' . $group['args']['id'] . ' description',
-                            $group['args']['description'] ) ) . '</div>';
+            $group_output .= '<div class="wpcf-meta-box-description">'
+                    . wpautop( wpcf_translate( 'group ' . $group['args']['id'] . ' description',
+                                    $group['args']['description'] ) ) . '</div>';
         }
         foreach ( $group['args']['fields'] as $field_slug => $field ) {
             if ( empty( $field ) || !is_array( $field ) ) {
@@ -201,32 +432,42 @@ function wpcf_admin_post_meta_box( $post, $group ) {
 
             $field = $wpcf->field->_parse_cf_form_element( $field );
 
+            if ( isset( $field['wpcf-type'] ) ) { // May be ignored
+                $field = apply_filters( 'wpcf_fields_' . $field['wpcf-type'] . '_meta_box_form_value_display',
+                        $field );
+            }
+
             if ( !isset( $field['#id'] ) ) {
                 $field['#id'] = wpcf_unique_id( serialize( $field ) );
             }
             // Render form elements
             if ( wpcf_compare_wp_version() && $field['#type'] == 'wysiwyg' ) {
                 // Especially for WYSIWYG
-                echo '<div class="wpcf-wysiwyg">';
-                echo '<div id="wpcf-textarea-textarea-wrapper" class="form-item form-item-textarea wpcf-form-item wpcf-form-item-textarea">';
-                echo isset( $field['#before'] ) ? $field['#before'] : '';
-                echo '
+                $group_output .= '<div class="wpcf-wysiwyg">';
+                $group_output .= '<div id="wpcf-textarea-textarea-wrapper" class="form-item form-item-textarea wpcf-form-item wpcf-form-item-textarea">';
+                $group_output .= isset( $field['#before'] ) ? $field['#before'] : '';
+                $group_output .= '
 <label class="wpcf-form-label wpcf-form-textarea-label">' . $field['#title'] . '</label>';
-                echo '<div class="description wpcf-form-description wpcf-form-description-textarea description-textarea">
+                $group_output .= '<div class="description wpcf-form-description wpcf-form-description-textarea description-textarea">
 ' . wpautop( $field['#description'] ) . '</div>';
+                ob_start();
                 wp_editor( $field['#value'], $field['#id'],
                         $field['#editor_settings'] );
+                $group_output .= ob_get_clean() . "\n\n";
                 $field['slug'] = str_replace( WPCF_META_PREFIX . 'wysiwyg-', '',
                         $field_slug );
                 $field['type'] = 'wysiwyg';
-                echo '</div>';
-                echo isset( $field['#after'] ) ? $field['#after'] : '';
-                echo '</div><br /><br />';
+                $group_output .= '</div>';
+                $group_output .= isset( $field['#after'] ) ? $field['#after'] : '';
+                $group_output .= '</div><br /><br />';
             } else {
                 if ( $field['#type'] == 'wysiwyg' ) {
                     $field['#type'] = 'textarea';
                 }
-                echo wpcf_form_simple( array($field['#id'] => $field) );
+                if ( !empty( $echo ) ) {
+                    $field['#validate'] = '';
+                }
+                $group_output .= wpcf_form_simple( array($field['#id'] => $field) );
             }
             do_action( 'wpcf_fields_' . $field_slug . '_meta_box_form', $field );
             if ( isset( $field['wpcf-type'] ) ) { // May be ignored
@@ -242,7 +483,16 @@ function wpcf_admin_post_meta_box( $post, $group ) {
      * This is already checked. Use hook to add wrapper DIVS and apply CSS.
      */
     if ( !empty( $group['args']['_conditional_display'] ) ) {
-        echo '</div>';
+        $group_output .= '</div>';
+    }
+
+    $group_output .= '</div>';
+
+    if ( !empty( $echo ) ) {
+        $group_output .= "\n\n</div></div>";
+        return $group_output;
+    } else {
+        echo $group_output;
     }
 }
 
@@ -304,17 +554,19 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post ) {
      * Connect 'wpcf-invalid-fields' with all fields
      */
     foreach ( $groups as $group ) {
-        // Process fields
-        $fields = wpcf_admin_post_process_fields( $post, $group['fields'], true,
-                false, 'validation' );
-        // Validate fields
-        $form = wpcf_form_simple_validate( $fields );
-        $all_fields = $all_fields + $fields;
-        // Collect all not valid fields
-        if ( $form->isError() ) {
-            $_error = true; // Set error only to true
-            $_not_valid = array_merge( $_not_valid,
-                    (array) $form->get_not_valid() );
+        if ( isset( $group['fields'] ) ) {
+            // Process fields
+            $fields = wpcf_admin_post_process_fields( $post, $group['fields'],
+                    true, false, 'validation' );
+            // Validate fields
+            $form = wpcf_form_simple_validate( $fields );
+            $all_fields = $all_fields + $fields;
+            // Collect all not valid fields
+            if ( $form->isError() ) {
+                $_error = true; // Set error only to true
+                $_not_valid = array_merge( $_not_valid,
+                        (array) $form->get_not_valid() );
+            }
         }
     }
     // Set fields
@@ -994,7 +1246,8 @@ function wpcf_admin_post_get_post_groups_fields( $post = false,
 
     // Filter groups
     $groups = array();
-    $groups_all = wpcf_admin_fields_get_groups();
+    $groups_all = apply_filters( 'wpcf_post_groups_all',
+            wpcf_admin_fields_get_groups(), $post, $context );
     foreach ( $groups_all as $temp_key => $temp_group ) {
         if ( empty( $temp_group['is_active'] ) ) {
             unset( $groups_all[$temp_key] );
@@ -1014,6 +1267,9 @@ function wpcf_admin_post_get_post_groups_fields( $post = false,
         $post_type_filter = $groups_all[$temp_key]['_wp_types_group_post_types'][0] == 'all' ? -1 : 0;
         $taxonomy_filter = $groups_all[$temp_key]['_wp_types_group_terms'][0] == 'all' ? -1 : 0;
         $template_filter = $groups_all[$temp_key]['_wp_types_group_templates'][0] == 'all' ? -1 : 0;
+
+        $groups_all[$temp_key] = apply_filters( 'wpcf_post_group_filter_settings',
+                $groups_all[$temp_key], $post, $context, $post->_wpcf_post_terms );
 
         // See if post type matches
         if ( $post_type_filter == 0 && in_array( $post_type,
@@ -1096,7 +1352,10 @@ function wpcf_admin_post_add_to_editor( $field ) {
  * @return type 
  */
 function wpcf_admin_post_add_to_editor_js() {
-    global $post;
+
+    // since 1.3 we do not use global $post
+    $post = wpcf_admin_get_edited_post();
+
     $fields = wpcf_admin_post_add_to_editor( 'get' );
     $groups = wpcf_admin_post_get_post_groups_fields( $post );
     if ( empty( $fields ) || empty( $groups ) ) {
@@ -1146,7 +1405,7 @@ function wpcf_admin_post_editor_addon_menus_filter( $items ) {
 
     global $wpcf;
 
-    $groups = wpcf_admin_fields_get_groups();
+    $groups = wpcf_admin_fields_get_groups( 'wp-types-group', 'group_active' );
     $all_post_types = implode( ' ', get_post_types( array('public' => true) ) );
     $add = array();
     if ( !empty( $groups ) ) {
@@ -1239,33 +1498,6 @@ function wpcf_admin_post_editor_addon_menus_filter( $items ) {
     }
 
     return $items;
-}
-
-/**
- * Load JS and CSS for field type.
- * 
- * Core function. Works and stable. Do not move or change.
- * If required, add hooks only.
- * 
- * @staticvar array $cache
- * @param type $config
- * @return string 
- */
-function wpcf_admin_post_field_load_js_css( $post, $config ) {
-
-    // Check if cached
-    static $cache = array();
-    if ( isset( $cache[$config['id']] ) ) {
-        return $cache[$config['id']];
-    }
-
-    // Use field object
-    global $wpcf;
-    $wpcf->field->enqueue_script( $config );
-    $wpcf->field->enqueue_style( $config );
-
-    $cache[$config['id']] = $config;
-    return $config;
 }
 
 /**

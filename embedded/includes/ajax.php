@@ -24,12 +24,28 @@ function wpcf_ajax_embedded() {
             break;
 
         case 'editor_callback':
+
             require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
-            $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+            // added variable field_type empty - postmeta, usermeta - usermeta
+            if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
+                // Group filter
+				wp_enqueue_script( 'suggest' );		
+                $field = wpcf_admin_fields_get_field( $_GET['field_id'], false,
+                        false, false, 'wpcf-usermeta' );
+            } else {
+                $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+            }
             if ( !empty( $field ) ) {
-                $function = 'wpcf_fields_' . $field['type'] . '_editor_callback';
-                if ( function_exists( $function ) ) {
-                    call_user_func( $function );
+                if ( isset( $_GET['nonpopup'] ) && $_GET['nonpopup'] == 'true' ) {
+                    $function = 'wpcf_fields_' . $field['type'] . '_editor_callback_nonpopup';
+                    if ( function_exists( $function ) ) {
+                        call_user_func( $function );
+                    }
+                } else {
+                    $function = 'wpcf_fields_' . $field['type'] . '_editor_callback';
+                    if ( function_exists( $function ) ) {
+                        call_user_func( $function );
+                    }
                 }
             }
             break;
@@ -47,9 +63,6 @@ function wpcf_ajax_embedded() {
             if ( isset( $_GET['post_id'] )
                     && isset( $_GET['post_type_child'] )
                     && isset( $_GET['post_type_parent'] ) ) {
-
-                // Fix for Common Conditional check
-                $_POST['post_ID'] = $_GET['post_id'];
 
                 $relationships = get_option( 'wpcf_post_relationship', array() );
                 $post = get_post( intval( $_GET['post_id'] ) );
@@ -104,8 +117,6 @@ function wpcf_ajax_embedded() {
         case 'pr_save_all':
             $output = '';
             if ( isset( $_POST['post_id'] ) ) {
-                // Fix for Common Conditional check
-                $_POST['post_ID'] = $_POST['post_id'];
 
                 $parent_id = intval( $_POST['post_id'] );
                 if ( isset( $_POST['wpcf_post_relationship'][$parent_id] ) ) {
@@ -131,9 +142,6 @@ function wpcf_ajax_embedded() {
                     && isset( $_GET['post_type_parent'] )
                     && isset( $_GET['post_type_child'] )
                     && isset( $_POST['wpcf_post_relationship'] ) ) {
-
-                // Fix for Common Conditional check
-                $_POST['post_ID'] = $_POST['post_id'];
 
                 $parent_id = intval( $_GET['parent_id'] );
                 $child_id = intval( $_GET['post_id'] );
@@ -237,7 +245,74 @@ function wpcf_ajax_embedded() {
                 'output' => $output,
             ) );
             break;
+        /* Usermeta */
+        case 'um_repetitive_add':
+            if ( isset( $_GET['field_id'] ) ) {
+                require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+                require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
+                require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta-post.php';
+                $field = wpcf_admin_fields_get_field( $_GET['field_id'], false,
+                        false, false, 'wpcf-usermeta' );
+                if ( isset( $_GET['user_id'] ) ) {
+                    $user_id = $_GET['user_id'];
+                } else {
+                    $user_id = wpcf_usermeta_get_user();
+                }
+                global $wpcf;
+                $wpcf->usermeta_repeater->set( $user_id, $field );
+                /*
+                 * 
+                 * Force empty values!
+                 */
+                $wpcf->usermeta_repeater->cf['value'] = null;
+                $wpcf->usermeta_repeater->meta = null;
+                $form = $wpcf->usermeta_repeater->get_field_form( null, true );
 
+                echo json_encode( array(
+                    'output' => wpcf_form_simple( $form )
+                    . wpcf_form_render_js_validation( '#your-profile', false ),
+                ) );
+            } else {
+                echo json_encode( array(
+                    'output' => 'params missing',
+                ) );
+            }
+            break;
+
+        case 'um_repetitive_delete':
+            if ( isset( $_POST['user_id'] ) && isset( $_POST['field_id'] ) ) {
+                require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+                $user_id = $_POST['user_id'];
+
+                $field = wpcf_admin_fields_get_field( $_POST['field_id'], false,
+                        false, false, 'wpcf-usermeta' );
+                $meta_id = $_POST['meta_id'];
+                if ( !empty( $field ) && !empty( $user_id ) && !empty( $meta_id ) ) {
+                    /*
+                     * 
+                     * 
+                     * Changed.
+                     * Since Types 1.2
+                     */
+                    global $wpcf;
+                    $wpcf->usermeta_repeater->set( $user_id, $field );
+                    $wpcf->usermeta_repeater->delete( $meta_id );
+
+                    echo json_encode( array(
+                        'output' => 'deleted',
+                    ) );
+                } else {
+                    echo json_encode( array(
+                        'output' => 'field or post not found',
+                    ) );
+                }
+            } else {
+                echo json_encode( array(
+                    'output' => 'params missing',
+                ) );
+            }
+            break;
+        /* End Usermeta */
         case 'repetitive_add':
             if ( isset( $_GET['field_id'] ) ) {
                 require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
@@ -451,6 +526,11 @@ function wpcf_ajax_embedded() {
                             continue;
                         }
 
+                        /*
+                         * 
+                         * BREAKPOINT
+                         * Adds filtering regular evaluation (not wpv_conditional)
+                         */
                         add_filter( 'types_field_get_submitted_data',
                                 'wpcf_relationship_ajax_data_filter', 10, 2 );
 
@@ -467,9 +547,9 @@ function wpcf_ajax_embedded() {
                     $passed = $wpcf->conditional->evaluate();
 
                     if ( $passed ) {
-                        $passed_fields[] = $name;
+                        $passed_fields[md5( $name )] = $name;
                     } else {
-                        $failed_fields[] = $name;
+                        $failed_fields[md5( $name )] = $name;
                     }
                 }
             }
@@ -557,77 +637,6 @@ function wpcf_ajax_embedded() {
                 'execute' => $execute,
                 'wpcf_nonce_ajax_callback' => wp_create_nonce( 'execute' ),
             ) );
-            break;
-
-        case 'pr_verify':
-            require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
-            require_once WPCF_EMBEDDED_INC_ABSPATH . '/conditional-display.php';
-            $passed_fields = array();
-            $failed_fields = array();
-            $post = false;
-            if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
-                $split = explode( '?', $_SERVER['HTTP_REFERER'] );
-                if ( isset( $split[1] ) ) {
-                    parse_str( $split[1], $vars );
-                    if ( isset( $vars['post'] ) ) {
-                        $_POST['post_ID'] = $vars['post'];
-                        $post = get_post( $vars['post'] );
-                    }
-                }
-            }
-            // Dummy post
-            if ( !$post ) {
-                $post = new stdClass();
-                $post->ID = 1;
-            }
-            // Filter meta values (switch them with $_POST values)
-            add_filter( 'get_post_metadata',
-                    'wpcf_cd_pr_meta_ajax_validation_filter', 10, 4 );
-//            add_filter( 'types_field_get_submitted_data',
-//                    'wpcf_cd_pr_meta_ajax_validation_filter', 10, 4 );
-
-            if ( isset( $_POST['wpcf_post_relationship'] ) ) {
-                $child_post_id = key( $_POST['wpcf_post_relationship'] );
-                $data = $_POST['wpcf_post_relationship'] = array_shift( $_POST['wpcf_post_relationship'] );
-                foreach ( $data as $field_id => $field_value ) {
-                    $element = array();
-                    $field = wpcf_admin_fields_get_field( str_replace( WPCF_META_PREFIX,
-                                    '', $field_id ) );
-                    if ( !empty( $field['data']['conditional_display']['conditions'] ) ) {
-                        $element = wpcf_cd_post_edit_field_filter( $element,
-                                $field, $post, 'group' );
-                        if ( isset( $element['__wpcf_cd_status'] ) && $element['__wpcf_cd_status'] == 'passed' ) {
-                            $passed_fields[] = 'wpcf_post_relationship_'
-                                    . $child_post_id . '_' . $field['id'];
-                        } else {
-                            $failed_fields[] = 'wpcf_post_relationship_'
-                                    . $child_post_id . '_' . $field['id'];
-                        }
-                    }
-                }
-            }
-
-            // Remove filter meta values (switch them with $_POST values)
-            remove_filter( 'get_post_metadata',
-                    'wpcf_cd_pr_meta_ajax_validation_filter', 10, 4 );
-//            remove_filter( 'types_field_get_submitted_data',
-//                    'wpcf_cd_pr_meta_ajax_validation_filter', 10, 4 );
-
-            if ( !empty( $passed_fields ) || !empty( $failed_fields ) ) {
-                $execute = '';
-                foreach ( $passed_fields as $field_name ) {
-                    $execute .= 'jQuery(\'#' . $field_name . '\').parents(\'.wpcf-cd\').show().removeClass(\'wpcf-cd-failed\').addClass(\'wpcf-cd-passed\');' . " ";
-                }
-                foreach ( $failed_fields as $field_name ) {
-                    $execute .= 'jQuery(\'#' . $field_name . '\').parents(\'.wpcf-cd\').hide().addClass(\'wpcf-cd-failed\').removeClass(\'wpcf-cd-passed\');' . " ";
-                }
-                echo json_encode( array(
-                    'output' => '',
-                    'execute' => $execute,
-                    'wpcf_nonce_ajax_callback' => wp_create_nonce( 'execute' ),
-                ) );
-            }
-            die();
             break;
 
         default:

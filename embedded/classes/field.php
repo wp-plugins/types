@@ -97,6 +97,13 @@ class WPCF_Field
     var $use_cache = true;
 
     /**
+     * Cache.
+     * 
+     * @var type 
+     */
+    var $cache = array();
+
+    /**
      * Add to editor flas
      * @var type boolean
      */
@@ -139,8 +146,7 @@ class WPCF_Field
 
         // Fields
         $this->__fields_object = new WPCF_Fields();
-        $this->__fields_object = $this->__fields_object->get_fields();
-        $this->fields = $this->__fields_object->all;
+        $this->fields = $this->__fields_object->fields->all;
     }
 
     /**
@@ -184,7 +190,7 @@ class WPCF_Field
         $this->cf['value'] = $this->meta;
 
         // Debug
-        $wpcf->debug->fieds[$this->unique_id] = $this->cf;
+        $wpcf->debug->fields[$this->unique_id] = $this->cf;
         $wpcf->debug->meta[$this->slug][] = $this->meta;
 
         // Load files
@@ -238,14 +244,21 @@ class WPCF_Field
     function _get_meta( $check_post = false ) {
         global $wpdb;
 
-        // Get straight from DB single value
-        $r = $wpdb->get_row(
-                $wpdb->prepare(
-                        "SELECT * FROM $wpdb->postmeta
+        $cache_key = md5( 'field::_get_meta' . $this->post->ID . $this->slug );
+        if ( $this->use_cache && isset( $this->cache[$cache_key] ) ) {
+            $r = $this->cache[$cache_key];
+        } else {
+            // Get straight from DB single value
+            $r = $wpdb->get_row(
+                    $wpdb->prepare(
+                            "SELECT * FROM $wpdb->postmeta
                 WHERE post_id=%d
                 AND meta_key=%s",
-                        $this->post->ID, $this->slug )
-        );
+                            $this->post->ID, $this->slug )
+            );
+            // Cache it
+            $this->cache[$cache_key] = $r;
+        }
 
         // Sort meta
         $meta = array();
@@ -333,16 +346,19 @@ class WPCF_Field
             // Apply filters
             $_value = $this->_filter_save_value( $value );
 
-            // Save field
-            $mid = add_post_meta( $this->post->ID, $this->slug, $_value );
+            if ( !empty( $_value ) || is_numeric( $_value ) ) {
 
-            // CAll HOOKS
-            /*
-             * 
-             * Use these hooks to add future functionality.
-             * Do not add any more code to core.
-             */
-            $this->_action_save( $this->cf, $_value, $mid, $value );
+                // Save field
+                $mid = add_post_meta( $this->post->ID, $this->slug, $_value );
+
+                // CAll HOOKS
+                /*
+                 * 
+                 * Use these hooks to add future functionality.
+                 * Do not add any more code to core.
+                 */
+                $this->_action_save( $this->cf, $_value, $mid, $value );
+            }
         }
     }
 
@@ -373,7 +389,8 @@ class WPCF_Field
      * @param type $meta_id
      */
     function _action_save( $field, $value, $meta_id, $meta_value_original ) {
-        do_action( 'wpcf_fields_save', $value, $field, $this, $meta_id );
+        do_action( 'wpcf_fields_save', $value, $field, $this, $meta_id,
+                $meta_value_original );
         do_action( 'wpcf_fields_slug_' . $field['slug'] . '_save', $value,
                 $field, $this, $meta_id, $meta_value_original );
         do_action( 'wpcf_fields_type_' . $field['type'] . '_save', $value,
@@ -604,6 +621,9 @@ class WPCF_Field
                     add_action( 'admin_footer', $data_script['inline'] );
                     continue;
                 }
+                if ( !isset( $data_script['src'] ) ) {
+                    continue;
+                }
                 $deps = !empty( $data_script['deps'] ) ? $data_script['deps'] : array();
                 wp_enqueue_script( $handle, $data_script['src'], $deps,
                         WPCF_VERSION );
@@ -625,6 +645,9 @@ class WPCF_Field
                 $deps = !empty( $data_script['deps'] ) ? $data_script['deps'] : array();
                 if ( isset( $data_script['inline'] ) ) {
                     add_action( 'admin_header', $data_script['inline'] );
+                    continue;
+                }
+                if ( !isset( $data_script['src'] ) ) {
                     continue;
                 }
                 wp_enqueue_style( $handle, $data_script['src'], $deps,

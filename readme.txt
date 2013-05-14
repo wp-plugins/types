@@ -5,7 +5,7 @@ Tags: CMS, custom field, custom fields, custom post type, custom post types, pos
 License: GPLv2
 Requires at least: 3.1
 Tested up to: 3.5.1
-Stable tag: 1.2.2
+Stable tag: 1.3
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -25,6 +25,17 @@ Types and the other [Toolset](http://wp-types.com) plugins let you build complet
 * **[Access](http://wp-types.com/home/types-access/)** - roles and access control management
 
 The [Toolset](http://wp-types.com) package will let you build complete WordPress sites right from within the admin dashboard, without any PHP.
+
+= CUSTOM FIELDS FOR CONTENT AND USERS =
+Types lets you add custom fields for both posts (meaning, WordPress posts, pages and custom content types), as well as users. You can add any field types to different user profiles.
+
+= ACCESS CONTROL FOR FIELDS =
+Using [Access](http://wp-types.com/home/types-access/), you will be able to control what fields different users can edit and view. This way, you can make some field groups read-only for certain users, and fully-editable for other users.
+
+For example, when you build a membership site, the site admin will be able to change membership levels for everyone and users will see their membership fields as read-only.
+
+= DESIGN CUSTOM FIELDS WITH EASE =
+Types fields come with a built-in CSS editor, letting you design how fields appear in the WordPress admin. You can design both full-edit and read-only field display modes.
 
 = RELIABLE SUPPORT =
 To get support for Types, please join our [technical support forum](http://wp-types.com/forums/). You will receive support directly from our developers, helping you deliver great sites on time and correctly.
@@ -136,11 +147,25 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
-= 1.2.2 =
-* Add full support for Module Manager plugin
-
-= 1.2.1.2 =
-* Fix security exploit
+= 1.3 =
+* Added support for User Meta fields
+* Added customization for styling of fields
+* Added Access control for fields
+* Added Read-only mode for fields
+* Added no_protocol attribute for url field
+* Fixed Date issues when Date is empty
+* Better checks for Date values added
+* Fixed Date formats issues
+* Added Datepicker localization
+* WPML and Group terms filter compatibility added
+* Fixed Checkboxes 'save zero' setting and display issues
+* Fixed Checkbox 'save zero' inserting value on new post
+* Added missing Filters association Group setting in Export
+* Fixed JS issues when adding first child post
+* Fixed WYSIWYG editor not showing in child form
+* Reviewed filters for Images for Windows server
+* Fixed adding inactive images to editor dropdown
+* Performance improvements ( caching results, JS reviews )
 
 = 1.2.1.1 =
 * Fixed problem with some dates showing as a time stamp
@@ -327,5 +352,5 @@ Drag and Drop ordering of repeating fields
 = 1.2.1 =
 Just bug fixes. Usermeta fields are coming in Types 1.3!
 
-= 1.2.2 =
-Full support for Module Manager added
+= 1.3 =
+Add Usermeta fields and Access control of fields.

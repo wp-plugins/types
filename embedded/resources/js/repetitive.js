@@ -11,7 +11,7 @@ jQuery(document).ready(function(){
     jQuery('.wpcf-repetitive-add').click(function(){
         
         var field_id = wpcfGetParameterByName('field_id_md5', jQuery(this).attr('href'));
-        var query = jQuery(this).attr('href').replace(window.ajaxurl+'?', '') + '&count='+eval('window.wpcf_repetitive_count_'+field_id);
+        var query = jQuery(this).attr('href').replace('http://'+window.location.host+window.ajaxurl+'?', '') + '&count='+eval('window.wpcf_repetitive_count_'+field_id);
         var num = eval('window.wpcf_repetitive_count_'+field_id);
         var wrapper = jQuery(this).parents('.wpcf-repetitive-wrapper');
         var update = wrapper.find('.wpcf-repetitive-response');
@@ -20,7 +20,7 @@ jQuery(document).ready(function(){
             url: jQuery(this).attr('href'),
             type: 'post',
             dataType: 'json',
-            data: query+jQuery('[name^="wpcf"]').serialize(),
+            data: query+'&'+jQuery('[name^="wpcf"]').serialize(),
             cache: false,
             beforeSend: function() {
                 update.prepend('<div class="wpcf-ajax-loading-small"></div>');

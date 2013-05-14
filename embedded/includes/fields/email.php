@@ -53,8 +53,13 @@ function wpcf_fields_email_editor_callback_js() {
     ?>
     <script type="text/javascript">
         //<![CDATA[
-        function wpcfFieldsEmailEditorCallback(field_id) {
-            var url = "<?php echo admin_url('admin-ajax.php'); ?>?action=wpcf_ajax&wpcf_action=editor_callback&field_id="+field_id+"&_wpnonce=<?php echo wp_create_nonce('editor_callback'); ?>&keepThis=true&TB_iframe=true&width=400&height=400";
+        function wpcfFieldsEmailEditorCallback(field_id, filed_type) {
+            if( filed_type == 'usermeta'){
+				var url = "<?php echo admin_url('admin-ajax.php'); ?>?action=wpcf_ajax&wpcf_action=editor_callback&field_id="+field_id+"&field_type=usermeta&_wpnonce=<?php echo wp_create_nonce('editor_callback'); ?>&keepThis=true&TB_iframe=true&width=400&height=400";
+			}
+			else{
+				var url = "<?php echo admin_url('admin-ajax.php'); ?>?action=wpcf_ajax&wpcf_action=editor_callback&field_id="+field_id+"&_wpnonce=<?php echo wp_create_nonce('editor_callback'); ?>&keepThis=true&TB_iframe=true&width=400&height=400";	
+			}
             tb_show("<?php _e('Insert email',
             'wpcf'); ?>", url);
                 }
@@ -89,6 +94,11 @@ function wpcf_fields_email_editor_callback() {
         '#name' => 'style',
         '#value' => isset($last_settings['style']) ? $last_settings['style'] : '',
     );
+	// add usermeta form addon
+	if ( isset($_GET['field_type']) && $_GET['field_type'] == 'usermeta' ){
+		$temp_form = wpcf_get_usermeta_form_addon();
+		$form = $form + $temp_form;
+	}
     $form['submit'] = array(
         '#type' => 'submit',
         '#name' => 'submit',
@@ -108,6 +118,7 @@ function wpcf_fields_email_editor_callback() {
  */
 function wpcf_fields_email_editor_submit() {
     $add = '';
+	$types_attr = 'field';
     if (!empty($_POST['title'])) {
         $add = ' title="' . strval($_POST['title']) . '"';
     }
@@ -117,9 +128,23 @@ function wpcf_fields_email_editor_submit() {
     if (!empty($_POST['style'])) {
         $add .= ' style="' . $_POST['style'] . '"';
     }
-    $field = wpcf_admin_fields_get_field($_GET['field_id']);
+	if ( !empty($_POST['is_usermeta']) ){
+		$add .= wpcf_get_usermeta_form_addon_submit();
+	}
+    //Get Field
+	if ( !empty($_POST['is_usermeta']) ){
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false, false, 'wpcf-usermeta' );
+		$types_attr = 'usermeta';
+	}else{
+		$field = wpcf_admin_fields_get_field( $_GET['field_id'] );	
+	}
     if (!empty($field)) {
-        $shortcode = wpcf_fields_get_shortcode($field, $add);
+        if ($types_attr == 'usermeta'){
+			$shortcode = wpcf_usermeta_get_shortcode( $field, $add );
+		}
+		else{
+			$shortcode = wpcf_fields_get_shortcode( $field, $add );
+		}
         wpcf_admin_fields_save_field_last_settings($_GET['field_id'], $_POST);
         echo editor_admin_popup_insert_shortcode_js($shortcode);
         die();

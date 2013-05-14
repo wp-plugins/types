@@ -21,6 +21,10 @@ function wpcf_embedded_admin_init_hook() {
     // Add save_post callback
     add_action( 'save_post', 'wpcf_admin_save_post_hook', 10, 2 );
 
+    // Add Media callback
+    add_action( 'add_attachment', 'wpcf_admin_save_attachment_hook', 10 );
+    add_action( 'edit_attachment', 'wpcf_admin_save_attachment_hook', 10 );
+
     // Render messages
     wpcf_show_admin_messages();
 
@@ -46,6 +50,13 @@ function wpcf_embedded_admin_init_hook() {
             array(
         'public' => false,
         'label' => 'Types Groups',
+        'can_export' => false,
+            )
+    );
+	register_post_type( 'wp-types-user-group',
+            array(
+        'public' => false,
+        'label' => 'Types User Groups',
         'can_export' => false,
             )
     );
@@ -80,6 +91,16 @@ function wpcf_admin_save_post_hook( $post_ID, $post ) {
 }
 
 /**
+ * Save attachment hook.
+ * 
+ * @param type $attachment_id
+ */
+function wpcf_admin_save_attachment_hook( $attachment_id ) {
+    $post = get_post( $attachment_id );
+    wpcf_admin_save_post_hook( $attachment_id, $post );
+}
+
+/**
  * Triggers post procceses.
  */
 function wpcf_admin_post_page_load_hook() {
@@ -104,6 +125,28 @@ function wpcf_admin_post_page_load_hook() {
     } else {
         wpcf_admin_post_init();
     }
+	add_action( 'admin_footer', 'wpcf_admin_fields_postfields_styles' );
+}
+
+
+/**
+	 * Add styles to admin fields groups
+*/	
+function wpcf_admin_fields_postfields_styles(){
+			
+	require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+	require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
+	
+	$groups = wpcf_admin_fields_get_groups();
+	echo '<style type="text/css">';
+	if (!empty($groups)) {
+		foreach ($groups as $group) {
+			echo str_replace("}","}\n",wpcf_admin_get_groups_admin_styles_by_group($group['id']));	
+			
+		}
+		
+	}	
+	echo '</style>';	
 }
 
 /**
@@ -408,7 +451,7 @@ function wpcf_admin_message( $message, $class = 'updated' ) {
     add_action( 'admin_notices',
             create_function( '$a=1, $class=\'' . $class . '\', $message=\''
                     . htmlentities( $message, ENT_QUOTES ) . '\'',
-                    '$screen = get_current_screen(); if (!$screen->is_network) echo "<div class=\"message $class\"><p>" . html_entity_decode($message, ENT_QUOTES) . "</p></div>";' ) );
+                    '$screen = get_current_screen(); if (!$screen->is_network) echo "<div class=\"message $class\"><p>" . stripslashes(html_entity_decode($message, ENT_QUOTES)) . "</p></div>";' ) );
 }
 
 /**

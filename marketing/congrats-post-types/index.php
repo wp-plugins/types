@@ -35,7 +35,22 @@
             ?></strong></p>
 
         <?php endif; ?>
+	<?php elseif ( $type == 'usermeta' ): ?>
+    	<?php if ( !$update ): ?>
+            <p class="wpcf-notif-congrats"><strong><?php
+        printf( __( 'Congratulations! Your new user meta group %s was successfully created.',
+                        'wpcf' ), $title );
 
+            ?></strong></p>
+        <?php else: ?>
+
+            <p class="wpcf-notif-congrats"><strong><?php
+        printf( __( 'Congratulations! Your user meta group %s was successfully updated.',
+                        'wpcf' ), $title );
+
+            ?></strong></p>
+
+        <?php endif; ?>
     <?php else: ?>
 
         <?php if ( !$update ): ?>
@@ -94,6 +109,17 @@
 
             ?> &raquo;</a></li>
             </ul>
+        <?php elseif ( $type == 'usermeta' ): ?>   
+        	<ul>
+                <li><a target="_blank" href="#"><?php
+        echo __( 'Display user fields', 'wpcf' );
+
+            ?> &raquo;</a></li>
+                <li><a target="_blank" href=""><?php
+                    echo __( 'Create groups of repeating user fields', 'wpcf' );
+
+            ?> &raquo;</a></li>
+            </ul> 
         <?php else: ?>
             <ul>
                 <li><a target="_blank" href="http://wp-types.com/documentation/user-guides/displaying-wordpress-custom-fields/?utm_source=typesplugin&utm_medium=next-steps&utm_term=display-custom-fields&utm_campaign=types"><?php

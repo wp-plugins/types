@@ -3,7 +3,7 @@
  * Types-field: Checkboxes
  *
  * Description: Displays a checkbox to the user. Checkboxes can be
- * used to get binary, yes/no responsers from a user.
+ * used to get binary, yes/no responses from a user.
  *
  * Rendering: The "Value to stored" for the checkbox the front end
  * if the checkbox is checked or 'Selected'|'Not selected' HTML
