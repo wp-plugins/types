@@ -1,4 +1,7 @@
 <?php
+/*
+ * Custom Post Types embedded code.
+ */
 
 /**
  * Returns default custom type structure.
@@ -214,6 +217,17 @@ function wpcf_custom_types_register( $post_type, $data ) {
     }
 }
 
-function wpcf_custom_types_after_init() {
-    
+/**
+ * Returns active custom post types.
+ * 
+ * @return type 
+ */
+function wpcf_get_active_custom_types() {
+    $types = get_option('wpcf-custom-types', array());
+    foreach ($types as $type => $data) {
+        if (!empty($data['disabled'])) {
+            unset($types[$type]);
+        }
+    }
+    return $types;
 }

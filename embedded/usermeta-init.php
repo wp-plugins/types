@@ -444,7 +444,7 @@ function types_render_usermeta( $field_id, $params, $content = null, $code = '' 
 	
 	//If Access plugin activated
 	if (function_exists('wpcf_access_register_caps')){ 
-		require_once WPCF_ABSPATH . '/includes/fields.php';
+		require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
 		$field_groups = wpcf_admin_fields_get_groups_by_field( $field_id, 'wp-types-user-group' );
 		if (!empty($field_groups)) {
 			foreach ($field_groups as $field_group) {
@@ -720,8 +720,10 @@ function types_render_usermeta_field( $field_id, $params, $content = null, $code
 function wpcf_admin_user_profile_load_hook($user){
 	if ( !current_user_can( 'edit_user', $user->ID ) )
 		return false;
-		
-	require_once WPCF_INC_ABSPATH . '/usermeta.php';	
+
+    if ( !wpcf_is_embedded() ) {
+        require_once WPCF_INC_ABSPATH . '/usermeta.php';
+    }
 	require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
 	require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta.php';
 	require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
@@ -737,8 +739,10 @@ function wpcf_admin_user_profile_load_hook($user){
 	 * Add styles to admin fields groups
 */	
 function wpcf_admin_fields_usermeta_styles(){
-			
-	require_once WPCF_INC_ABSPATH . '/usermeta.php';	
+
+    if ( !wpcf_is_embedded() ) {
+        require_once WPCF_INC_ABSPATH . '/usermeta.php';
+    }
 	require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
 	require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta.php';
 	require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
@@ -762,7 +766,10 @@ function wpcf_admin_fields_usermeta_styles(){
 function wpcf_admin_user_profile_save_hook($user_id){
 	if ( !current_user_can( 'edit_user', $user_id ) )
 		return false;
-	require_once WPCF_INC_ABSPATH . '/usermeta.php';	
+
+    if ( !wpcf_is_embedded() ) {
+        require_once WPCF_INC_ABSPATH . '/usermeta.php';
+    }
 	require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
 	require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta.php';
 	require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';

@@ -102,7 +102,7 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
     add_filter( 'wpmodules_register_items_' . _GROUPS_MODULE_MANAGER_KEY_,
             'wpcf_register_modules_items_groups', 10, 1 );
     add_filter( 'wpmodules_export_items_' . _GROUPS_MODULE_MANAGER_KEY_,
-            'wpcf_export_modules_items_groups', 10, 2 );
+            'wpcf_export_modules_items_groups', 10, 3 );
     add_filter( 'wpmodules_import_items_' . _GROUPS_MODULE_MANAGER_KEY_,
             'wpcf_import_modules_items_groups', 10, 2 );
 
@@ -129,20 +129,20 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
     function wpcf_register_modules_sections( $sections ) {
         $sections[_TYPES_MODULE_MANAGER_KEY_] = array(
             'title' => __( 'Post Types', 'wpcf' ),
-            'icon' => WPCF_RES_RELPATH . '/images/logo-12.png'
+            'icon' => WPCF_EMBEDDED_RES_RELPATH . '/images/logo-12.png'
         );
         $sections[_GROUPS_MODULE_MANAGER_KEY_] = array(
             'title' => __( 'Field Groups', 'wpcf' ),
-            'icon' => WPCF_RES_RELPATH . '/images/logo-12.png'
+            'icon' => WPCF_EMBEDDED_RES_RELPATH . '/images/logo-12.png'
         );
         // no individual fields are exported
         /* $sections[_FIELDS_MODULE_MANAGER_KEY_]=array(
           'title'=>__('Fields','wpcf'),
-          'icon'=>WPCF_RES_RELPATH.'/images/logo-12.png'
+          'icon'=>WPCF_EMBEDDED_RES_RELPATH.'/images/logo-12.png'
           ); */
         $sections[_TAX_MODULE_MANAGER_KEY_] = array(
             'title' => __( 'Taxonomies', 'wpcf' ),
-            'icon' => WPCF_RES_RELPATH . '/images/logo-12.png'
+            'icon' => WPCF_EMBEDDED_RES_RELPATH . '/images/logo-12.png'
         );
 
         return $sections;
@@ -172,7 +172,6 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
                         '', $item['id'] );
             }
         }
-        require_once WPCF_INC_ABSPATH . '/import-export.php';
         $xmlstring = wpcf_admin_export_selected_data( $items, 'types',
                 'module_manager' );
         return $xmlstring;
@@ -206,14 +205,13 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
         return $items;
     }
 
-    function wpcf_export_modules_items_groups( $res, $items ) {
+    function wpcf_export_modules_items_groups( $res, $items, $use_cache = false ) {
         foreach ( $items as $ii => $item ) {
             $items[$ii] = intval( str_replace( '12' . _GROUPS_MODULE_MANAGER_KEY_ . '21',
                             '', $item['id'] ) );
         }
-        require_once WPCF_INC_ABSPATH . '/import-export.php';
         $xmlstring = wpcf_admin_export_selected_data( $items, 'groups',
-                'module_manager' );
+                'module_manager', $use_cache );
         return $xmlstring;
     }
 
@@ -253,7 +251,6 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
                         '', $item['id'] );
             }
         }
-        require_once WPCF_INC_ABSPATH . '/import-export.php';
         $xmlstring = wpcf_admin_export_selected_data( $items, 'taxonomies',
                 'module_manager' );
         return $xmlstring;
@@ -285,14 +282,14 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
  * @return string
  */
 function wpcf_admin_export_selected_data( array $items, $_type = 'all',
-        $return = 'download' ) {
+        $return = 'download', $use_cache = false ) {
 
     global $wpcf;
 
     require_once WPCF_EMBEDDED_ABSPATH . '/common/array2xml.php';
     $xml = new ICL_Array2XML();
     $data = array();
-	
+
     if ( 'user_groups' == $_type || 'all' == $_type ) {
         // Get groups
         if ( empty( $items ) ) {
@@ -339,7 +336,7 @@ function wpcf_admin_export_selected_data( array $items, $_type = 'all',
                                         array(
                                     '_wp_types_group_showfor',
                                     '_wp_types_group_fields',
-									'_wp_types_group_admin_styles'
+                                    '_wp_types_group_admin_styles'
                                         )
                                 )
                         ) {
@@ -365,11 +362,14 @@ function wpcf_admin_export_selected_data( array $items, $_type = 'all',
             foreach ( $groups as $key => $post ) {
                 $fields = array_merge( $fields,
                         wpcf_admin_fields_get_fields_by_group( $post->ID,
-                                'slug', false, false, false, 'wp-types-user-group', 'wpcf-usermeta' ) );
+                                'slug', false, false, false,
+                                'wp-types-user-group', 'wpcf-usermeta',
+                                $use_cache ) );
             }
         } else {
             // Get fields
-            $fields = wpcf_admin_fields_get_fields( false, false, false, 'wpcf-usermeta' );
+            $fields = wpcf_admin_fields_get_fields( false, false, false,
+                    'wpcf-usermeta' );
         }
         if ( !empty( $fields ) ) {
 
@@ -401,8 +401,8 @@ function wpcf_admin_export_selected_data( array $items, $_type = 'all',
         }
     }
 
-	
-	if ( 'groups' == $_type || 'all' == $_type ) {
+
+    if ( 'groups' == $_type || 'all' == $_type ) {
         // Get groups
         if ( empty( $items ) ) {
             $groups = get_posts( 'post_type=wp-types-group&post_status=null&numberposts=-1' );
@@ -452,7 +452,7 @@ function wpcf_admin_export_selected_data( array $items, $_type = 'all',
                                     '_wp_types_group_templates',
                                     '_wpcf_conditional_display',
                                     '_wp_types_group_filters_association',
-									'_wp_types_group_admin_styles'
+                                    '_wp_types_group_admin_styles'
                                         )
                                 )
                         ) {
@@ -478,7 +478,8 @@ function wpcf_admin_export_selected_data( array $items, $_type = 'all',
             foreach ( $groups as $key => $post ) {
                 $fields = array_merge( $fields,
                         wpcf_admin_fields_get_fields_by_group( $post->ID,
-                                'slug', false, false, false ) );
+                                'slug', false, false, false, 'wp-types-group',
+                                'wpcf-fields', $use_cache ) );
             }
         } else {
             // Get fields
@@ -513,7 +514,7 @@ function wpcf_admin_export_selected_data( array $items, $_type = 'all',
             $data['fields']['__key'] = 'field';
         }
     }
-	
+
     // Get custom types
     if ( 'types' == $_type || 'all' == $_type ) {
         // Get custom types
@@ -581,7 +582,7 @@ function wpcf_admin_export_selected_data( array $items, $_type = 'all',
             $data['post_relationships']['__key'] = 'post_relationship';
         }
     }
-	
+
     // Get custom tax
     if ( 'taxonomies' == $_type || 'all' == $_type ) {
         if ( !empty( $items ) ) {
@@ -846,9 +847,9 @@ function wpcf_admin_import_data_from_xmlstring( $data = '', $_type = 'types',
                     }
                 }
                 // Update meta
-				if ( !empty( $group['meta'] ) ) {
+                if ( !empty( $group['meta'] ) ) {
                     foreach ( $group['meta'] as $meta_key => $meta_value ) {
-						update_post_meta( $group_wp_id, $meta_key,
+                        update_post_meta( $group_wp_id, $meta_key,
                                 maybe_unserialize( $meta_value ) );
                     }
                 }
@@ -982,8 +983,7 @@ function wpcf_admin_import_data_from_xmlstring( $data = '', $_type = 'types',
         if ( !empty( $data->post_relationships ) ) {
             $relationship_existing = get_option( 'wpcf_post_relationship',
                     array() );
-            foreach ( $data->post_relationships->post_relationship as
-                        $relationship ) {
+            foreach ( $data->post_relationships->post_relationship as $relationship ) {
                 $relationship = unserialize( $relationship );
                 $relationship = array_merge( $relationship_existing,
                         $relationship );

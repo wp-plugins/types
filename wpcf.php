@@ -5,11 +5,11 @@
   Description: Define custom post types, custom taxonomy and custom fields.
   Author: ICanLocalize
   Author URI: http://wp-types.com
-  Version: 1.3
+  Version: 1.3.1
  */
 // Added check because of activation hook and theme embedded code
 if ( !defined( 'WPCF_VERSION' ) ) {
-    define( 'WPCF_VERSION', '1.3' );
+    define( 'WPCF_VERSION', '1.3.1' );
 }
 
 define( 'WPCF_REPOSITORY', 'http://api.wp-types.com/' );
@@ -138,7 +138,7 @@ function wpcf_types_plugin_action_links( $links, $file ) {
  * @param type $name
  * @return type 
  */
-function wpcf_is_reserved_name( $name, $check_pages = true ) {
+function wpcf_is_reserved_name( $name, $context, $check_pages = true ) {
     $name = strval( $name );
     /*
      * 
@@ -153,8 +153,29 @@ function wpcf_is_reserved_name( $name, $check_pages = true ) {
                                     'wpcf' ) );
         }
     }
-    $reserved = wpcf_reserved_names();
-    $name = str_replace( '-', '_', sanitize_title( $name ) );
+
+    // Add custom types
+    $custom_types = array_keys( (array) get_option( 'wpcf-custom-types', array() ) );
+    $post_types = array_merge( array_combine( $custom_types,
+                    $custom_types ), get_post_types() );
+    // Unset to avoid checking itself
+    if ( $context == 'post_type' && isset( $post_types[$name] ) ) {
+        unset( $post_types[$name] );
+    }
+
+    // Add taxonomies
+    $custom_taxonomies = array_keys( (array) get_option( 'wpcf-custom-taxonomies',
+                    array() ) );
+    $taxonomies = array_merge( array_combine( $custom_taxonomies,
+                    $custom_taxonomies ), get_taxonomies() );
+    // Unset to avoid checking itself
+    if ( $context == 'taxonomy' && isset( $taxonomies[$name] ) ) {
+        unset( $taxonomies[$name] );
+    }
+
+    $reserved = array_merge( wpcf_reserved_names(),
+            array_merge( $post_types, $taxonomies ) );
+
     return in_array( $name, $reserved ) ? new WP_Error( 'wpcf_reserved_name', __( 'You cannot use this slug because it is a reserved word, used by WordPress. Please choose a different slug.',
                             'wpcf' ) ) : false;
 }
@@ -240,7 +261,7 @@ function wpcf_reserved_names() {
         'withcomments',
         'withoutcomments',
         'year',
-		'lang'
+        'lang'
     );
 
     return apply_filters( 'wpcf_reserved_names', $reserved );

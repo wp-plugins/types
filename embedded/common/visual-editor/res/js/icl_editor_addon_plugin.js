@@ -14,7 +14,7 @@ jQuery(document).ready(function(){
      * Views Layout Meta HTML, CRED form.
      */
     window.wpcfActiveEditor = 'content';
-    jQuery('.wp-media-buttons a, .wpcf-wysiwyg .editor_addon_wrapper .item, #postdivrich .editor_addon_wrapper .item, #wpv_filter_meta_html_admin_edit .item, #wpv_layout_meta_html_admin_edit .item').click(function(){
+    jQuery('.wp-media-buttons a, .wpcf-wysiwyg .editor_addon_wrapper .item, #postdivrich .editor_addon_wrapper .item, #wpv_filter_meta_html_admin_edit .item, #wpv_layout_meta_html_admin_edit .item').on('click', function(){
         window.wpcfActiveEditor = jQuery(this).parents('.wpcf-wysiwyg, #postdivrich, #wpv_layout_meta_html_admin, #wpv_filter_meta_html_admin')
         .find('textarea#content, textarea.wpcf-wysiwyg, textarea#wpv_layout_meta_html_content, textarea#wpv_filter_meta_html_content').attr('id');
         
@@ -28,7 +28,7 @@ jQuery(document).ready(function(){
     /*
      * Handle the "Add Field" boxes - some layout changes.
      */
-    jQuery('.wpv_add_fields_button').click(function(e) {
+    jQuery('.wpv_add_fields_button').on('click', function(e) {
         
         // Set dropdown
         var dropdown_list = jQuery('#add_field_popup .editor_addon_dropdown');
@@ -44,6 +44,7 @@ jQuery(document).ready(function(){
             
             // Place it above button
             dropdown_list.css('margin', '-25px 0 0 -15px');
+	    dropdown_list.css('right', '0');
             var pos = jQuery('.wpv_add_fields_button').position();
             dropdown_list.css('top', pos.top + jQuery('.wpv_add_fields_button').height() - iclEditorHeight + 'px');
             dropdown_list.css('left', pos.left + jQuery('.wpv_add_fields_button').width() + 'px');
@@ -61,7 +62,7 @@ jQuery(document).ready(function(){
      *
      * This manages clicking on dropdown icon
      */
-    jQuery('.editor_addon_wrapper img').click(function(e){
+    jQuery('#post').on('click', '.editor_addon_wrapper img', function(e){
         
         // Set dropdown
         var drop_down = jQuery(this).parent().find('.editor_addon_dropdown');
@@ -107,7 +108,7 @@ jQuery(document).ready(function(){
      *
      * Trigger close action
      */
-    jQuery('.editor_addon_wrapper .item, .editor_addon_dropdown .close').click(function(e){
+    jQuery('.editor_addon_wrapper .item, .editor_addon_dropdown .close').on('click', function(e){
         jQuery('.editor_addon_dropdown').css('visibility', 'hidden').css('display', 'inline');
     });
 
@@ -115,7 +116,7 @@ jQuery(document).ready(function(){
      * 
      * Direct links
      */
-    jQuery('.editor-addon-top-link').click(function(){
+    jQuery('.editor-addon-top-link').on('click', function(){
         var scrollTargetDiv = jQuery(this).parents('.editor_addon_dropdown');
         var target = jQuery(this).parents('li')
         .find('.'+jQuery(this).data('editor_addon_target')+'-target');

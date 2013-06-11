@@ -642,34 +642,6 @@ function wpcf_admin_fields_get_ajax_deactivation_link( $group_id ) {
 }
 
 /**
- * Gets all groups that contain specified field.
- * Modified by Gen, 13.02.2013
- * 
- * @static $cache
- * @param type $field_id 
- */
-function wpcf_admin_fields_get_groups_by_field( $field_id,
-        $post_type = 'wp-types-group' ) {
-    static $cache = array();
-    $groups = wpcf_admin_fields_get_groups( $post_type );
-    $meta_name = ($post_type == 'wp-types-group' ? 'wpcf-fields' : 'wpcf-usermeta');
-    $return = array();
-    foreach ( $groups as $group_id => $group ) {
-        if ( isset( $cache['groups'][$group_id] ) ) {
-            $fields = $cache['groups'][$group_id];
-        } else {
-            $fields = wpcf_admin_fields_get_fields_by_group( $group['id'],
-                    'slug', false, false, false, $post_type, $meta_name );
-        }
-        if ( array_key_exists( $field_id, $fields ) ) {
-            $return[$group['id']] = $group;
-        }
-        $cache['groups'][$group_id] = $fields;
-    }
-    return $return;
-}
-
-/**
  * Check how many posts needs checkbox update.
  * 
  * @param type $field

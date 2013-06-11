@@ -1,0 +1,24 @@
+/* 
+    Document   : editor
+    Created on : May 17, 2013, 10:59:41 AM
+    Author     : srdjan
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+#types-editor-modal {
+    display: none;
+}
+
+#wpcf-ajax #types-editor-modal {
+    display: inline;
+}
+
+.ac_results {
+    z-index: 160001;
+}
+
+#types-editor-modal .tab {
+    display: none;
+    padding: 15px;
+}

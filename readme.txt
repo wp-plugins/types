@@ -4,8 +4,8 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields
 License: GPLv2
 Requires at least: 3.1
-Tested up to: 3.5.1
-Stable tag: 1.3
+Tested up to: 3.6.0
+Stable tag: 1.3.1
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -146,6 +146,14 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 5. Bulk editing child content using Field Tables
 
 == Changelog ==
+
+= 1.3.1 =
+* Fixed issues with Access (teaser, embedded and standalone code compatibility)
+* Fixed editor popup for embedded mode
+* Added post types and taxonomies to reserved names check
+* Fixed child titles blank space in child form
+* Fixed issues with Usermeta fields
+* Fixed issues with Module Manager for embedded mode
 
 = 1.3 =
 * Added support for User Meta fields

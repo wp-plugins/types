@@ -553,19 +553,6 @@ function wpcf_enqueue_scripts() {
          */
         wp_enqueue_style( 'wpcf-css', WPCF_RES_RELPATH . '/css/basic.css',
                 array(), WPCF_VERSION );
-
-        /*
-         * Settings
-         */
-        // _nonce for editor callback
-        wpcf_admin_add_js_settings( 'wpcfEditorCallbackNonce',
-                wp_create_nonce( 'editor_callback' ) );
-		// _nonce for editor callback (no popup fields usermeta)
-        wpcf_admin_add_js_settings( 'wpcfEditorCallbackNonce',
-                wp_create_nonce( 'editor_callback' ) );
-        // Thickbox generic title
-        wpcf_admin_add_js_settings( 'wpcfEditorTbTitle',
-                esc_js( __( 'Insert field', 'wpcf' ) ) );
     }
     /*
      * 
@@ -614,6 +601,19 @@ function wpcf_enqueue_scripts() {
                 array('wpcf-css-embedded'), WPCF_VERSION
         );
     }
+    
+    /*
+     * Settings
+     */
+    // _nonce for editor callback
+    wpcf_admin_add_js_settings( 'wpcfEditorCallbackNonce',
+            wp_create_nonce( 'editor_callback' ) );
+    // _nonce for editor callback (no popup fields usermeta)
+    wpcf_admin_add_js_settings( 'wpcfEditorCallbackNonce',
+            wp_create_nonce( 'editor_callback' ) );
+    // Thickbox generic title
+    wpcf_admin_add_js_settings( 'wpcfEditorTbTitle',
+            esc_js( __( 'Insert field', 'wpcf' ) ) );
 }
 
 /**

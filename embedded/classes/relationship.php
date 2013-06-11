@@ -263,6 +263,7 @@ class WPCF_Relationship
         }
 		
         $post_data['post_title'] = $post_title;
+        $post_data['post_name'] = $post_title;
         $post_data['post_content'] = isset( $save_fields['_wp_body'] ) ? $save_fields['_wp_body'] : $child->post_content;
 		
         $post_data['post_type'] = $child->post_type;
@@ -341,6 +342,9 @@ class WPCF_Relationship
      * @return type
      */
     function add_new_child( $parent_id, $post_type ) {
+        
+        global $wpdb;
+        
         $parent = get_post( $parent_id );
         if ( empty( $parent ) ) {
             return new WP_Error( 'wpcf-relationship-no-parent', 'No parent' );
@@ -359,6 +363,10 @@ class WPCF_Relationship
             // Save relationship
             update_post_meta( $id,
                     '_wpcf_belongs_' . $parent->post_type . '_id', $parent->ID );
+            // Fix title
+            $wpdb->update( $wpdb->posts,
+                    array('post_title' => $post_type . ' ' . $id),
+                    array('ID' => $id), array('%s'), array('%d') );
         }
         return $id;
     }

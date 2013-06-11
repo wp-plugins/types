@@ -138,3 +138,18 @@ function wpcf_custom_taxonomies_register( $taxonomy, $data ) {
             apply_filters( 'wpcf_taxonomy_objects', $object_types, $taxonomy ),
             apply_filters( 'wpcf_taxonomy_data', $data, $taxonomy, $object_types ) );
 }
+
+/**
+ * Returns only active taxonomies.
+ * 
+ * @return type 
+ */
+function wpcf_get_active_custom_taxonomies() {
+    $taxonomies = get_option('wpcf-custom-taxonomies', array());
+    foreach ($taxonomies as $taxonomy => $data) {
+        if (!empty($data['disabled'])) {
+            unset($taxonomies[$taxonomy]);
+        }
+    }
+    return $taxonomies;
+}

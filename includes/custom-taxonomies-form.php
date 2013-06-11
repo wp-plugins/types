@@ -99,7 +99,7 @@ function wpcf_admin_custom_taxonomies_form() {
      */
     $attributes = array();
     if ( !empty( $_POST['ct']['slug'] ) ) {
-        $reserved = wpcf_is_reserved_name( $_POST['ct']['slug'] );
+        $reserved = wpcf_is_reserved_name( $_POST['ct']['slug'], 'taxonomy' );
         if ( is_wp_error( $reserved ) ) {
             $attributes = array(
                 'class' => 'wpcf-form-error',
@@ -435,7 +435,7 @@ function wpcf_admin_custom_taxonomies_form_submit( $form ) {
     $custom_taxonomies = get_option( 'wpcf-custom-taxonomies', array() );
 
     // Check reserved name
-    $reserved = wpcf_is_reserved_name( $tax );
+    $reserved = wpcf_is_reserved_name( $tax, 'taxonomy' );
     if ( is_wp_error( $reserved ) ) {
         wpcf_admin_message( $reserved->get_error_message(), 'error' );
         return false;

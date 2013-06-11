@@ -96,7 +96,7 @@ function types_render_field( $field_id, $params, $content = null, $code = '' ) {
 
     //If Access plugin activated
     if ( function_exists( 'wpcf_access_register_caps' ) ) {
-        require_once WPCF_ABSPATH . '/includes/fields.php';
+        require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
         $field_groups = wpcf_admin_fields_get_groups_by_field( $field_id );
         if ( !empty( $field_groups ) ) {
             foreach ( $field_groups as $field_group ) {

@@ -326,7 +326,7 @@ class WPCF_Relationship_Child_Form
                                 '#name' => 'wpcf_post_relationship['
                                 . $this->parent->ID . ']['
                                 . $this->child->ID . '][_wp_title]',
-                                '#value' => $this->child->post_title,
+                                '#value' => trim( $this->child->post_title ),
                                 '#inline' => true,
                             )
                         )

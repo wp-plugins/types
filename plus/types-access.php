@@ -9,7 +9,15 @@ add_action('plugins_loaded', 'wpcf_access_teaser_init', 15);
  * Teaser init. 
  */
 function wpcf_access_teaser_init() {
+    global $pagenow;
     if (!defined('WPCF_ACCESS_VERSION')) {
+        // Check if Access is activating right now
+        if ( $pagenow == 'plugins.php'
+                && (isset( $_GET['action'] ) && $_GET['action'] == 'activate'
+                && isset( $_GET['plugin'] )
+                && basename( $_GET['plugin'] ) == 'types-access.php') ) {
+            return false;
+        }
         define('WPCF_ACCESS_ABSPATH', dirname(__FILE__) . '/types-access');
         define('WPCF_ACCESS_RELPATH',
                 plugins_url() . '/' . basename(WPCF_ABSPATH) . '/plus/types-access');

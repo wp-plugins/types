@@ -101,7 +101,7 @@ function wpcf_admin_custom_types_form() {
      */
     $attributes = array();
     if ( !empty( $_POST['ct']['slug'] ) ) {
-        $reserved = wpcf_is_reserved_name( $_POST['ct']['slug'] );
+        $reserved = wpcf_is_reserved_name( $_POST['ct']['slug'], 'post_type' );
         if ( is_wp_error( $reserved ) ) {
             $attributes = array(
                 'class' => 'wpcf-form-error',
@@ -626,7 +626,7 @@ function wpcf_admin_custom_types_form_submit( $form ) {
     $custom_types = get_option( 'wpcf-custom-types', array() );
 
     // Check reserved name
-    $reserved = wpcf_is_reserved_name( $post_type );
+    $reserved = wpcf_is_reserved_name( $post_type, 'post_type' );
     if ( is_wp_error( $reserved ) ) {
         wpcf_admin_message( $reserved->get_error_message(), 'error' );
         return false;

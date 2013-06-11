@@ -17,10 +17,6 @@ require_once WPCF_EMBEDDED_ABSPATH . '/includes/conditional-display.php';
 function wpcf_admin_userprofile_init($user_id){
 	global $wpcf;
 	
-	wpcf_admin_add_js_settings( 'wpcf_nonce_toggle_group',
-            '\'' . wp_create_nonce( 'group_form_collapsed' ) . '\'' );
-    wpcf_admin_add_js_settings( 'wpcf_nonce_toggle_fieldset',
-            '\'' . wp_create_nonce( 'form_fieldset_toggle' ) . '\'' );
 	$user_role = array_shift($user_id->roles);
 	$groups = wpcf_admin_usermeta_get_groups_fields();
 	$wpcf_active = false;
