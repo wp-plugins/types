@@ -5,6 +5,8 @@
 jQuery(document).ready(function(){
     // Trigger main func
     wpcfConditionalInit();
+    // Form edit screen
+    wpcfConditionalFormDateInit();
 });
 
 /**
@@ -107,6 +109,7 @@ function wpcfConditionalVerify(object, name, value) {
             data: form.serialize()+'&wpcf_group='+group+'&wpcf_main_post_id='+jQuery('#post_ID').val()+'&action=wpcf_ajax&wpcf_action=cd_verify&_wpnonce='+wpcfConditionalVerify_nonce,
             cache: false,
             beforeSend: function() {
+                typesSpinner.show(object);
             },
             success: function(data) {
                 if (data != null) {
@@ -119,6 +122,7 @@ function wpcfConditionalVerify(object, name, value) {
                         eval(data.execute);
                     }
                 }
+                typesSpinner.hide(object);
             }
         });
     }
@@ -145,6 +149,7 @@ function wpcfCdGroupVerify(object, name, value, group_id) {
         data: form.serialize()+'&group_id='+group_id+'&action=wpcf_ajax&wpcf_action=cd_group_verify&_wpnonce='+window.wpcfConditionalVerifyGroup,
         cache: false,
         beforeSend: function() {
+            typesSpinner.show(object);
         },
         success: function(data) {
             if (data != null) {
@@ -154,6 +159,7 @@ function wpcfCdGroupVerify(object, name, value, group_id) {
                     eval(data.execute);
                 }
             }
+            typesSpinner.hide(object);
         }
     });
 }
@@ -184,9 +190,21 @@ function wpcfCdCreateSummary(id) {
         }
         skip = false;
         //                }
+        var field = jQuery(this).find('.wpcf-cd-field :selected');
+
         condition += '($'+jQuery(this).find('.wpcf-cd-field').val();
         condition += ' ' + jQuery(this).find('.wpcf-cd-operation').val();
-        condition += ' ' + jQuery(this).find('.wpcf-cd-value').val() + ') ';
+        // Date
+        if (field.hasClass('wpcf-conditional-select-date')) {
+            var date = jQuery(this).find('.wpcf-custom-field-date');
+            var month = date.children(':first');
+            var mm = month.val();
+            var jj = month.next().val();
+            var aa = month.next().next().val();
+            condition += ' DATE(' + jj + ',' + mm + ',' + aa + ')) ';
+        } else {
+            condition += ' ' + jQuery(this).find('.wpcf-cd-value').val() + ') ';
+        }
     });
     jQuery('#'+id).val(condition);
 }
@@ -195,21 +213,24 @@ function wpcfCdCreateSummary(id) {
  * Add New Condition AJAX call
  */
 function wpcfCdAddCondition(object, isGroup) {
-    if (object.parent().parent().find('.wpcf-cd-entry').length > 0) {
-        object.parent().parent().find('.toggle-cd').show();
-        object.parent().parent().find('.wpcf-cd-relation').show();
+    var wrapper = isGroup ? object.parents('#wpcf-cd-group') : object.parents('.wpcf-cd-fieldset');
+    if (wrapper.find('.wpcf-cd-entry').length > 0) {
+        wrapper.find('.toggle-cd').show();
+        wrapper.find('.wpcf-cd-relation').show();
     }
-    var url = object.attr('href')+'&count='+object.parent().parent().find('input[type=hidden]').val();
+    var url = object.attr('href')+'&count='+wrapper.find('input[type=hidden]').val();
     if (isGroup) {
         url += '&group=1';
     } else {
-        url += '&field='+object.parent().parent().attr('id');
+        url += '&field='+wrapper.attr('id');
     }
     jQuery.get(url, function(data) {
         if (typeof data.output != 'undefined') {
-            object.parent().find('.wpcf-cd-entries').append(data.output);
-            var count = object.parent().find('input[type=hidden]').val();
-            object.parent().find('input[type=hidden]').val(parseInt(count)+1);
+            var condition = jQuery(data.output);
+            wrapper.find('.wpcf-cd-entries').append(condition);
+            var count = wrapper.find('input[type=hidden]').val();
+            wrapper.find('input[type=hidden]').val(parseInt(count)+1);
+            wpcfConditionalFormDateToggle(condition.find('.wpcf-cd-field'));
         }
     }, "json");
 }
@@ -299,6 +320,69 @@ function wpcfConditionalIsHidden(object) {
     } else {
         return object.parents('.wpcf-conditional').length > 0 && object.is(':hidden');
     }
+}
+
+/**
+ * Init Date conditional form check.
+ */
+function wpcfConditionalFormDateInit() {
+    jQuery('#wpcf-form-fields-main').on('change', '.wpcf-cd-field', function(){
+        wpcfConditionalFormDateToggle(jQuery(this));
+    }).find('.wpcf-cd-field').each(function(){
+        wpcfConditionalFormDateToggle(jQuery(this));
+    });
+}
+
+/**
+ * Toggles input textfield to date inputs on Group edit screen.
+ */
+function wpcfConditionalFormDateToggle(object) {
+    var show = object.find(':selected').hasClass('wpcf-conditional-select-date');
+    var parent = object.parent();
+    var select = parent.find('.wpcf-cd-operation');
+    if (show) {
+        parent.find('.wpcf-cd-value').hide();
+        parent.find('.wpcf-custom-field-date').show();
+        select.find("option[value='==='], option[value='!==']")
+        .attr('disabled', 'disabled');
+        var selected = select.find(':selected').val()
+        if (selected == '===') {
+            select.val('=').trigger('click');
+        } else if (selected == '!==') {
+            select.val('<>').trigger('click');
+        }
+    } else {
+        parent.find('.wpcf-cd-value').show();
+        parent.find('.wpcf-custom-field-date').hide();
+        select.find("option[value='==='], option[value='!=='], option[value='<>']")
+        .removeAttr('disabled');
+    }
+}
+
+/**
+ * Checks if Date is valid on Group edit screen.
+ */
+function wpcfConditionalFormDateCheck() {
+    var is_ok = true;
+    jQuery('.wpcf-custom-field-date').each(function(index) {
+        var field = jQuery(this).parent().find('.wpcf-cd-field :selected');
+        if (field.hasClass('wpcf-conditional-select-date')) {
+            var month = jQuery(this).children(':first');
+            var mm = month.val();
+            var jj = month.next().val();
+            var aa = month.next().next().val();
+            var newD = new Date( aa, mm - 1, jj);
+
+            if ( newD.getFullYear() != aa || (1 + newD.getMonth()) != mm || newD.getDate() != jj) {
+                jQuery(this).parent().find('.wpcf_custom_field_invalid_date').show();
+                jQuery(this).parents('fieldset').children('.fieldset-wrapper').slideDown();
+                is_ok = false;
+            } else {
+                jQuery(this).parent().find('.wpcf_custom_field_invalid_date').hide();
+            }
+        }
+    });
+    return is_ok;
 }
 
 /*

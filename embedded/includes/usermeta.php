@@ -3,7 +3,6 @@
 //      'wpcf-usermeta';
 define("WORKINGTYPE", "usermeta");
 
-
 /**
  * Saves group's user roles.
  * 

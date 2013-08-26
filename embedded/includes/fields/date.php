@@ -156,8 +156,8 @@ function wpcf_fields_date_meta_box_form( $field, $field_object = null ) {
     $value = $field['value'] = wpcf_fields_date_value_get_filter( $field['value'],
             $field_object );
 
-    // TODO WPML
-    if ( isset( $field['wpml_action'] ) && $field['wpml_action'] == 'copy' ) {
+    // TODO WPML Set disable_in_form or similar to true, use hook for WPML
+    if ( wpcf_wpml_field_is_copied( $field ) ) {
         $attributes = array('style' => 'width:150px;');
     } else {
         $attributes = array('class' => 'wpcf-datepicker', 'style' => 'width:150px;');
@@ -188,6 +188,18 @@ function wpcf_fields_date_meta_box_form( $field, $field_object = null ) {
         '#after' => '' . $js_trigger, // Append JS trigger
         '#_validate_this' => true, // Important when H and M are used too
     );
+
+    // Add warning about supported timestamp
+    if ( !fields_date_timestamp_neg_supported() ) {
+        $_visible = !empty( $value['datepicker'] )
+                && intval( $value['timestamp'] ) < 0 ? '' : ' style="display:none;"';
+        $form[$unique_id . '-warning'] = array(
+            '#type' => 'markup',
+            '#markup' => '<div class="wpcf-form-error"' . $_visible
+            . '><p>' . __( 'Please enter a date after 1 January 1970', 'wpcf' )
+            . '</p></div>',
+        );
+    }
 
     /*
      * 
@@ -328,9 +340,7 @@ function wpcf_fields_date_value_get_filter( $value, $field, $return = 'array',
 
     // Set return data if necessary
     if ( $return != 'array' ) {
-        if ( isset( $value[strval( $return )] ) ) {
-            $value = $value[strval( $return )];
-        }
+        $value = isset( $value[strval( $return )] ) ? $value[strval( $return )] : null;
     }
 
     return $value;
@@ -353,8 +363,13 @@ function wpcf_fields_date_view( $params ) {
     $output = '';
 
     // Make sure value is right
-    $params['field_value'] = intval( wpcf_fields_date_value_get_filter( $params['field_value'],
-                    $params['field'], 'timestamp' ) );
+    $__timestamp = wpcf_fields_date_value_get_filter( $params['field_value'],
+            $params['field'], 'timestamp' );
+    if ( is_null( $__timestamp ) ) {
+        return '';
+    } else {
+        $params['field_value'] = intval( $__timestamp );
+    }
 
     switch ( $params['style'] ) {
         case 'calendar':
@@ -399,20 +414,10 @@ function wpcf_fields_date_view( $params ) {
 /**
  * TinyMCE editor form.
  */
-function wpcf_fields_date_editor_callback() {
-    $last_settings = wpcf_admin_fields_get_field_last_settings( $_GET['field_id'] );
-    wp_enqueue_script( 'jquery' );
-    $form = array();
-    $form['#form']['callback'] = 'wpcf_fields_date_editor_form_submit';
-    $form['style'] = array(
-        '#type' => 'radios',
-        '#name' => 'wpcf[style]',
-        '#options' => array(
-            __( 'Show as calendar', 'wpcf' ) => 'calendar',
-            __( 'Show as text', 'wpcf' ) => 'text',
-        ),
-        '#default_value' => isset( $last_settings['style'] ) ? $last_settings['style'] : 'text',
-        '#after' => '<br />',
+function wpcf_fields_date_editor_callback( $field, $settings ) {
+
+    $data = array(
+        'date_formats' => array(),
     );
     $date_formats = apply_filters( 'date_formats',
             array(
@@ -422,65 +427,34 @@ function wpcf_fields_date_editor_callback() {
         'd/m/Y',
             )
     );
-    $options = array();
-    foreach ( $date_formats as $format ) {
+
+    // Custom format
+    $data['custom'] = isset( $settings['custom'] ) ? $settings['custom'] : get_option( 'date_format' );
+
+    $data['default'] = 'custom';
+
+    foreach ( $date_formats as $k => $format ) {
         $title = date( $format, time() );
-        $field['#title'] = $title;
-        $field['#value'] = $format;
-        $options[] = $field;
+        $data['date_formats'][$k] = array(
+            'id' => sanitize_title( $format ),
+            'title' => $title,
+            'format' => $format,
+            'default' => isset( $settings['format'] ) && $format == $settings['format'] ? true : false,
+        );
+        if ( $data['date_formats'][$k]['default'] ) {
+            $data['default'] = $data['date_formats'][$k]['id'];
+        }
     }
-    $custom_format = isset( $last_settings['format-custom'] ) ? $last_settings['format-custom'] : get_option( 'date_format' );
-    $options[] = array(
-        '#title' => __( 'Custom', 'wpcf' ),
-        '#value' => 'custom',
-        '#suffix' => wpcf_form_simple( array('custom' => array(
-                '#name' => 'wpcf[format-custom]',
-                '#type' => 'textfield',
-                '#value' => $custom_format,
-                '#suffix' => '&nbsp;' . date( $custom_format, time() ),
-                '#inline' => true,
-                ))
-        ),
+    return array(
+        'supports' => array('styling'),
+        'tabs' => array(
+            'display' => array(
+                'menu_title' => __( 'Display', 'wpcf' ),
+                'title' => __( 'Display', 'wpcf' ),
+                'content' => WPCF_Loader::template( 'editor-modal-date', $data ),
+            ),
+        )
     );
-    $form['toggle-open'] = array(
-        '#type' => 'markup',
-        '#markup' => '<div id="wpcf-toggle" style="display:none;">',
-    );
-    $form['format'] = array(
-        '#type' => 'radios',
-        '#name' => 'wpcf[format]',
-        '#options' => $options,
-        '#default_value' => isset( $last_settings['format'] ) ? $last_settings['format'] : get_option( 'date_format' ),
-        '#after' => '<a href="http://codex.wordpress.org/Formatting_Date_and_Time" target="_blank">'
-        . __( 'Documentation on date and time formatting', 'wpcf' ) . '</a>',
-    );
-    $form['toggle-close'] = array(
-        '#type' => 'markup',
-        '#markup' => '</div>',
-    );
-    $form['field_id'] = array(
-        '#type' => 'hidden',
-        '#name' => 'wpcf[field_id]',
-        '#value' => $_GET['field_id'],
-    );
-    // add usermeta form addon
-    if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
-        $temp_form = wpcf_get_usermeta_form_addon();
-        $form = $form + $temp_form;
-    }
-    $form['submit'] = array(
-        '#type' => 'submit',
-        '#name' => 'submit',
-        '#value' => __( 'Insert date', 'wpcf' ),
-        '#attributes' => array('class' => 'button-primary'),
-    );
-    $f = wpcf_form( 'wpcf-fields-date-editor', $form );
-    add_action( 'admin_head_wpcf_ajax', 'wpcf_fields_date_editor_form_script' );
-    wpcf_admin_ajax_head( __( 'Insert date', 'wpcf' ) );
-    echo '<form id="wpcf-form" method="post" action="">';
-    echo $f->renderForm();
-    echo '</form>';
-    wpcf_admin_ajax_footer();
 }
 
 /**
@@ -488,54 +462,31 @@ function wpcf_fields_date_editor_callback() {
  * 
  * @return type 
  */
-function wpcf_fields_date_editor_form_submit() {
-    require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
-    if ( !isset( $_POST['wpcf']['field_id'] ) ) {
-        return false;
-    }
+function wpcf_fields_date_editor_submit( $data, $field, $context ) {
 
-    //Get Field
-    if ( !empty( $_POST['is_usermeta'] ) ) {
-        $field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false,
-                false, 'wpcf-usermeta' );
-        $types_attr = 'usermeta';
-    } else {
-        $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
-        $types_attr = 'field';
-    }
-    if ( empty( $field ) ) {
-        return false;
-    }
     $add = ' ';
-    $style = isset( $_POST['wpcf']['style'] ) ? $_POST['wpcf']['style'] : 'text';
-    $add .= 'style="' . $style . '"';
-    if ( !empty( $_POST['is_usermeta'] ) ) {
+    $raw = !empty( $data['raw_mode'] );
+    $format = get_option( 'date_format' );
+    $style = isset( $data['style'] ) ? $data['style'] : 'text';
+
+    if ( !$raw ) {
+        $add .= 'style="' . $style . '"';
+        if ( $style == 'text' ) {
+            if ( isset( $data['format'] ) ) {
+                if ( $data['format'] == 'custom' && isset( $data['custom'] ) ) {
+                    $format = $data['custom'];
+                } else {
+                    $format = $data['format'];
+                }
+            }
+            $add .= ' format="' . $format . '"';
+        }
+    }
+    if ( $context == 'usermeta' ) {
         $add .= wpcf_get_usermeta_form_addon_submit();
-    }
-    $format = '';
-    if ( $style == 'text' ) {
-        if ( $_POST['wpcf']['format'] == 'custom' ) {
-            $format = $_POST['wpcf']['format-custom'];
-        } else {
-            $format = $_POST['wpcf']['format'];
-        }
-        if ( empty( $format ) ) {
-            $format = get_option( 'date_format' );
-        }
-        $add .= ' format="' . $format . '"';
-    }
-    if ( $types_attr == 'usermeta' ) {
         $shortcode = wpcf_usermeta_get_shortcode( $field, $add );
     } else {
         $shortcode = wpcf_fields_get_shortcode( $field, $add );
     }
-    wpcf_admin_fields_save_field_last_settings( $_POST['wpcf']['field_id'],
-            array(
-        'style' => $style,
-        'format' => $_POST['wpcf']['format'],
-        'format-custom' => $_POST['wpcf']['format-custom'],
-            )
-    );
-    echo editor_admin_popup_insert_shortcode_js( $shortcode );
-    die();
+    return $shortcode;
 }

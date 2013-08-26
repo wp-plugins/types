@@ -5,11 +5,11 @@
   Description: Define custom post types, custom taxonomy and custom fields.
   Author: ICanLocalize
   Author URI: http://wp-types.com
-  Version: 1.3.1
+  Version: 1.4
  */
 // Added check because of activation hook and theme embedded code
 if ( !defined( 'WPCF_VERSION' ) ) {
-    define( 'WPCF_VERSION', '1.3.1' );
+    define( 'WPCF_VERSION', '1.4' );
 }
 
 define( 'WPCF_REPOSITORY', 'http://api.wp-types.com/' );
@@ -27,10 +27,6 @@ require_once WPCF_INC_ABSPATH . '/constants.php';
  */
 require_once WPCF_ABSPATH . '/embedded/types.php';
 
-if ( !defined( 'EDITOR_ADDON_RELPATH' ) ) {
-    define( 'EDITOR_ADDON_RELPATH',
-            WPCF_RELPATH . '/embedded/common/visual-editor' );
-}
 
 // Plugin mode only hooks
 add_action( 'plugins_loaded', 'wpcf_init' );
@@ -60,6 +56,11 @@ function wpcf_deactivation_hook() {
  * Main init hook.
  */
 function wpcf_init() {
+    if ( !defined( 'EDITOR_ADDON_RELPATH' ) ) {
+        define( 'EDITOR_ADDON_RELPATH',
+                WPCF_RELPATH . '/embedded/common/visual-editor' );
+    }
+    
     if ( is_admin() ) {
         require_once WPCF_ABSPATH . '/admin.php';
     }
@@ -155,25 +156,33 @@ function wpcf_is_reserved_name( $name, $context, $check_pages = true ) {
     }
 
     // Add custom types
-    $custom_types = array_keys( (array) get_option( 'wpcf-custom-types', array() ) );
-    $post_types = array_merge( array_combine( $custom_types,
-                    $custom_types ), get_post_types() );
+    $custom_types = (array) get_option( 'wpcf-custom-types', array() );
+    $post_types = get_post_types();
+    if ( !empty( $custom_types ) ) {
+        $custom_types = array_keys( $custom_types );
+        $post_types = array_merge( array_combine( $custom_types, $custom_types ),
+                $post_types );
+    }
     // Unset to avoid checking itself
     if ( $context == 'post_type' && isset( $post_types[$name] ) ) {
         unset( $post_types[$name] );
     }
 
     // Add taxonomies
-    $custom_taxonomies = array_keys( (array) get_option( 'wpcf-custom-taxonomies',
-                    array() ) );
-    $taxonomies = array_merge( array_combine( $custom_taxonomies,
-                    $custom_taxonomies ), get_taxonomies() );
+    $custom_taxonomies = (array) get_option( 'wpcf-custom-taxonomies', array() );
+    $taxonomies = get_taxonomies();
+    if ( !empty( $custom_taxonomies ) ) {
+        $custom_taxonomies = array_keys( $custom_taxonomies );
+        $taxonomies = array_merge( array_combine( $custom_taxonomies,
+                        $custom_taxonomies ), $taxonomies );
+    }
     // Unset to avoid checking itself
     if ( $context == 'taxonomy' && isset( $taxonomies[$name] ) ) {
         unset( $taxonomies[$name] );
     }
 
-    $reserved = array_merge( wpcf_reserved_names(),
+    $reserved_names = wpcf_reserved_names();
+    $reserved = array_merge( array_combine( $reserved_names, $reserved_names ),
             array_merge( $post_types, $taxonomies ) );
 
     return in_array( $name, $reserved ) ? new WP_Error( 'wpcf_reserved_name', __( 'You cannot use this slug because it is a reserved word, used by WordPress. Please choose a different slug.',
@@ -261,7 +270,10 @@ function wpcf_reserved_names() {
         'withcomments',
         'withoutcomments',
         'year',
-        'lang'
+        'lang',
+//        'comments',
+//        'blog',
+//        'files'
     );
 
     return apply_filters( 'wpcf_reserved_names', $reserved );

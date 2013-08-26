@@ -313,7 +313,7 @@ function wpcf_admin_fields_save_field( $field, $post_type = 'wp-types-group',
     if ( wpcf_types_cf_under_control( 'check_outsider', $field['id'],
                     $post_type, $meta_name ) ) {
         $field_previous_data = wpcf_admin_fields_get_field( $field['id'], false,
-                false, false, $meta_name );
+                true, false, $meta_name );
         if ( !empty( $field_previous_data['data'] ) ) {
             $field['data'] = array_merge( $field_previous_data['data'],
                     $field['data'] );
@@ -389,6 +389,12 @@ function wpcf_admin_fields_save_field( $field, $post_type = 'wp-types-group',
 
     // WPML register strings
     if ( function_exists( 'icl_register_string' ) ) {
+        if ( isset($_POST['wpml_cf_translation_preferences'][$field_id] ) ) {
+            $__wpml_action = intval( $_POST['wpml_cf_translation_preferences'][$field_id] );
+        } else {
+            $__wpml_action = wpcf_wpml_get_action_by_type( $field['type'] );
+        }
+
         wpcf_translate_register_string( 'plugin Types',
                 'field ' . $field_id . ' name', $field['name'] );
         wpcf_translate_register_string( 'plugin Types',
@@ -405,10 +411,12 @@ function wpcf_admin_fields_save_field( $field, $post_type = 'wp-types-group',
                             'field ' . $field_id . ' option ' . $name . ' title',
                             $option['title'] );
                 }
-                if ( isset( $option['value'] ) ) {
-                    wpcf_translate_register_string( 'plugin Types',
-                            'field ' . $field_id . ' option ' . $name . ' value',
-                            $option['value'] );
+                if ($__wpml_action === 2) {
+                    if ( isset( $option['value'] ) ) {
+                        wpcf_translate_register_string( 'plugin Types',
+                                'field ' . $field_id . ' option ' . $name . ' value',
+                                $option['value'] );
+                    }
                 }
                 if ( isset( $option['display_value'] ) ) {
                     wpcf_translate_register_string( 'plugin Types',
@@ -539,7 +547,7 @@ function wpcf_admin_fields_save_group_fields( $group_id, $fields, $add = false,
             $post_type, $meta_name );
     if ( $add ) {
         $existing_fields = wpcf_admin_fields_get_fields_by_group( $group_id,
-                'slug', false, false, false, $post_type, $meta_name );
+                'slug', false, true, false, $post_type, $meta_name );
         $order = array();
         if ( !empty( $existing_fields ) ) {
             foreach ( $existing_fields as $field_id => $field ) {

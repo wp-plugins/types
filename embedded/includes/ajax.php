@@ -4,9 +4,18 @@
  * All AJAX calls go here.
  */
 function wpcf_ajax_embedded() {
-    if ( !isset( $_REQUEST['_wpnonce'] )
-            || !wp_verify_nonce( $_REQUEST['_wpnonce'], $_REQUEST['wpcf_action'] ) ) {
-        die( 'Verification failed' );
+
+    if ( isset( $_REQUEST['_typesnonce'] ) ) {
+        if ( !wp_verify_nonce( $_REQUEST['_typesnonce'], '_typesnonce' ) ) {
+            die( 'Verification failed' );
+        }
+    } else {
+
+        if ( !isset( $_REQUEST['_wpnonce'] )
+                || !wp_verify_nonce( $_REQUEST['_wpnonce'],
+                        $_REQUEST['wpcf_action'] ) ) {
+            die( 'Verification failed' );
+        }
     }
 
     global $wpcf;
@@ -24,29 +33,25 @@ function wpcf_ajax_embedded() {
             break;
 
         case 'editor_callback':
-
-            require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
-            // added variable field_type empty - postmeta, usermeta - usermeta
+            // Determine Field type and context
             if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
                 // Group filter
-				wp_enqueue_script( 'suggest' );		
-                $field = wpcf_admin_fields_get_field( $_GET['field_id'], false,
-                        false, false, 'wpcf-usermeta' );
+                wp_enqueue_script( 'suggest' );
+                $field = types_get_field( $_GET['field_id'], 'usermeta' );
+                $meta_type = 'usermeta';
             } else {
-                $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
+                $field = types_get_field( $_GET['field_id'] );
+                $meta_type = 'postmeta';
             }
+            $post_id = isset( $_GET['post_id'] ) ? intval( $_GET['post_id'] ) : null;
+            $shortcode = isset( $_GET['shortcode'] ) ? urldecode( $_GET['shortcode'] ) : null;
+            $callback = isset( $_GET['callback'] ) ? $_GET['callback'] : false;
             if ( !empty( $field ) ) {
-                if ( isset( $_GET['nonpopup'] ) && $_GET['nonpopup'] == 'true' ) {
-                    $function = 'wpcf_fields_' . $field['type'] . '_editor_callback_nonpopup';
-                    if ( function_exists( $function ) ) {
-                        call_user_func( $function );
-                    }
-                } else {
-                    $function = 'wpcf_fields_' . $field['type'] . '_editor_callback';
-                    if ( function_exists( $function ) ) {
-                        call_user_func( $function );
-                    }
-                }
+                // Editor
+                WPCF_Loader::loadClass( 'editor' );
+                $editor = new WPCF_Editor();
+                $editor->frame( $field, $meta_type, $post_id, $shortcode,
+                        $callback );
             }
             break;
 
@@ -55,6 +60,14 @@ function wpcf_ajax_embedded() {
                 $messages = get_option( 'wpcf_dismissed_messages', array() );
                 $messages[] = $_GET['id'];
                 update_option( 'wpcf_dismissed_messages', $messages );
+            }
+            break;
+
+        case '_dismiss_message':
+            if ( isset( $_GET['id'] ) ) {
+                $messages = get_option( '_wpcf_dismissed_messages', array() );
+                $messages[strval( $_GET['id'] )] = strval( $_GET['id'] );
+                update_option( '_wpcf_dismissed_messages', $messages );
             }
             break;
 
@@ -183,8 +196,10 @@ function wpcf_ajax_embedded() {
             $output = 'Passed wrong parameters';
             if ( isset( $_POST['post_id'] ) && isset( $_POST['wpcf_pr_belongs'][$_POST['post_id']] ) ) {
                 $post_id = intval( $_POST['post_id'] );
-                $output = wpcf_pr_admin_update_belongs( $post_id,
+                $updated = wpcf_pr_admin_update_belongs( $post_id,
                         $_POST['wpcf_pr_belongs'][$post_id] );
+                $output = $updated ? $updated : __( 'Passed wrong parameters',
+                                'wpcf' );
             }
             echo json_encode( array(
                 'output' => $output,
@@ -386,190 +401,17 @@ function wpcf_ajax_embedded() {
 
         case 'cd_verify':
 
-            require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
-            require_once WPCF_EMBEDDED_INC_ABSPATH . '/conditional-display.php';
-
-            global $wpcf;
-
-            $post = null;
-            $fields = array();
-            $passed_fields = array();
-            $failed_fields = array();
-            $_flag_relationship = false;
-
-            /*
-             * We're accepting main form and others too
-             * (like 'wpcf_post_relationship')
-             * $fields = apply_filters( 'conditional_submitted_data', $data );
-             */
-            if ( !empty( $_POST['wpcf'] ) ) {
-                $fields = apply_filters( 'types_ajax_conditional_post',
-                        $_POST['wpcf'] );
-            }
-
-            // TODO Move this to conditional and use hooks
-            if ( empty( $fields ) && empty( $_POST['wpcf_post_relationship'] ) ) {
+            if ( empty( $_POST['wpcf'] ) && empty( $_POST['wpcf_post_relationship'] ) ) {
                 die();
-            } else if ( empty( $fields ) && !empty( $_POST['wpcf_post_relationship'] ) ) {
-                /*
-                 * 
-                 * 
-                 * Relationship case
-                 * TODO Move to relationship or elsewhere.
-                 */
-                $_temp = $_POST['wpcf_post_relationship'];
-                $parent_id = key( $_temp );
-                $_data = array_shift( $_temp );
-                $post_id = key( $_data );
-                $post = get_post( $post_id );
-                $fields = $_data[$post_id];
-                // Force
-                $_POST['post_ID'] = $post_id;
-
-                /*
-                 * TODO This is temporary fix. Find better way to get fields
-                 * rendered in child form
-                 */
-                $_all_fields = wpcf_admin_fields_get_fields();
-                foreach ( $_all_fields as $_field ) {
-                    $_slug = WPCF_META_PREFIX . $_field['slug'];
-                    if ( !isset( $fields[$_slug] ) ) {
-                        $fields[$_slug] = null;
-                    }
-                }
-
-                $_flag_relationship = true;
-
-                /*
-                 * 
-                 * 
-                 * 
-                 * 
-                 * Regular submission
-                 * TODO Make better?
-                 */
-            } else {
-                if ( isset( $_POST['wpcf_main_post_id'] ) ) {
-                    $_POST['post_ID'] = intval( $_POST['wpcf_main_post_id'] );
-                    $post = get_post( $_POST['post_ID'] );
-                } else if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
-                    $split = explode( '?', $_SERVER['HTTP_REFERER'] );
-                    if ( isset( $split[1] ) ) {
-                        parse_str( $split[1], $vars );
-                        if ( isset( $vars['post'] ) ) {
-                            $_POST['post_ID'] = $vars['post'];
-                            $post = get_post( $vars['post'] );
-                        }
-                    }
-                }
-                /*
-                 * 
-                 * Get fields by post and group.
-                 */
-//                $group_id = isset( $_POST['wpcf_group'] ) ? $_POST['wpcf_group'] : false;
-//                if ( $group_id ) {
-//                    $group = wpcf_admin_fields_get_group( $group_id );
-//                    if ( !empty( $group ) ) {
-//                        $_fields = wpcf_admin_fields_get_fields_by_group( $group['id'] );
-//                        /*
-//                         * Set missing fields to null (checkboxes and radios)
-//                         */
-//                        foreach ( $_fields as $_field ) {
-//                            if ( !isset( $fields[$_field['slug']] ) ) {
-//                                $fields[$_field['slug']] = null;
-//                            }
-//                        }
-//                    }
-//                }
-                // We need all fields
-                $_all_fields = wpcf_admin_fields_get_fields();
-                foreach ( $_all_fields as $_field ) {
-                    if ( !isset( $fields[$_field['slug']] ) ) {
-                        $fields[$_field['slug']] = null;
-                    }
-                }
             }
+            WPCF_Loader::loadClass( 'helper.ajax' );
+            $js_execute = WPCF_Helper_Ajax::conditionalVerify( $_POST );
 
-            // Dummy post
-            if ( empty( $post->ID ) ) {
-                $post = new stdClass();
-                $post->ID = 1;
-            }
-
-            foreach ( $fields as $field_id => $field_value ) {
-
-                // Set conditional
-                $wpcf->conditional->set( $post, $field_id );
-
-
-                if ( !empty( $wpcf->conditional->cf['data']['conditional_display']['conditions'] ) ) {
-
-                    if ( $_flag_relationship ) {
-                        // Set context
-                        $wpcf->conditional->context = 'relationship';
-                        /*
-                         * We need parent and child
-                         */
-                        $_relationship_name = false;
-
-                        // Set name
-                        $parent = get_post( $parent_id );
-                        if ( !empty( $parent->ID ) ) {
-                            $wpcf->relationship->set( $parent, $post );
-                            $wpcf->relationship->cf->set( $post, $field_id );
-                            $_child = $wpcf->relationship->get_child();
-                            $_child->form->cf->set( $post, $field_id );
-                            $_relationship_name = $_child->form->alter_form_name( 'wpcf[' . $wpcf->conditional->cf['id'] . ']' );
-                        }
-
-                        if ( !$_relationship_name ) {
-                            continue;
-                        }
-
-                        /*
-                         * 
-                         * BREAKPOINT
-                         * Adds filtering regular evaluation (not wpv_conditional)
-                         */
-                        add_filter( 'types_field_get_submitted_data',
-                                'wpcf_relationship_ajax_data_filter', 10, 2 );
-
-                        $name = $_relationship_name;
-                    } else {
-                        $name = 'wpcf[' . $wpcf->conditional->cf['id'] . ']';
-                    }
-
-                    /*
-                     * Since Types 1.2
-                     * Moved to WPCF_Conditional class.
-                     */
-                    // Evaluate
-                    $passed = $wpcf->conditional->evaluate();
-
-                    if ( $passed ) {
-                        $passed_fields[md5( $name )] = $name;
-                    } else {
-                        $failed_fields[md5( $name )] = $name;
-                    }
-                }
-            }
-
-            /*
-             * 
-             * 
-             * Render JS
-             */
-            if ( !empty( $passed_fields ) || !empty( $failed_fields ) ) {
-                $execute = '';
-                foreach ( $passed_fields as $field_name ) {
-                    $execute .= $wpcf->conditional->render_js_show( $field_name );
-                }
-                foreach ( $failed_fields as $field_name ) {
-                    $execute .= $wpcf->conditional->render_js_hide( $field_name );
-                }
+            // Render JSON
+            if ( !empty( $js_execute ) ) {
                 echo json_encode( array(
                     'output' => '',
-                    'execute' => $execute,
+                    'execute' => $js_execute,
                     'wpcf_nonce_ajax_callback' => wp_create_nonce( 'execute' ),
                 ) );
             }

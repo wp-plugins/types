@@ -103,9 +103,9 @@ function wpcf_fields_select_get_option( $parent_name = '', $form_data = array() 
         '#value' => $value,
         '#inline' => true,
         '#attributes' => array('style' => 'width:80px;'),
-        '#before' => '<div class="wpcf-fields-select-draggable"><img src="'
+        '#before' => '<div class="js-types-sortable"><img src="'
         . WPCF_RES_RELPATH
-        . '/images/move.png" class="wpcf-fields-form-select-move-field" alt="'
+        . '/images/move.png" class="js-types-sort-button" alt="'
         . __( 'Move this option', 'wpcf' ) . '" /><img src="'
         . WPCF_RES_RELPATH . '/images/delete.png"'
         . ' class="wpcf-fields-select-delete-option wpcf-pointer"'

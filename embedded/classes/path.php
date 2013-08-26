@@ -5,6 +5,7 @@
  */
 final class WPCF_Path
 {
+
     /**
      * Fix $_SERVER variables for various setups.
      *
@@ -130,47 +131,54 @@ final class WPCF_Path
     // http://php.net/manual/en/function.realpath.php
     // http://stackoverflow.com/questions/9151949/root-directory-with-php-on-apache-and-iis
     // variation used here
-    public static function getDocRoot()
+    public static function getDocRoot( $manual = false )
     {
-        static $docroot = null;
-
-        if ( !$docroot ) {
-            self::fixServerVars();
-
-            // not available in IIS
-            /*
-             * This is commented out when found issue with amazon server.
-             * https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/164974335/comments#comment_237904711
-             * https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/159425489/comments
-             * docroot is determined manually
-             */
-//            if ( isset( $_SERVER['DOCUMENT_ROOT'] ) ) {
-//                $docroot = $_SERVER['DOCUMENT_ROOT'];
-//            } else {
-                // for IIS
-                // these should always be available, Apache, IIS, .., PHP 4.1.0+, ..
-                if ( !empty( $_SERVER['SCRIPT_FILENAME'] ) ) {
-                    //$docroot = str_replace( '\\', '/', substr($_SERVER['SCRIPT_FILENAME'], 0, 0 - strlen($_SERVER['PHP_SELF'])));
-                    $docroot = str_replace( '\\', '/',
-                            self::str_before( $_SERVER['SCRIPT_FILENAME'],
-                                    $_SERVER['SCRIPT_NAME'] ) );
-                } elseif ( !empty( $_SERVER['PATH_TRANSLATED'] ) ) {
-                    //$docroot = str_replace( '\\', '/', substr(str_replace('\\\\', '\\', $_SERVER['PATH_TRANSLATED']), 0, 0 - strlen($_SERVER['PHP_SELF'])));
-                    $docroot = str_replace( '\\', '/',
-                            self::str_before( str_replace( '\\\\', '\\',
-                                            $_SERVER['PATH_TRANSLATED'] ),
-                                    $_SERVER['SCRIPT_NAME'] ) );
-                }
-                else
-                    $docroot = '';
-                //$docroot=str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $docroot);
-//            }
+        static $cache = array();
+        $cache_key = $manual ? 'manual' : 'auto';
+        if ( isset( $cache[$cache_key] ) ) {
+            return $cache[$cache_key];
         }
 
+
+        self::fixServerVars();
+
+        /*
+         * Found issue with amazon server.
+         * https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/164974335/comments#comment_237904711
+         * https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/159425489/comments
+         * Server settings aren't quite right so force manual check.
+         * docroot is determined manually if file do not match docroot.
+         */
+
+        // not available in IIS
+        if ( $manual === false && isset( $_SERVER['DOCUMENT_ROOT'] ) ) {
+            $docroot = $_SERVER['DOCUMENT_ROOT'];
+        } else {
+            // for IIS
+            // these should always be available, Apache, IIS, .., PHP 4.1.0+, ..
+            if ( !empty( $_SERVER['SCRIPT_FILENAME'] ) ) {
+                //$docroot = str_replace( '\\', '/', substr($_SERVER['SCRIPT_FILENAME'], 0, 0 - strlen($_SERVER['PHP_SELF'])));
+                $docroot = str_replace( '\\', '/',
+                        self::str_before( $_SERVER['SCRIPT_FILENAME'],
+                                $_SERVER['SCRIPT_NAME'] ) );
+            } elseif ( !empty( $_SERVER['PATH_TRANSLATED'] ) ) {
+                //$docroot = str_replace( '\\', '/', substr(str_replace('\\\\', '\\', $_SERVER['PATH_TRANSLATED']), 0, 0 - strlen($_SERVER['PHP_SELF'])));
+                $docroot = str_replace( '\\', '/',
+                        self::str_before( str_replace( '\\\\', '\\',
+                                        $_SERVER['PATH_TRANSLATED'] ),
+                                $_SERVER['SCRIPT_NAME'] ) );
+            }
+            else
+                $docroot = '';
+            //$docroot=str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $docroot);
+        }
+
+        $cache[$cache_key] = $docroot;
         return $docroot;
     }
 
-    public static function getHostUrl( $with_port = true, $trailing_slash = false )
+    public static function getHostUrl( $with_port = true,
+            $trailing_slash = false )
     {
         // try to determine the url manually
         // as robustly as possile
@@ -195,7 +203,8 @@ final class WPCF_Path
     private static function getCommonPath( $p1, $p2 )
     {
         return implode( '/',
-                        array_intersect( explode( '/', $p1 ), explode( '/', $p2 ) ) );
+                        array_intersect( explode( '/', $p1 ),
+                                explode( '/', $p2 ) ) );
     }
 
     public static function getUSymlink()
@@ -253,17 +262,22 @@ final class WPCF_Path
             $__FILE__ = (string) __FILE__;
 
         $__FILE__ = str_replace( '\\', '/', dirname( $__FILE__ ) );
-        $docroot = self::getDocRoot();
-        
+
+        $manual = false;
+        if ( isset( $_SERVER['DOCUMENT_ROOT'] ) ) {
+            $manual = strpos( $__FILE__, $_SERVER['DOCUMENT_ROOT'] ) !== 0 ? true : false;
+        }
+
+        $docroot = self::getDocRoot( $manual );
+
         $baseurl = $use_baseurl ? self::getBaseUrl() : self::getHostUrl();
 
-        if ( false !== strpos( $__FILE__, $docroot ) ) {
+        if ( 0 === strpos( $__FILE__, $docroot ) ) {
             return $baseurl . self::str_after( $__FILE__, $docroot );
         } else {
             $map = self::getUSymlink( /* $_SERVER['SCRIPT_NAME'], $_SERVER['SCRIPT_FILENAME'] */ );
             if ( !empty( $map ) && false !== strpos( $__FILE__, $map[1] ) ) {
-                return $baseurl . str_replace( $map[1], $map[0],
-                                $__FILE__ );
+                return $baseurl . str_replace( $map[1], $map[0], $__FILE__ );
             } else {
                 // finally here
                 return $baseurl . $__FILE__;
@@ -324,4 +338,5 @@ final class WPCF_Path
         }
         return $rel;
     }
+
 }

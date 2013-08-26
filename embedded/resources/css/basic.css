@@ -376,9 +376,9 @@ input.wpcf-form-error {
     margin-right: 10px;
 }
 
-#wpcf-ajax * {
+/*#wpcf-ajax * {
     width: auto;
-}
+}*/
 #wpcf-ajax #wpcontent {
     margin: 0px;
 }
@@ -422,5 +422,10 @@ input.wpcf-form-error {
     display: none;
 }
 .ac_results{
-	width:200px !important;	
+	width:200px !important;
+}
+
+/* temp */
+.wpcf_custom_field_invalid_date {
+    display: none;
 }

@@ -46,7 +46,7 @@ function wpcf_repetitive_add_another_button( $field, $post ) {
 function wpcf_repetitive_delete_button( $field, $post, $meta_id ) {
 
     // Add repetitive control buttons if not copied by WPML
-    if ( isset( $field['wpml_action'] ) && $field['wpml_action'] == 'copy' ) {
+    if ( wpcf_wpml_field_is_copied( $field ) ) {
         return '';
     }
 
@@ -121,7 +121,7 @@ function wpcf_repetitive_delete_new_button( $field, $post ) {
  */
 function wpcf_repetitive_form( $field, $post ) {
     // Add repetitive control buttons if not copied by WPML
-    if ( isset( $field['wpml_action'] ) && $field['wpml_action'] == 'copy' ) {
+    if ( wpcf_wpml_field_is_copied( $field ) ) {
         return '<div style="clear:both;"></div>';
     }
     $repetitive_form = '';
@@ -139,7 +139,7 @@ function wpcf_repetitive_form( $field, $post ) {
  * @return string 
  */
 function wpcf_repetitive_drag_button( $field, $post ) {
-    if ( isset( $field['wpml_action'] ) && $field['wpml_action'] == 'copy' ) {
+    if ( wpcf_wpml_field_is_copied( $field ) ) {
         return '';
     }
     return '<div class="wpcf-repetitive-drag">&nbsp;</div>';

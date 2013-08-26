@@ -56,158 +56,87 @@ function wpcf_fields_checkboxes_meta_box_form( $field, $field_object ) {
 /**
  * Editor callback form.
  */
-function wpcf_fields_checkboxes_editor_callback() {
-    $form = array();
-    $form['#form']['callback'] = 'wpcf_fields_checkboxes_editor_submit';
-    $form['display'] = array(
-        '#type' => 'radios',
-        '#default_value' => 'display_all',
-        '#name' => 'display',
-        '#options' => array(
-            'display_from_db' => array(
-                '#title' => __( 'Display the value of this field from the database',
-                        'wpcf' ),
-                '#name' => 'display',
-                '#value' => 'db',
-                '#inline' => true,
-                '#after' => '<br />'
-            ),
-            'display_all' => array(
-                '#title' => __( 'Display all values with separator', 'wpcf' ),
-                '#name' => 'display',
-                '#value' => 'display_all',
-                '#inline' => true,
-                '#after' => '&nbsp;' . wpcf_form_simple( array('separator' => array(
-                        '#type' => 'textfield',
-                        '#name' => 'separator',
-                        '#value' => ', ',
-//                        '#title' => __('Separator', 'wpcf'),
-                        '#inline' => true,
-                        )) ) . '<br />'
-            ),
-            'display_values' => array(
-                '#title' => __( 'Show one of these two values:', 'wpcf' ),
-                '#name' => 'display',
-                '#value' => 'value',
-                '#inline' => true,
-            ),
-        ),
-        '#inline' => true,
-    );
-    if ( isset( $_GET['field_id'] ) ) {
-        // Get field
-        if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
-            //If usermeta
-            $field = wpcf_admin_fields_get_field( $_GET['field_id'], false,
-                    false, false, 'wpcf-usermeta' );
-        } else {
-            //If postmeta
-            $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
-        }
-        if ( !empty( $field['data']['options'] ) ) {
-            foreach ( $field['data']['options'] as $option_key => $option ) {
-                $form[$option_key . '-markup'] = array(
-                    '#type' => 'markup',
-                    '#markup' => '<h3>' . $option['title'] . '</h3>',
-                );
-                $form[$option_key . '-display-value-1'] = array(
-                    '#type' => 'textfield',
-                    '#title' => '<td style="text-align:right;">'
-                    . __( 'Not selected:', 'wpcf' ) . '</td><td>',
-                    '#name' => 'options[' . $option_key . '][display_value_not_selected]',
-                    '#value' => $option['display_value_not_selected'],
-                    '#inline' => true,
-                    '#before' => '<table><tr>',
-                    '#after' => '</td></tr>',
-                    '#inline' => true,
-                );
-                $form[$option_key . '-display-value-2'] = array(
-                    '#type' => 'textfield',
-                    '#title' => '<td style="text-align:right;">'
-                    . __( 'Selected:', 'wpcf' ) . '</td><td>',
-                    '#name' => 'options[' . $option_key . '][display_value_selected]',
-                    '#value' => $option['display_value_selected'],
-                    '#after' => '</tr></table>',
-                    '#inline' => true,
-                );
-            }
+function wpcf_fields_checkboxes_editor_callback( $field, $settings ) {
+    $data = array();
+    if ( !empty( $field['data']['options'] ) ) {
+        $index = 0;
+        foreach ( $field['data']['options'] as $option_key => $option ) {
+            $data['checkboxes'][$option_key] = array(
+                'id' => $option_key,
+                'title' => $option['title'],
+                'selected' => isset( $settings['options'][$index]['selected'] ) ? $settings['options'][$index]['selected'] : WPCF_Editor::sanitizeParams( $option['display_value_selected'] ),
+                'not_selected' => isset( $settings['options'][$index]['not_selected'] ) ? $settings['options'][$index]['not_selected'] : WPCF_Editor::sanitizeParams( $option['display_value_not_selected'] ),
+            );
+            $index++;
         }
     }
-    // add usermeta form addon
-    if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
-        $temp_form = wpcf_get_usermeta_form_addon();
-        $form = $form + $temp_form;
-    }
-    $form['submit'] = array(
-        '#type' => 'submit',
-        '#name' => 'submit',
-        '#value' => __( 'Save Changes' ),
-        '#attributes' => array('class' => 'button-primary'),
+    return array(
+        'supports' => array('style'),
+        'tabs' => array(
+            'display' => array(
+                'menu_title' => __( 'Display', 'wpcf' ),
+                'title' => __( 'Display', 'wpcf' ),
+                'content' => WPCF_Loader::template( 'editor-modal-checkboxes',
+                        $data ),
+            )
+        )
     );
-    $f = wpcf_form( 'wpcf-form', $form );
-    wpcf_admin_ajax_head( 'Insert checkbox', 'wpcf' );
-    echo '<form method="post" action="">';
-    echo $f->renderForm();
-    echo '</form>';
-    wpcf_admin_ajax_footer();
 }
 
 /**
  * Editor callback form submit.
  */
-function wpcf_fields_checkboxes_editor_submit() {
+function wpcf_fields_checkboxes_editor_submit( $data, $field, $context ) {
     $add = '';
-    $types_attr = 'field';
-    if ( !empty( $_POST['is_usermeta'] ) ) {
-        $field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false,
-                false, 'wpcf-usermeta' );
-        $types_attr = 'usermeta';
-    } else {
-        $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
-    }
+    $types_attr = $context == 'usermeta' ? 'usermeta' : 'field';
     $shortcode = '';
-    if ( !empty( $_POST['is_usermeta'] ) ) {
+    if ( $context == 'usermeta' ) {
         $add .= wpcf_get_usermeta_form_addon_submit();
     }
-    if ( !empty( $field ) ) {
-        if ( !empty( $_POST['options'] ) ) {
-            if ( $_POST['display'] == 'display_all' ) {
-                $separator = !empty( $_POST['separator'] ) ? $_POST['separator'] : '';
-                $shortcode .= '[types ' . $types_attr . '="' . $field['slug'] . '" ' . $add . ' separator="'
-                        . $separator . '"]' . '[/types] ';
+    if ( !empty( $data['options'] ) ) {
+        if ( $data['display'] == 'display_all' ) {
+            $separator = !empty( $data['cbs_separator'] ) ? $data['cbs_separator'] : '';
+            $_add = $add . ' separator="' . $separator . '"';
+            if ( $context == 'usermeta' ) {
+                $shortcode .= wpcf_usermeta_get_shortcode( $field, $_add );
             } else {
-                $i = 0;
-                foreach ( $_POST['options'] as $option_key => $option ) {
-                    if ( $_POST['display'] == 'value' ) {
+                $shortcode .= wpcf_fields_get_shortcode( $field, $_add );
+            }
+        } else {
+            $i = 0;
+            foreach ( $data['options'] as $option ) {
+                if ( $data['display'] == 'value' ) {
+                    $checked_add = $add . ' option="' . $i . '" state="checked"';
+                    $unchecked_add = $add . ' option="' . $i . '" state="unchecked"';
 
-                        $shortcode .= '[types ' . $types_attr . '="' . $field['slug'] . '" ' . $add . ' option="'
-                                . $i . '" state="checked"]'
-                                . $option['display_value_selected']
-                                . '[/types] ';
-                        $shortcode .= '[types ' . $types_attr . '="' . $field['slug'] . '" ' . $add . ' option="'
-                                . $i . '" state="unchecked"]'
-                                . $option['display_value_not_selected']
-                                . '[/types] ';
+                    if ( $context == 'usermeta' ) {
+                        $shortcode_checked = wpcf_usermeta_get_shortcode( $field,
+                                $checked_add, $option['selected'] );
+                        $shortcode_unchecked = wpcf_usermeta_get_shortcode( $field,
+                                $unchecked_add, $option['not_selected'] );
                     } else {
-                        $add = ' option="' . $i . '"';
-                        if ( !empty( $_POST['is_usermeta'] ) ) {
-                            $add .= wpcf_get_usermeta_form_addon_submit();
-                        }
-                        if ( $types_attr == 'usermeta' ) {
-                            $shortcode .= wpcf_usermeta_get_shortcode( $field,
-                                            $add ) . ' ';
-                        } else {
-                            $shortcode .= wpcf_fields_get_shortcode( $field,
-                                            $add ) . ' ';
-                        }
+                        $shortcode_checked = wpcf_fields_get_shortcode( $field,
+                                $checked_add, $option['selected'] );
+                        $shortcode_unchecked = wpcf_fields_get_shortcode( $field,
+                                $unchecked_add, $option['not_selected'] );
                     }
-                    $i++;
+                    $shortcode .= $shortcode_checked . $shortcode_unchecked;
+                } else {
+                    $add = ' option="' . $i . '"';
+                    if ( $context == 'usermeta' ) {
+                        $add .= wpcf_get_usermeta_form_addon_submit();
+                    }
+                    if ( $types_attr == 'usermeta' ) {
+                        $shortcode .= wpcf_usermeta_get_shortcode( $field, $add );
+                    } else {
+                        $shortcode .= wpcf_fields_get_shortcode( $field, $add );
+                    }
                 }
+                $i++;
             }
         }
-        echo editor_admin_popup_insert_shortcode_js( $shortcode );
-        die();
     }
+    return $shortcode;
 }
 
 /**
@@ -229,7 +158,7 @@ function wpcf_fields_checkboxes_view( $params ) {
      * loop over all options and display all of them
      */
     if ( !isset( $params['option'] ) ) {
-        $separator = isset( $params['separator'] ) ? $params['separator'] : ', ';
+        $separator = isset( $params['separator'] ) ? html_entity_decode( $params['separator'] ) : ', ';
         foreach ( $params['field_value'] as $name => &$value ) {
             /*
              * 
@@ -276,8 +205,7 @@ function wpcf_fields_checkboxes_view( $params ) {
      * OPTION specified - set required option.
      */
     $i = 0;
-    foreach ( $params['field']['data']['options'] as $option_key =>
-                $option_value ) {
+    foreach ( $params['field']['data']['options'] as $option_key => $option_value ) {
         if ( intval( $params['option'] ) == $i ) {
             $option['key'] = $option_key;
             $option['data'] = $option_value;

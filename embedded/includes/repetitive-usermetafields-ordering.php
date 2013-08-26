@@ -47,7 +47,7 @@ function wpcf_repetitive_add_another_umbutton( $field, $user_id ) {
 function wpcf_repetitive_delete_umbutton( $field, $user_id, $meta_id ) {
 
     // Add repetitive control buttons if not copied by WPML
-    if ( isset( $field['wpml_action'] ) && $field['wpml_action'] == 'copy' ) {
+    if ( wpcf_wpml_is_translated_profile_page( $field ) ) {
         return '';
     }
 
@@ -123,7 +123,7 @@ function wpcf_repetitive_delete_new_umbutton( $field, $post ) {
  */
 function wpcf_repetitive_umform( $field, $user_id ) {
     // Add repetitive control buttons if not copied by WPML
-    if ( isset( $field['wpml_action'] ) && $field['wpml_action'] == 'copy' ) {
+    if ( wpcf_wpml_is_translated_profile_page( $field ) ) {
         return '';
     }
     $repetitive_form = '';

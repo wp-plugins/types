@@ -28,6 +28,7 @@ add_filter( 'wpv_condition_end', 'wpcf_fields_skype_wpv_conditional_trigger_end'
  * @param type $field 
  */
 function wpcf_fields_skype_meta_box_form( $field ) {
+    add_thickbox();
     if ( isset( $field['value'] ) ) {
         $field['value'] = maybe_unserialize( $field['value'] );
     }
@@ -64,8 +65,7 @@ function wpcf_fields_skype_meta_box_form( $field ) {
             $preview_style );
 
     // Set button
-    if ( isset( $field['disable'] )
-            || (isset( $field['wpml_action'] ) && $field['wpml_action'] == 'copy') ) {
+    if ( isset( $field['disable'] ) || wpcf_wpml_field_is_copied( $field ) ) {
         $edit_button = '';
     } else {
         $edit_button = ''
@@ -75,7 +75,7 @@ function wpcf_fields_skype_meta_box_form( $field ) {
                         . wp_create_nonce( 'insert_skype_button' )
                         . '&amp;update=wpcf-fields-skype-'
                         . $field['slug'] . '-' . $rand . '&amp;skypename=' . $preview_skypename
-                        . '&amp;style=' . $preview_style
+                        . '&amp;button_style=' . $preview_style
                         . '&amp;keepThis=true&amp;TB_iframe=true&amp;width=500&amp;height=500' )
                 . '"'
                 . ' class="thickbox wpcf-fields-skype button-secondary"'
@@ -99,6 +99,52 @@ function wpcf_fields_skype_meta_box_form( $field ) {
 }
 
 /**
+ * Editor callback form.
+ */
+function wpcf_fields_skype_editor_callback( $field, $settings, $meta_type, $post ) {
+    // Get saved button style if any
+    if ( $meta_type == 'usermeta' ) {
+        global $current_user;
+        $_field = new WPCF_Usermeta_Field;
+        $_field->set( $current_user->ID, $field );
+    } else {
+        $_field = new WPCF_Field;
+        $_field->set( $post, $field );
+    }
+    $settings['button_style'] = isset( $_field->meta['style'] ) ? $_field->meta['style'] : 'btn2';
+    return array(
+        'supports' => array('styling'),
+        'tabs' => array(
+            'display' => array(
+                'title' => __( 'Display', 'wpcf' ),
+                'menu_title' => __( 'Display', 'wpcf' ),
+                'content' => WPCF_Loader::template( 'skype-select-button',
+                        $settings ),
+            ),
+        ),
+    );
+}
+
+/**
+ * Editor submit.
+ */
+function wpcf_fields_skype_editor_submit( $data, $field, $context ) {
+    $add = '';
+    if ( !empty( $data['button_style'] ) ) {
+        $add .= ' button_style="' . strval( $data['button_style'] ) . '"';
+    }
+
+    if ( $context == 'usermeta' ) {
+        $add .= wpcf_get_usermeta_form_addon_submit();
+        $shortcode = wpcf_usermeta_get_shortcode( $field, $add );
+    } else {
+        $shortcode = wpcf_fields_get_shortcode( $field, $add );
+    }
+
+    return $shortcode;
+}
+
+/**
  * Shortcode filter.
  * 
  * @param type $shortcode
@@ -119,14 +165,14 @@ function wpcf_fields_skype_shortcode_filter( $shortcode, $field ) {
 function wpcf_fields_skype_meta_box_submit() {
     $update = esc_attr( $_GET['update'] );
     $preview = wpcf_fields_skype_get_button_image( esc_attr( $_POST['skypename'] ),
-            esc_attr( $_POST['buttonstyle'] ) );
+            esc_attr( $_POST['button_style'] ) );
 
     ?>
     <script type="text/javascript">
         //<![CDATA[
         jQuery(document).ready(function(){
             window.parent.jQuery('#<?php echo $update; ?>-skypename').val('<?php echo esc_js( $_POST['skypename'] ); ?>');
-            window.parent.jQuery('#<?php echo $update; ?>-style').val('<?php echo esc_js( $_POST['buttonstyle'] ); ?>');
+            window.parent.jQuery('#<?php echo $update; ?>-style').val('<?php echo esc_js( $_POST['button_style'] ); ?>');
             window.parent.jQuery('#<?php echo $update; ?>-preview').html('<?php echo $preview; ?>');
             window.parent.jQuery('#TB_closeWindowButton').trigger('click');
         });
@@ -148,121 +194,26 @@ function wpcf_fields_skype_meta_box_ajax() {
 
     ?>
     <form method="post" action="">
-        <div id="paddedContent"> 
-            <div id="step1"> 
-                <h2><?php
+        <h2><?php
     _e( 'Enter your Skype Name', 'wpcf' );
 
-    ?></h2>  
-                <p> 
-                    <input id="btn-skypename" name="skypename" value="<?php echo $_GET['skypename']; ?>" type="text" /> 
-                </p> 
-            </div>  
-            <div id="step2"> 
-                <h2><?php
-                _e( 'Select a button from below', 'wpcf' );
+    ?></h2>
+        <p> 
+            <input id="btn-skypename" name="skypename" value="<?php echo $_GET['skypename']; ?>" type="text" /> 
+        </p>
+        <?php
+        echo WPCF_Loader::template( 'skype-select-button', $_GET );
 
-    ?></h2>  
-                <div id="static-buttons"> 
-                    <table border="0" cellpadding="0" cellspacing="0" width="445">
+        ?>
+        <?php
+        wp_nonce_field( 'wpcf-form', '_wpnonce_wpcf_form' );
 
-                        <colgroup><col span="1" width="223">
-                            <col span="1" width="222">
-                        </colgroup><tbody><tr>
-                                <td colspan="1" rowspan="1"> 
-                                    <label for="btn1"> 
-                                        <input <?php
-                if ( $_GET['style'] == 'btn1' )
-                    echo 'checked="checked" ';
+        ?>
+        <br /><br />
+        <input type="submit" class="button-primary" value="<?php
+    _e( 'Insert skype button', 'wpcf' );
 
-    ?>id="btn1" name="buttonstyle" tabindex="2" value="btn1" type="radio" />  
-                                        <img alt="" id="btn1-img" src="http://www.skypeassets.com/i/legacy/images/share/buttons/call_green_white_153x63.png" height="63" width="153" /> 
-                                    </label> 
-                                </td>
-                                <td colspan="1" rowspan="1"> 
-                                    <label for="btn2"> 
-                                        <input <?php
-                                        if ( $_GET['style'] == 'btn2' )
-                                            echo 'checked="checked" ';
-
-    ?>id="btn2" name="buttonstyle" tabindex="3" value="btn2" type="radio" />  
-                                        <img alt="" id="btn2-img" src="http://www.skypeassets.com/i/legacy/images/share/buttons/call_blue_white_124x52.png" height="52" width="125" /> 
-                                    </label> 
-                                </td>
-
-                            </tr>
-                            <tr>
-                                <td colspan="1" rowspan="1"> 
-                                    <label for="btn3"> 
-                                        <input <?php
-                                        if ( $_GET['style'] == 'btn3' )
-                                            echo 'checked="checked" ';
-
-    ?>id="btn3" name="buttonstyle" tabindex="4" value="btn3" type="radio" />  
-                                        <img alt="" id="btn3-img" src="http://www.skypeassets.com/i/legacy/images/share/buttons/call_green_white_92x82.png" height="82" width="92" /> 
-                                    </label> 
-                                </td>
-                                <td colspan="1" rowspan="1"> 
-                                    <label for="btn4"> 
-                                        <input <?php
-                                        if ( $_GET['style'] == 'btn4' )
-                                            echo 'checked="checked" ';
-
-    ?>id="btn4" name="buttonstyle" tabindex="5" value="btn4" type="radio" />  
-                                        <img alt="" id="btn4-img" src="http://www.skypeassets.com/i/legacy/images/share/buttons/call_blue_transparent_34x34.png" height="34" width="34" /> 
-                                    </label> 
-                                </td>
-
-                            </tr>
-                        </tbody></table> 
-                </div>  
-                <h2><?php
-                                        _e( 'Skype buttons with status', 'wpcf' );
-
-    ?></h2>  
-                <p><?php
-                _e( 'If you choose to show your Skype status, your Skype button will always reflect your availability on Skype. This status will be shown to everyone, whether they’re in your contact list or not.',
-                        'wpcf' );
-
-    ?></p>  
-                <div id="status-buttons"> 
-                    <table border="0" cellpadding="0" cellspacing="0" width="445">
-                        <colgroup><col span="1" width="223">
-                            <col span="1" width="222">
-                        </colgroup><tbody><tr>
-
-                                <td colspan="1" rowspan="1"> 
-                                    <label for="btn5"> 
-                                        <input <?php
-                if ( $_GET['style'] == 'btn5' )
-                    echo 'checked="checked" ';
-
-    ?>id="btn5" name="buttonstyle" tabindex="6" value="btn5" type="radio" />  
-                                        <img alt="" id="btn5-img" src="http://www.skypeassets.com/i/legacy/images/share/buttons/anim_balloon.gif" height="60" width="150" /> 
-                                    </label> 
-                                </td>
-                                <td colspan="1" rowspan="1"> 
-                                    <label for="btn6"> 
-                                        <input <?php
-                                        if ( $_GET['style'] == 'btn6' )
-                                            echo 'checked="checked" ';
-
-    ?>id="btn6" name="buttonstyle" tabindex="7" value="btn6" type="radio" />  
-                                        <img alt="" id="btn6-img" src="http://www.skypeassets.com/i/legacy/images/share/buttons/anim_rectangle.gif" height="44" width="182" /> 
-                                    </label> 
-                                </td>
-                            </tr>
-                        </tbody></table> 
-                </div>
-            </div>
-            <?php
-            wp_nonce_field( 'wpcf-form', '_wpnonce_wpcf_form' );
-
-            ?>
-            <br /><br /><input type="submit" class="button-primary" value="<?php
-        _e( 'Insert skype button', 'wpcf' );
-
-            ?>" />
+        ?>" />
     </form>
     <?php
     $update = esc_attr( $_GET['update'] );
@@ -284,20 +235,24 @@ function wpcf_fields_skype_meta_box_ajax() {
  * 
  * @param type $skypename
  * @param type $template
+ * @param type $class
  * @return type 
  */
-function wpcf_fields_skype_get_button( $skypename, $template = '' ) {
+function wpcf_fields_skype_get_button( $skypename, $template = '',
+        $class = false ) {
 
     if ( empty( $skypename ) ) {
         return '';
     }
+
+    $class = !empty( $class ) ? ' class="' . strval( $class ) . '"' : '';
 
     switch ( $template ) {
 
         case 'btn1':
 // Call me big drawn
             $output = '<script type="text/javascript" src="http://download.skype.com/share/skypebuttons/js/skypeCheck.js"></script>
-<a href="skype:' . $skypename . '?call"><img src="http://download.skype.com/share/skypebuttons/buttons/call_green_white_153x63.png" style="border: none;" width="153" height="63" alt="Skype Me™!" /></a>';
+<a href="skype:' . $skypename . '?call"><img src="http://download.skype.com/share/skypebuttons/buttons/call_green_white_153x63.png" style="border: none;" width="153" height="63" alt="Skype Me™!"' . $class . ' /></a>';
             break;
 
         case 'btn4':
@@ -309,25 +264,25 @@ function wpcf_fields_skype_get_button( $skypename, $template = '' ) {
         case 'btn3':
 // Call me small drawn
             $output = '<script type="text/javascript" src="http://download.skype.com/share/skypebuttons/js/skypeCheck.js"></script>
-<a href="skype:' . $skypename . '?call"><img src="http://download.skype.com/share/skypebuttons/buttons/call_green_white_92x82.png" style="border: none;" width="92" height="82" alt="Skype Me™!" /></a>';
+<a href="skype:' . $skypename . '?call"><img src="http://download.skype.com/share/skypebuttons/buttons/call_green_white_92x82.png" style="border: none;" width="92" height="82" alt="Skype Me™!"' . $class . ' /></a>';
             break;
 
         case 'btn6':
 // Status
             $output = '<script type="text/javascript" src="http://download.skype.com/share/skypebuttons/js/skypeCheck.js"></script>
-<a href="skype:' . $skypename . '?call"><img src="http://mystatus.skype.com/bigclassic/' . $skypename . '" style="border: none;" width="182" height="44" alt="My status" /></a>';
+<a href="skype:' . $skypename . '?call"><img src="http://mystatus.skype.com/bigclassic/' . $skypename . '" style="border: none;" width="182" height="44" alt="My status"' . $class . ' /></a>';
             break;
 
         case 'btn5':
 // Status drawn
             $output = '<script type="text/javascript" src="http://download.skype.com/share/skypebuttons/js/skypeCheck.js"></script>
-<a href="skype:' . $skypename . '?call"><img src="http://mystatus.skype.com/balloon/' . $skypename . '" style="border: none;" width="150" height="60" alt="My status" /></a>';
+<a href="skype:' . $skypename . '?call"><img src="http://mystatus.skype.com/balloon/' . $skypename . '" style="border: none;" width="150" height="60" alt="My status"' . $class . ' /></a>';
             break;
 
         default:
 // Call me big
             $output = '<script type="text/javascript" src="http://download.skype.com/share/skypebuttons/js/skypeCheck.js"></script>
-<a href="skype:' . $skypename . '?call"><img src="http://download.skype.com/share/skypebuttons/buttons/call_blue_white_124x52.png" style="border: none;" width="124" height="52" alt="Skype Me™!" /></a>';
+<a href="skype:' . $skypename . '?call"><img src="http://download.skype.com/share/skypebuttons/buttons/call_blue_white_124x52.png" style="border: none;" width="124" height="52" alt="Skype Me™!"' . $class . ' /></a>';
             break;
     }
 
@@ -341,10 +296,10 @@ function wpcf_fields_skype_get_button( $skypename, $template = '' ) {
  * @param type $template
  * @return type 
  */
-function wpcf_fields_skype_get_button_image( $skypename, $template = '' ) {
+function wpcf_fields_skype_get_button_image( $skypename = '', $template = '' ) {
 
     if ( empty( $skypename ) ) {
-        return '';
+        $skypename = '--not--';
     }
 
     switch ( $template ) {
@@ -392,16 +347,22 @@ function wpcf_fields_skype_view( $params ) {
     if ( empty( $params['field_value']['skypename'] ) ) {
         return '__wpcf_skip_empty';
     }
-    if ( isset( $params['style'] ) && $params['style'] == 'raw' ) {
-        return $params['field_value']['skypename'];
+    // Button style
+    $button_style = 'default';
+    // First check if passed by parameter
+    if ( !empty( $params['button_style'] ) ) {
+        $button_style = $params['button_style'];
+        // Otherwise use saved value
+    } else if ( !empty( $params['field_value']['style'] ) ) {
+        $button_style = $params['field_value']['style'];
     }
     // Style can be overrided by params (shortcode)
     if ( !isset( $params['field_value']['style'] ) ) {
         $params['field_value']['style'] = '';
     }
-    $style = (isset( $params['style'] ) && !empty( $params['style'] ) && $params['style'] != 'default') ? $params['style'] : $params['field_value']['style'];
+    $class = empty( $params['class'] ) ? false : $params['class'];
     $content = wpcf_fields_skype_get_button( $params['field_value']['skypename'],
-            $style );
+            $button_style, $class );
     return $content;
 }
 
@@ -452,7 +413,7 @@ function wpcf_field_skype_repetitive( $element, $post, $field, $array_key ) {
              * TODO Revise this
              * Why do we need this?
              */
-            if ( isset( $field['wpml_action'] ) && $field['wpml_action'] == 'copy' ) {
+            if ( wpcf_wpml_field_is_copied( $field ) ) {
                 $element['#after'] .= '<input type="hidden" name="wpcf_repetitive_copy['
                         . $field['id'] . '][' . $wpcf->repeater->index
                         . ']" value="1" />';
@@ -521,60 +482,4 @@ function wpcf_fields_skype_conditional_filter_post_meta( $null, $object_id,
 function wpcf_fields_skype_wpv_conditional_trigger_end( $post ) {
     remove_filter( 'get_post_metadata',
             'wpcf_fields_skype_conditional_filter_post_meta', 10, 4 );
-}
-
-/**
- * Editor callback form.
- */
-function wpcf_fields_skype_editor_callback_nonpopup() {
-    wp_enqueue_style( 'wpcf-fields-file',
-            WPCF_EMBEDDED_RES_RELPATH . '/css/basic.css', array(), WPCF_VERSION );
-	$form = array();
-    $form['#form']['callback'] = 'wpcf_fields_skype_editor_submit_nonpopup';
-    
-	// add usermeta form addon
-	if ( isset($_GET['field_type']) && $_GET['field_type'] == 'usermeta' ){
-		$temp_form = wpcf_get_usermeta_form_addon();
-		$form = $form + $temp_form;
-	}
-    $form['submit'] = array(
-        '#type' => 'submit',
-        '#name' => 'submit',
-        '#value' => __( 'Insert shortcode', 'wpcf' ),
-        '#attributes' => array('class' => 'button-primary'),
-    );
-    $f = wpcf_form( 'wpcf-form', $form );
-    wpcf_admin_ajax_head( 'Insert select', 'wpcf' );
-    echo '<form method="post" action="">';
-    echo $f->renderForm();
-    echo '</form>';
-    wpcf_admin_ajax_footer();
-}
-
-
-/**
- * Editor callback form submit.
- */
-function wpcf_fields_skype_editor_submit_nonpopup() {
-    $add = '';
-    if ( !empty($_POST['is_usermeta']) ){
-		$add .= wpcf_get_usermeta_form_addon_submit();
-	}
-	//Get Field
-	if ( !empty($_POST['is_usermeta']) ){
-		$field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false, false, 'wpcf-usermeta' );
-		$types_attr = 'usermeta';
-	}else{
-		$field = wpcf_admin_fields_get_field( $_GET['field_id'] );	
-	}
-  	if ( !empty( $field ) ) {
-        if ($types_attr == 'usermeta'){
-			$shortcode = wpcf_usermeta_get_shortcode( $field, $add );
-		}
-		else{
-			$shortcode = wpcf_fields_get_shortcode( $field, $add );
-		}
-        echo editor_admin_popup_insert_shortcode_js( $shortcode );
-        die();
-    }
 }

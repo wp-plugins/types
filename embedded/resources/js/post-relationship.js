@@ -1,8 +1,8 @@
 /**
  *
+ *
+ * Relationship JS for post edit screen.
  */
-
-window.wpcfRelationshipInitContext = 'init';
 
 jQuery(document).ready(function(){
     window.wpcf_pr_edited = false;
@@ -286,26 +286,21 @@ jQuery(document).ready(function(){
         object.attr('disabled', 'disabled');
         var table = object.parent().find('table');
         var form = table.find(':input');
-        
-        /*
-         * Skip validation if context is 'add'.
-         * It's because we refresh table if first child is added.
-         */
-        if (window.wpcfRelationshipInitContex != 'forced') {
-            var valid = true;
-            form.each(function(){
-                // CHECKPOINT if hidden pass it
-                if (wpcfConditionalIsHidden(jQuery(this)) == false) {
-                    if (jQuery('#post').validate().element(jQuery(this)) == false) {
-                        valid = false;
-                    }
+
+        var valid = true;
+        form.each(function(){
+            // CHECKPOINT if hidden pass it
+            if (wpcfConditionalIsHidden(jQuery(this)) == false) {
+                if (jQuery('#post').validate().element(jQuery(this)) == false) {
+                    valid = false;
                 }
-            });
-            if (valid == false) {
-                object.removeAttr('disabled');
-                return false;
             }
+        });
+        if (valid == false) {
+            object.removeAttr('disabled');
+            return false;
         }
+
         var rand = Math.round(Math.random()*10000);
         var height = table.find('tbody').height();
         window.wpcf_pr_edited = false;
@@ -393,37 +388,18 @@ function wpcfPrUpdateIDs(ids) {
  * Basic checks on Child tables inside .wpcf-pr-has-entries
  */
 function wpcfRelationshipInit(selector, context) {
-    window.wpcfRelationshipInitContext = context;
     jQuery(selector+'.wpcf-pr-has-entries').each(function(){
         var container = jQuery(this);
         jQuery(this).find('table').each(function(){
             var table = jQuery(this);
-            var has_children = wpcfRelationshipHasChildren(table);
-
-            // Trigger reload if new child added and stop script
-            if (context == 'add') {
-                var first_child = wpcfRelationshipFirstChildAdded(table);
-                if (first_child) {
-                    // Force context to override validation and possibly other actions.
-                    window.wpcfRelationshipInitContex = 'forced';
-                    container.find('.wpcf-pr-save-all-link').removeAttr('disabled')
-                    .trigger('click');
-                    // Restore context
-                    window.wpcfRelationshipInitContex = context;
-                    return false;
-                }
-            }
-            
             // Show/hide if no children posts
-            if (has_children == false) {
-                //                alert('hiding');
+            if (table.find('tbody tr').length < 1) {
                 table.css('visibility', 'hidden');
                 container.find('.wpcf-pagination-boottom')
                 .css('visibility', 'hidden');
                 container.find('.wpcf-pr-save-all-link')
                 .attr('disabled', 'disabled');
             } else {
-                //                 alert('showing');
                 table.css('visibility', 'visible');
                 container.find('.wpcf-pagination-boottom')
                 .css('visibility', 'visible');
@@ -432,12 +408,4 @@ function wpcfRelationshipInit(selector, context) {
             }
         });
     });
-}
-
-function wpcfRelationshipHasChildren(object) {
-    return object.find('tbody tr').length > 0;
-}
-
-function wpcfRelationshipFirstChildAdded(object) {
-    return object.find('tbody tr').length == 1;
 }

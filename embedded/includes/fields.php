@@ -107,6 +107,7 @@ function wpcf_admin_fields_save_group_admin_styles( $group_id, $admin_styles ) {
 /**
  * Gets all fields.
  * 
+ * @todo Move to WPCF_Fields
  * @global type $wpdb
  * @return type 
  * added param $use_cache by Gen (used when adding new fields to group)
@@ -128,6 +129,18 @@ function wpcf_admin_fields_get_fields( $only_active = false,
     $required_data = array('id', 'name', 'type', 'slug');
     $fields = (array) get_option( $option_name, array() );
     foreach ( $fields as $k => $v ) {
+        foreach ( $required_data as $required ) {
+            if ( !isset( $v[$required] ) ) {
+                $failed = true;
+                continue;
+            }
+        }
+        if ( !empty($failed) ) {
+            unset( $fields[$k] );
+            continue;
+        }
+        // This call loads config file
+        // TODO connect with WPCF_Fields
         $data = wpcf_fields_type_action( $v['type'] );
         if ( empty( $data ) ) {
             unset( $fields[$k] );
@@ -153,16 +166,12 @@ function wpcf_admin_fields_get_fields( $only_active = false,
                 continue;
             }
         }
-        foreach ( $required_data as $required ) {
-            if ( !isset( $v[$required] ) ) {
-                unset( $fields[$k] );
-                continue;
-            }
-        }
+        $v['id'] = $k;
+        $v['meta_key'] = wpcf_types_get_meta_prefix( $v ) . $k;
         $fields[$k] = wpcf_sanitize_field( $v );
     }
     $cache[$cache_key] = $fields;
-    return $fields;
+    return apply_filters( 'types_fields', $fields );
 }
 
 /**
@@ -179,14 +188,9 @@ function wpcf_admin_fields_get_field( $field_id, $only_active = false,
         $option_name = 'wpcf-fields' ) {
     $fields = wpcf_admin_fields_get_fields( $only_active, $disabled_by_type,
             $strictly_active, $option_name );
-    if ( !empty( $fields[$field_id] ) ) {
-        $data = wpcf_fields_type_action( $fields[$field_id]['type'] );
-        if ( isset( $data['wp_version'] )
-                && wpcf_compare_wp_version( $data['wp_version'], '<' ) ) {
-            return array();
-        }
-        $fields[$field_id]['id'] = $field_id;
-        return wpcf_sanitize_field( $fields[$field_id] );
+    $field = !empty( $fields[$field_id] ) ? $fields[$field_id] : array();
+    if ( !empty( $field ) ) {
+        return apply_filters( 'wpcf_field', $field );
     }
     return array();
 }
@@ -236,11 +240,12 @@ function wpcf_admin_fields_get_fields_by_group( $group_id, $key = 'slug',
         if ( !isset( $fields[$field_id] ) ) {
             continue;
         }
-        $field = wpcf_admin_fields_get_field( $field_id, false, false, false,
-                $meta_name );
-        if ( !empty( $field ) ) {
-            $results[$field_id] = $field;
-        }
+        $results[$field_id] = $fields[$field_id];
+//        $field = wpcf_admin_fields_get_field( $field_id, false, false, false,
+//                $meta_name );
+//        if ( !empty( $field ) ) {
+//            $results[$field_id] = $field;
+//        }
     }
     if ( $use_cache ) {
         $cache[$cache_key] = $results;
@@ -508,20 +513,12 @@ function wpcf_fields_type_action( $type, $func = '', $args = array() ) {
  * 
  * @param type $field
  * @param type $add Additional attributes
+ * @param string $content
  */
-function wpcf_fields_get_shortcode( $field, $add = '' ) {
+function wpcf_fields_get_shortcode( $field, $add = '', $content = '' ) {
     $shortcode = '[';
     $shortcode .= 'types field="' . $field['slug'] . '"' . $add;
-    if ( in_array( $field['type'], array('textfield', 'textarea', 'wysiwyg') ) ) {
-        $shortcode .= ' class="" style=""';
-    }
-
-    // If repetitive add separator
-    if ( wpcf_admin_is_repetitive( $field ) ) {
-        $shortcode .= ' separator=", "';
-    }
-
-    $shortcode .= '][/types]';
+    $shortcode .= ']' . $content . '[/types]';
     $shortcode = apply_filters( 'wpcf_fields_shortcode', $shortcode, $field );
     $shortcode = apply_filters( 'wpcf_fields_shortcode_type_' . $field['type'],
             $shortcode, $field );
@@ -531,54 +528,10 @@ function wpcf_fields_get_shortcode( $field, $add = '' ) {
 }
 
 /**
- * Saves last field settings when inserting from toolbar.
- * 
- * @param type $field_id
- * @param type $settings 
- */
-function wpcf_admin_fields_save_field_last_settings( $field_id, $settings ) {
-    $data = get_user_meta( get_current_user_id(), 'wpcf-field-settings', true );
-    $data[$field_id] = $settings;
-    update_user_meta( get_current_user_id(), 'wpcf-field-settings', $data );
-}
-
-/**
- * Gets last field settings when inserting from toolbar.
- * 
- * @param type $field_id
- */
-function wpcf_admin_fields_get_field_last_settings( $field_id ) {
-    $data = get_user_meta( get_current_user_id(), 'wpcf-field-settings', true );
-    if ( isset( $data[$field_id] ) ) {
-        return $data[$field_id];
-    }
-    return array();
-}
-
-/**
- * Gets all available types.
+ * Gets all available types and their config data.
  */
 function wpcf_admin_fields_get_available_types() {
-    static $data = array();
-    if ( !empty( $data ) ) {
-        return $data;
-    }
-    foreach ( glob( WPCF_EMBEDDED_INC_ABSPATH . '/fields/*.php' ) as $filename ) {
-        require_once $filename;
-        if ( function_exists( 'wpcf_fields_' . basename( $filename, '.php' ) ) ) {
-            $data_field = call_user_func( 'wpcf_fields_' . basename( $filename,
-                            '.php' ) );
-            if ( !empty( $data_field['wp_version'] ) ) {
-                if ( wpcf_compare_wp_version( $data_field['wp_version'], '>=' ) ) {
-                    $data[basename( $filename, '.php' )] = $data_field;
-                }
-            } else {
-                $data[basename( $filename, '.php' )] = $data_field;
-            }
-        }
-    }
-    $data = apply_filters( 'types_register_fields', $data );
-    return $data;
+    return WPCF_Fields::getFieldsTypesData();
 }
 
 /**
@@ -626,4 +579,36 @@ function wpcf_admin_fields_get_groups_by_field( $field_id,
         $cache['groups'][$group_id] = $fields;
     }
     return $return;
+}
+
+/**
+ * Saves last field settings when inserting from toolbar.
+ * 
+ * @param type $field_id
+ * @param type $settings 
+ * @param type $append
+ */
+function wpcf_admin_fields_save_field_last_settings( $field_id, $settings,
+        $append = false, $overwrite = false ) {
+    $data = get_user_meta( get_current_user_id(), 'wpcf-field-settings', true );
+    if ( $append && isset( $data[$field_id] ) && is_array( $data[$field_id] ) ) {
+        $data[$field_id] = $overwrite ? array_merge( $data[$field_id], $settings ) : array_merge( $settings,
+                        $data[$field_id] );
+    } else {
+        $data[$field_id] = $settings;
+    }
+    update_user_meta( get_current_user_id(), 'wpcf-field-settings', $data );
+}
+
+/**
+ * Gets last field settings when inserting from toolbar.
+ * 
+ * @param type $field_id
+ */
+function wpcf_admin_fields_get_field_last_settings( $field_id ) {
+    $data = get_user_meta( get_current_user_id(), 'wpcf-field-settings', true );
+    if ( isset( $data[$field_id] ) ) {
+        return $data[$field_id];
+    }
+    return array();
 }

@@ -4,7 +4,6 @@
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta.php';
 
-
 /**
  * Returns HTML formatted AJAX activation link for usermeta.
  * 

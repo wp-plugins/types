@@ -78,21 +78,48 @@ function wpcf_shortcode( $atts, $content = null, $code = '' ) {
  */
 function types_render_field( $field_id, $params, $content = null, $code = '' ) {
 
-    require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
-
-    global $wpcf, $post;
+    global $wpcf;
 
     // HTML var holds actual output
     $html = '';
 
-    // Set post ID
-    $post_id = $post->ID;
-    if ( isset( $params['post_id'] ) && !empty( $params['post_id'] ) ) {
-        $post_id = $params['post_id'];
+    // Set post ID to global
+    $post_id = get_the_ID();
+
+    // Check if other post required
+    if ( isset( $params['post_id'] ) ) {
+        // If numeric value
+        if ( is_numeric( $params['post_id'] ) ) {
+            $post_id = intval( $params['post_id'] );
+
+            // WP parent
+        } else if ( $params['post_id'] == '$parent' ) {
+            $current_post = get_post( $post_id );
+            if ( empty( $current_post->post_parent ) ) {
+                return '';
+            }
+            $post_id = $current_post->post_parent;
+
+            // Types parent
+        } else if ( strpos( $params['post_id'], '$' ) === 0 ) {
+            $post_id = intval( WPCF_Relationship::get_parent( $post_id,
+                            trim( $params['post_id'], '$' ) ) );
+        }
+    }
+
+    if ( empty( $post_id ) ) {
+        return '';
+    }
+
+    // Set post
+    $post = get_post( $post_id );
+
+    if ( empty( $post ) ) {
+        return '';
     }
 
     // Get field
-    $field = wpcf_fields_get_field_by_slug( $field_id );
+    $field = types_get_field( $field_id );
 
     //If Access plugin activated
     if ( function_exists( 'wpcf_access_register_caps' ) ) {
@@ -120,12 +147,12 @@ function types_render_field( $field_id, $params, $content = null, $code = '' ) {
 
         return '';
     }
-    
+
     // Set field
     $wpcf->field->set( $post, $field );
 
     // See if repetitive
-    if ( wpcf_admin_is_repetitive( $field ) ) {
+    if ( types_is_repetitive( $field ) ) {
         $wpcf->repeater->set( $post_id, $field );
         $_meta = $wpcf->repeater->_get_meta();
         $meta = $_meta['custom_order'];
@@ -163,10 +190,12 @@ function types_render_field( $field_id, $params, $content = null, $code = '' ) {
                         $output[] = $temp_output;
                     }
                 }
-                if ( !empty( $output ) && isset( $params['separator'] ) ) {
-                    $output = implode( $params['separator'], $output );
+                if ( !empty( $output ) && isset( $params['separator'] )
+                        && $params['separator'] !== '' ) {
+                    $output = implode( html_entity_decode( $params['separator'] ),
+                            $output );
                 } else if ( !empty( $output ) ) {
-                    $output = implode( '', $output );
+                    $output = implode( ' ', $output );
                 } else {
                     return '';
                 }
@@ -228,9 +257,6 @@ function types_render_field_single( $field, $params, $content = null,
         $count[$field['slug']] += 1;
     }
 
-    // Load type
-    $type = wpcf_fields_type_action( $field['type'] );
-
     // If 'class' or 'style' parameters are set - force HTML output
     if ( ((isset( $params['class'] ) && !empty( $params['class'] )) || (isset( $params['style'] ) && !empty( $params['style'] ))) && $field['type'] != 'date' ) {
         $params['output'] = 'html';
@@ -279,7 +305,7 @@ function types_render_field_single( $field, $params, $content = null,
     $params['__meta_id'] = $meta_id;
     $params['field']['__meta_id'] = $meta_id;
 
-    $output = '';
+//    $output = '';
     if ( isset( $params['raw'] ) && $params['raw'] == 'true' ) {
         // Skype is array
         if ( $field['type'] == 'skype' && isset( $params['field_value']['skypename'] ) ) {
@@ -289,34 +315,35 @@ function types_render_field_single( $field, $params, $content = null,
         }
     } else {
         /*
-         * 
-         * CHECKPOINT
-         * This is place where view function is called
+         * This is place where view function is called.
+         * Returned data should be string.
          */
-        $output = wpcf_fields_type_action( $field['type'], 'view', $params );
-        // Convert to string
-        if ( !empty( $output ) ) {
-            $output = strval( $output );
+        $output = '';
+        $_view_func = 'wpcf_fields_' . strtolower( $field['type'] ) . '_view';
+        if ( is_callable( $_view_func ) ) {
+            $output = strval( call_user_func( $_view_func, $params ) );
         }
 
         // If no output
-        if ( empty( $output ) && !empty( $params['field_value'] ) ) {
-            $output = wpcf_frontend_wrap_field_value( $field,
-                    $params['field_value'], $params );
-            $output = wpcf_frontend_wrap_field( $field, $output, $params );
-        } else if ( $output != '__wpcf_skip_empty' ) {
-            $output = wpcf_frontend_wrap_field_value( $field, $output, $params );
-            $output = wpcf_frontend_wrap_field( $field, $output, $params );
-        } else {
+        if ( empty( $output ) && isset( $params['field_value'] )
+                && $params['field_value'] !== "" ) {
+            $output = $params['field_value'];
+        } else if ( $output == '__wpcf_skip_empty' ) {
             $output = '';
         }
 
-        // Add count
-        if ( isset( $count[$field['slug']] ) && intval( $count[$field['slug']] ) > 1 ) {
-            $add = '-' . intval( $count[$field['slug']] );
-            $output = str_replace( 'id="wpcf-field-' . $field['slug'] . '"',
-                    'id="wpcf-field-' . $field['slug'] . $add . '"', $output );
+        // Prepend name if needed
+        if ( !empty( $output ) && isset( $params['show_name'] )
+                && $params['show_name'] == 'true' ) {
+            $output = $params['field']['name'] . ': ' . $output;
         }
+
+        // Add count
+//        if ( isset( $count[$field['slug']] ) && intval( $count[$field['slug']] ) > 1 ) {
+//            $add = '-' . intval( $count[$field['slug']] );
+//            $output = str_replace( 'id="wpcf-field-' . $field['slug'] . '"',
+//                    'id="wpcf-field-' . $field['slug'] . $add . '"', $output );
+//        }
     }
     // Apply filters
     $output = strval( apply_filters( 'types_view', $output,

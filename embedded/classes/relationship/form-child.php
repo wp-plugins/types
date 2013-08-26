@@ -47,11 +47,16 @@ class WPCF_Relationship_Child_Form
     var $model;
     var $children;
     var $headers = array();
+    var $_dummy_post = false;
+    private $__params = array('page', '_wpcf_relationship_items_per_page', 'sort',
+            'field');
+    private $__urlParams = array();
 
     /**
      * Construct function.
      */
     function __construct( $parent_post, $child_post_type, $data ) {
+        WPCF_Loader::loadModel( 'relationship' );
         $this->parent = $parent_post;
         $this->parent_post_type = $parent_post->post_type;
         $this->child_post_type = $child_post_type;
@@ -60,12 +65,30 @@ class WPCF_Relationship_Child_Form
         if ( empty( $this->data['fields_setting'] ) ) {
             $this->data['fields_setting'] = 'all_cf';
         }
-        $this->model = new WPCF_Relationship_Model();
         $this->cf = new WPCF_Field();
         $this->cf->context = 'relationship';
-        $this->children = $this->model->get_children( $this->parent,
-                $this->child_post_type, $this->data );
+        $this->children = WPCF_Relationship_Model::getChildrenByPostType( $this->parent,
+                        $this->child_post_type, $this->data, $_GET );
+        // If no children - use dummy post
+        if ( empty( $this->children ) ) {
+            $_dummy_post = get_default_post_to_edit( $this->child_post_type,
+                    false );
+            $this->children = array($_dummy_post);
+            $this->_dummy_post = true;
+        }
         $this->child_post_type_object = get_post_type_object( $this->child_post_type );
+        
+        // Collect params from request
+        foreach ( $this->__params as $__param ) {
+            if ( isset( $_GET[$__param] ) ) {
+                $this->__urlParams[$__param] = $_GET[$__param];
+            }
+        }
+    }
+
+    function getParamsQuery() {
+        return count( $this->__urlParams ) ? '&amp;' . http_build_query( $this->__urlParams,
+                        '', '&amp;' ) : '';
     }
 
     /**
@@ -141,6 +164,9 @@ class WPCF_Relationship_Child_Form
 // Add sorting
         $add_data = isset( $_GET['sort'] ) && isset( $_GET['field'] ) ? '&sort=' . strval( $_GET['sort'] ) . '&field='
                 . strval( $_GET['field'] ) : '';
+        if ( isset( $_GET['post_type_sort_parent'] ) ) {
+            $add_data .= '&post_type_sort_parent=' . $_GET['post_type_sort_parent'];
+        }
         $this->pagination_bottom = wpcf_form_simple( array(
             'pagination' => array(
                 '#type' => 'select',
@@ -256,6 +282,9 @@ class WPCF_Relationship_Child_Form
             $groups = wpcf_admin_post_get_post_groups_fields( $this->child,
                     'post_relationships' );
             foreach ( $groups as $group ) {
+                if ( empty( $group['fields'] ) ) {
+                    continue;
+                }
                 /*
                  * Loop fields
                  */

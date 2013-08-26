@@ -141,9 +141,9 @@ function wpcf_fields_checkboxes_get_option( $parent_name = '',
     $form[$id . '-id'] = $id;
     $form[$id . '-drag'] = array(
         '#type' => 'markup',
-        '#markup' => '<div class="wpcf-fields-checkboxes-draggable"><div class="wpcf-checkboxes-drag"><img src="'
+        '#markup' => '<div class="js-types-sortable wpcf-fields-checkboxes-draggable"><div class="wpcf-checkboxes-drag"><img src="'
         . WPCF_RES_RELPATH
-        . '/images/move.png" class="wpcf-fields-form-checkboxes-move-field" alt="'
+        . '/images/move.png" class="js-types-sort-button wpcf-fields-form-checkboxes-move-field" alt="'
         . __( 'Move this option', 'wpcf' ) . '" /><img src="'
         . WPCF_RES_RELPATH . '/images/delete.png"'
         . ' class="wpcf-fields-checkboxes-delete-option wpcf-pointer"'

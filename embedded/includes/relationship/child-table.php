@@ -16,6 +16,7 @@
     <!--SAVE ALL-->
     <a class="button-primary wpcf-pr-save-all-link" href="<?php
 echo admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_save_all'
+        . $this->getParamsQuery()
         . '&amp;post_id=' . $this->parent->ID . '&amp;post_type='
         . $this->child_post_type . '&amp;_wpnonce='
         . wp_create_nonce( 'pr_save_all' )
@@ -81,10 +82,11 @@ echo admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_save_all'
                 </thead>
                 <tbody>
                     <?php
-                    foreach ( $rows as $child_id => $row ):
-                        include dirname( __FILE__ ) . '/child-table-row.php';
-                    endforeach;
-
+                    if (!$this->_dummy_post) {
+                        foreach ( $rows as $child_id => $row ):
+                            include dirname( __FILE__ ) . '/child-table-row.php';
+                        endforeach;
+                    }
                     ?>
                 </tbody>
             </table>

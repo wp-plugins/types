@@ -22,13 +22,13 @@ class WPCF_Import_Export
      * @var type 
      */
     var $group_meta_keys = array(
-        '_wp_types_group_terms',
-        '_wp_types_group_post_types',
-        '_wp_types_group_fields',
-        '_wp_types_group_templates',
         '_wpcf_conditional_display',
+        '_wp_types_group_fields',
+        '_wp_types_group_post_types',
+        '_wp_types_group_templates',
+        '_wp_types_group_terms',
     );
-    
+
     /**
      * Restricted data - ommited from checksum, applies to all content types.
      * 
@@ -53,26 +53,39 @@ class WPCF_Import_Export
      * @param type $group_id
      * @return type
      */
-    function get_group_meta( $group_id ) {
+    function get_group_checksum_data( $group_id ) {
 
-        $_meta = array();
+        $checksum = array();
         $group = wpcf_admin_fields_get_group( $group_id );
-        
-        if ( !empty( $group ) ) {
-            $meta = get_post_custom( $group['id'] );
 
-            if ( !empty( $meta ) ) {
-                foreach ( $meta as $meta_key => $meta_value ) {
-                    if ( in_array( $meta_key, $this->group_meta_keys
-                            )
-                    ) {
-                        $_meta[$meta_key] = $meta_value[0];
-                    }
+        if ( !empty( $group ) ) {
+            unset( $group['slug'], $group['name'] );
+            $checksum = $group;
+            foreach ( $this->group_meta_keys as $meta_key ) {
+                $meta = get_post_meta( $group['id'], $meta_key, true );
+                if ( !empty( $meta ) ) {
+                    $checksum[$meta_key] = $meta;
                 }
             }
         }
 
-        return $_meta;
+        return $checksum;
+    }
+
+    /**
+     * Sort by key recursively.
+     * 
+     * @param type $data
+     * @return type
+     */
+    function ksort_by_string( $data ) {
+        if ( is_array( $data ) ) {
+            ksort( $data, SORT_STRING );
+            foreach ( $data as $k => $v ) {
+                $data[$k] = $this->ksort_by_string( $v );
+            }
+        }
+        return $data;
     }
 
     /**
@@ -85,11 +98,12 @@ class WPCF_Import_Export
     function generate_checksum( $type, $item_id = null ) {
         switch ( $type ) {
             case 'group':
-                $checksum = $this->get_group_meta( $item_id );
+                $checksum = $this->get_group_checksum_data( $item_id );
                 break;
 
             case 'field':
                 $checksum = wpcf_admin_fields_get_field( $item_id );
+                ksort( $checksum, SORT_STRING );
                 break;
 
             case 'custom_post_type':
@@ -114,9 +128,46 @@ class WPCF_Import_Export
             if ( isset( $checksum[$key] ) ) {
                 unset( $checksum[$key] );
             }
+
+        }
+       
+        //EMERSON: Remove empty conditional_display for consistent checksum computation with Module manager 1.1 during import
+        if (isset($checksum['data']['conditional_display'])) {
+        	if (empty($checksum['data']['conditional_display'])) {
+        		 
+        		unset($checksum['data']['conditional_display']);
+        	}
         }
 
-        return md5( maybe_serialize( $checksum ) );
+        //EMERSON: Convert to integer value to provide correct checksum computation of this field during Module manager 1.1. import
+        if (isset($checksum['data']['repetitive'])) {
+        
+        	$checksum['data']['repetitive']=(integer)$checksum['data']['repetitive'];
+        }
+
+        //EMERSON: Remove __types_id and __types_title to provide correct checksum computation of CPT during Module manager 1.1. import
+        if ((isset($checksum['__types_id'])) || (isset($checksum['__types_title']))) {
+        
+        	unset($checksum['__types_id']);
+        	unset($checksum['__types_title']);
+        }
+        
+        //EMERSON: Change custom taxonomies data type to integer to provide correct hashes for MM 1.1.
+        if ((isset($checksum['taxonomies'])) && (!(empty($checksum['taxonomies'])))) {
+        	
+        	foreach ($checksum['taxonomies'] as $tax_module_passed_name=>$tax_module_passed_value) {
+        		
+        		if ($tax_module_passed_name!='category') {
+        			
+        			$checksum['taxonomies'][$tax_module_passed_name]=(integer)$checksum['taxonomies'][$tax_module_passed_name];
+        			
+        		}
+        		
+        	}
+
+        }       
+
+        return md5( maybe_serialize( $this->ksort_by_string( $checksum ) ) );        
     }
 
     /**

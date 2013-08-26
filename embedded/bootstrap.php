@@ -92,6 +92,9 @@ function wpcf_embedded_init() {
     $types_instances['init_queued'] = '#' . did_action( 'init' );
     $types_instances['init_priority'] = TYPES_INIT_PRIORITY;
     $types_instances['forced_embedded'] = defined( 'TYPES_LOAD_EMBEDDED' ) && TYPES_LOAD_EMBEDDED;
+    
+    // Loader
+    require_once WPCF_EMBEDDED_ABSPATH . '/classes/loader.php';
 
     do_action( 'wpcf_before_init' );
     do_action( 'types_before_init' );
@@ -108,11 +111,15 @@ function wpcf_embedded_init() {
     // Define necessary constants if plugin is not present
     // This ones are skipped if used as embedded code!
     if ( !defined( 'WPCF_VERSION' ) ) {
-        define( 'WPCF_VERSION', '1.3.1' );
+        define( 'WPCF_VERSION', '1.4' );
         define( 'WPCF_META_PREFIX', 'wpcf-' );
-        define( 'WPCF_EMBEDDED_RELPATH', icl_get_file_relpath( __FILE__ ) );
+    }
+
+    // If forced embedded mode use path to __FILE__
+    if ( ( defined( 'TYPES_LOAD_EMBEDDED' ) && TYPES_LOAD_EMBEDDED )
+        || !defined('WPCF_RELPATH') ) {
+        define( 'WPCF_EMBEDDED_RELPATH', wpcf_get_file_url( __FILE__ ) );
     } else {
-        // Otherwise if plugin code - just define embedded paths
         define( 'WPCF_EMBEDDED_RELPATH', WPCF_RELPATH . '/embedded' );
     }
 
@@ -138,7 +145,6 @@ function wpcf_embedded_init() {
     require_once WPCF_EMBEDDED_ABSPATH . '/classes/fields.php';
     require_once WPCF_EMBEDDED_ABSPATH . '/classes/field.php';
     require_once WPCF_EMBEDDED_ABSPATH . '/classes/usermeta_field.php'; // Added by Gen, usermeta fields class
-    require_once WPCF_EMBEDDED_ABSPATH . '/classes/class.wpcf-template.php';
 
     // Repeater
     require_once WPCF_EMBEDDED_ABSPATH . '/classes/repeater.php';
@@ -153,7 +159,6 @@ function wpcf_embedded_init() {
     require_once WPCF_EMBEDDED_ABSPATH . '/classes/conditional.php';
 
     // API
-    require_once WPCF_EMBEDDED_ABSPATH . '/classes/api.php';
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/api.php';
 
     // Validation
@@ -164,9 +169,6 @@ function wpcf_embedded_init() {
 
     // Import Export
     require_once WPCF_EMBEDDED_ABSPATH . '/classes/class.wpcf-import-export.php';
-
-    // Incubator
-    require_once WPCF_EMBEDDED_ABSPATH . '/incubator/index.php';
 
     // Module manager
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/module-manager.php';
@@ -249,9 +251,6 @@ function wpcf_embedded_init() {
     // Set repeater object
     $wpcf->usermeta_repeater = new WPCF_Usermeta_Repeater();
 
-    // Set template object
-    $wpcf->template = new WPCF_Template();
-
     // Set repeater object
     $wpcf->repeater = new WPCF_Repeater();
 
@@ -268,9 +267,6 @@ function wpcf_embedded_init() {
     $wpcf->import = new WPCF_Import_Export();
     $wpcf->export = new WPCF_Import_Export();
 
-    // Set API object
-    $wpcf->api = new WPCF_Api();
-
     // Set post object
     $wpcf->post = new stdClass();
 
@@ -286,6 +282,9 @@ function wpcf_embedded_init() {
     $wpcf->excluded_post_types = array(
         'revision', 'view', 'view-template', 'cred-form', 'nav_menu_item', 'mediapage',
     );
+
+    // Init loader
+    WPCF_Loader::init();
 
     // Init custom types and taxonomies
     wpcf_init_custom_types_taxonomies();

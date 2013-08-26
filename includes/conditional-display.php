@@ -9,7 +9,6 @@ add_filter( 'wpcf_field_pre_save', 'wpcf_cd_field_pre_save_filter' );
 add_filter( 'wpcf_fields_form_additional_filters',
         'wpcf_cd_fields_form_additional_filters', 10, 2 );
 add_action( 'wpcf_save_group', 'wpcf_cd_save_group_action' );
-add_action( 'admin_footer', 'wpcf_cd_admin_form_js' );
 
 global $wp_version;
 $wpcf_button_style = '';
@@ -56,6 +55,32 @@ function wpcf_cd_form_field_filter( $form, $data ) {
 function wpcf_cd_field_pre_save_filter( $data ) {
     if ( empty( $data['conditional_display'] ) ) {
         $data['conditional_display'] = array();
+    } else if ( !empty( $data['conditional_display']['conditions'] ) ) {
+        foreach ( $data['conditional_display']['conditions'] as $k => $condition ) {
+            $field = wpcf_admin_fields_get_field( $condition['field'] );
+            if ( !empty( $field ) ) {
+                // Date conversions
+                if ( $field['type'] == 'date'
+                        && isset( $condition['date'] )
+                        && isset( $condition['month'] )
+                        && isset( $condition['year'] )
+                ) {
+                    $time = mktime( 0, 0, 0, $condition['month'],
+                            $condition['date'], $condition['year'] );
+                    $date = date( wpcf_get_date_format(), $time );
+                    if ( $date !== false ) {
+                        $condition['value'] = $date;
+                    }
+                }
+                if ( isset( $condition['date'] ) && isset( $condition['month'] )
+                        && isset( $condition['year'] )
+                ) {
+                    unset( $condition['date'], $condition['month'],
+                            $condition['year'] );
+                }
+                $data['conditional_display']['conditions'][$k] = $condition;
+            }
+        }
     }
     return $data;
 }
@@ -108,6 +133,16 @@ function wpcf_cd_admin_form_filter( $data, $group = false ) {
         );
     }
 
+    // Stop for Usermeta Group edit screen
+    if ( isset( $_GET['page'] ) && $_GET['page'] == 'wpcf-edit-usermeta' ) {
+        $form['cd']['message'] = array(
+            '#type' => 'markup',
+            '#markup' => '<p>' . __( 'Conditional display is not supported yet for Usermeta fields.',
+                    'wpcf' ) . '</p>',
+        );
+        return $form;
+    }
+
     $add = $group ? 'true' : 'false';
 
     // Set button ID
@@ -123,8 +158,8 @@ function wpcf_cd_admin_form_filter( $data, $group = false ) {
     $form['cd']['add'] = array(
         '#type' => 'markup',
         '#markup' => '<a id="' . $_add_id
-        . '" class="wpcf-ajax-link button-secondary"'
-        . ' onclick="wpcfCdAddCondition(jQuery(this),' . $add . ');"'
+        . '" class="button-secondary"'
+        . ' onclick="wpcfCdAddCondition(jQuery(this),' . $add . '); return false;"'
         . ' href="' . $_url . '">' . __( 'Add condition', 'wpcf' ) . '</a>'
         . '<br />'
         . '<div class="wpcf-cd-entries">',
@@ -288,6 +323,7 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
 //        $fields = wpcf_admin_fields_get_fields_by_group( $group_id );
 //    } else {
     $fields = wpcf_admin_fields_get_fields();
+    ksort( $fields, SORT_STRING );
 //    }
 
     if ( $group ) {
@@ -304,13 +340,13 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
         if ( !$group && $data['id'] == $field_id ) {
             continue;
         }
-        /*
-         * 
-         * 
-         * TODO Reconsider this WE DO NOT ALLOW repetitive fields to be compared.
-         */
+        // WE DO NOT ALLOW repetitive fields to be compared.
         if ( wpcf_admin_is_repetitive( $field ) ) {
             $flag_repetitive = true;
+            continue;
+        }
+        // Skip Checkboxes
+        if ( $field['type'] == 'checkboxes' ) {
             continue;
         }
         $options[$field_id] = array(
@@ -380,10 +416,32 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
     $form['cd']['value_' . $id] = array(
         '#type' => 'textfield',
         '#name' => $name . '[conditions][' . $id . '][value]',
-        '#options' => wpcf_cd_admin_operations(),
         '#inline' => true,
         '#value' => isset( $condition['value'] ) ? $condition['value'] : '',
         '#attributes' => array('class' => 'wpcf-cd-value'),
+    );
+    /*
+     * 
+     * Adjust for date
+     */
+    if ( !empty( $condition['value'] ) ) {
+        WPCF_Loader::loadInclude( 'fields/date/functions.php' );
+        $timestamp = wpcf_fields_date_convert_datepicker_to_timestamp( $condition['value'] );
+        if ( $timestamp !== false ) {
+            $date_value = date( 'd', $timestamp ) . ',' . date( 'm', $timestamp ) . ',' . date( 'Y',
+                            $timestamp );
+            $date_function = 'date';
+        }
+    }
+    if ( empty( $date_value ) ) {
+        $date_value = '';
+        $date_function = false;
+    }
+    $form['cd']['value_date_' . $id] = array(
+        '#type' => 'markup',
+        '#markup' => '<br />' . wpcf_conditional_add_date_controls( $date_function,
+                $date_value, $name . '[conditions][' . $id . ']' ),
+        '#attributes' => array('class' => 'wpcf-cd-value-date'),
     );
     $form['cd']['remove_' . $id] = array(
         '#type' => 'button',
@@ -431,16 +489,6 @@ function wpcf_cd_save_group_action( $group ) {
 }
 
 /**
- * Inline JS.
- */
-function wpcf_cd_admin_form_js() {
-
-    ?>
-    <script type="text/javascript"></script>
-    <?php
-}
-
-/**
  * Triggers disabling 'Add Condition' button.
  * @param type $id
  * @return string
@@ -453,4 +501,55 @@ function wpcf_conditional_disable_add_js( $id ) {
     </script>
 ';
     return $js;
+}
+
+/**
+ * Date select form for Group edit screen.
+ * 
+ * @global type $wp_locale
+ * @param type $function
+ * @param type $value
+ * @param type $name
+ * @return string
+ */
+function wpcf_conditional_add_date_controls( $function, $value, $name ) {
+
+    global $wp_locale;
+
+    if ( $function == 'date' ) {
+        $date_parts = explode( ',', $value );
+        $time_adj = mktime( 0, 0, 0, $date_parts[1], $date_parts[0],
+                $date_parts[2] );
+    } else {
+        $time_adj = current_time( 'timestamp' );
+    }
+    $jj = gmdate( 'd', $time_adj );
+    $mm = gmdate( 'm', $time_adj );
+    $aa = gmdate( 'Y', $time_adj );
+
+    $output = '<div class="wpcf-custom-field-date">' . "\n";
+
+    $month = "<select name=\"" . $name . '[month]' . "\" >\n";
+    for ( $i = 1; $i < 13; $i = $i + 1 ) {
+        $monthnum = zeroise( $i, 2 );
+        $month .= "\t\t\t" . '<option value="' . $monthnum . '"';
+        if ( $i == $mm )
+            $month .= ' selected="selected"';
+        $month .= '>' . $monthnum . '-'
+                . $wp_locale->get_month_abbrev( $wp_locale->get_month( $i ) )
+                . "</option>\n";
+    }
+    $month .= '</select>';
+
+    $day = '<input name="' . $name . '[date]" type="text" value="' . $jj . '" size="2" maxlength="2" autocomplete="off" />';
+    $year = '<input name="' . $name . '[year]" type="text" value="' . $aa . '" size="4" maxlength="4" autocomplete="off" />';
+
+    $output .= sprintf( __( '%1$s%2$s, %3$s' ), $month, $day, $year );
+
+    $output .= '<div class="wpcf_custom_field_invalid_date wpcf-form-error"><p>' . __( 'Please enter a valid date here',
+                    'wpcf' ) . '</p></div>' . "\n";
+
+    $output .= "</div>\n";
+
+    return $output;
 }

@@ -25,9 +25,9 @@ function wpcf_post_relationship_init() {
  * @return string 
  */
 function wpcf_pr_post_type_form_filter( $form, $post_type ) {
-    
+
     global $wpcf;
-    
+
     $has = wpcf_pr_admin_get_has( $post_type['slug'] );
     $belongs = wpcf_pr_admin_get_belongs( $post_type['slug'] );
     $post_types = get_post_types( '', 'objects' );
@@ -91,6 +91,10 @@ function wpcf_pr_post_type_form_filter( $form, $post_type ) {
         $options[$temp_post_type_slug]['#default_value'] = isset( $belongs[$temp_post_type_slug] );
         $options[$temp_post_type_slug]['#inline'] = true;
         $options[$temp_post_type_slug]['#after'] = '&nbsp;&nbsp;';
+        if ( is_rtl() ) {
+            $options[$temp_post_type_slug]['#before'] = '<div style="float:right;margin-left:10px;">';
+            $options[$temp_post_type_slug]['#after'] .= '</div>';
+        }
     }
     $form['table-pr-has-form'] = array(
         '#type' => 'checkboxes',
@@ -137,6 +141,10 @@ function wpcf_pr_post_type_form_filter( $form, $post_type ) {
                 . __( 'Please save the page first, before you can edit the child items',
                         'wpcf' ) . '">('
                 . __( 'Edit fields' ) . ')</a>&nbsp;&nbsp;';
+        if ( is_rtl() ) {
+            $options[$temp_post_type_slug]['#before'] = '<div style="float:right;margin-left:10px;">';
+            $options[$temp_post_type_slug]['#after'] .= '</div>';
+        }
     }
     $form['table-pr-belongs-form'] = array(
         '#type' => 'checkboxes',
@@ -238,7 +246,6 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
         $relationships[$parent][$child]['fields_setting'] = $_POST['fields_setting'];
         $relationships[$parent][$child]['fields'] = isset( $_POST['fields'] ) ? $_POST['fields'] : array();
         update_option( 'wpcf_post_relationship', $relationships );
-
         ?>
         <script type="text/javascript">
             window.parent.jQuery('#TB_closeWindowButton').trigger('click');
@@ -331,7 +338,6 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
     echo wpcf_form_simple( $form );
     echo wp_nonce_field( 'pt_edit_fields' );
     echo '</form>';
-
     ?>
     <script type="text/javascript">
         jQuery(document).ready(function(){
@@ -339,26 +345,24 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
                 jQuery('#wpcf-specific').show();
             } else {
     <?php if ( $repetitive_warning ) { ?>
-                                    jQuery('#wpcf-repetitive-warning').show();
+                    jQuery('#wpcf-repetitive-warning').show();
         <?php
     }
-
     ?>
-                            }
-                            jQuery('input[name="fields_setting"]').change(function(){
-                                if (jQuery(this).val() == 'specific') {
-                                    jQuery('#wpcf-specific').slideDown();
-                                } else {
-                                    jQuery('#wpcf-specific').slideUp();
+            }
+            jQuery('input[name="fields_setting"]').change(function(){
+                if (jQuery(this).val() == 'specific') {
+                    jQuery('#wpcf-specific').slideDown();
+                } else {
+                    jQuery('#wpcf-specific').slideUp();
     <?php if ( $repetitive_warning ) { ?>
-                                        jQuery('#wpcf-repetitive-warning').show();
+                        jQuery('#wpcf-repetitive-warning').show();
         <?php
     }
-
     ?>
-                                }
-                            });
-                        });
+                }
+            });
+        });
     </script>
     <?php
     wpcf_admin_ajax_footer();

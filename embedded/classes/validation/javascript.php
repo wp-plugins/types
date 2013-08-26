@@ -58,7 +58,7 @@ class WPCF_Validation_Javascript
          * All accepted by jQuery.not() can be added.
          */
         $output .= '
-                    ignore: \':hidden, .wpcf-form-groups-support-post-type, .wpcf-form-groups-support-tax, .wpcf-form-groups-support-templates\',';
+                    ignore: \'input[type="hidden"], .wpcf-form-groups-support-post-type, .wpcf-form-groups-support-tax, .wpcf-form-groups-support-templates\',';
         
         $output .= '
         errorPlacement: function(error, element){
@@ -124,6 +124,7 @@ class WPCF_Validation_Javascript
                 jQuery(\'' . $selector . '\').validate().cancelSubmit = true;
                 jQuery(\'' . $selector . '\').submit();
             }
+            wpcfLoadingButtonStop();
         },
         ';
 
@@ -140,6 +141,14 @@ class WPCF_Validation_Javascript
             if ( empty( $element['#validate'] ) ) {
                 continue;
             }
+            
+            $rules = array(); // Rules output
+            $messages = array(); // Messages output
+            $collected = array(); // Various collected data (for hooks)
+            // Skip read-only
+            if ( isset( $element['#attributes']['readonly'] ) ) {
+                continue;
+            }
             /*
              * 
              * Adjust rules according to field type
@@ -147,16 +156,16 @@ class WPCF_Validation_Javascript
              * TODO Document why radios selects 'name' instead of 'id'
              */
             if ( in_array( $element['#type'], array('radios') ) ) {
+				// Add if exists check
+				$output .= 'if (jQuery(\'input[name="' . $element['#name']
+                        . '"]\').length > 0){' . "\r\n";
                 $output .= 'jQuery(\'input[name="' . $element['#name']
                         . '"]\').rules("add", {' . "\r\n";
             } else {
+				// Add if exists check
+				$output .= 'if (jQuery("#' . $id . '").length > 0){' . "\r\n";
                 $output .= 'jQuery("#' . $id . '").rules("add", {' . "\r\n";
             }
-
-            $rules = array(); // Rules output
-            $messages = array(); // Messages output
-            $collected = array(); // Various collected data (for hooks)
-
             /*
              * $method is registered jQuery validation method
              * $args['value'] is custom tailored parameter
@@ -229,6 +238,7 @@ class WPCF_Validation_Javascript
 
             // Close main jQuery function call
             $output .= "\r\n" . '});' . "\r\n";
+            $output .=  "\r\n" . '}' . "\r\n";// Close IF
         }
 
         // Close tag

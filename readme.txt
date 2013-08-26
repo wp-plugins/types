@@ -4,8 +4,8 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields
 License: GPLv2
 Requires at least: 3.1
-Tested up to: 3.6.0
-Stable tag: 1.3.1
+Tested up to: 3.5.1
+Stable tag: 1.4
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -147,13 +147,25 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
-= 1.3.1 =
-* Fixed issues with Access (teaser, embedded and standalone code compatibility)
-* Fixed editor popup for embedded mode
-* Added post types and taxonomies to reserved names check
-* Fixed child titles blank space in child form
-* Fixed issues with Usermeta fields
-* Fixed issues with Module Manager for embedded mode
+= 1.4 =
+* Views 1.3 compatibility
+* New Editor ( new GUI, complete parameter list available, improved inserting shortcodes )
+* Added 'url' parameter for Image field
+* Added 'target' parameter for URL field
+* Added Asterisk for required fields titles
+* API functions updated
+* Added support for custom image sizes ( registered using add_image_size() )
+* Removed un-necessary controls from Media Upload for field
+* Improved performance on AJAX conditional check
+* Fixed inconsistencies when creating first child
+* Fixed various issues with Usermeta fields
+* Fixed and improved sorting child posts
+* Fixed bugs with validation JS
+* Date conditional form improved ( added Date select )
+* Checkboxes removed from conditional selection
+* WPML synchronization when custom post type or taxonomy is changed (translation preferences, translation connections, belonging terms connections)
+* Fixed various issues with WPML-copied fields
+* Added support for Tabify plugin
 
 = 1.3 =
 * Added support for User Meta fields

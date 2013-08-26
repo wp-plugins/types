@@ -1,11 +1,11 @@
 <?php
 /**
  * Types Clone WordPress Administration Template Header
- * 
+ *
  * This comment applies to admin-footer.php too.
  * Remove all unnecessary output. Leave basic WP hooks only.
  * We do this because we need various scripts enqueued right.
- * 
+ *
  * @todo After leaving Thickbox this should be reviewed
  * @package Types WordPress clones
  * @subpackage Administration

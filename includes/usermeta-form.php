@@ -192,7 +192,7 @@ function wpcf_admin_usermeta_form() {
             wpcf_admin_message(sprintf(__("Group with ID %d do not exist",
                                     'wpcf'), intval($_REQUEST['group_id'])));
         } else {
-            $update['fields'] = wpcf_admin_fields_get_fields_by_group($_REQUEST['group_id'], 'slug', false, false, false, 'wp-types-user-group', 'wpcf-usermeta');
+            $update['fields'] = wpcf_admin_fields_get_fields_by_group($_REQUEST['group_id'], 'slug', false, true, false, 'wp-types-user-group', 'wpcf-usermeta');
             $update['show_for'] = wpcf_admin_get_groups_showfor_by_group($_REQUEST['group_id']);
 			$update['admin_styles'] = wpcf_admin_get_groups_admin_styles_by_group($_REQUEST['group_id']);
         }
@@ -466,7 +466,7 @@ function wpcf_admin_usermeta_form() {
 		$user_id = wpcf_usermeta_get_user();
 		$preview_profile = wpcf_usermeta_preview_profile( $user_id, $update, 1 );
 		$group = $update;
-		$group['fields'] = wpcf_admin_usermeta_process_fields( $user_id, $group['fields'], true );
+		$group['fields'] = wpcf_admin_usermeta_process_fields( $user_id, $group['fields'], true, false );
 		$edit_profile = wpcf_admin_render_fields($group, $user_id, 1);
 	}
 	$temp[] = array(

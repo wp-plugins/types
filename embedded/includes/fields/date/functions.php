@@ -382,8 +382,8 @@ function wpcf_fields_date_timestamp_is_valid( $timestamp ) {
      * and a few other operating systems.
      * PHP 5.1.0 and newer versions overcome this limitation though. 
      */
-    // MIN 'Jan 1, 1970' - 0
-    $_min_timestamp = 0;
+    // MIN 'Jan 1, 1970' - 0 | Fri, 13 Dec 1901 20:45:54 UTC
+    $_min_timestamp = fields_date_timestamp_neg_supported() ? -2147483646 : 0;
     // MAX 'Tue, 19 Jan 2038 03:14:07 UTC' - 2147483647
     $_max_timestamp = 2147483647;
 

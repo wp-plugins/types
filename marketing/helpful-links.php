@@ -12,8 +12,8 @@
   <li>
     <h4>User fields</h4>
     <ul style="margin-left:1em;">
-      <li><a target="_blank" href="#?utm_source=typesplugin&utm_medium=help&utm_term=adding-user-fields&utm_campaign=types" title=""><?php _e('Adding user fields to user profiles', 'wpcf'); ?> &raquo;</a></li>
-      <li><a target="_blank" href="#?utm_source=typesplugin&utm_medium=help&utm_term=displaying-user-fields&utm_campaign=types" title=""><?php _e('Displaying user fields on front-end', 'wpcf'); ?> &raquo;</a></li>
+      <li><a target="_blank" href="http://wp-types.com/documentation/user-guides/user-fields/?utm_source=typesplugin&utm_medium=help&utm_term=adding-user-fields&utm_campaign=types" title=""><?php _e('Adding user fields to user profiles', 'wpcf'); ?> &raquo;</a></li>
+      <li><a target="_blank" href="http://wp-types.com/documentation/user-guides/displaying-wordpress-user-fields/?utm_source=typesplugin&utm_medium=help&utm_term=displaying-user-fields&utm_campaign=types" title=""><?php _e('Displaying user fields on front-end', 'wpcf'); ?> &raquo;</a></li>
     </ul>
   </il>
   <li>
@@ -27,7 +27,7 @@
   <li>
     <h4>Access control</h4>
     <ul style="margin-left:1em;">
-      <li><a target="_blank" href="#?utm_source=typesplugin&utm_medium=help&utm_term=access-fields&utm_campaign=types" title=""><?php _e('Controlling which users can view and edit different fields', 'wpcf'); ?> &raquo;</a></li>
+      <li><a target="_blank" href="http://wp-types.com/documentation/user-guides/access-control-for-user-fields/?utm_source=typesplugin&utm_medium=help&utm_term=access-fields&utm_campaign=types" title=""><?php _e('Controlling which users can view and edit different fields', 'wpcf'); ?> &raquo;</a></li>
       <li><a target="_blank" href="http://wp-types.com/documentation/user-guides/setting-access-control/?utm_source=typesplugin&utm_medium=help&utm_term=access-post-types&utm_campaign=types" title=""><?php _e('Controlling which users can access different post types', 'wpcf'); ?> &raquo;</a></li>
     </ul>
   </il>

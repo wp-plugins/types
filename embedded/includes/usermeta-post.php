@@ -26,14 +26,14 @@ function wpcf_admin_userprofile_init($user_id){
             $wpcf_active = true;
 			$for_users = wpcf_admin_get_groups_showfor_by_group($group['id']);
 			$profile_only_preview = '';
-			
 			if ( count($for_users) != 0){
 				if ( !in_array($user_role,$for_users)){
 					continue;	
 				}
 				else{
 					//If Access plugin activated
-					if (function_exists('wpcf_access_register_caps')){ 
+					if (function_exists('wpcf_access_register_caps')){
+					    
 						//If user can't view own profile fields
 						if (!current_user_can('view_own_in_profile_' . $group['slug'])){
 							continue;	
@@ -47,6 +47,16 @@ function wpcf_admin_userprofile_init($user_id){
 					}		
 				}
 			}
+            else{
+                 if (function_exists('wpcf_access_register_caps')){
+                     if (!current_user_can('view_own_in_profile_' . $group['slug'])){
+                       continue;   
+                     }
+                     if (!current_user_can('modify_own_' . $group['slug'])){
+                        $profile_only_preview = 1;
+                     }
+                  }          
+            }
 
             // Process fields
 			if ( empty($profile_only_preview) ){
@@ -117,8 +127,7 @@ function wpcf_usermeta_preview_profile( $user_id, $group, $echo = ''){
 		$params['post_type'] = 'wp-types-user-group';
 		$params['option_name'] = 'wpcf-usermeta';
 		$params['separator'] = ', ';
-		$field = wpcf_fields_get_field_by_slug( $field['slug'] , 'wpcf-usermeta' );
-		
+//		$field = wpcf_fields_get_field_by_slug( $field['slug'] , 'wpcf-usermeta' );
 		if ( wpcf_admin_is_repetitive( $field ) ) {
         $wpcf->usermeta_repeater->set( $user_id, $field );
         $_meta = $wpcf->usermeta_repeater->_get_meta();
@@ -167,9 +176,10 @@ function wpcf_usermeta_preview_profile( $user_id, $group, $echo = ''){
                     }
                 }
                 if ( !empty( $output ) && isset( $params['separator'] ) ) {
-                    $output = implode( $params['separator'], $output );
+                    $output = implode( html_entity_decode( $params['separator'] ),
+                            $output );
                 } else if ( !empty( $output ) ) {
-                    $output = implode( '', $output );
+                    $output = implode( ' ', $output );
                 }
             } else {
                 // Make sure indexed right
@@ -523,8 +533,10 @@ function wpcf_admin_usermeta_process_fields( $user_id, $fields = array(),
 
     global $wpcf;
 
-    // TODO Document this properties
+    $wpcf->usermeta_field->use_cache = $use_cache;
+    $wpcf->usermeta_field->add_to_editor = $add_to_editor;
     $wpcf->usermeta_repeater->use_cache = $use_cache;
+    $wpcf->usermeta_repeater->add_to_editor = $add_to_editor;
    
 	
 	if( is_object( $user_id ) ){

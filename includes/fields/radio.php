@@ -174,9 +174,9 @@ function wpcf_fields_radio_get_option( $parent_name = '', $form_data = array() )
             'style' => 'width:80px;',
             'class' => 'wpcf-form-groups-radio-update-title-display-value',
         ),
-        '#before' => '<div class="wpcf-fields-radio-draggable"><img src="'
+        '#before' => '<div class="js-types-sortable"><img src="'
         . WPCF_RES_RELPATH
-        . '/images/move.png" class="wpcf-fields-form-radio-move-field" alt="'
+        . '/images/move.png" class="js-types-sort-button" alt="'
         . __( 'Move this option', 'wpcf' ) . '" /><img src="'
         . WPCF_RES_RELPATH . '/images/delete.png"'
         . ' class="wpcf-fields-radio-delete-option wpcf-pointer"'

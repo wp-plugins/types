@@ -6,13 +6,16 @@
  * 
  * Mind wpml_action parameter for field.
  * Values:
- * 0 nothing, 1 copy, 2 translate
+ * 0 nothing (ignore), 1 copy, 2 translate
  */
 
 add_action( 'wpcf_after_init', 'wpcf_wpml_init' );
 
 // Only when WPML active
 if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
+
+    add_filter( 'get_post_metadata',
+            'wpcf_wpml_relationship_meta_belongs_filter', 10, 4 );
 
     // Relationship filter get_children query
     add_filter( 'wpcf_relationship_get_children_query',
@@ -37,6 +40,72 @@ if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
      */
     add_filter( 'wpcf_form_fields', 'wpcf_wpml_group_filter_add_missing_terms',
             10, 2 );
+
+    // Sync
+    add_action( 'wpcf_post_type_renamed', 'wpcf_wpml_post_type_renamed', 10, 2 );
+    add_action( 'wpcf_taxonomy_renamed', 'wpcf_wpml_taxonomy_renamed', 10, 2 );
+
+    // Relationship save child language
+    add_action( 'wpcf_relationship_save_child',
+            'wpcf_wpml_relationship_save_child', 10, 2 );
+}
+
+/**
+ * Adds wpml_action property.
+ * 
+ * @param type $fields
+ * @return array
+ */
+function wpcf_wpml_fields_filter( $fields ) {
+    foreach ( $fields as $field_id => $field ) {
+        $fields[$field_id] = wpcf_wpml_field_filter( $field );
+    }
+    return $fields;
+}
+
+/**
+ * Adds wpml_action property.
+ * 
+ * @global type $iclTranslationManagement
+ * @param type $field
+ * @return array
+ */
+function wpcf_wpml_field_filter( $field ) {
+
+    global $iclTranslationManagement;
+    $actions = array(
+        'ignore' => 0,
+        'copy' => 1,
+        'translate' => 2,
+    );
+
+    $action = isset( $field['wpml_action'] ) ? $field['wpml_action'] : null;
+    // Always use TM settings if available
+    if ( defined( 'WPML_TM_VERSION' ) && !empty( $iclTranslationManagement ) ) {
+        if ( isset( $iclTranslationManagement->settings['custom_fields_translation'][$field['meta_key']] ) ) {
+            $action = intval( $iclTranslationManagement->settings['custom_fields_translation'][$field['meta_key']] );
+        }
+    }
+    if ( is_null( $action ) || !is_numeric( $action ) ) {
+        if ( isset( $actions[strval( $action )] ) ) {
+            $action = intval( $actions[strval( $action )] );
+        } else if ( isset( $field['type'] ) ) {
+            $action = wpcf_wpml_get_action_by_type( $field['type'] );
+        }
+    }
+
+    $field['wpml_action'] = intval( $action );
+    return $field;
+}
+
+/**
+ * Returns WPML action by field type.
+ * 
+ * @param type $type
+ * @return type
+ */
+function wpcf_wpml_get_action_by_type( $type ) {
+    return in_array( $type, array('date', 'skype', 'numeric', 'phone', 'image', 'file', 'email', 'url') ) ? 1 : 2;
 }
 
 function wpcf_wpml_init() {
@@ -87,21 +156,17 @@ function wpcf_translate_register_string( $context, $name, $value,
  * @param type $data Saved data
  * @param type $field Ordering field (optional)
  */
-function wpcf_wpml_relationship_get_children_query( $_query, $parent,
-        $post_type, $data, $field = null ) {
+function wpcf_wpml_relationship_get_children_query( $query, $parent, $post_type,
+        $data, $field = null ) {
 
     global $sitepress;
 
     // Check if children post type is translatable
     if ( !$sitepress->is_translated_post_type( $post_type ) ) {
-        // Parse string
-        parse_str( $_query, $query );
-        // Set 'lang' to 'all'
         $query['lang'] = 'all';
-        return wpcf_parse_array_to_string( $query );
     }
 
-    return $_query;
+    return $query;
 }
 
 /**
@@ -224,10 +289,12 @@ function wpcf_admin_bulk_string_translation() {
                             'field ' . $field_id . ' option ' . $name . ' title',
                             $option['title'] );
                 }
-                if ( isset( $option['value'] ) ) {
-                    wpcf_translate_register_string( 'plugin Types',
-                            'field ' . $field_id . ' option ' . $name . ' value',
-                            $option['value'] );
+                if ( wpcf_wpml_field_is_translated( $field ) ) {
+                    if ( isset( $option['value'] ) ) {
+                        wpcf_translate_register_string( 'plugin Types',
+                                'field ' . $field_id . ' option ' . $name . ' value',
+                                $option['value'] );
+                    }
                 }
                 if ( isset( $option['display_value'] ) ) {
                     wpcf_translate_register_string( 'plugin Types',
@@ -298,7 +365,8 @@ function wpcf_post_relationship_set_translated_children( $parent_post_id ) {
         $ulanguage = $sitepress->get_language_for_element( $parent_post_id,
                 'post_' . $post->post_type );
 
-        remove_filter( 'get_post_metadata', 'wpcf_pr_meta_belongs_filter', 10, 4 );
+        remove_filter( 'get_post_metadata',
+                'wpcf_wpml_relationship_meta_belongs_filter', 10, 4 );
 
         $original_post_id = icl_object_id( $parent_post_id, $post->post_type,
                 false );
@@ -333,7 +401,8 @@ function wpcf_post_relationship_set_translated_children( $parent_post_id ) {
             }
         }
 
-        add_filter( 'get_post_metadata', 'wpcf_pr_meta_belongs_filter', 10, 4 );
+        add_filter( 'get_post_metadata',
+                'wpcf_wpml_relationship_meta_belongs_filter', 10, 4 );
     }
 }
 
@@ -342,7 +411,8 @@ function wpcf_post_relationship_set_translated_parent( $child_post_id ) {
     // Fix up the parent if it's the child of a related post and it doesn't yet have a parent
     if ( function_exists( 'icl_object_id' ) ) {
 
-        remove_filter( 'get_post_metadata', 'wpcf_pr_meta_belongs_filter', 10, 4 );
+        remove_filter( 'get_post_metadata',
+                'wpcf_wpml_relationship_meta_belongs_filter', 10, 4 );
 
         $post = get_post( $child_post_id );
         $original_post_id = icl_object_id( $child_post_id, $post->post_type,
@@ -375,7 +445,8 @@ function wpcf_post_relationship_set_translated_parent( $child_post_id ) {
             }
         }
 
-        add_filter( 'get_post_metadata', 'wpcf_pr_meta_belongs_filter', 10, 4 );
+        add_filter( 'get_post_metadata',
+                'wpcf_wpml_relationship_meta_belongs_filter', 10, 4 );
     }
 }
 
@@ -398,12 +469,12 @@ function wpcf_wpml_relationship_meta_belongs_filter( $value, $object_id,
         $post = get_post( $object_id );
         $original_post_id = icl_object_id( $object_id, $post->post_type, false );
         if ( !empty( $original_post_id ) ) {
-            remove_filter( 'get_post_metadata', 'wpcf_pr_meta_belongs_filter',
-                    10, 4 );
+            remove_filter( 'get_post_metadata',
+                    'wpcf_wpml_relationship_meta_belongs_filter', 10, 4 );
             $original_post_meta = get_post_meta( $original_post_id, $meta_key,
                     true );
-            add_filter( 'get_post_metadata', 'wpcf_pr_meta_belongs_filter', 10,
-                    4 );
+            add_filter( 'get_post_metadata',
+                    'wpcf_wpml_relationship_meta_belongs_filter', 10, 4 );
             if ( !empty( $original_post_meta ) ) {
                 $meta_post = get_post( $original_post_meta );
                 if ( !empty( $meta_post ) ) {
@@ -433,7 +504,8 @@ function wpcf_wpml_relationship_save_post_hook( $parent_post_id ){
     // Fix up the parent if it's the child of a related post and it doesn't yet have a parent
     if ( function_exists( 'icl_object_id' ) ) {
 
-        remove_filter( 'get_post_metadata', 'wpcf_pr_meta_belongs_filter', 10, 4 );
+        remove_filter( 'get_post_metadata',
+                'wpcf_wpml_relationship_meta_belongs_filter', 10, 4 );
 
         $post = get_post( $parent_post_id );
         $original_post_id = icl_object_id( $parent_post_id, $post->post_type,
@@ -468,7 +540,8 @@ function wpcf_wpml_relationship_save_post_hook( $parent_post_id ){
             }
         }
 
-        add_filter( 'get_post_metadata', 'wpcf_pr_meta_belongs_filter', 10, 4 );
+        add_filter( 'get_post_metadata',
+                'wpcf_wpml_relationship_meta_belongs_filter', 10, 4 );
     }
 }
 
@@ -556,46 +629,6 @@ function wpcf_wpml_register_labels( $prefix, $data, $context = 'post' ) {
                 break;
         }
     }
-}
-
-/**
- * Adds wpml_action property.
- * 
- * @global type $iclTranslationManagement
- * @param type $fields
- * @return int
- */
-function wpcf_wpml_fields_filter( $fields, $args, $toolset ) {
-
-    // Iteract only if toolset is WPML
-    if ( $toolset == 'wpml' ) {
-        global $iclTranslationManagement;
-        foreach ( $fields as $field_id => $field ) {
-            // Set only if missing
-            if ( !isset( $field['wpml_action'] ) ) {
-                $action = null;
-                if ( defined( 'WPML_TM_VERSION' )
-                        && !empty( $iclTranslationManagement ) ) {
-                    if ( isset( $iclTranslationManagement->settings['custom_fields_translation'][wpcf_types_get_meta_prefix( $field ) . $field_id] ) ) {
-                        $action = intval( $iclTranslationManagement->settings['custom_fields_translation'][wpcf_types_get_meta_prefix( $field ) . $field_id] );
-                    }
-                }
-                if ( is_null( $action ) ) {
-                    if ( isset( $field['type'] ) ) {
-                        if ( in_array( $field['type'],
-                                        array('date', 'skype', 'numeric', 'phone', 'image', 'file', 'email', 'url') ) ) {
-                            $action = 1;
-                        } else {
-                            $action = 2;
-                        }
-                    }
-                }
-                $fields[$field_id] = $action;
-            }
-        }
-    }
-
-    return $fields;
 }
 
 /**
@@ -806,8 +839,7 @@ function wpcf_wpml_group_filter_add_missing_terms( $form, $settings ) {
                  */
                 if ( !isset( $wpcf->wpml->group_form_filter_taxonomies_filtered[$term_taxonomy_id] ) ) {
                     $_add = true;
-                    foreach ( $wpcf->wpml->group_form_filter_taxonomies_translated as
-                                $_translated_term ) {
+                    foreach ( $wpcf->wpml->group_form_filter_taxonomies_translated as $_translated_term ) {
                         if ( $_translated_term['term_taxonomy_id'] == $term_taxonomy_id ) {
                             $_add = false;
                         }
@@ -833,4 +865,145 @@ function wpcf_wpml_group_filter_add_missing_terms( $form, $settings ) {
     }
 
     return $form + $add_terms;
+}
+
+/**
+ * Sync when slug changed.
+ * 
+ * @global type $sitepress
+ * @global type $sitepress_settings
+ * @param type $new_slug
+ * @param type $old_slug
+ */
+function wpcf_wpml_post_type_renamed( $new_slug, $old_slug ) {
+    global $sitepress, $sitepress_settings, $wpdb;
+    if ( isset( $sitepress_settings['custom_posts_sync_option'][$old_slug] ) ) {
+        $sitepress_settings['custom_posts_sync_option'][$new_slug] = $sitepress_settings['custom_posts_sync_option'][$old_slug];
+        unset( $sitepress_settings['custom_posts_sync_option'][$old_slug] );
+        $sitepress->save_settings( $sitepress_settings );
+        /*
+         * Update slug in icl_strings table
+         */
+        $wpdb->update( $wpdb->prefix . 'icl_strings',
+                array(
+            'name' => 'URL slug: ' . $new_slug,
+            'value' => $new_slug,
+                ),
+                array(
+            'name' => 'URL slug: ' . $old_slug,
+            'context' => 'URL slugs - wpcf',
+                )
+        );
+    }
+}
+
+/**
+ * Sync when slug changed.
+ * 
+ * @global type $sitepress
+ * @global type $sitepress_settings
+ * @param type $new_slug
+ * @param type $old_slug
+ */
+function wpcf_wpml_taxonomy_renamed( $new_slug, $old_slug ) {
+    global $sitepress, $sitepress_settings, $wpdb;
+    if ( isset( $sitepress_settings['taxonomies_sync_option'][$old_slug] ) ) {
+        $sitepress_settings['taxonomies_sync_option'][$new_slug] = $sitepress_settings['taxonomies_sync_option'][$old_slug];
+        unset( $sitepress_settings['taxonomies_sync_option'][$old_slug] );
+        $sitepress->save_settings( $sitepress_settings );
+
+        /*
+         * Update term in WPML table as used in WPML
+         * wpml/menu/troubleshooting.php
+         * case 'link_taxonomy':
+         */
+        $wpdb->update( $wpdb->prefix . 'icl_translations',
+                array('element_type' => 'tax_' . $new_slug),
+                array('element_type' => 'tax_' . $old_slug) );
+    }
+}
+
+/**
+ * Relationship save child language.
+ * 
+ * @global type $sitepress
+ * @param type $child
+ * @param type $parent
+ */
+function wpcf_wpml_relationship_save_child( $child, $parent ) {
+    global $sitepress;
+    $lang_details = $sitepress->get_element_language_details( $parent->ID,
+            'post_' . $parent->post_type );
+    if ( $lang_details ) {
+        $sitepress->set_element_language_details( $child->ID,
+                'post_' . $child->post_type, null, $lang_details->language_code );
+    }
+}
+
+/**
+ * Checks if field is copied on post edit screen.
+ * 
+ * @global type $sitepress
+ * @param type $field
+ * @param type $post
+ * @return boolean
+ */
+function wpcf_wpml_field_is_copied( $field, $post = null ) {
+    if ( defined( 'ICL_SITEPRESS_VERSION' ) && !defined( 'DOING_AJAX' ) ) {
+        global $sitepress;
+        // TODO WPML There is no lang on new post
+        if ( empty( $post ) ) {
+            $post = wpcf_admin_get_edited_post();
+            if ( !empty( $post->ID ) ) {
+                $post_lang = $sitepress->get_element_language_details( $post->ID,
+                        'post_' . $post->post_type );
+                if ( isset( $post_lang->language_code )
+                        && $sitepress->get_default_language() != $post_lang->language_code ) {
+                    return wpcf_wpml_field_is_copy( $field );
+                }
+            }
+        }
+        // Fallback
+        if ( $sitepress->get_default_language() != $sitepress->get_current_language() ) {
+            return wpcf_wpml_field_is_copy( $field );
+        }
+    }
+    return false;
+}
+
+/**
+ * Checks if field is copied on profile edit screen.
+ * 
+ * @global type $sitepress
+ * @param type $field
+ * @return boolean
+ */
+function wpcf_wpml_is_translated_profile_page( $field ) {
+    if ( defined( 'ICL_SITEPRESS_VERSION' ) && !defined( 'DOING_AJAX' ) ) {
+        global $sitepress;
+        if ( $sitepress->get_default_language() !== $sitepress->get_current_language() ) {
+            return wpcf_wpml_field_is_copy( $field );
+        }
+    }
+    return false;
+}
+
+/**
+ * Checks if field is copied.
+ * 
+ * @param type $field
+ * @return type
+ */
+function wpcf_wpml_field_is_copy( $field ) {
+    return isset( $field['wpml_action'] ) && $field['wpml_action'] === 1;
+}
+
+/**
+ * Checks if field is translated.
+ * 
+ * @param type $field
+ * @return type
+ */
+function wpcf_wpml_field_is_translated( $field ) {
+    return isset( $field['wpml_action'] ) && $field['wpml_action'] === 2;
 }

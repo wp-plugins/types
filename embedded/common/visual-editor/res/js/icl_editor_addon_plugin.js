@@ -9,61 +9,69 @@ jQuery(document).ready(function(){
     /*
      * Set active editor
      * Important when switching between editor instances.
-     * 
+     *
      * Used on WP editor, Types WYSIWYG, Views Filter Meta HTML,
      * Views Layout Meta HTML, CRED form.
      */
     window.wpcfActiveEditor = 'content';
-    jQuery('.wp-media-buttons a, .wpcf-wysiwyg .editor_addon_wrapper .item, #postdivrich .editor_addon_wrapper .item, #wpv_filter_meta_html_admin_edit .item, #wpv_layout_meta_html_admin_edit .item').on('click', function(){
+    jQuery('.wp-media-buttons a, .wpcf-wysiwyg .editor_addon_dropdown .item, #postdivrich .editor_addon_dropdown .item, #wpv_filter_meta_html_admin_edit .item, #wpv_layout_meta_html_admin_edit .item').on('click', function(){
         window.wpcfActiveEditor = jQuery(this).parents('.wpcf-wysiwyg, #postdivrich, #wpv_layout_meta_html_admin, #wpv_filter_meta_html_admin')
         .find('textarea#content, textarea.wpcf-wysiwyg, textarea#wpv_layout_meta_html_content, textarea#wpv_filter_meta_html_content').attr('id');
-        
+
     /*
          *
          * TODO 1.3 Why we do not have saving cookie in common?
          */
     //        document.cookie = "wpcfActiveEditor="+window.wpcfActiveEditor+"; expires=Monday, 31-Dec-2020 23:59:59 GMT; path="+wpcf_cookiepath+"; domain="+wpcf_cookiedomain+";";
     });
-    
+    // CRED notifications V icon - set active editor - needed for notifications V icons
+    jQuery(document).on('click','input[id^="credmailsubject"]', function(){
+	    window.wpcfActiveEditor = jQuery(this).attr('id');
+    });
+    jQuery(document).on('click', 'div[id^="wp-credmailbody"] .editor_addon_dropdown img', function(){
+	    window.wpcfActiveEditor = jQuery(this).parents('div[id^="wp-credmailbody"]').find('textarea[id^="credmailbody"]').attr('id');
+    });
     /*
      * Handle the "Add Field" boxes - some layout changes.
      */
     jQuery('.wpv_add_fields_button').on('click', function(e) {
-        
+
+
         // Set dropdown
         var dropdown_list = jQuery('#add_field_popup .editor_addon_dropdown');
-        
+
         if (dropdown_list.css('visibility') == 'hidden') {
 
             /*
              * Specific for 'Add Field'
              * Make changes before setting popup
              */
-            jQuery('#add_field_popup .editor_addon_wrapper .vicon').css('display', 'none');
+            jQuery('#add_field_popup .editor_addon_dropdown .vicon').css('display', 'none');
             jQuery('#add_field_popup').show();
-            
+
             // Place it above button
             dropdown_list.css('margin', '-25px 0 0 -15px');
-	    dropdown_list.css('right', '0');
+	    	dropdown_list.css('right', '0'); // needed for RTL
             var pos = jQuery('.wpv_add_fields_button').position();
             dropdown_list.css('top', pos.top + jQuery('.wpv_add_fields_button').height() - iclEditorHeight + 'px');
             dropdown_list.css('left', pos.left + jQuery('.wpv_add_fields_button').width() + 'px');
 
             // Toggle
             icl_editor_popup(dropdown_list);
+			jQuery(dropdown_list).find('.search_field').focus();
 
         } else {
             dropdown_list.css('visibility', 'hidden');
         }
     });
-	
-	
+
+
     /*
      *
      * This manages clicking on dropdown icon
      */
-    jQuery('#post').on('click', '.editor_addon_wrapper img', function(e){
-        
+    jQuery('#post').on('click', '.editor_addon_dropdown img', function(e){
+
         // Set dropdown
         var drop_down = jQuery(this).parent().find('.editor_addon_dropdown');
 
@@ -71,16 +79,21 @@ jQuery(document).ready(function(){
 
             // Hide top links if div too small
             wpv_hide_top_groups(jQuery(this).parent());
-            
+
             // Popup
             icl_editor_popup(drop_down);
-            
+			jQuery(drop_down).find('.search_field').focus();
+
         } else {
             // Hide all
-            jQuery('.editor_addon_dropdown').css('visibility', 'hidden').css('display', 'inline');
+            jQuery('.editor_addon_dropdown').css({
+                'visibility': 'hidden'
+                //'display' : 'inline'
+            });
+
         }
-        
-        
+
+
         // Bind close on iFrame click (it's loaded now)
         /*
          *
@@ -88,41 +101,205 @@ jQuery(document).ready(function(){
          * SRDJAN I do not understand this one...
          */
         jQuery('#content_ifr').contents().bind('click', function(e) {
-            jQuery('.editor_addon_dropdown').css('visibility', 'hidden').css('display', 'inline');
+            jQuery('.editor_addon_dropdown').css({
+                'visibility': 'hidden'
+                //'display' : 'inline'
+            });
         });
-        
-        
+
+
         // Bind Escape
         jQuery(document).bind('keyup', function(e) {
             if (e.keyCode == 27) {
-                jQuery('.editor_addon_dropdown').css('visibility', 'hidden').css('display', 'inline');
+                jQuery('.editor_addon_dropdown').css({
+                    'visibility': 'hidden'
+                    //'display' : 'inline'
+                });
                 jQuery(this).unbind(e);
             }
         });
-    
+
 
     });
+
+
+     /*
+     *
+     * This manages clicking on dropdown V icon on views edit screen
+     */
+    jQuery(document).on('click', '.js-code-editor-toolbar-button-v-icon', function(e){
+
+		// find which text area we are inserting into
+		var code_editor = jQuery(this).parents('.code-editor');
+		if (code_editor.length == 0) {
+			// Could be a content template
+			code_editor = jQuery(this).parents('.wpv-ct-inline-edit');
+		}
+		var text_area_id = code_editor.find('textarea').attr('id');
+		// Set the active editor so that Types shortcodes can be inserted.
+		window.wpcfActiveEditor = text_area_id;
+
+
+        // Set dropdown
+        var drop_down = jQuery(this).parent().find('.editor_addon_dropdown');
+
+        if ( drop_down.css('visibility') === 'hidden' ) {
+
+            // Hide top links if div too small
+            wpv_hide_top_groups(jQuery(this).parent());
+
+            // Popup
+            icl_editor_popup(drop_down);
+
+			jQuery(drop_down).find('.search_field').focus();
+
+        }
+
+        // Bind close on iFrame click (it's loaded now)
+        /*
+         *
+         * TODO Check and document this
+         * SRDJAN I do not understand this one...
+         */
+        jQuery('#content_ifr').contents().bind('click', function(e) {
+            jQuery('.editor_addon_dropdown').css({
+                'visibility': 'hidden'
+                //'display' : 'inline'
+            });
+        });
+
+
+        // Bind Escape
+        jQuery(document).bind('keyup', function(e) {
+            if (e.keyCode == 27) {
+                jQuery('.editor_addon_dropdown').css({
+                    'visibility': 'hidden'
+                    //'display' : 'inline'
+                });
+                jQuery(this).unbind(e);
+            }
+        });
+
+
+    });
+
+    /*
+     *
+     * This manages clicking on dropdown V icon
+     */
+    jQuery(document).on('click', '.js-wpv-shortcode-post-icon-wpv-views', function(e){
+
+        // Set dropdown
+        var drop_down = jQuery(this).parent().find('.js-editor_addon_dropdown-wpv-views');
+        if ( drop_down.css('visibility') === 'hidden' ) {
+            // Hide top links if div too small
+            wpv_hide_top_groups(jQuery(this).parent());
+            // Popup
+            icl_editor_popup(drop_down);
+
+			jQuery(drop_down).find('.search_field').focus();
+
+        }
+
+        // Bind close on iFrame click (it's loaded now)
+        /*
+         *
+         * TODO Check and document this
+         * SRDJAN I do not understand this one...
+         */
+        jQuery('#content_ifr').contents().bind('click', function(e) {
+            jQuery('.editor_addon_dropdown').css({
+                'visibility': 'hidden'
+                //'display' : 'inline'
+            });
+        });
+
+
+        // Bind Escape
+        jQuery(document).bind('keyup', function(e) {
+            if (e.keyCode == 27) {
+                jQuery('.editor_addon_dropdown').css({
+                    'visibility': 'hidden'
+                    //'display' : 'inline'
+                });
+                jQuery(this).unbind(e);
+            }
+        });
+
+
+    });
+
+    /*
+     *
+     * This manages clicking on dropdown T icon
+     */
+    jQuery(document).on('click', '.js-wpv-shortcode-post-icon-types', function(e){
+        // Set dropdown
+       // console.log('js-wpv-shortcode-post-icon-types');
+        var drop_down = jQuery(this).parent().find('.js-editor_addon_dropdown-types');
+
+        if ( drop_down.css('visibility') === 'hidden' ) {
+            // Hide top links if div too small
+            wpv_hide_top_groups(jQuery(this).parent());
+            // Popup
+            icl_editor_popup(drop_down);
+
+			jQuery(drop_down).find('.search_field').focus();
+
+        }
+
+        // Bind close on iFrame click (it's loaded now)
+        /*
+         *
+         * TODO Check and document this
+         * SRDJAN I do not understand this one...
+         */
+        jQuery('#content_ifr').contents().bind('click', function(e) {
+            jQuery('.editor_addon_dropdown').css({
+                'visibility': 'hidden'
+                //'display' : 'inline'
+            });
+        });
+
+
+        // Bind Escape
+        jQuery(document).bind('keyup', function(e) {
+            if (e.keyCode == 27) {
+                jQuery('.editor_addon_dropdown').css({
+                    'visibility': 'hidden'
+                    //'display' : 'inline'
+                });
+                jQuery(this).unbind(e);
+            }
+        });
+
+
+    });
+
 
     /*
      *
      *
      * Trigger close action
      */
-    jQuery('.editor_addon_wrapper .item, .editor_addon_dropdown .close').on('click', function(e){
-        jQuery('.editor_addon_dropdown').css('visibility', 'hidden').css('display', 'inline');
+    jQuery(document).on('click', '.editor_addon_dropdown .item, .editor_addon_dropdown .close', function(e){
+        jQuery('.editor_addon_dropdown').css({
+            'visibility': 'hidden'
+            //'display' : 'inline'
+        });
     });
 
     /*
-     * 
+     *
      * Direct links
      */
-    jQuery('.editor-addon-top-link').on('click', function(){
-        var scrollTargetDiv = jQuery(this).parents('.editor_addon_dropdown');
-        var target = jQuery(this).parents('li')
-        .find('.'+jQuery(this).data('editor_addon_target')+'-target');
+
+    jQuery(document).on('click','.editor-addon-top-link', function() {
+        var scrollTargetDiv = jQuery(this).parents('.editor_addon_dropdown_content');
+        var target = jQuery(this).closest('.editor_addon_dropdown_content').find('.'+jQuery(this).data('editor_addon_target')+'-target');
         var position = target.position();
         var scrollTo = position.top;
-        
+
         // Do scroll.
         scrollTargetDiv.animate({
             scrollTop:Math.round(scrollTo)
@@ -153,10 +330,13 @@ function icl_editor_popup(e) {
 
     // Toggle
     icl_editor_toggle(e);
-            
+
     // Set popup
-    icl_editor_resize_popup(e);
-            
+    //icl_editor_resize_popup(e);
+
+    // @Srdjan.
+    // I have commented out the line above. I don't want the width and height to be calculated.
+
     // Bind window click to auto-hide
     icl_editor_bind_auto_close();
 }
@@ -165,7 +345,7 @@ function icl_editor_popup(e) {
 jQuery.expr.filters.icl_offscreen = function(el) {
     var t = jQuery(el).offset();
     return (
-        (el.offsetLeft + el.offsetWidth) < 0 
+        (el.offsetLeft + el.offsetWidth) < 0
         || (el.offsetTop + el.offsetHeight) < 0
         || (el.offsetLeft > window.innerWidth || el.offsetTop > window.innerHeight)
         );
@@ -173,29 +353,50 @@ jQuery.expr.filters.icl_offscreen = function(el) {
 
 /**
  * Toggles popups.
- * 
+ *
  * @todo We have multiple calls here.
  */
 function icl_editor_toggle(element) {
-    
+
     // Hide all except current
-    jQuery('.editor_addon_dropdown').each(function(){
-        if (element.attr('id') != jQuery(this).attr('id')) {
-            jQuery(this).css('visibility', 'hidden')
-            .css('display', 'inline');
-        } else {
-            if (jQuery(this).css('visibility') == 'visible') {
-                jQuery(this).css('visibility', 'hidden');
-            } else {
-                jQuery(this).css('visibility', 'visible').css('display', 'inline');
-            }
-        }
+    // jQuery('.editor_addon_dropdown').each(function(){
+    //     if (element.attr('id') != jQuery(this).attr('id')) {
+    //         jQuery(this).css('visibility', 'hidden')
+    //         .css('display', 'inline');
+    //     } else {
+    //         if (jQuery(this).css('visibility') == 'visible') {
+    //             jQuery(this).css('visibility', 'hidden');
+    //         } else {
+    //             jQuery(this).css('visibility', 'visible').css('display', 'inline');
+    //         }
+    //     }
+    // });
+
+    var $popupContent = jQuery(element).find('.editor_addon_dropdown_content');
+    var $directLinks = $popupContent.find('.direct-links, .direct-links-desc');
+    $directLinks.hide();
+
+    // Hide All editors
+    jQuery('.editor_addon_dropdown').css({
+        'visibility': 'hidden'
+        //'display': 'inline'
     });
+
+    // Show target editor
+    element.css({
+        'visibility': 'visible'
+        //'display': 'block'
+    });
+
+    if ( $popupContent.height() >= 400 ) {
+        $popupContent.find('.direct-links, .direct-links-desc').show();
+    }
+
 }
 
 /**
  * Resizing Toolset editor dropdowns.
- * 
+ *
  * Mind there are multiple instances on same screen.
  * @see .editor_addon_dropdown
  */
@@ -207,19 +408,28 @@ function icl_editor_resize_popup(element) {
      */
     jQuery(element).find('.direct-links').hide();
     jQuery(element).find('.editor-addon-link-to-top').hide();
-    
+
     // Initial state
     // If hidden will be 0
     var heightInitial = jQuery(element).height();
 
     /*
      * Resize
-     * 
+     *
      * We'll take main editor width
      */
     var editorWidth = Math.round( jQuery('#post-body-content').width() + 20 );
+    //Width for Views Edit Page
+    if ( editorWidth == 20 ){
+    	editorWidth = Math.round( jQuery('.CodeMirror').width() - 20 );
+    }
+    var editorOffset = element.offset();
+    var windowsize = jQuery(window).width();
+    if ((editorWidth + editorOffset.left) > windowsize) {
+	    editorWidth = windowsize - (editorOffset.left + 20);
+    }
     icl_editor_resize_popup_width(element, editorWidth);
-    
+
     /*
      * Adjust size.
      */
@@ -235,7 +445,7 @@ function icl_editor_resize_popup(element) {
     if (heightInitial < iclEditorHeightMin) {
         icl_editor_resize_popup_height(element, iclEditorHeight);
     }
-    
+
     /*
      * Set CSS
      */
@@ -256,20 +466,20 @@ function icl_editor_resize_popup_width(element, width) {
 function icl_editor_resize_popup_height(element, height) {
     jQuery(element).height(height).css('height', height + 'px');
 }
-	
+
 
 var keyStr = "ABCDEFGHIJKLMNOP" +
 "QRSTUVWXYZabcdef" +
 "ghijklmnopqrstuv" +
 "wxyz0123456789+/" +
 "=";
-                   
+
 function editor_decode64(input) {
     var output = "";
     var chr1, chr2, chr3 = "";
     var enc1, enc2, enc3, enc4 = "";
     var i = 0;
-    
+
     // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
     var base64test = /[^A-Za-z0-9\+\/\=]/g;
     if (base64test.exec(input)) {
@@ -278,31 +488,31 @@ function editor_decode64(input) {
             "Expect errors in decoding.");
     }
     input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-    
+
     do {
         enc1 = keyStr.indexOf(input.charAt(i++));
         enc2 = keyStr.indexOf(input.charAt(i++));
         enc3 = keyStr.indexOf(input.charAt(i++));
         enc4 = keyStr.indexOf(input.charAt(i++));
-    
+
         chr1 = (enc1 << 2) | (enc2 >> 4);
         chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
         chr3 = ((enc3 & 3) << 6) | enc4;
-    
+
         output = output + String.fromCharCode(chr1);
-    
+
         if (enc3 != 64) {
             output = output + String.fromCharCode(chr2);
         }
         if (enc4 != 64) {
             output = output + String.fromCharCode(chr3);
         }
-    
+
         chr1 = chr2 = chr3 = "";
         enc1 = enc2 = enc3 = enc4 = "";
-    
+
     } while (i < input.length);
-    
+
     return unescape(editor_utf8_decode(output));
 }
 
@@ -352,26 +562,26 @@ function insert_b64_shortcode_to_editor(b64_shortcode, text_area) {
 function wpv_on_search_filter(el) {
     // get search text
     var searchText = jQuery(el).val();
-	
+
     // get parent on DOM to find items and hide/show Search
     var parent = el.parentNode.parentNode;
     var searchItems = jQuery(parent).find('.group .item');
-	
+
     jQuery(parent).find('.search_clear').css('display', (searchText == '') ? 'none' : 'inline');
-	
+
     // iterate items and search
     jQuery(searchItems).each(function() {
         if(searchText == '' || jQuery(this).text().search(new RegExp(searchText, 'i')) > -1) {
             // alert(jQuery(this).text());
-            jQuery(this).css('display', 'inline');
-        } 
+            jQuery(this).css('display', 'inline-block');
+        }
         else {
             jQuery(this).css('display', 'none');
         }
     });
-	
+
     // iterate group titles and check if they have items (otherwise hide them)
-	
+
     wpv_hide_top_groups(parent);
 }
 
@@ -385,16 +595,20 @@ function wpv_hide_top_groups(parent) {
         // by default we assume that there are no children to show
         var visibleGroup = false;
         jQuery(parentOfGroup).find('.item').each(function() {
-            if(jQuery(this).css('display') == 'inline') {
+            if(jQuery(this).css('display') === 'inline-block') {
                 visibleGroup = true;
                 return false;
             }
         });
-		
+        var id = jQuery(this).data('id');
         if(!visibleGroup) {
-            jQuery(this).css('display', 'none');
+            jQuery(this).hide();
+            jQuery(this).closest('.group').hide();
+            jQuery('.editor-addon-top-link[data-id="'+id+'"]').hide();
         } else {
-            jQuery(this).css('display', 'block');
+            jQuery(this).show();
+            jQuery(this).closest('.group').show();
+            jQuery('.editor-addon-top-link[data-id="'+id+'"]').show();
         }
     });
 }
@@ -409,7 +623,7 @@ function wpv_search_clear(el) {
 
 /**
  * Bind window click to auto-hide
- * 
+ *
  * This should be generic close.
  * It's used in few places
  */
@@ -417,29 +631,43 @@ function icl_editor_bind_auto_close() {
     /*
      * jQuery executes 'bind' immediatelly on click
      */
-    jQuery('body').bind('click',function(e){
-        
+
+    jQuery(document).on('click',function(e){
+
         var dropdownAddField = jQuery('#add_field_popup .editor_addon_dropdown');
-          
+
         // Exception for 'Add field' button
-        if (jQuery(e.target).hasClass('wpv_add_fields_button')) {
-        // Do nothing other dropdowns will take care
-        } else if (jQuery(e.target).parents('.editor_addon_wrapper').length < 1) {
-    
-            // Hide all
-            jQuery('.editor_addon_dropdown').css('visibility', 'hidden')
-            .css('display', 'inline');
-                
-            // Unbind Add field dropdown
-            dropdownAddField.removeClass('icl_editor_click_binded');
-                
-            jQuery(this).unbind(e);
+        var $target = jQuery(e.target);
+
+        // if we click anything but V icon
+        if ( !( $target.hasClass('wpv_add_fields_button') || $target.hasClass('js-code-editor-toolbar-button-v-icon') || 
+        $target.parent().hasClass('js-code-editor-toolbar-button-v-icon') 
+         || $target.hasClass('js-wpv-shortcode-post-icon-wpv-views')
+          || $target.hasClass('js-wpv-shortcode-post-icon-types') ) ) {
+
+            // if we click outside the popup
+            if ( $target.parents('.editor_addon_dropdown').length === 0 ) {
+
+                // Hide all
+                jQuery('.editor_addon_dropdown').css({
+                    'visibility': 'hidden'
+                    //'display': 'inline'
+                });
+
+                // Unbind Add field dropdown
+                dropdownAddField.removeClass('icl_editor_click_binded');
+
+                jQuery(this).unbind(e);
+            }
+
         }
+
     });
 }
 
+
 /**
- * 
+ *
  * Inserts content into active editor.
  */
 var icl_editor = (function(window, $){
@@ -448,19 +676,56 @@ var icl_editor = (function(window, $){
     {
         var editor, ed=$textarea.attr('id');
         if (ed && ed.charAt(0)=='#') ed=ed.substring(1);
-        
+
         // if tinyMCE
         if (
             window.tinyMCE && ed &&
-            null != (editor=window.tinyMCE.get(ed)) && 
+            null != (editor=window.tinyMCE.get(ed)) &&
             false == editor.isHidden()
                 )
             return editor;
         return false;
     };
-    
+
+	function codeMirrorCursorIsWithin( area, tStart, tEnd )
+	{
+		var codemirror = isCodeMirror(area);
+
+		if( !codemirror )
+		{
+			return false;
+		}
+		//let's scope it to our own instance do not bother window
+		this.wpcfActiveEditor = area;
+
+		var current_cursor = codemirror.getCursor(true)
+	 	, text_before = codemirror.getRange({line:0,ch:0}, current_cursor)
+		, text_after = codemirror.getRange(current_cursor, {line:codemirror.lastLine(),ch:null})
+		, regexStart
+		, regexEnd
+		, tagStart = tStart ? tStart : ''
+		, tagEnd = tEnd ? tEnd : '';
+
+		try
+		{
+			regexStart = new RegExp("\\["+tagStart+".*?\]");
+			regexEnd = new RegExp('\\['+tagEnd+'.*?\]');
+
+		//	console.log( text_before.match(regexStart), text_after.match(regexEnd) );
+
+			return text_before.search(regexStart) != -1 && text_after.search(regexEnd) != -1;
+		}
+		catch( e )
+		{
+			console.log( "There are problems with your RegExp.", e.message );
+		}
+
+		return false;
+	};
+
     function isCodeMirror($textarea)
     {
+        //console.log(typeof($textarea[0]));
         var textareaNext = $textarea[0].nextSibling;
         // if CodeMirror
         if (
@@ -472,7 +737,7 @@ var icl_editor = (function(window, $){
             return textareaNext.CodeMirror;
         return false;
     };
-    
+
     function getContent($area)
     {
         if (!$area) $area=$('#content');
@@ -482,26 +747,17 @@ var icl_editor = (function(window, $){
             return codemirror.getValue();
         return $area.val();
     };
-    
+
     function InsertAtCursor(myField, myValue1, myValue2)
     {
         var $myField=myField;
         var tinymce=isTinyMce($myField);
         var codemirror=isCodeMirror($myField);
-        // if tinyMCE
-        if (tinymce)
-        {
-            //            alert('tinymce');
-            tinymce.focus();
-            if (typeof(myValue2)!='undefined' && myValue2) // wrap
-                tinymce.execCommand("mceReplaceContent",false, myValue1 + tinymce.selection.getContent({
-                    format : 'raw'
-                }) + myValue2);
-            else
-                tinymce.execCommand("mceInsertContent",false, myValue1);
-        }
-        // else if CodeMirror
-        else if (codemirror)
+        //EMERSON: Check code mirror first before tinymce
+        //because tinymce instance would still exist even if code mirror is activated
+
+        // if codemirror
+        if (codemirror)
         {
             //            alert('codemirror');
             codemirror.focus();
@@ -517,6 +773,19 @@ var icl_editor = (function(window, $){
             } else {
                 codemirror.replaceSelection(myValue1, 'end');
             }
+
+        }
+        // else if tinymce
+        else if (tinymce)
+        {
+            //            alert('tinymce');
+            tinymce.focus();
+            if (typeof(myValue2)!='undefined' && myValue2) // wrap
+                tinymce.execCommand("mceReplaceContent",false, myValue1 + tinymce.selection.getContent({
+                    format : 'raw'
+                }) + myValue2);
+            else
+                tinymce.execCommand("mceInsertContent",false, myValue1);
         }
         // else other text fields
         else
@@ -556,20 +825,21 @@ var icl_editor = (function(window, $){
         }
     //        $myField.trigger('paste');
     };
-    
+
     function insertContent(content)
     {
         //        alert(window.wpcfActiveEditor);
         InsertAtCursor($('#'+window.wpcfActiveEditor), content);
     }
-    
+
     /**
      * Toggles Codemirror on textarea (#ID, toggle).
-     * 
+     *
      * We could record mouse position on Codemirror to restore it.
      */
-    function toggleCodeMirror(textarea, on)
+    function toggleCodeMirror(textarea, on, mode)
     {
+	mode = (typeof mode === "undefined") ? "myshortcodes" : mode;
         // if codemirror activated, enable syntax highlight
         if (window.CodeMirror)
         {
@@ -583,11 +853,11 @@ var icl_editor = (function(window, $){
             else if (on && !window.iclCodemirror[textarea])
             {
 //                CodeMirror.defineMode("myshortcodes", codemirror_shortcodes_overlay);
-                    
+
                 var $_metabox=$('#'+textarea).closest('.postbox'),
                 _metabox_closed=false,
                 _metabox_display=false;
-                        
+
                 if ($_metabox.hasClass('closed') || 'none'==$_metabox.css('display'))
                 {
                     _metabox_closed=true;
@@ -599,19 +869,19 @@ var icl_editor = (function(window, $){
                     $_metabox.css('display','block');
                 }
                 window.iclCodemirror[textarea] = CodeMirror.fromTextArea(document.getElementById(textarea), {
-                    mode: 'myshortcodes',//"text/html",
+                    mode: mode,
                     tabMode: "indent",
                     lineWrapping: true,
-                    lineNumbers : true,
-                    autofocus: true
+                    lineNumbers : true
+                 //   autofocus: true // test that this breaks nothing
                 });
-                
+
                 // TODO is resizing needed?
                 // needed for scrolling
 //                var height=Math.min(5000, Math.max(50, 200));
 //                $('#'+textarea).css('resize', 'none').height( height + 'px' );
 //                window.iclCodemirror[textarea].setSize( $('#'+textarea).width(), height );
-                    
+
                 if ('none'==_metabox_display)
                 {
                     $_metabox.css('display','none');
@@ -620,7 +890,7 @@ var icl_editor = (function(window, $){
                 {
                     $_metabox.addClass('closed');
                 }
-                
+
                 jQuery('#'+textarea).focus();
 
                 return window.iclCodemirror[textarea];
@@ -628,18 +898,20 @@ var icl_editor = (function(window, $){
         }
         return false;
     };
-    
+
     return {
         isTinyMce : isTinyMce,
         isCodeMirror : isCodeMirror,
         getContent : getContent,
         InsertAtCursor : InsertAtCursor,
         toggleCodeMirror : toggleCodeMirror,
+		cursorWithin : codeMirrorCursorIsWithin,
         insert : function(text) {
             insertContent(text);
         },
-        codemirror : function(textarea, on) {
-            return toggleCodeMirror(textarea, on);
+        codemirror : function(textarea, on, mode) {
+		mode = (typeof mode === "undefined") ? "myshortcodes" : mode;
+		return toggleCodeMirror(textarea, on, mode);
         },
         codemirrorGet : function(textarea) {
             return window.iclCodemirror[textarea];

@@ -38,7 +38,7 @@ function wpcf_fields_checkbox_meta_box_form( $field, $field_object ) {
     }
     // This means post is new
     if ( !isset( $field_object->post->ID ) ) {
-        $field_object->post = (object)array('ID'=>0);
+        $field_object->post = (object) array('ID' => 0);
     }
     return array(
         '#type' => 'checkbox',
@@ -53,175 +53,74 @@ function wpcf_fields_checkbox_meta_box_form( $field, $field_object ) {
 /**
  * Editor callback form.
  */
-function wpcf_fields_checkbox_editor_callback() {
+function wpcf_fields_checkbox_editor_callback( $field, $settings ) {
 
-    wp_enqueue_script( 'jquery' );
-
-    $form = array();
     $value_not_selected = '';
     $value_selected = '';
-    if ( isset( $_GET['field_id'] ) ) {
-        // Get field
-        if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
-            //If usermeta
-            $field = wpcf_admin_fields_get_field( $_GET['field_id'], false,
-                    false, false, 'wpcf-usermeta' );
-        } else {
-            //If postmeta
-            $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
-        }
-        if ( !empty( $field ) ) {
-            if ( isset( $field['data']['display_value_not_selected'] ) ) {
-                $value_not_selected = $field['data']['display_value_not_selected'];
-            }
-            if ( isset( $field['data']['display_value_selected'] ) ) {
-                $value_selected = $field['data']['display_value_selected'];
-            }
-        }
+
+    if ( isset( $field['data']['display_value_not_selected'] ) ) {
+        $value_not_selected = $field['data']['display_value_not_selected'];
     }
-    $form['#form']['callback'] = 'wpcf_fields_checkbox_editor_submit';
-    $form['display'] = array(
-        '#type' => 'radios',
-        '#default_value' => 'db',
-        '#name' => 'display',
-        '#options' => array(
-            'display_from_db' => array(
-                '#title' => __( 'Display the value of this field from the database',
-                        'wpcf' ),
-                '#name' => 'display',
-                '#value' => 'db',
-                '#inline' => true,
-                '#after' => '<br />'
-            ),
-            'display_values' => array(
-                '#title' => __( 'Enter values for \'selected\' and \'not selected\' states',
-                        'wpcf' ),
-                '#name' => 'display',
-                '#value' => 'value',
-                '#inline' => true,
-            ),
+    if ( isset( $field['data']['display_value_selected'] ) ) {
+        $value_selected = $field['data']['display_value_selected'];
+    }
+
+    $data = array_merge( array(
+        'selected' => WPCF_Editor::sanitizeParams( $value_selected ),
+        'not_selected' => WPCF_Editor::sanitizeParams( $value_not_selected ),
+            ), $settings );
+
+    return array(
+        'supports' => array('style'),
+        'tabs' => array(
+            'display' => array(
+                'menu_title' => __( 'Display', 'wpcf' ),
+                'title' => __( 'Display', 'wpcf' ),
+                'content' => WPCF_Loader::template( 'editor-modal-checkbox',
+                        $data ),
+            )
         ),
-        '#inline' => true,
     );
-
-    $form['states-start'] = array(
-        '#type' => 'markup',
-        '#markup' => '<div id="wpcf-checkbox-states" style="display:none;margin-left:20px">',
-    );
-    $form['display-value-1'] = array(
-        '#type' => 'textfield',
-        '#title' => __( 'Not selected:', 'wpcf' ),
-        '#name' => 'display_value_not_selected',
-        '#value' => $value_not_selected,
-        '#inline' => true,
-        '#pattern' => '
-            <table>
-            <tr>
-            <td style="text-align:right;"><TITLE></td>
-            <td><ELEMENT></td>
-            </tr>',
-    );
-    $form['display-value-2'] = array(
-        '#type' => 'textfield',
-        '#title' => __( 'Selected:', 'wpcf' ),
-        '#name' => 'display_value_selected',
-        '#value' => $value_selected,
-        '#inline' => true,
-        '#pattern' => '
-            <tr>
-            <td style="text-align:right;"><TITLE></td>
-            <td><ELEMENT></td>
-            </tr>
-            </table>',
-    );
-    $form['states-end'] = array(
-        '#type' => 'markup',
-        '#markup' => '</div>',
-    );
-
-    $form = wpcf_form_popup_add_optional( $form );
-
-    $help = array('url' => "http://wp-types.com/documentation/functions/checkbox/",
-        'text' => __( 'Checkbox help', 'wpcf' ));
-    // add usermeta form addon
-    if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
-        $temp_form = wpcf_get_usermeta_form_addon();
-        $form = $form + $temp_form;
-    }
-    $form = wpcf_form_popup_helper( $form, __( 'Insert', 'wpcf' ),
-            __( 'Cancel', 'wpcf' ), $help );
-
-    $f = wpcf_form( 'wpcf-form', $form );
-    add_action( 'admin_head_wpcf_ajax', 'wpcf_fields_checkbox_form_script' );
-    wpcf_admin_ajax_head( 'Insert checkbox', 'wpcf' );
-    echo '<form method="post" action="">';
-    echo $f->renderForm();
-    echo '</form>';
-    wpcf_admin_ajax_footer();
-}
-
-/**
- * AJAX window JS.
- */
-function wpcf_fields_checkbox_form_script() {
-
-    ?>
-    <script type="text/javascript">
-        // <![CDATA[
-        jQuery(document).ready(function(){
-            jQuery('input[name="display"]').change(function(){
-                if (jQuery(this).val() == 'value') {
-                    jQuery('#wpcf-checkbox-states').slideDown();
-                } else {
-                    jQuery('#wpcf-checkbox-states').slideUp();
-                }
-            });
-        });
-        // ]]>
-    </script>
-
-    <?php
-
 }
 
 /**
  * Editor callback form submit.
  */
-function wpcf_fields_checkbox_editor_submit() {
+function wpcf_fields_checkbox_editor_submit( $data, $field, $context ) {
     $add = '';
-
     $types_attr = 'field';
-    if ( !empty( $_POST['is_usermeta'] ) ) {
-        $field = wpcf_admin_fields_get_field( $_GET['field_id'], false, false,
-                false, 'wpcf-usermeta' );
-        $types_attr = 'usermeta';
-    } else {
-        $field = wpcf_admin_fields_get_field( $_GET['field_id'] );
-    }
-    /* End if */
-    if ( !empty( $_POST['is_usermeta'] ) ) {
+    if ( $context == 'usermeta' ) {
         $add .= wpcf_get_usermeta_form_addon_submit();
+        $types_attr = 'usermeta';
     }
-    if ( !empty( $field ) ) {
-        if ( $_POST['display'] == 'value' ) {
-            $shortcode = '[types ' . $types_attr . '="' . $field['slug'] . '" ' . $add . ' state="checked"]'
-                    . $_POST['display_value_selected']
-                    . '[/types] ';
-            $shortcode .= '[types ' . $types_attr . '="' . $field['slug'] . '" ' . $add . ' state="unchecked"]'
-                    . $_POST['display_value_not_selected']
-                    . '[/types]';
-        } else {
-            if ( $types_attr == 'usermeta' ) {
-                $shortcode = wpcf_usermeta_get_shortcode( $field, $add );
-            } else {
-                $shortcode = wpcf_fields_get_shortcode( $field, $add );
-            }
-        }
 
-        $shortcode = wpcf_fields_add_optionals_to_shortcode( $shortcode );
-        echo editor_admin_popup_insert_shortcode_js( $shortcode );
-        die();
+    if ( $data['display'] == 'value' ) {
+
+        $checked_add = $add . ' state="checked"';
+        $unchecked_add = $add . ' state="unchecked"';
+
+        if ( $context == 'usermeta' ) {
+            $shortcode_checked = wpcf_usermeta_get_shortcode( $field,
+                    $checked_add, $data['selected'] );
+            $shortcode_unchecked = wpcf_usermeta_get_shortcode( $field,
+                    $unchecked_add, $data['not_selected'] );
+        } else {
+            $shortcode_checked = wpcf_fields_get_shortcode( $field,
+                    $checked_add, $data['selected'] );
+            $shortcode_unchecked = wpcf_fields_get_shortcode( $field,
+                    $unchecked_add, $data['not_selected'] );
+        }
+        $shortcode = $shortcode_checked . $shortcode_unchecked;
+    } else {
+        if ( $context == 'usermeta' ) {
+            $shortcode = wpcf_usermeta_get_shortcode( $field, $add );
+        } else {
+            $shortcode = wpcf_fields_get_shortcode( $field, $add );
+        }
     }
+
+    return $shortcode;
+
 }
 
 /**
@@ -232,9 +131,9 @@ function wpcf_fields_checkbox_editor_submit() {
 function wpcf_fields_checkbox_view( $params ) {
     $output = '';
     $option_name = 'wpcf-fields';
-	if ( isset($params['usermeta']) && !empty($params['usermeta']) ){
-		$option_name = 'wpcf-usermeta';
-	}
+    if ( isset( $params['usermeta'] ) && !empty( $params['usermeta'] ) ) {
+        $option_name = 'wpcf-usermeta';
+    }
     if ( isset( $params['option_name'] ) ) {
         $option_name = $params['option_name'];
     }
@@ -361,8 +260,7 @@ function wpcf_fields_checkbox_save_check( $post_id ) {
                     }
                     continue;
                 } else if ( !empty( $_POST['wpcf_post_relationship'] ) ) {
-                    foreach ( $_POST['wpcf_post_relationship'] as $_parent =>
-                                $_children ) {
+                    foreach ( $_POST['wpcf_post_relationship'] as $_parent => $_children ) {
                         foreach ( $_children as $_child_id => $_slugs ) {
                             if ( !isset( $_slugs[$slug] ) ) {
                                 $meta_to_unset[$_child_id][$cf->slug] = true;

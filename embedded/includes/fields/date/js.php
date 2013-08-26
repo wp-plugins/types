@@ -31,6 +31,8 @@ function wpcf_fields_date_meta_box_js_inline() {
     ?>",
                             dateFormat: "<?php echo $date_format; ?>",
                             altFormat: "<?php echo $date_format; ?>",
+                            changeMonth: true,
+                            changeYear: true,
                             onSelect: function(dateText, inst) {
                                 jQuery(this).trigger('wpcfDateBlur');
                             }
@@ -46,13 +48,6 @@ function wpcf_fields_date_meta_box_js_inline() {
                     }
                 });
             }
-        }
-        function wpcfFieldsDateEditorCallback(field_id) {
-            var url = "<?php echo admin_url( 'admin-ajax.php' ); ?>?action=wpcf_ajax&wpcf_action=editor_insert_date&_wpnonce=<?php echo wp_create_nonce( 'fields_insert' ); ?>&field_id="+field_id+"&keepThis=true&TB_iframe=true&width=400&height=400";
-            tb_show("<?php
-    _e( 'Insert date', 'wpcf' );
-
-    ?>", url);
         }
         //]]>
     </script>

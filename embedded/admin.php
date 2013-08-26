@@ -12,8 +12,11 @@ if ( defined( 'DOING_AJAX' ) ) {
  */
 function wpcf_embedded_admin_init_hook() {
     // Add callbacks for post edit pages
-    add_action( 'load-post.php', 'wpcf_admin_post_page_load_hook' );
-    add_action( 'load-post-new.php', 'wpcf_admin_post_page_load_hook' );
+    add_action( 'load-post.php', 'wpcf_admin_edit_screen_load_hook' );
+    add_action( 'load-post-new.php', 'wpcf_admin_edit_screen_load_hook' );
+
+    // Meta boxes hook
+    add_action( 'add_meta_boxes', 'wpcf_admin_add_meta_boxes', 10, 2 );
 
     // Add callback for 'media-upload.php'
     add_filter( 'get_media_item_args', 'wpcf_get_media_item_args_filter' );
@@ -32,13 +35,15 @@ function wpcf_embedded_admin_init_hook() {
     add_action( 'admin_head', 'wpcf_admin_render_js_settings' );
 
     // Media insert code
-    if ( isset( $_GET['wpcf-fields-media-insert'] )
-            || (isset( $_SERVER['HTTP_REFERER'] ) && strpos( $_SERVER['HTTP_REFERER'],
-                    'wpcf-fields-media-insert=1' )) ) {
+    if ( (isset( $_GET['context'] ) && $_GET['context'] == 'wpcf-fields-media-insert')
+            || (isset( $_SERVER['HTTP_REFERER'] )
+            && strpos( $_SERVER['HTTP_REFERER'],
+                    'context=wpcf-fields-media-insert' ) !== false)
+    ) {
         require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields/file.php';
         // Add types button
         add_filter( 'attachment_fields_to_edit',
-                'wpcf_fields_file_attachment_fields_to_edit_filter', 10, 2 );
+                'wpcf_fields_file_attachment_fields_to_edit_filter', 9999, 2 );
         // Add JS
         add_action( 'admin_head', 'wpcf_fields_file_media_admin_head' );
         // Filter media TABs
@@ -53,7 +58,7 @@ function wpcf_embedded_admin_init_hook() {
         'can_export' => false,
             )
     );
-	register_post_type( 'wp-types-user-group',
+    register_post_type( 'wp-types-user-group',
             array(
         'public' => false,
         'label' => 'Types User Groups',
@@ -76,6 +81,19 @@ function wpcf_embedded_admin_init_hook() {
         wpcf_admin_bulk_string_translation();
         update_option( 'wpcf_strings_translation_initialized', 1 );
     }
+}
+
+/**
+ * Add meta boxes hook.
+ * 
+ * @param type $post_type
+ * @param type $post
+ */
+function wpcf_admin_add_meta_boxes( $post_type, $post ) {
+    require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+    require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
+
+    wpcf_add_meta_boxes( $post_type, $post );
 }
 
 /**
@@ -103,50 +121,31 @@ function wpcf_admin_save_attachment_hook( $attachment_id ) {
 /**
  * Triggers post procceses.
  */
-function wpcf_admin_post_page_load_hook() {
+function wpcf_admin_edit_screen_load_hook() {
+    require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
+    global $wpcf;
+    $wpcf->post = wpcf_admin_get_edited_post();
+    wpcf_admin_post_init( $wpcf->post );
+}
+
+/**
+ * Add styles to admin fields groups
+ */
+function wpcf_admin_fields_postfields_styles(){
+
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
 
-    // Get post
-    if ( isset( $_GET['post'] ) ) {
-        $post_id = (int) $_GET['post'];
-    } else if ( isset( $_POST['post_ID'] ) ) {
-        $post_id = (int) $_POST['post_ID'];
-    } else {
-        $post_id = 0;
-    }
-
-    // Init processes
-    if ( $post_id ) {
-        $post = get_post( $post_id );
-        if ( !empty( $post ) ) {
-            wpcf_admin_post_init( $post );
+//    $groups = wpcf_admin_fields_get_groups();
+    $groups = wpcf_admin_post_get_post_groups_fields( wpcf_admin_get_edited_post() );
+    echo '<style type="text/css">';
+    if ( !empty( $groups ) ) {
+        foreach ( $groups as $group ) {
+            echo str_replace( "}", "}\n",
+                    wpcf_admin_get_groups_admin_styles_by_group( $group['id'] ) );
         }
-    } else {
-        wpcf_admin_post_init();
     }
-	add_action( 'admin_footer', 'wpcf_admin_fields_postfields_styles' );
-}
-
-
-/**
-	 * Add styles to admin fields groups
-*/	
-function wpcf_admin_fields_postfields_styles(){
-			
-	require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
-	require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
-	
-	$groups = wpcf_admin_fields_get_groups();
-	echo '<style type="text/css">';
-	if (!empty($groups)) {
-		foreach ($groups as $group) {
-			echo str_replace("}","}\n",wpcf_admin_get_groups_admin_styles_by_group($group['id']));	
-			
-		}
-		
-	}	
-	echo '</style>';	
+    echo '</style>';
 }
 
 /**
@@ -203,117 +202,6 @@ function wpcf_form_popup_helper( $form, $submit_text = '', $cancel_text = '',
     }
 
     return $form;
-}
-
-/**
- * Add optional items to the popup.
- *
- */
-function wpcf_form_popup_add_optional( $form ) {
-
-    $onclick = 'if (jQuery(\'#wpcf-popup-optionals\').is(\':visible\')) {
-                        jQuery(this).html(\'' . __( 'Advanced',
-                    'wpcf' ) . ' &raquo;\');
-                        jQuery(\'#wpcf-popup-optionals\').hide();
-                    } else {
-                        jQuery(this).html(\'&laquo; ' . __( 'Hide advanced',
-                    'wpcf' ) . '\');
-                        jQuery(\'#wpcf-popup-optionals\').show();
-                    }
-                        ';
-
-    $form['optional-start'] = array(
-        '#type' => 'markup',
-        '#markup' => '<br clear="both" /><a href="#" onclick="' . $onclick
-        . '" class="wpcf-editor-popup-advanced-link">'
-        . __( 'Advanced', 'wpcf' ) . ' &raquo;</a><br /><div id="wpcf-popup-optionals" style="margin-left:20px;display:none">',
-    );
-
-    $form['show_name'] = array(
-        '#type' => 'checkbox',
-        '#title' => __( 'Show the field name before the value', 'wpcf' ),
-        '#name' => 'show_name',
-        '#inline' => true,
-        '#after' => '<br />',
-        '#before' => '<br />',
-    );
-
-    $form['raw_mode'] = array(
-        '#type' => 'checkbox',
-        '#title' => __( 'Raw mode - Outputs exactly what is saved in the database',
-                'wpcf' ),
-        '#default_value' => '',
-        '#name' => 'raw_mode',
-        '#inline' => true,
-        '#after' => '<br />',
-    );
-
-    $form['html_mode'] = array(
-        '#type' => 'checkbox',
-        '#title' => __( 'Wrap output in a div', 'wpcf' ),
-        '#default_value' => '',
-        '#name' => 'html_mode',
-        '#inline' => true,
-        '#after' => '<br />',
-    );
-
-    $form['css'] = array(
-        '#type' => 'textfield',
-        '#title' => '<td style="text-align:right;">' . __( 'CSS class:', 'wpcf' ) . '</td><td>',
-        '#name' => 'css',
-        '#value' => '',
-        '#before' => '<br /><table><tr>',
-        '#after' => '</td></tr>',
-    );
-    $form['style'] = array(
-        '#type' => 'textfield',
-        '#title' => '<td style="text-align:right;">' . __( 'CSS style:', 'wpcf' ) . '</td><td>',
-        '#name' => 'style',
-        '#value' => '',
-        '#before' => '<tr>',
-        '#after' => '</tr></table>'
-    );
-    $form['optional-end'] = array(
-        '#type' => 'markup',
-        '#markup' => '</div>',
-    );
-
-
-    return $form;
-}
-
-/**
- * Add the optional values from the popup to the shortcode.
- *
- */
-function wpcf_fields_add_optionals_to_shortcode( $shortcode ) {
-
-    if ( isset( $_POST['css'] ) && $_POST['css'] != '' ) {
-        $shortcode = preg_replace( '/\[types([^\]]*)/',
-                '$0 class="' . $_POST['css'] . '"', $shortcode );
-    }
-    if ( isset( $_POST['style'] ) && $_POST['style'] != '' ) {
-        $shortcode = preg_replace( '/\[types([^\]]*)/',
-                '$0 style="' . $_POST['style'] . '"', $shortcode );
-    }
-
-    if ( isset( $_POST['show_name'] ) && $_POST['show_name'] == '1' ) {
-        $shortcode = preg_replace( '/\[types([^\]]*)/', '$0 show_name="true"',
-                $shortcode );
-    }
-
-
-    if ( isset( $_POST['raw_mode'] ) && $_POST['raw_mode'] == '1' ) {
-        $shortcode = preg_replace( '/\[types([^\]]*)/', '$0 raw="true"',
-                $shortcode );
-    }
-
-    if ( isset( $_POST['html_mode'] ) && $_POST['html_mode'] == '1' ) {
-        $shortcode = preg_replace( '/\[types([^\]]*)/', '$0 output="html"',
-                $shortcode );
-    }
-
-    return $shortcode;
 }
 
 /**
@@ -404,9 +292,11 @@ function wpcf_custom_fields_to_be_copied( $copied_fields, $original_post_id ) {
 
     foreach ( $copied_fields as $id => $copied_field ) {
         foreach ( $groups as $group ) {
-            foreach ( $group['fields'] as $field ) {
-                if ( $copied_field == wpcf_types_get_meta_prefix( $field ) . $field['slug'] ) {
-                    unset( $copied_fields[$id] );
+            if ( isset( $group['fields'] ) && is_array( $group['fields'] ) ) {
+                foreach ( $group['fields'] as $field ) {
+                    if ( $copied_field == wpcf_types_get_meta_prefix( $field ) . $field['slug'] ) {
+                        unset( $copied_fields[$id] );
+                    }
                 }
             }
         }
@@ -433,7 +323,9 @@ function wpcf_admin_validation_messages( $method = false ) {
         'nospecialchars' => __( 'Letters, numbers, spaces, underscores and dashes only please',
                 'wpcf' ),
         'rewriteslug' => __( 'Letters, numbers, slashes, underscores and dashes only please',
-                'wpcf' )
+                'wpcf' ),
+        'negativeTimestamp' => __( 'Please enter a date after 1 January 1970.',
+                'wpcf' ),
     );
     if ( $method ) {
         return isset( $messages[$method] ) ? $messages[$method] : '';
@@ -519,6 +411,17 @@ function wpcf_admin_message_dismiss( $ID, $message, $store = true ) {
 }
 
 /**
+ * Checks if message is dismissed.
+ * 
+ * @param type $message_id
+ * @return boolean
+ */
+function wpcf_message_is_dismissed( $message_id ) {
+    return in_array( $message_id,
+                    (array) get_option( '_wpcf_dismissed_messages', array() ) );
+}
+
+/**
  * Adds dismissed message to record.
  * 
  * @param type $ID 
@@ -564,16 +467,16 @@ function wpcf_cookies_add( $data ) {
  * @global type $pagenow
  * @param type $title
  */
-function wpcf_admin_ajax_head( $title ) {
+function wpcf_admin_ajax_head( $title = '' ) {
 
     /*
      * Since Types 1.2 and WP 3.5
      * AJAX head is rendered differently
      */
-    global $wp_version, $wpcf;
+    global $wp_version;
     if ( version_compare( $wp_version, '3.4', '>' ) ) {
         // WP Header
-        echo $wpcf->template->ajax_header();
+        include WPCF_EMBEDDED_ABSPATH . '/includes/ajax/admin-header.php';
         return true;
     }
 
@@ -640,7 +543,8 @@ function wpcf_admin_ajax_head( $title ) {
             global $wp_version, $wpcf;
             if ( version_compare( $wp_version, '3.4', '>' ) ) {
                 // WP Footer
-                $wpcf->template->ajax_footer();
+                do_action( 'admin_footer_wpcf_ajax' );
+                include WPCF_EMBEDDED_ABSPATH . '/includes/ajax/admin-footer.php';
                 return true;
             }
 
@@ -655,7 +559,7 @@ function wpcf_admin_ajax_head( $title ) {
     </html>
 
     <?php
-}
+        }
 
 /**
  * Gets var from $_SERVER['HTTP_REFERER'].
@@ -769,7 +673,11 @@ function wpcf_get_media_item_args_filter( $args ) {
  * @return type 
  */
 function wpcf_admin_get_edited_post() {
-    if ( isset( $_GET['post'] ) ) {
+    // Global $post_ID holds post IDs for new posts too.
+    global $post_ID;
+    if ( !empty( $post_ID ) ) {
+        $post_id = $post_ID;
+    } else if ( isset( $_GET['post'] ) ) {
         $post_id = (int) $_GET['post'];
     } else if ( isset( $_POST['post_ID'] ) ) {
         $post_id = (int) $_POST['post_ID'];
@@ -789,8 +697,8 @@ function wpcf_admin_get_edited_post() {
  * @param type $post
  * @return boolean 
  */
-function wpcf_admin_get_post_type( $post ) {
-    if ( $post ) {
+function wpcf_admin_get_edited_post_type( $post ) {
+    if ( !empty( $post->ID ) ) {
         $post_type = get_post_type( $post );
     } else {
         if ( !isset( $_GET['post_type'] ) ) {

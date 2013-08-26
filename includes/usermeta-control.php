@@ -14,29 +14,27 @@ class WPCF_User_Fields_Control_Table extends WP_List_Table
         $time = time();
         global $wpdb;
         $wpcf_per_page = 15;
-        $this->wpcf_groups = wpcf_admin_fields_get_groups( 'wp-types-user-group' );
-        $this->wpcf_field_types = wpcf_admin_fields_get_available_types();
 
         // Get ours and enabled
         $cf_types = wpcf_admin_fields_get_fields( true, true, false, 'wpcf-usermeta' );
-		
-        foreach ($cf_types as $cf_id => $cf) {
-            $groups_temp = wpcf_admin_fields_get_groups_by_field( $cf['id'], 'wp-types-user-group' );
-            $output_temp = array();
-            foreach ($groups_temp as $group_id_temp => $group_temp) {
-                $output_temp[$group_temp['id']] = $group_temp['name'];
+		$__groups = wpcf_admin_fields_get_groups( 'wp-types-user-group' );
+        foreach ( $__groups as $__group_id => $__group ) {
+            $__groups[$__group_id]['fields'] = wpcf_admin_fields_get_fields_by_group( $__group['id'], 'slug', false, true, false, 'wp-types-user-group', 'wpcf-usermeta' );
+        }
+
+        foreach ( $cf_types as $cf_id => $cf ) {
+            foreach ( $__groups as $__group ) {
+                if ( isset( $__group['fields'][$cf_id] ) ) {
+                    $cf_types[$cf_id]['groups'][$__group['id']] = $__group['name'];
+                }
             }
-            if (empty($output_temp)) {
-                $output_temp[] = __('None', 'wpcf');
-            }
-            $cf_types[$cf_id]['groups_txt'] = implode(', ', $output_temp);
-            $cf_types[$cf_id]['groups_ids'] = $groups_temp;
+            $cf_types[$cf_id]['groups_txt'] = empty( $cf_types[$cf_id]['groups'] ) ? __( 'None', 'wpcf' ) : implode(', ', $cf_types[$cf_id]['groups'] );
         }
 		
         // Get others (cache this result?)
         $cf_other = $wpdb->get_results("
-		SELECT meta_id, meta_key
-		FROM $wpdb->postmeta
+		SELECT umeta_id, meta_key
+		FROM $wpdb->usermeta
 		GROUP BY meta_key
 		HAVING meta_key NOT LIKE '\_%'
 		ORDER BY meta_key");
@@ -99,31 +97,25 @@ class WPCF_User_Fields_Control_Table extends WP_List_Table
 
         // Order
         if (!empty($_REQUEST['orderby'])) {
-            if ($_REQUEST['orderby'] == 'c') {
-                ksort($cf_types, SORT_STRING);
-                if ($_REQUEST['order'] == 'desc') {
-                    $cf_types = array_reverse($cf_types, true);
-                }
-            } else {
-                $sort_matches = array(
-                    'g' => 'groups_txt',
-                    't' => 'slug',
-                    'f' => 'type'
-                );
-                $sorted_keys = array();
-                $new_array = array();
-                foreach ($cf_types as $cf_id_temp => $cf_temp) {
-                    $sorted_keys[$cf_temp['id']] = $cf_temp[$sort_matches[$_REQUEST['orderby']]];
-                }
-                asort($sorted_keys, SORT_STRING);
-                if ($_REQUEST['order'] == 'desc') {
-                    $sorted_keys = array_reverse($sorted_keys, true);
-                }
-                foreach ($sorted_keys as $cf_id_temp => $groups_txt) {
-                    $new_array[$cf_id_temp] = $cf_types[$cf_id_temp];
-                }
-                $cf_types = $new_array;
+            $sort_matches = array(
+                'c' => 'name',
+                'g' => 'groups_txt',
+                't' => 'slug',
+                'f' => 'type'
+            );
+            $sorted_keys = array();
+            $new_array = array();
+            foreach ($cf_types as $cf_id_temp => $cf_temp) {
+                $sorted_keys[$cf_temp['id']] = strtolower( $cf_temp[$sort_matches[$_REQUEST['orderby']]] );
             }
+            asort($sorted_keys, SORT_STRING);
+            if ($_REQUEST['order'] == 'desc') {
+                $sorted_keys = array_reverse($sorted_keys, true);
+            }
+            foreach ($sorted_keys as $cf_id_temp => $groups_txt) {
+                $new_array[$cf_id_temp] = $cf_types[$cf_id_temp];
+            }
+            $cf_types = $new_array;
         }
 
         // Search
@@ -200,7 +192,7 @@ class WPCF_User_Fields_Control_Table extends WP_List_Table
     }
 
     function column_group($item) {
-        return $item['groups_txt'];
+        return empty( $item['groups'] ) ? __( 'None', 'wpcf' ) : implode(', ', $item['groups'] );
     }
 
     function column_types_name($item) {
@@ -218,11 +210,8 @@ class WPCF_User_Fields_Control_Table extends WP_List_Table
         if (!empty($item['data']['disabled_by_type'])) {
             $add = '<br /><span style="color:red;">(' . __("This field was disabled during conversion. You need to set some further settings in the group editor.",
                             'wpcf') . ')</span>';
-            if (isset($item['groups_ids']) && sizeof($item['groups_ids'])) {
-                $group_ids = array_keys($item['groups_ids']);
-                $group_id = $group_ids[0];
-                $add .= ' <a href="' . admin_url('admin.php?page=wpum-edit&group_id=' . $group_id) . '">' . __('Edit',
-                                'wpcf') . '</a>';
+            if (isset($item['groups']) && sizeof($item['groups'])) {
+                $add .= ' <a href="' . admin_url('admin.php?page=wpcf-edit-usermeta&group_id=' . key( $item['groups'] ) ) . '">' . __('Edit', 'wpcf') . '</a>';
             }
         }
         return $item['type'] . $add;
@@ -263,7 +252,7 @@ function wpcf_admin_user_fields_control_bulk_actions($action = '') {
 	
     if ($action == 'wpcf-deactivate-bulk') {
 		
-        $fields = wpcf_admin_fields_get_fields(false, false, false, 'wpcf-usermeta');
+        $fields = wpcf_admin_fields_get_fields(false, true, false, 'wpcf-usermeta');
         foreach ($_POST['fields'] as $field_id) {
             if (isset($fields[$field_id])) {
                 $fields[$field_id]['data']['disabled'] = 1;
@@ -274,17 +263,18 @@ function wpcf_admin_user_fields_control_bulk_actions($action = '') {
         wpcf_admin_fields_save_fields($fields, false, 'wpcf-usermeta');
     } else if ($action == 'wpcf-activate-bulk') {
 		
-        $fields = wpcf_admin_fields_get_fields(false, false, false, 'wpcf-usermeta');
+        $fields = wpcf_admin_fields_get_fields(false, true, false, 'wpcf-usermeta');
         $fields_bulk = wpcf_types_cf_under_control('add',
                 array('fields' => $_POST['fields']), 'wp-types-user-group', 'wpcf-usermeta');
         foreach ($fields_bulk as $field_id) {
-            if (isset($fields[$field_id]) && empty($fields[$field_id]['data']['disabled_by_type'])) {
+//            if (isset($fields[$field_id]) && empty($fields[$field_id]['data']['disabled_by_type'])) {
+            if (isset($fields[$field_id])) {
                 $fields[$field_id]['data']['disabled'] = 0;
             }
             wpcf_admin_message_store(sprintf(__('Added to Types control: %s',
                                     'wpcf'), $field_id));
         }
-        wpcf_admin_fields_save_fields_addon($fields, false, 'wpcf-usermeta');
+        wpcf_admin_fields_save_fields($fields, false, 'wpcf-usermeta');
     } else if ($action == 'wpcf-delete-bulk') {
         require_once WPCF_INC_ABSPATH . '/fields.php';
         $failed = array();

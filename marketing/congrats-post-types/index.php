@@ -111,12 +111,8 @@
             </ul>
         <?php elseif ( $type == 'usermeta' ): ?>   
         	<ul>
-                <li><a target="_blank" href="#"><?php
+                <li><a target="_blank" href="http://wp-types.com/documentation/user-guides/displaying-wordpress-user-fields/?utm_source=typesplugin&utm_medium=next-steps&utm_term=display-user-fields&utm_campaign=types"><?php
         echo __( 'Display user fields', 'wpcf' );
-
-            ?> &raquo;</a></li>
-                <li><a target="_blank" href=""><?php
-                    echo __( 'Create groups of repeating user fields', 'wpcf' );
 
             ?> &raquo;</a></li>
             </ul> 

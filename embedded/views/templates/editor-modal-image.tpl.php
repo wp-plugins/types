@@ -17,15 +17,26 @@ $data = array_merge( array(
     'alt' => '',
     'height' => '',
     'image' => '',
-    'image_data' => array(),
-    'image-size' => 'thumbnail',
-    'post_id' => -1,
+    'image_size' => 'full',
     'preview' => '',
     'size_options' => array(),
     'title' => '',
     'warning_remote' => false,
     'width' => '',
+    'url' => false,
+    'onload' => '',
         ), (array) $data );
+
+if ($data['warning_remote']) {
+    if ( wpcf_is_embedded() ) {
+        $warning_remote = __( 'Remote image resize is disabled, so Types will only resize images that you upload.', 'wpcf' );
+    } else {
+        $warning_remote = sprintf( __( 'Remote image resize is currently disabled, so Types will only resize images that you upload. To change, go to the %sTypes settings page%s.',
+                        'wpcf' ),
+                '<a href="' . admin_url( 'admin.php?page=wpcf-custom-settings#types-image-settings' ) . '" target="_blank">',
+                '</a>' );
+    }
+}
 ?>
 
 <div data-bind="template: {name:'tpl-types-modal-image'}"></div>
@@ -33,41 +44,73 @@ $data = array_merge( array(
 <!--TYPES MODAL IMAGE-->
 <script id="tpl-types-modal-image" type="text/html">
 
-<label for="image-title"><?php _e( 'Image title', 'wpcf' ); ?></label>
-<input id="image-title" type="text" name="title" value="<?php echo $data['title']; ?>" />
-<p><?php _e( 'Title text for the image, e.g. &#8220;The Mona Lisa&#8221;', 'wpcf' ); ?></p>
+<div class="fieldset">
+	<p>
+		<label for="image-title" class="input-title"><?php _e( 'Image title', 'wpcf' ); ?></label>
+		<input id="image-title" type="text" name="title" value="<?php echo $data['title']; ?>" />
+	</p>
+	<p>
+		<label for="image-alt" class="input-title"><?php _e( 'Alternative text', 'wpcf' ); ?></label>
+		<input id="image-alt" type="text" name="alt" value="<?php echo $data['alt']; ?>" />
+	</p>
+</div>
 
-<label for="image-alt"><?php _e( 'Alternate Text', 'wpcf' ); ?></label>
-<input id="image-alt" type="text" name="alt" value="<?php echo $data['alt']; ?>" />
-<p><?php _e( 'Alt text for the image, e.g. &#8220;The Mona Lisa&#8221;', 'wpcf' ); ?></p>
+<div class="fieldset form-inline">
+	<h2><?php _e( 'Position and size', 'wpcf' ); ?></h2>
+	<p>
+	<!--<h2><?php _e( 'Alignment', 'wpcf' ); ?></h2>-->
+		<label for="image-alignment"><?php _e( 'Alignment', 'wpcf' ); ?></label>
+		<select id="image-alignment" name="alignment">
+			<?php foreach ( $data['alignment_options'] as $align => $title ): ?>
+				<option id="image-align-<?php echo $align; ?>"<?php if ( $data['alignment'] == $align ) echo 'selected="selected"'; ?>> <?php echo $align; ?></option>
+				<label for="image-align-<?php echo $align; ?>"><?php echo $title; ?></label>
+			<?php endforeach; ?>
+		</select>
+	</p>
+</div>
 
-<h2><?php _e( 'Alignment', 'wpcf' ); ?></h2>
-<?php foreach ( $data['alignment_options'] as $align => $title ): ?>
-<input id="image-align-<?php echo $align; ?>" type="radio" name="alignment" value="<?php echo $align; ?>"<?php if ( $data['alignment'] == $align ) echo ' checked="checked"'; ?> />
-<label for="image-align-<?php echo $align; ?>"><?php echo $title; ?></label>
-<?php endforeach; ?>
+<div class="fieldset form-inline">
+	<p>
+	<!--<h2><?php _e( 'Pre-defined sizes', 'wpcf' ); ?></h2>-->
+		<label for="image_size"><?php _e( 'Pre-defined sizes', 'wpcf' ); ?></label>
+		<select id="image_size" name="image_size" data-bind="value: image_size, disable: ted.params.warning_remote || false ">
+			<?php foreach ( $data['size_options'] as $size => $title ): ?>
+				<option id="image_size-<?php echo $size; ?>" value="<?php echo $size; ?>">
+					<?php echo $title; ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
 
 <?php if ( $data['warning_remote'] ) : ?>
-<div class="message error"><p><?php echo $data['warning_remote']; ?></p></div>
+<!--		Conditional icon displaying for dismissed warning message -->
+<i class="icon-warning-sign js-show-tooltip" data-header="<?php _e( 'Image resize disabled', 'wpcf' ); ?>" data-content="<?php echo htmlspecialchars( $warning_remote ); ?>"></i>
 <?php endif; ?>
 
-<h2><?php _e( 'Pre-defined sizes', 'wpcf' ); ?></h2>
-<?php foreach ( $data['size_options'] as $size => $title ): ?>
-<input id="image-size-<?php echo $size; ?>" type="radio" name="image-size" value="<?php echo $size; ?>" data-bind="checked: image_size, disable: <?php echo $data['warning_remote'] ? 'true' : 'false'; ?>" />
-<label for="image-size-<?php echo $size; ?>"><?php echo $title; ?></label>
-<?php endforeach; ?>
+	</p>
 
-<div data-bind="visible: image_size() == 'wpcf-custom'">
-    <label for="image-width"><?php _e( 'Width', 'wpcf' ); ?></label>
-    <input id="image-width" type="text" name="width" value="<?php echo $data['width']; ?>" />
-    <p><?php _e( 'Specify custom width', 'wpcf' ); ?></p>
-
-    <label for="image-height"><?php _e( 'Height', 'wpcf' ); ?></label>
-    <input id="image-height" type="text" name="height" value="<?php echo $data['height']; ?>" />
-    <p><?php _e( 'Specify custom height', 'wpcf' ); ?></p>
-
-    <label for="image-proportional"><?php _e( 'Keep proportional', 'wpcf' ); ?></label>
-    <input id="image-proportional" type="checkbox" name="proportional" value="1" checked="checked" />
+	<div class="group-nested" data-bind="visible: image_size() == 'wpcf-custom'">
+		<p>
+	    	<label for="image-width" class="input-title"><?php _e( 'Width', 'wpcf' ); ?></label>
+	    	<input id="image-width" type="text" name="width" value="<?php echo $data['width']; ?>" />
+	    </p>
+	    <p>
+	    	<label for="image-height" class="input-title"><?php _e( 'Height', 'wpcf' ); ?></label>
+	    	<input id="image-height" type="text" name="height" value="<?php echo $data['height']; ?>" />
+	    </p>
+	    <p>
+	    	<label for="image-proportional" class="input-title"><?php _e( 'Keep proportional', 'wpcf' ); ?></label>
+	    	<input id="image-proportional" type="checkbox" name="proportional" value="1" checked="checked" />
+	    </p>
+	</div>
 </div>
+
+<p class="form-inline">
+	<input id="image-url" type="checkbox" name="url" value="1" data-bind="checked: imageUrl, click: imageUrlDisable" />
+	<label for="image-url"><?php _e( 'Output only the URL of the re-sized image instead of the img tag', 'wpcf' ); ?></label>
+</p>
+
+<!--<input id="image-onload" type="text" name="onload" value="<?php echo $data['onload']; ?>" />
+<label for="image-onload"><?php _e( 'Onload callback', 'wpcf' ); ?></label>-->
+
 
 </script><!--END TYPES MODAL IMAGE-->

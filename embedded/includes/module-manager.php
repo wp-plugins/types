@@ -122,10 +122,32 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
     add_filter( 'wpmodules_items_check_' . _TAX_MODULE_MANAGER_KEY_,
             'wpcf_modman_items_check_taxonomies', 10, 2 );
 
+	//Module manager: Hooks for adding plugin version
+	
+	/*Export*/
+    add_filter('wpmodules_export_pluginversions_'._GROUPS_MODULE_MANAGER_KEY_,'wpcf_modman_get_plugin_version');
+    add_filter('wpmodules_export_pluginversions_'._TYPES_MODULE_MANAGER_KEY_,'wpcf_modman_get_plugin_version'); 
+    add_filter('wpmodules_export_pluginversions_'._TAX_MODULE_MANAGER_KEY_,'wpcf_modman_get_plugin_version');
+
+    /*Import*/
+    add_filter('wpmodules_import_pluginversions_'._GROUPS_MODULE_MANAGER_KEY_,'wpcf_modman_get_plugin_version');
+    add_filter('wpmodules_import_pluginversions_'._TYPES_MODULE_MANAGER_KEY_,'wpcf_modman_get_plugin_version');
+    add_filter('wpmodules_import_pluginversions_'._TAX_MODULE_MANAGER_KEY_,'wpcf_modman_get_plugin_version');   
+ 
     /*
      * Module Manager Functions
      */
-
+    
+    function wpcf_modman_get_plugin_version() {
+    
+    	if (defined( 'WPCF_VERSION' )) {
+    
+    		return WPCF_VERSION;
+    
+    	}
+    
+    }
+    
     function wpcf_register_modules_sections( $sections ) {
         $sections[_TYPES_MODULE_MANAGER_KEY_] = array(
             'title' => __( 'Post Types', 'wpcf' ),

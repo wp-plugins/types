@@ -134,19 +134,8 @@ class WPCF_Field
     var $unique_id = '';
 
     function __construct( $config = array() ) {
-
         // Parse args
         extract( wp_parse_args( (array) $config, $this->config ) );
-
-        // Config
-        if ( !empty( $use_form ) ) {
-            require_once WPCF_EMBEDDED_ABSPATH . '/classes/forms.php';
-            $this->form = new Enlimbo_Forms_Wpcf();
-        }
-
-        // Fields
-        $this->__fields_object = new WPCF_Fields();
-        $this->fields = $this->__fields_object->fields->all;
     }
 
     /**
@@ -164,9 +153,9 @@ class WPCF_Field
          * Check if $cf is string
          */
         if ( is_string( $cf ) ) {
-            if ( isset( $this->fields[$this->__get_slug_no_prefix( $cf )] ) ) {
-                $cf = $this->fields[$this->__get_slug_no_prefix( $cf )];
-            } else {
+            WPCF_Loader::loadInclude( 'fields' );
+            $cf = wpcf_admin_fields_get_field( $this->__get_slug_no_prefix( $cf ) );
+            if ( empty( $cf ) ) {
                 /*
                  * TODO Check what happens if field is not found
                  */
@@ -241,7 +230,7 @@ class WPCF_Field
      * 
      * @global type $wpdb 
      */
-    function _get_meta( $check_post = false ) {
+    function _get_meta() {
         global $wpdb;
 
         $cache_key = md5( 'field::_get_meta' . $this->post->ID . $this->slug );
@@ -273,11 +262,6 @@ class WPCF_Field
             $this->meta_object->meta_value = null;
         }
 
-        // If forced $_POST
-        if ( $check_post ) {
-            $meta = $this->get_submitted_data();
-        }
-
         /*
          * Secret public object :)
          * Keeps original data
@@ -285,10 +269,7 @@ class WPCF_Field
         $this->__meta = $meta;
 
         /*
-         * 
          * Apply filters
-         * !!! IMPORTANT !!!
-         * TODO Make this only place where field meta value is filtered
          */
         $meta = apply_filters( 'wpcf_fields_value_get', $meta, $this );
         $meta = apply_filters( 'wpcf_fields_slug_' . $this->cf['slug']
@@ -314,7 +295,8 @@ class WPCF_Field
      * Save field.
      * 
      * If $value is empty, $_POST will be checked.
-     * Since Types 1.2 we do not save fields if empty.
+     * 1.3.2 Reverted saving empty fields
+     * removed - if ( !empty( $value ) || is_numeric( $value ) ) {
      * 
      * @param type $value 
      */
@@ -335,31 +317,24 @@ class WPCF_Field
          */
         delete_post_meta( $this->post->ID, $this->slug );
 
-        // Save
-        if ( !empty( $value ) || is_numeric( $value ) ) {
-
-            // Trim
-            if ( is_string( $value ) ) {
-                $value = trim( $value );
-            }
-
-            // Apply filters
-            $_value = $this->_filter_save_value( $value );
-
-            if ( !empty( $_value ) || is_numeric( $_value ) ) {
-
-                // Save field
-                $mid = add_post_meta( $this->post->ID, $this->slug, $_value );
-
-                // CAll HOOKS
-                /*
-                 * 
-                 * Use these hooks to add future functionality.
-                 * Do not add any more code to core.
-                 */
-                $this->_action_save( $this->cf, $_value, $mid, $value );
-            }
+        // Trim
+        if ( is_string( $value ) ) {
+            $value = trim( $value );
         }
+
+        // Apply filters
+        $_value = $this->_filter_save_value( $value );
+
+        // Save field
+        $mid = add_post_meta( $this->post->ID, $this->slug, $_value );
+
+        // CAll HOOKS
+        /*
+         * 
+         * Use these hooks to add future functionality.
+         * Do not add any more code to core.
+         */
+        $this->_action_save( $this->cf, $_value, $mid, $value );
     }
 
     /**
@@ -558,6 +533,11 @@ class WPCF_Field
                     $element['#title'] = wpcf_translate( 'field '
                             . $this->cf['id'] . ' name', $_title );
 
+                    // Add asterisk for required fields
+                    if ( isset( $this->cf['data']['validate']['required'] ) ) {
+                        $element['#title'] .= '&#42;';
+                    }
+
                     $_description = isset( $element['#description'] ) ? $element['#description'] : $this->cf['description'];
                     $element['#description'] = wpautop( wpcf_translate( 'field '
                                     . $this->cf['id'] . ' description',
@@ -696,7 +676,7 @@ class WPCF_Field
          * We force checking our meta prefix
          */
         $key = $this->__get_slug_no_prefix( $field_key );
-        return !empty( $this->fields[$key] );
+        return WPCF_Fields::isUnderControl( $key );
     }
 
     /**
@@ -724,7 +704,8 @@ class WPCF_Field
      * @return type
      */
     function alter_form_name( $prefix, $name ) {
-        $temp = array_pop( explode( '[', $name ) );
+        $temp = explode( '[', $name );
+        $temp = array_pop( $temp );
         $__name = trim( strval( $temp ), ']' );
         /*
          * This means form is single-valued

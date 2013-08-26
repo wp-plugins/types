@@ -40,14 +40,14 @@ class WPCF_Conditional extends WPCF_Field
     /**
      * Holds all processed fields using one instance.
      */
-    var $collected = array();
+    var $collected = null;
 
     /**
      * Holds all triggers on which check should fire.
      * 
      * @var type 
      */
-    var $triggers = array();
+    var $triggers = null;
 
     /**
      * Marks if currently processed field is valid.
@@ -78,27 +78,33 @@ class WPCF_Conditional extends WPCF_Field
 
     function __construct() {
         parent::__construct();
-        $fields = new WPCF_Fields();
-        if ( is_array( $fields->fields->all ) ) {
-            foreach ( $fields->fields->all as $f_id => $f ) {
-                if ( !empty( $f['data']['conditional_display']['conditions'] ) ) {
-                    foreach ( $f['data']['conditional_display']['conditions'] as
-                                $condition ) {
-                        $this->collected[$f_id][] = $condition;
-                        if ( !empty( $condition['field'] ) ) {
-                            $this->triggers[$condition['field']][$f_id][] = $condition;
+    }
+
+    function set( $post, $cf ) {
+        parent::set( $post, $cf );
+    }
+
+    /**
+     * Collect all fields and conditions.
+     */
+    function collect() {
+        if ( is_null( $this->triggers ) ) {
+            $this->collected = array();
+            $this->triggers = array();
+            $fields = WPCF_Fields::getFields();
+            if ( is_array( $fields ) && !empty( $fields ) ) {
+                foreach ( $fields as $f_id => $f ) {
+                    if ( !empty( $f['data']['conditional_display']['conditions'] ) ) {
+                        foreach ( $f['data']['conditional_display']['conditions'] as $condition ) {
+                            $this->collected[$f_id] = $condition;
+                            if ( !empty( $condition['field'] ) ) {
+                                $this->triggers[$condition['field']][$f_id][] = $condition;
+                            }
                         }
                     }
                 }
             }
         }
-    }
-
-    function set( $post, $cf ) {
-        parent::set( $post, $cf );
-
-        // Check and record call
-        $this->fields[$this->slug] = $this->passed = $this->evaluate();
     }
 
     /**
@@ -108,7 +114,13 @@ class WPCF_Conditional extends WPCF_Field
      * @return type 
      */
     function is_conditional( $field = array() ) {
-        return !empty( $field['data']['conditional_display']['conditions'] );
+        if ( is_array( $field ) ) {
+            return !empty( $field['data']['conditional_display']['conditions'] );
+        } else {
+            $this->collect();
+            $field_id = $this->__get_slug_no_prefix( strval( $field ) );
+            return isset( $this->collected[$field_id] );
+        }
     }
 
     /**
@@ -118,6 +130,7 @@ class WPCF_Conditional extends WPCF_Field
      * @return type 
      */
     function is_trigger( $field = array() ) {
+        $this->collect();
         return !empty( $this->triggers[$field['id']] );
     }
 
@@ -125,9 +138,7 @@ class WPCF_Conditional extends WPCF_Field
      * Enqueues scripts. 
      */
     function add_js() {
-        wp_enqueue_script( 'wpcf-conditional',
-                WPCF_EMBEDDED_RES_RELPATH . '/js/conditional.js',
-                array('jquery'), WPCF_VERSION );
+        wp_enqueue_script( 'types-conditional' );
         wpcf_admin_add_js_settings( 'wpcfConditionalVerify_nonce',
                 wp_create_nonce( 'cd_verify' )
         );
@@ -175,7 +186,7 @@ class WPCF_Conditional extends WPCF_Field
      */
     function wrap( $element = array() ) {
         if ( !empty( $element ) ) {
-            $passed = $this->passed;
+            $passed = $this->evaluate();
             if ( !$passed ) {
                 $wrap = '<div class="' . $this->css_class_field . ' '
                         . $this->css_class_field . '-failed" style="display:none;">';
@@ -199,64 +210,25 @@ class WPCF_Conditional extends WPCF_Field
     }
 
     /**
-     * Returns JS for specified field.
-     * 
-     * @todo Move repetitive to filter
-     * @param type $field_name
-     * @return string 
-     */
-    function render_js_hide( $field_name = null ) {
-        if ( is_null( $field_name ) && isset( $this->cf['slug]'] ) ) {
-            $field_name = $this->cf['slug'];
-        }
-        if ( empty( $field_name ) ) {
-            return '';
-        }
-        $js = '';
-        $js .= 'jQuery(\'[name^="' . $field_name . '"]\').parents(\'.wpcf-repetitive-wrapper\').hide();';
-        $js .= 'jQuery(\'[name^="' . $field_name . '"]\').parents(\'.'
-                . $this->css_class_field . '\').hide().addClass(\''
-                . $this->css_class_field . '-failed\').removeClass(\''
-                . $this->css_class_field . '-passed\');' . " ";
-        return apply_filters( 'types_conditional_js_hide', $js, $this );
-    }
-
-    /**
-     * Returns JS for specified field.
-     * 
-     * @todo Move repetitive to filter
-     * @param type $field_name
-     * @return string 
-     */
-    function render_js_show( $field_name = null ) {
-        if ( is_null( $field_name ) && isset( $this->cf['slug]'] ) ) {
-            $field_name = $this->cf['slug'];
-        }
-        if ( empty( $field_name ) ) {
-            return '';
-        }
-        $js = '';
-        $js .= 'jQuery(\'[name^="' . $field_name . '"]\').parents(\'.'
-                . $this->css_class_field . '\').show().removeClass(\''
-                . $this->css_class_field . '-failed\').addClass(\''
-                . $this->css_class_field . '-passed\');' . " ";
-        $js .= 'jQuery(\'[name^="' . $field_name
-                . '"]\').parents(\'.wpcf-repetitive-wrapper\').show();';
-        return apply_filters( 'types_conditional_js_show', $js, $this );
-    }
-
-    /**
      * Evaluates if check passed.
      * 
      * @return type 
      */
     function evaluate() {
-        if ( is_null( $this->evaluate ) ) {
-            require_once DIRNAME( __FILE__ ) . '/conditional/evaluate.php';
-            $this->evaluate = new WPCF_Evaluate();
-        }
-        $this->passed = $this->evaluate->evaluate( $this );
+        WPCF_Loader::loadClass( 'evaluate' );
+        $this->passed = WPCF_Evaluate::evaluate( $this );
         return $this->passed;
+    }
+
+    /**
+     * Processes AJAX call 'cd_verify'.
+     * 
+     * @param type $data
+     * @return type
+     */
+    function ajaxVerify( $data ) {
+        WPCF_Loader::loadClass( 'helper.ajax' );
+        return WPCF_Helper_Ajax::conditionalVerify( $data );
     }
 
 }

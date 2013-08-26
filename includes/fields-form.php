@@ -211,7 +211,7 @@ function wpcf_admin_fields_form() {
             wpcf_admin_message( sprintf( __( "Group with ID %d do not exist",
                                     'wpcf' ), intval( $_REQUEST['group_id'] ) ) );
         } else {
-            $update['fields'] = wpcf_admin_fields_get_fields_by_group( $_REQUEST['group_id'] );
+            $update['fields'] = wpcf_admin_fields_get_fields_by_group( $_REQUEST['group_id'], 'slug', false, true );
             $update['post_types'] = wpcf_admin_get_post_types_by_group( $_REQUEST['group_id'] );
             $update['taxonomies'] = wpcf_admin_get_taxonomies_by_group( $_REQUEST['group_id'] );
             $update['templates'] = wpcf_admin_get_templates_by_group( $_REQUEST['group_id'] );
@@ -791,16 +791,17 @@ function wpcf_admin_fields_form() {
         require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta-post.php';
         //Get sample post
         $post = query_posts( 'posts_per_page=1' );
-		
-        
-		if ( !empty($post) && count($post)!='' ){
-			$post = $post[0];
-			$preview_profile = wpcf_admin_post_meta_box_preview( $post, $update, 1 );
-			$group = $update;
-			$group['fields'] = wpcf_admin_post_process_fields( $post,
-					$group['fields'], true );
-			$edit_profile = wpcf_admin_post_meta_box( $post, $group, 1 );
-		}
+
+
+        if ( !empty( $post ) && count( $post ) != '' ) {
+            $post = $post[0];
+            $preview_profile = wpcf_admin_post_meta_box_preview( $post, $update,
+                    1 );
+            $group = $update;
+            $group['fields'] = wpcf_admin_post_process_fields( $post,
+                    $group['fields'], true, false );
+            $edit_profile = wpcf_admin_post_meta_box( $post, $group, 1 );
+        }
     }
 
     $temp[] = array(
@@ -1077,9 +1078,14 @@ function wpcf_fields_get_field_form_data( $type, $form_data = array() ) {
                         'wpcf' );
         $title = '<span class="wpcf-legend-update">' . $title . '</span> - '
                 . sprintf( __( '%s field', 'wpcf' ), $field_data['title'] );
-        if ( !empty( $form_data['data']['conditional_display']['conditions'] ) ) {
-            $title .= ' ' . __( '(conditional)', 'wpcf' );
+
+        // Do not display on Usermeta Group edit screen
+        if ( !isset( $_GET['page'] ) || $_GET['page'] != 'wpcf-edit-usermeta' ) {
+            if ( !empty( $form_data['data']['conditional_display']['conditions'] ) ) {
+                $title .= ' ' . __( '(conditional)', 'wpcf' );
+            }
         }
+
         $form['wpcf-' . $id] = array(
             '#type' => 'fieldset',
             '#title' => $title,

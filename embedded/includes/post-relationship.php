@@ -6,7 +6,6 @@ require_once WPCF_EMBEDDED_INC_ABSPATH . '/editor-support/post-relationship-edit
 
 add_action( 'wpcf_admin_post_init', 'wpcf_pr_admin_post_init_action', 10, 4 );
 add_action( 'save_post', 'wpcf_pr_admin_save_post_hook', 20, 2 ); // Trigger afer main hook
-add_filter( 'get_post_metadata', 'wpcf_pr_meta_belongs_filter', 10, 4 );
 
 /**
  * Init function.
@@ -150,7 +149,7 @@ function wpcf_pr_admin_post_meta_box_output( $post, $args ) {
     $output = '';
     $relationships = $args;
     $post_id = !empty( $post->ID ) ? $post->ID : -1;
-    $current_post_type = wpcf_admin_get_post_type( $post );
+    $current_post_type = wpcf_admin_get_edited_post_type( $post );
     /*
      * 
      * 
@@ -284,7 +283,7 @@ function wpcf_pr_admin_update_belongs( $post_id, $data ) {
 
     $post = get_post( intval( $post_id ) );
     if ( empty( $post ) ) {
-        return __( 'Passed wrong parameters', 'wpcf' );
+        return false;
     }
 
     foreach ( $data as $post_type => $post_owner_id ) {
@@ -383,7 +382,7 @@ function wpcf_pr_admin_save_post_hook( $parent_post_id ) {
      * Problematic This should be done once per save (on saving main post)
      * remove_action( 'save_post', 'wpcf_pr_admin_save_post_hook', 11);
      */
-    static $cached = false;
+    static $cached = array();
     /*
      * 
      * TODO Monitor this
@@ -391,7 +390,7 @@ function wpcf_pr_admin_save_post_hook( $parent_post_id ) {
     // Remove main hook?
     // CHECKPOINT We remove temporarily main hook
 //    remove_action( 'save_post', 'wpcf_admin_save_post_hook', 10, 2 );
-    if ( !$cached ) {
+    if ( !isset( $cached[$parent_post_id] ) ) {
         if ( isset( $_POST['wpcf_post_relationship'][$parent_post_id] ) ) {
             $wpcf->relationship->save_children( $parent_post_id,
                     (array) $_POST['wpcf_post_relationship'][$parent_post_id] );
@@ -410,26 +409,9 @@ function wpcf_pr_admin_save_post_hook( $parent_post_id ) {
         // Actually needs looping over all relationships
 //        debug($_POST['wpcf_pr_belongs']);
 
-        $cached = true;
+        $cached[$parent_post_id] = true;
     }
 
-}
-
-/**
- * Returned translated '_wpcf_belongs_XXX_id' if any.
- * 
- * @global type $sitepress
- * @param type $value
- * @param type $object_id
- * @param type $meta_key
- * @param type $single
- * @return type 
- */
-function wpcf_pr_meta_belongs_filter( $value, $object_id, $meta_key, $single ) {
-    // WPML
-    $value = wpcf_wpml_relationship_meta_belongs_filter( $value, $object_id,
-            $meta_key, $single );
-    return $value;
 }
 
 /**
@@ -449,35 +431,4 @@ function wpcf_relationship_ajax_data_filter( $posted, $field ) {
             $field );
 
     return is_null( $value ) ? $posted : $value;
-}
-
-/**
- * Filters Custom Conditional Statement
- * 
- * @see /embedded/classes/conditional/evaluate.php
- * add_filter( 'get_post_metadata',
-  'wpcf_relationship_custom_statement_meta_ajax_validation_filter',
-  10, 4 );
- * @global type $wpcf
- * @param type $null
- * @param type $object_id
- * @param type $meta_key
- * @param type $single
- * @return type
- */
-function wpcf_relationship_custom_statement_meta_ajax_validation_filter( $null,
-        $object_id, $meta_key, $single ){
-
-    global $wpcf;
-
-    $null = wpcf_relationship_ajax_data_filter( $null, $meta_key );
-
-    if ( !empty( $null ) && !empty( $field ) && $field['type'] == 'date' ) {
-        $time = strtotime( $null );
-        if ( $time ) {
-            return $time;
-        }
-    }
-
-    return $null;
 }

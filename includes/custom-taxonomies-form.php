@@ -177,6 +177,10 @@ function wpcf_admin_custom_taxonomies_form() {
         $options[$post_type_slug]['#default_value'] = !empty( $ct['supports'][$post_type_slug] );
         $options[$post_type_slug]['#inline'] = true;
         $options[$post_type_slug]['#after'] = '&nbsp;&nbsp;';
+        if ( is_rtl() ) {
+            $options[$post_type_slug]['#before'] = '<div style="float:right;margin-left:10px;">';
+            $options[$post_type_slug]['#after'] .= '</div>';
+        }
     }
 
     $form['table-3-open'] = array(
@@ -468,6 +472,8 @@ function wpcf_admin_custom_taxonomies_form_submit( $form ) {
         $wpdb->update( $wpdb->term_taxonomy, array('taxonomy' => $tax),
                 array('taxonomy' => $data['wpcf-tax']), array('%s'), array('%s')
         );
+        // Sync action
+        do_action( 'wpcf_taxonomy_renamed', $tax, $data['wpcf-tax'] );
         // Delete old type
         unset( $custom_taxonomies[$data['wpcf-tax']] );
     }

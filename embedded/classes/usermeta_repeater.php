@@ -2,10 +2,11 @@
 /*
 
  */
+
 class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
 {
 
-   /**
+    /**
      * Field order
      * 
      * @var type 
@@ -68,7 +69,7 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
 
         // Delete all fields
         delete_user_meta( $this->currentUID, $this->slug );
-		
+
         // Allow $data to replace $_POST
         if ( is_null( $data ) && isset( $_POST['wpcf'][$this->cf['slug']] ) ) {
             $data = $_POST['wpcf'][$this->cf['slug']];
@@ -80,7 +81,7 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
             // Insert new meta and collect all new mids
             $mids = array();
             foreach ( $data as $meta_value ) {
-				
+
                 /*
                  * 
                  * Deprecated!
@@ -89,14 +90,15 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
                     $meta_value = $meta_value['new_value'];
                     $wpcf->debug->deprecated['repetitive_new_value_used'] = 'repetitive_new_value_used';
                 }
-				
+
                 // Apply filters
                 $_meta_value = $this->_filter_save_value( $meta_value );
-				
+
                 // Adding each field will return $mid
                 // $unique = false
                 if ( !empty( $_meta_value ) ) {
-					$mid = add_user_meta($this->currentUID, $this->slug, $_meta_value);
+                    $mid = add_user_meta( $this->currentUID, $this->slug,
+                            $_meta_value );
                     $mids[] = $mid;
 
                     // Call insert post actions on each field
@@ -107,7 +109,8 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
 
             // Save order
             if ( !empty( $mids ) ) {
-				update_user_meta($this->currentUID, $this->order_meta_name, $mids);
+                update_user_meta( $this->currentUID, $this->order_meta_name,
+                        $mids );
             }
 
             // Return true - field found
@@ -125,21 +128,21 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
      */
     function _get_meta() {
         global $wpdb;
-		
+
         $cache_key = md5( 'usermetarepeater::_get_meta' . $this->currentUID . $this->slug );
         if ( $this->use_cache && isset( $this->cache[$cache_key] ) ) {
             return $this->cache[$cache_key];
         }
-		
-		$this->order_meta_name = '_' . $this->slug . '-sort-order';
-		
+
+        $this->order_meta_name = '_' . $this->slug . '-sort-order';
+
         $_meta = parent::_get_meta();
-		
+
         $ordered = array();
         $this->order = get_user_meta( $this->currentUID, $this->order_meta_name,
                 true );
-			
-       	$r = $wpdb->get_results(
+
+        $r = $wpdb->get_results(
                 $wpdb->prepare(
                         "SELECT * FROM $wpdb->usermeta
                 WHERE user_id=%d
@@ -150,10 +153,10 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
             $_meta = array();
             $_meta['by_meta_id'] = array();
             $_meta['by_meta_key'] = array();
-			
+
             // Default order
             foreach ( $r as $meta ) {
-				//print_r($meta);exit;
+                //print_r($meta);exit;
                 // This will use last item in array if multiple values exist
                 $_meta['single'] = maybe_unserialize( $meta->meta_value );
                 // Sort by meta_id column
@@ -180,27 +183,25 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
             } else {
                 $_meta['custom_order'] = $_meta['by_meta_id'];
             }
-        } 
-		else if ( !is_null( $this->meta_object ) ) {
+        } else if ( !is_null( $this->meta_object ) ) {
             $_meta = array();
             $_meta['single'] = maybe_unserialize( $this->meta_object->meta_value );
             // Sort by meta_id column
-            $_meta['by_meta_id'][$this->meta_object->meta_id] = maybe_unserialize( $this->meta_object->meta_value );
+            $_meta['by_meta_id'][$this->meta_object->umeta_id] = maybe_unserialize( $this->meta_object->meta_value );
             // Sort by meta_key
             $_meta['by_meta_key'][] = maybe_unserialize( $this->meta_object->meta_value );
-        }
-		else {
+        } else {
             $_meta = array();
             $_meta['single'] = '';
             $_meta['by_meta_id'] = array();
             $_meta['by_meta_key'] = array();
         }
-		
-		if ( empty( $_meta['custom_order'] ) ) {
+
+        if ( empty( $_meta['custom_order'] ) ) {
             $_meta['custom_order'] = $_meta['by_meta_id'];
         }
-		
-		$this->cache[$cache_key] = $_meta;
+
+        $this->cache[$cache_key] = $_meta;
         return $_meta;
     }
 
@@ -209,36 +210,36 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
      * 
      * @todo Make more distinction between $field_form and $form_field
      */
-    function get_fields_form($is_profile = '') {
+    function get_fields_form( $is_profile = '' ) {
         $form = array();
         $form_id = $this->cf['id'];
         $unique_id = wpcf_unique_id( serialize( $this->cf ) );
-		
+
         // Process fields
         // Check if has any value
         if ( empty( $this->meta['single'] ) ) {
-			// To prevent passing array to field
+            // To prevent passing array to field
             $this->meta = null;
             $this->__meta = null;
             $this->cf['value'] = null;
-		
+
             $field_form = $this->get_field_form( '' );
 
             foreach ( $field_form as $field_key => $field ) {
                 $form_field[$form_id . '_repetitive_0_' . $field_key] = $field;
             }
         } else {
-			
+
             $ordered = !empty( $this->meta['custom_order'] ) ? $this->meta['custom_order'] : $this->meta['by_meta_id'];
             foreach ( $ordered as $meta_id => $meta_value ) {
-				
+
                 $this->cf['value'] = $meta_value;
-                $this->meta_object->meta_id = $meta_id;
-				
+                $this->meta_object->umeta_id = $meta_id;
+
                 // Set single field form
-				
+
                 $field_form = $this->get_field_form( $meta_value, $meta_id );
-				
+
                 foreach ( $field_form as $field_key => $field ) {
                     $form_field[$form_id . '_repetitive_' . strval( $meta_id ) . '_' . $field_key] = $field;
                 }
@@ -250,11 +251,11 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
                 );
             }
         }
-		
+
         // Set main wrapper
         // Check if conditional
         global $wpcf;
-			
+
         // Set style
         /*
          * 
@@ -262,7 +263,11 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
          * Hide if field not passed check
          * TODO Move this to WPCF_Conditional
          */
-        $show = isset( $wpcf->conditional->fields[$this->slug] ) ? (bool) $wpcf->conditional->fields[$this->slug] : true;
+        $show = true;
+        if ( $wpcf->conditional->is_conditional( $this->cf ) ) {
+            $wpcf->conditional->set( $this->post, $this->cf );
+            $show = $wpcf->conditional->evaluate();
+        }
         $css_cd = !$show ? 'display:none;' : '';
 
         /**
@@ -277,7 +282,7 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
          * Pass emty string as value to avoid using meta as array
          */
         // 
-        $_c = array_values( parent::_get_meta_form('') );
+        $_c = array_values( parent::_get_meta_form( '' ) );
         array_shift( $_c );
         $_main_element = array_shift( $_c );
         // Set title and desc
@@ -287,11 +292,11 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
         if ( !empty( $_main_element['#description'] ) ) {
             $this->description = $_main_element['#description'];
         }
-		$addTagHeaderStart = $addTagHeaderEnd = '';
-		if ($is_profile == 1){
-			$addTagHeaderStart = '<div class="wpcf-repeater-profile-line-left">';
-			$addTagHeaderEnd = '</div><div class="wpcf-repeater-profile-line-right">';
-		}
+        $addTagHeaderStart = $addTagHeaderEnd = '';
+        if ( $is_profile == 1 ) {
+            $addTagHeaderStart = '<div class="wpcf-repeater-profile-line-left">';
+            $addTagHeaderEnd = '</div><div class="wpcf-repeater-profile-line-right">';
+        }
         // Set title
         $form[$unique_id . '_main_title'] = array(
             '#type' => 'markup',
@@ -369,7 +374,8 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
             // 'Add' button
             $form[$form_id . '_repetitive_form'] = array(
                 '#type' => 'markup',
-                '#markup' => wpcf_repetitive_umform( $this->cf, $this->currentUID ),
+                '#markup' => wpcf_repetitive_umform( $this->cf,
+                        $this->currentUID ),
                 '#id' => $form_id . '_repetitive_form',
             );
         }
