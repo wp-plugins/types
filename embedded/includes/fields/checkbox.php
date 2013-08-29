@@ -164,7 +164,7 @@ function wpcf_fields_checkbox_view( $params ) {
     // Check if 'save_empty' is yes and if value is 0 - set value to empty string
     if ( isset( $params['field']['data']['save_empty'] )
             && $params['field']['data']['save_empty'] == 'yes'
-            && $params['field_value'] == 0 ) {
+            && $params['field_value'] == '0' ) {
         $params['field_value'] = '';
     }
 
@@ -183,12 +183,12 @@ function wpcf_fields_checkbox_view( $params ) {
             $output = wpcf_translate( 'field ' . $params['field']['id'] . ' checkbox value selected',
                     $output );
         }
-    } else if ( $params['field']['data']['display'] == 'value' ) {
-        if ( !empty( $params['field']['data']['display_value_not_selected'] ) ) {
-            $output = $params['field']['data']['display_value_not_selected'];
-            $output = wpcf_translate( 'field ' . $params['field']['id'] . ' checkbox value not selected',
-                    $output );
-        }
+    } else if ( $params['field']['data']['display'] == 'value'
+        && !empty( $params['field']['data']['display_value_not_selected'] ) ) {
+        $output = $params['field']['data']['display_value_not_selected'];
+        $output = wpcf_translate( 'field ' . $params['field']['id'] . ' checkbox value not selected', $output );
+    } else {
+        return '__wpcf_skip_empty';
     }
 
     return $output;

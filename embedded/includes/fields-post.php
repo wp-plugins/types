@@ -765,7 +765,8 @@ function wpcf_admin_post_process_fields( $post = false, $fields = array(),
 
     // TODO WPML Get WPML original fields
     $original_cf = array();
-    if ( function_exists( 'wpml_get_copied_fields_for_post_edit' ) ) {
+    if ( function_exists( 'wpml_get_copied_fields_for_post_edit' )
+            && !wpcf_wpml_post_is_original( $post ) ) {
         $__fields_slugs = array();
         foreach ($fields as $_f) {
             $__fields_slugs[] = $_f['meta_key'];

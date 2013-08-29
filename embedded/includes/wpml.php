@@ -950,21 +950,7 @@ function wpcf_wpml_relationship_save_child( $child, $parent ) {
  */
 function wpcf_wpml_field_is_copied( $field, $post = null ) {
     if ( defined( 'ICL_SITEPRESS_VERSION' ) && !defined( 'DOING_AJAX' ) ) {
-        global $sitepress;
-        // TODO WPML There is no lang on new post
-        if ( empty( $post ) ) {
-            $post = wpcf_admin_get_edited_post();
-            if ( !empty( $post->ID ) ) {
-                $post_lang = $sitepress->get_element_language_details( $post->ID,
-                        'post_' . $post->post_type );
-                if ( isset( $post_lang->language_code )
-                        && $sitepress->get_default_language() != $post_lang->language_code ) {
-                    return wpcf_wpml_field_is_copy( $field );
-                }
-            }
-        }
-        // Fallback
-        if ( $sitepress->get_default_language() != $sitepress->get_current_language() ) {
+        if ( !wpcf_wpml_post_is_original( $post ) ) {
             return wpcf_wpml_field_is_copy( $field );
         }
     }
@@ -1006,4 +992,43 @@ function wpcf_wpml_field_is_copy( $field ) {
  */
 function wpcf_wpml_field_is_translated( $field ) {
     return isset( $field['wpml_action'] ) && $field['wpml_action'] === 2;
+}
+
+/**
+ * Determine if post is in original language.
+ * 
+ * @global type $sitepress
+ * @global type $pagenow
+ * @param type $field
+ * @param type $post
+ * @return boolean
+ */
+function wpcf_wpml_post_is_original( $post = null ) {
+    if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
+        global $sitepress, $pagenow;
+        // WPML There is no lang on new post
+        if ( $pagenow == 'post-new.php' ) {
+            $post_type = wpcf_admin_get_edited_post_type();
+            $current_lang = isset( $_GET['lang'] ) ? $_GET['lang'] : $sitepress->get_current_language();
+            if ( in_array( $post_type,
+                            array_keys( $sitepress->get_translatable_documents() ) ) ) {
+                return $sitepress->get_default_language() == $current_lang;
+            }
+        } else {
+            if ( empty( $post->ID ) ) {
+                $post = wpcf_admin_get_edited_post();
+            }
+            if ( !empty( $post->ID ) ) {
+                if ( in_array( $post->post_type,
+                                array_keys( $sitepress->get_translatable_documents() ) ) ) {
+                    $post_lang = $sitepress->get_element_language_details( $post->ID,
+                            'post_' . $post->post_type );
+                    if ( isset( $post_lang->language_code ) ) {
+                        return $sitepress->get_default_language() == $post_lang->language_code;
+                    }
+                }
+            }
+        }
+    }
+    return true;
 }

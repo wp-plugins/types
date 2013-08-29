@@ -127,9 +127,7 @@ function wpv_condition( $atts ) {
 
     if ( $empties && $empties > 0 ) {
         for ( $i = 0; $i < $empties; $i++ ) {
-            $match_var = null;
-            $match_meta = get_post_custom( $post->ID );
-            if (isset($atts[$matches[1][$i]]) && isset($match_meta[$atts[$matches[1][$i]]])) $match_var = $match_meta[$atts[$matches[1][$i]]];
+            $match_var = get_post_meta( $post->ID, $atts[$matches[1][$i]], true );
             $is_empty = '1=0';
 
             // mark as empty only nulls and ""  
@@ -143,7 +141,7 @@ function wpv_condition( $atts ) {
             $evaluate = str_replace( $matches[0][$i], $is_empty, $evaluate );
         }
     }
-
+    
     // find variables that are to be used as strings.
     // eg '$f1'
     // will replace $f1 with the actual field value

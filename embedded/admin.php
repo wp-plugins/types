@@ -697,7 +697,7 @@ function wpcf_admin_get_edited_post() {
  * @param type $post
  * @return boolean 
  */
-function wpcf_admin_get_edited_post_type( $post ) {
+function wpcf_admin_get_edited_post_type( $post = null ) {
     if ( !empty( $post->ID ) ) {
         $post_type = get_post_type( $post );
     } else {
