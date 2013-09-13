@@ -4,7 +4,7 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields
 License: GPLv2
 Requires at least: 3.1
-Tested up to: 3.6
+Tested up to: 3.6.1
 Stable tag: 1.4.0.1
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
