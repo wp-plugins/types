@@ -247,21 +247,6 @@ function types_render_field_single( $field, $params, $content = null,
         $post = (object) array('ID' => '');
     }
 
-    // Count fields (if there are duplicates)
-    static $count = array();
-
-    // Count it
-    if ( !isset( $count[$field['slug']] ) ) {
-        $count[$field['slug']] = 1;
-    } else {
-        $count[$field['slug']] += 1;
-    }
-
-    // If 'class' or 'style' parameters are set - force HTML output
-    if ( ((isset( $params['class'] ) && !empty( $params['class'] )) || (isset( $params['style'] ) && !empty( $params['style'] ))) && $field['type'] != 'date' ) {
-        $params['output'] = 'html';
-    }
-
     // Apply filters to field value
     if ( is_string( $params['field_value'] ) ) {
         $params['field_value'] = trim( $params['field_value'] );
@@ -305,8 +290,8 @@ function types_render_field_single( $field, $params, $content = null,
     $params['__meta_id'] = $meta_id;
     $params['field']['__meta_id'] = $meta_id;
 
-//    $output = '';
-    if ( isset( $params['raw'] ) && $params['raw'] == 'true' ) {
+    if ( (isset( $params['raw'] ) && $params['raw'] == 'true')
+            || (isset( $params['output'] ) && $params['output'] == 'raw') ) {
         // Skype is array
         if ( $field['type'] == 'skype' && isset( $params['field_value']['skypename'] ) ) {
             $output = $params['field_value']['skypename'];
@@ -331,25 +316,58 @@ function types_render_field_single( $field, $params, $content = null,
         } else if ( $output == '__wpcf_skip_empty' ) {
             $output = '';
         }
-
-        // Prepend name if needed
-        if ( !empty( $output ) && isset( $params['show_name'] )
-                && $params['show_name'] == 'true' ) {
-            $output = $params['field']['name'] . ': ' . $output;
+        
+        // Compat with 'output' => 'html'
+        // TODO Remove If 'class' or 'style' parameters are set - force HTML output
+//        if ( ((isset( $params['class'] ) && !empty( $params['class'] )) || (isset( $params['style'] ) && !empty( $params['style'] ))) && $field['type'] != 'date' ) {
+//            $params['output'] = 'html';
+//        }
+        if (isset($params['output']) && $params['output'] == 'html') {
+            $output = wpcf_frontend_compat_html_output( $output, $field, $content, $params );
+        } else {
+            // Prepend name if needed
+            if ( !empty( $output ) && isset( $params['show_name'] )
+                    && $params['show_name'] == 'true' ) {
+                $output = $params['field']['name'] . ': ' . $output;
+            }
         }
 
-        // Add count
-//        if ( isset( $count[$field['slug']] ) && intval( $count[$field['slug']] ) > 1 ) {
-//            $add = '-' . intval( $count[$field['slug']] );
-//            $output = str_replace( 'id="wpcf-field-' . $field['slug'] . '"',
-//                    'id="wpcf-field-' . $field['slug'] . $add . '"', $output );
-//        }
+        
     }
     // Apply filters
     $output = strval( apply_filters( 'types_view', $output,
                     $params['field_value'], $field['type'], $field['slug'],
                     $field['name'], $params ) );
     return htmlspecialchars_decode( stripslashes( strval( $output ) ) );
+}
+
+function wpcf_frontend_compat_html_output( $output, $field, $content, $params ) {
+    // Count fields (if there are duplicates)
+    static $count = array();
+    // Count it
+    if ( !isset( $count[$field['slug']] ) ) {
+        $count[$field['slug']] = 1;
+    } else {
+        $count[$field['slug']] += 1;
+    }
+    // If no output
+    if ( empty( $output ) && !empty( $params['field_value'] ) ) {
+        $output = wpcf_frontend_wrap_field_value( $field,
+                $params['field_value'], $params );
+        $output = wpcf_frontend_wrap_field( $field, $output, $params );
+    } else if ( $output != '__wpcf_skip_empty' ) {
+        $output = wpcf_frontend_wrap_field_value( $field, $output, $params );
+        $output = wpcf_frontend_wrap_field( $field, $output, $params );
+    } else {
+        $output = '';
+    }
+    // Add count
+    if ( isset( $count[$field['slug']] ) && intval( $count[$field['slug']] ) > 1 ) {
+        $add = '-' . intval( $count[$field['slug']] );
+        $output = str_replace( 'id="wpcf-field-' . $field['slug'] . '"',
+                'id="wpcf-field-' . $field['slug'] . $add . '"', $output );
+    }
+    return $output;
 }
 
 /**

@@ -204,7 +204,10 @@ function wpcf_pr_custom_types_save_action( $data ) {
     }
     // Reset belongs
     foreach ( $relationships as $post_type => $rel_data ) {
-        unset( $relationships[$post_type][$data['slug']] );
+        if ( empty( $data['post_relationship']['belongs'] )
+                || !array_key_exists( $post_type, $data['post_relationship']['belongs'] ) ) {
+            unset( $relationships[$post_type][$data['slug']] );
+        }
     }
     if ( !empty( $data['post_relationship']['belongs'] ) ) {
         foreach ( $data['post_relationship']['belongs'] as $post_type => $true ) {

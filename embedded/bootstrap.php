@@ -111,14 +111,14 @@ function wpcf_embedded_init() {
     // Define necessary constants if plugin is not present
     // This ones are skipped if used as embedded code!
     if ( !defined( 'WPCF_VERSION' ) ) {
-        define( 'WPCF_VERSION', '1.4.0.1' );
+        define( 'WPCF_VERSION', '1.4.0.2' );
         define( 'WPCF_META_PREFIX', 'wpcf-' );
     }
 
     // If forced embedded mode use path to __FILE__
     if ( ( defined( 'TYPES_LOAD_EMBEDDED' ) && TYPES_LOAD_EMBEDDED )
         || !defined('WPCF_RELPATH') ) {
-        define( 'WPCF_EMBEDDED_RELPATH', wpcf_get_file_url( __FILE__ ) );
+        define( 'WPCF_EMBEDDED_RELPATH', wpcf_get_file_url( __FILE__, false ) );
     } else {
         define( 'WPCF_EMBEDDED_RELPATH', WPCF_RELPATH . '/embedded' );
     }

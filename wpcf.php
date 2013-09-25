@@ -5,11 +5,11 @@
   Description: Define custom post types, custom taxonomy and custom fields.
   Author: ICanLocalize
   Author URI: http://wp-types.com
-  Version: 1.4.0.1
+  Version: 1.4.0.2
  */
 // Added check because of activation hook and theme embedded code
 if ( !defined( 'WPCF_VERSION' ) ) {
-    define( 'WPCF_VERSION', '1.4.0.1' );
+    define( 'WPCF_VERSION', '1.4.0.2' );
 }
 
 define( 'WPCF_REPOSITORY', 'http://api.wp-types.com/' );

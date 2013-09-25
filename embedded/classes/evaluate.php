@@ -147,7 +147,7 @@ class WPCF_Evaluate
                     $fields[$field_name] = $c->slug;
                 }
                 $fields['evaluate'] = $evaluate;
-                $check = wpv_condition( $fields );
+                $check = wpv_condition( $fields, $post );
 
                 /*
                  * 

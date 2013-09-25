@@ -90,7 +90,7 @@ function wpcf_cd_post_groups_filter( $groups, $post, $context ) {
                             $group['id'] );
                 }
                 $fields['evaluate'] = $evaluate;
-                $check = wpv_condition( $fields );
+                $check = wpv_condition( $fields, $post );
                 $passed = $check;
                 if ( !is_bool( $check ) ) {
                     $passed = false;
@@ -105,8 +105,18 @@ function wpcf_cd_post_groups_filter( $groups, $post, $context ) {
                 $passed_one = false;
                 foreach ( $group['conditional_display']['conditions'] as
                             $condition ) {
+                    foreach ( array('field', 'value', 'operation') as $_v) {
+                        if ( !isset( $condition[$_v] ) ) {
+                            $passed_all = false;
+                            continue;
+                        }
+                    }
                     // Load field
                     $field = wpcf_admin_fields_get_field( $condition['field'] );
+                    if ( empty( $field ) ) {
+                        $passed_all = false;
+                        continue;
+                    }
                     wpcf_fields_type_action( $field['type'] );
 
                     wpcf_cd_add_group_js( 'add', $condition['field'],

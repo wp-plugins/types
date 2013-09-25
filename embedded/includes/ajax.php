@@ -440,7 +440,8 @@ function wpcf_ajax_embedded() {
                 if ( isset( $split[1] ) ) {
                     parse_str( $split[1], $vars );
                     if ( isset( $vars['post'] ) ) {
-                        $_POST['post_ID'] = $vars['post'];
+                        // TODO REMOVE
+//                        $_POST['post_ID'] = $vars['post'];
                         $post = get_post( $vars['post'] );
                     }
                 }
