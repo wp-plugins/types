@@ -57,7 +57,6 @@ function wpcfConditionalInit(selector) {
          */
         if (triggered == false) {
             wpcfConditionalVerify(jQuery(this), jQuery(this).attr('name'), jQuery(this).val());
-            wpcfCdGroupVerify(jQuery(this), jQuery(this).attr('name'), jQuery(this).val(), jQuery(this).parents('.postbox').one().attr('id'));
             triggered = true;
         }
     });
@@ -84,7 +83,7 @@ function wpcfConditionalVerify(object, name, value) {
     var form = jQuery('#post').find(':input').not('#_wpnonce');
     
     // Get group slug
-    var group = object.parents('.postbox').attr('id');
+    var group = object.parents('.postbox').attr('id').substr(11);
     
     // If triggered from relationship table send just row
     if (object.parents('.wpcf-pr-table-wrapper').length > 0) {
@@ -123,6 +122,9 @@ function wpcfConditionalVerify(object, name, value) {
                     }
                 }
                 typesSpinner.hide(object);
+                if (typeof typesValidation != 'undefined') {
+                    typesValidation.setRules();
+                }
             }
         });
     }
@@ -140,7 +142,7 @@ function wpcfDisableAddCondition(id) {
 /**
  * Checks if group is valid
  */
-function wpcfCdGroupVerify(object, name, value, group_id) {
+function wpcfCdGroupVerify(object, group_id) {
     var form = jQuery('#post');
     jQuery.ajax({
         url: ajaxurl,
@@ -160,6 +162,9 @@ function wpcfCdGroupVerify(object, name, value, group_id) {
                 }
             }
             typesSpinner.hide(object);
+            if (typeof typesValidation != 'undefined') {
+                typesValidation.setRules();
+            }
         }
     });
 }
@@ -249,76 +254,6 @@ function wpcfCdRemoveCondition(object) {
         customConditions.hide().find('.checkbox').removeAttr('checked');
         customConditions.find('.textarea').val('');
         object.parent().parent().parent().find('.wpcf-cd-relation').hide();
-    }
-}
-
-/**
- * Performed on #post edit pages.
- * @todo Check wpcfConditionalPassed and wpcfConditionalHiddenFailed
- * @todo Loop preventing not needed
- */
-function wpcfConditionalInvalidHandler(selector, elements, _form, validator) {
-    if (selector.indexOf('#post') !== -1
-        && typeof window.wpcfConditionalHiddenCached == 'undefined') {
-        
-        var form = jQuery(selector);
-        var element_id = 0;
-        var element = null;
-        var passed = new Array();
-        var failed = new Array();
-        var failedHidden = new Array();
-
-        for (var i = 0; i < elements.length; i++) {
-            selector = elements[i];
-            element = jQuery('#'+selector);
-            /*
-             * If element found
-             * TODO add debug code
-             */
-            if (element.length > 0) {
-                /*
-                 * TODO Check this!
-                 * Remove previous data
-                 */
-                jQuery('#wpcf_conditional_hidden_check_'+element.attr('id')).remove();
-                if (wpcfConditionalIsHidden(element)) {
-                    window.wpcfConditionalPassed.push(selector);
-                    failedHidden.push(selector);
-                } else {
-                    window.wpcfConditionalHiddenFailed.push(selector);
-                    failed.push(selector);
-                }
-            }
-        }
-        
-        if (failed.length > 0) {
-            return false;
-        } else if (failedHidden.length > 0) {
-            return true;
-        }
-        return false;
-    }
-    
-    return false;
-}
-
-/**
- * Determine if object is conditional and hidden
- */
-function wpcfConditionalIsHidden(object) {
-    // Check if meta-box is hidden
-    /*
-     * TODO This is not exact match if meta-box is collapsed
-     */
-    if (object.parents('.wpcf-conditional').length > 0
-        && object.parents('.inside').is(':hidden')) {
-        if (object.parents('.wpcf-conditional').css('display') == 'none') {
-            return true;
-        }
-        object.parents('.handlediv').trigger('click');
-        return false;
-    } else {
-        return object.parents('.wpcf-conditional').length > 0 && object.is(':hidden');
     }
 }
 

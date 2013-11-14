@@ -17,7 +17,7 @@ require_once WPCF_EMBEDDED_ABSPATH . '/includes/conditional-display.php';
 function wpcf_admin_userprofile_init($user_id){
 	global $wpcf;
 	
-	$user_role = array_shift($user_id->roles);
+	$user_role = isset($user_id->roles) ? array_shift($user_id->roles) : 'subscriber';
 	$groups = wpcf_admin_usermeta_get_groups_fields();
 	$wpcf_active = false;
 	$profile_only_preview = '';
@@ -127,7 +127,6 @@ function wpcf_usermeta_preview_profile( $user_id, $group, $echo = ''){
 		$params['post_type'] = 'wp-types-user-group';
 		$params['option_name'] = 'wpcf-usermeta';
 		$params['separator'] = ', ';
-//		$field = wpcf_fields_get_field_by_slug( $field['slug'] , 'wpcf-usermeta' );
 		if ( wpcf_admin_is_repetitive( $field ) ) {
         $wpcf->usermeta_repeater->set( $user_id, $field );
         $_meta = $wpcf->usermeta_repeater->_get_meta();
@@ -350,6 +349,8 @@ function wpcf_admin_userprofilesave_init($user_id){
             continue;
         }
 		if ( $field['#type'] == 'checkbox') {
+            $field_data = wpcf_admin_fields_get_field( $field['wpcf-id'], false,
+                    false, false, 'wpcf-usermeta' );
 			if ( !isset( $_POST['wpcf'][$field['wpcf-slug']] ) ){
 				if ( isset( $field_data['data']['save_empty'] )
                     && $field_data['data']['save_empty'] == 'yes' ) {
@@ -360,6 +361,25 @@ function wpcf_admin_userprofilesave_init($user_id){
 				}
 			}
 		}
+        if ( $field['#type'] == 'checkboxes' ) {
+            $field_data = wpcf_admin_fields_get_field( $field['wpcf-id'], false,
+                    false, false, 'wpcf-usermeta' );
+            if ( !empty( $field_data['data']['options'] ) ) {
+                $update_data = array();
+                foreach ( $field_data['data']['options'] as $option_id => $option_data ) {
+                    if ( !isset( $_POST['wpcf'][$field['wpcf-slug']][$option_id] ) ) {
+                        if ( isset( $field_data['data']['save_empty'] ) && $field_data['data']['save_empty'] == 'yes' ) {
+                            $update_data[$option_id] = 0;
+                        }
+                    } else {
+                        $update_data[$option_id] = $_POST['wpcf'][$field['wpcf-slug']][$option_id];
+                    }
+                }
+                update_user_meta( $user_id,
+                        wpcf_types_get_meta_prefix( $field ) . $field['wpcf-slug'],
+                        $update_data );
+            }
+        }
 	}
 	
 

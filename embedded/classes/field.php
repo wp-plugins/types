@@ -154,14 +154,19 @@ class WPCF_Field
          */
         if ( is_string( $cf ) ) {
             WPCF_Loader::loadInclude( 'fields' );
-            $cf = wpcf_admin_fields_get_field( $this->__get_slug_no_prefix( $cf ) );
-            if ( empty( $cf ) ) {
+            $_cf = wpcf_admin_fields_get_field( $this->__get_slug_no_prefix( $cf ) );
+            // Check if found without prefix
+            if ( empty( $_cf ) ) {
+                $_cf = wpcf_admin_fields_get_field( $cf );
+            }
+            if ( empty( $_cf ) ) {
                 /*
                  * TODO Check what happens if field is not found
                  */
                 $this->_reset();
                 return false;
             }
+            $cf = $_cf;
         }
 
         $this->post = is_integer( $post ) ? get_post( $post ) : $post;
@@ -315,7 +320,9 @@ class WPCF_Field
          * It has no impact on frontend and covers a lot of cases
          * (e.g. user change mode from single to repetitive)
          */
+        do_action('wpcf_postmeta_before_delete', $this->post, $this->cf);
         delete_post_meta( $this->post->ID, $this->slug );
+        do_action('wpcf_postmeta_after_delete', $this->post, $this->cf);
 
         // Trim
         if ( is_string( $value ) ) {
@@ -652,15 +659,9 @@ class WPCF_Field
         } else {
             $html = htmlspecialchars( $html );
         }
-        /*
-         * 
-         * Process shortcodes
-         * 
-         * Wachout for remove_shortcode('types');
-         * TODO Loop possible?
-         */
-        $shortcode = do_shortcode( $html );
-        $html = htmlspecialchars_decode( stripslashes( $shortcode ) );
+        // Process shortcodes too
+//        $shortcode = do_shortcode( $html );
+        $html = do_shortcode( htmlspecialchars_decode( stripslashes( $html ) ) );
 
         return $html;
     }
@@ -682,11 +683,12 @@ class WPCF_Field
     /**
      * Return slug.
      * 
-     * @param type $field_key
+     * @param type $meta_key
      * @return type
      */
-    function __get_slug_no_prefix( $field_key ) {
-        return str_replace( WPCF_META_PREFIX, '', $field_key );
+    function __get_slug_no_prefix( $meta_key ) {
+        return strpos( $meta_key, WPCF_META_PREFIX ) === 0 ? substr( $meta_key,
+                        strlen( WPCF_META_PREFIX ) ) : $meta_key;
     }
 
     /**

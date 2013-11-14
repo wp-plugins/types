@@ -408,9 +408,9 @@ function wpcfRefresh() {
 }
 
 // Migrate checkboxes
-function wpcfCbSaveEmptyMigrate(object, field_slug, total, wpnonce, action) {
+function wpcfCbSaveEmptyMigrate(object, field_slug, total, wpnonce, action, metaType) {
     jQuery.ajax({
-        url: ajaxurl+'?action=wpcf_ajax&wpcf_action=cb_save_empty_migrate&field='+field_slug+'&subaction='+action+'&total='+total+'&_wpnonce='+wpnonce,
+        url: ajaxurl+'?action=wpcf_ajax&wpcf_action=cb_save_empty_migrate&field='+field_slug+'&subaction='+action+'&total='+total+'&_wpnonce='+wpnonce+'&meta_type='+metaType,
         type: 'get',
         dataType: 'json',
         //            data: ,
@@ -428,9 +428,9 @@ function wpcfCbSaveEmptyMigrate(object, field_slug, total, wpnonce, action) {
     });
 }
 
-function wpcfCbMigrateStep(total, offset, field_slug, wpnonce) {
+function wpcfCbMigrateStep(total, offset, field_slug, wpnonce, metaType) {
     jQuery.ajax({
-        url: ajaxurl+'?action=wpcf_ajax&wpcf_action=cb_save_empty_migrate&field='+field_slug+'&subaction=save&total='+total+'&offset='+offset+'&_wpnonce='+wpnonce,
+        url: ajaxurl+'?action=wpcf_ajax&wpcf_action=cb_save_empty_migrate&field='+field_slug+'&subaction=save&total='+total+'&offset='+offset+'&_wpnonce='+wpnonce+'&meta_type='+metaType,
         type: 'get',
         dataType: 'json',
         //            data: ,

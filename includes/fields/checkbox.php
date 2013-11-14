@@ -31,6 +31,7 @@
  * @return type 
  */
 function wpcf_fields_checkbox_insert_form( $form_data ) {
+    $meta_type = isset($_GET['page']) && $_GET['page'] != 'wpcf-edit' ? 'usermeta' : 'postmeta';
     $form = array();
     $form['name'] = array(
         '#type' => 'textfield',
@@ -54,10 +55,9 @@ function wpcf_fields_checkbox_insert_form( $form_data ) {
         '#name' => 'set_value',
         '#value' => 1,
     );
-    $cb_migrate_save = !empty( $form_data['slug'] ) ? 'wpcfCbSaveEmptyMigrate(jQuery(this), \'' . $form_data['slug'] . '\', \'\', \'' . wp_create_nonce( 'cb_save_empty_migrate' ) . '\', \'save_check\');' : '';
-    $cb_migrate_do_not_save = !empty( $form_data['slug'] ) ? 'wpcfCbSaveEmptyMigrate(jQuery(this), \'' . $form_data['slug'] . '\', \'\', \'' . wp_create_nonce( 'cb_save_empty_migrate' ) . '\', \'do_not_save_check\');' : '';
-    $update_response = !empty( $form_data['slug'] ) ? '<div id="wpcf-cb-save-empty-migrate-response-'
-            . $form_data['slug'] . '" class="wpcf-cb-save-empty-migrate-response"></div>' : '<div class="wpcf-cb-save-empty-migrate-response"></div>';
+    $cb_migrate_save = !empty( $form_data['slug'] ) ? "wpcfCbSaveEmptyMigrate(jQuery(this), '{$form_data['slug']}', '', '" . wp_create_nonce( 'cb_save_empty_migrate' ) . "', 'save_check', '{$meta_type}');" : '';
+    $cb_migrate_do_not_save = !empty( $form_data['slug'] ) ? "wpcfCbSaveEmptyMigrate(jQuery(this), '{$form_data['slug']}', '', '" . wp_create_nonce( 'cb_save_empty_migrate' ) . "', 'do_not_save_check', '{$meta_type}');" : '';
+    $update_response = !empty( $form_data['slug'] ) ? "<div id='wpcf-cb-save-empty-migrate-response-{$form_data['slug']}' class='wpcf-cb-save-empty-migrate-response'></div>" : '<div class="wpcf-cb-save-empty-migrate-response"></div>';
     $form['save_empty'] = array(
         '#type' => 'radios',
         '#name' => 'save_empty',
@@ -77,12 +77,14 @@ function wpcf_fields_checkbox_insert_form( $form_data ) {
         '#description' => '<strong>' . __( 'When unchecked:', 'wpcf' ) . '</strong>',
         '#after' => $update_response,
     );
-    $form['checked'] = array(
-        '#type' => 'checkbox',
-        '#title' => __( 'Set checked by default (on new post)?', 'wpcf' ),
-        '#name' => 'checked',
-        '#default_value' => !empty( $form_data['data']['checked'] ) ? 1 : 0,
-    );
+    if ( isset($_GET['page']) && $_GET['page'] == 'wpcf-edit' ) {
+        $form['checked'] = array(
+            '#type' => 'checkbox',
+            '#title' => __( 'Set checked by default (on new post)?', 'wpcf' ),
+            '#name' => 'checked',
+            '#default_value' => !empty( $form_data['data']['checked'] ) ? 1 : 0,
+        );
+    }
     $form['display'] = array(
         '#type' => 'radios',
         '#default_value' => 'db',

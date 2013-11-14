@@ -26,9 +26,7 @@ function wpcf_fields_file() {
  */
 function wpcf_fields_file_meta_box_form( $field ) {
     add_thickbox();
-    $type = $field['type'] == 'image' ? 'image' : 'file';
-    $button_text = $type == 'image' ? __( 'Upload image', 'wpcf' ) : __( 'Upload file',
-                    'wpcf' );
+    $button_text = sprintf( __( 'Select %s', 'wpcf' ), $field['type'] );
     // Set ID
     $element_id = 'wpcf-fields-' . wpcf_unique_id( serialize( func_get_args() ) );
     $attachment_id = false;
@@ -43,6 +41,7 @@ function wpcf_fields_file_meta_box_form( $field ) {
 
     // Set preview
     $preview = '';
+    // TODO WPML move
     if ( !wpcf_wpml_field_is_copied( $field ) ) {
         if ( !empty( $attachment_id ) ) {
             $preview = wp_get_attachment_image( $attachment_id, 'thumbnail' );
@@ -54,7 +53,7 @@ function wpcf_fields_file_meta_box_form( $field ) {
             else
                 $file = pathinfo( $field['value'] );
             if ( isset( $file['extension'] )
-                    && in_array( $file['extension'],
+                    && in_array( strtolower( $file['extension'] ),
                             array('jpg', 'jpeg', 'gif', 'png') ) ) {
                 $preview = '<img alt="" src="' . $field['value'] . '" />';
             }
@@ -62,13 +61,17 @@ function wpcf_fields_file_meta_box_form( $field ) {
     }
 
     // Set button
+    // TODO WPML move
     if ( !wpcf_wpml_field_is_copied( $field ) ) {
         if ( !empty( $field['#attributes']['readonly'] ) || !empty( $field['#attributes']['disabled'] ) ) {
             $button = '';
         } else {
             $button = '<a href="javascript:void(0);"'
-                    . ' class="wpcf-fields-' . $type . '-upload-link button-secondary"'
-                    . ' id="' . $element_id . '-upload">'
+                    . ' class="wpcf-fields-'
+                    . ( $field['type'] == 'image' ? 'image' : 'file' )
+                    . '-upload-link button-secondary"'
+                    . ' id="' . $element_id . '-upload" '
+                    . "data-types='{\"type\":\"{$field['type']}\",\"id\":\"{$field['id']}\"}'>"
                     . $button_text . '</a>';
         }
     } else {
@@ -96,18 +99,14 @@ function wpcf_fields_file_meta_box_form( $field ) {
 function wpcf_fields_file_meta_box_js_inline() {
     global $post;
     $for_post = (isset( $post ) ? 'post_id=' . $post->ID . '&' : '');
-
     ?>
     <script type="text/javascript">
         //<![CDATA[
-        jQuery(document).ready(function(){
+        jQuery(document).ready(function($){
             window.wpcf_formfield = false;
-            jQuery('.wpcf-fields-file-upload-link').live('click', function() {
-                window.wpcf_formfield = '#'+jQuery(this).attr('id')+'-holder';
-                tb_show('<?php
-    _e( 'Upload file', 'wpcf' );
-
-    ?>', 'media-upload.php?<?php echo $for_post ?>type=file&context=wpcf-fields-media-insert&TB_iframe=true');
+            $('.wpcf-fields-file-upload-link').live('click', function() {
+                window.wpcf_formfield = '#'+$(this).attr('id')+'-holder';
+                tb_show('', 'media-upload.php?<?php echo $for_post ?>type=file&context=wpcf-fields-media-insert&types[field_type]='+$(this).data('types').id+'&types[field_id]='+$(this).data('types').id+'&TB_iframe=true');
                 return false;
             });
         });
@@ -130,13 +129,20 @@ function wpcf_fields_file_meta_box_js_inline() {
  * Media popup JS.
  */
 function wpcf_fields_file_media_admin_head() {
-
     ?>
     <script type="text/javascript">
         function wpcfFieldsFileMediaTrigger(guid, type) {
             window.parent.wpcfFieldsFileMediaInsert(guid, type);
             window.parent.jQuery('#TB_closeWindowButton').trigger('click');
         }
+        <?php
+    if ( isset( $_GET['types']['field_type'] ) && in_array( $_GET['types']['field_type'],
+                        array('audio', 'video') ) ):
+        ?>
+        jQuery(document).ready(function($){
+            $('#media-upload-header').after('<div class="message updated"><p><?php printf(esc_js(__('Please note that not all video and audio formats are supported by the WordPress media player. Before you upload media files, have a look at %ssupported media formats%s.', 'wpcf')), '<a href="http://wp-types.com/documentation/user-guides/adding-audio-video-and-other-embedded-content-to-your-site/" target="_blank">', '</a>'); ?></p></div>');
+        });
+    <?php endif; ?>
     </script>
     <style type="text/css">
         tr.submit, .ml-submit, #save, #media-items .A1B1 p:last-child  { display: none; }
@@ -237,7 +243,7 @@ function wpcf_fields_file_editor_callback( $field, $data, $meta_type, $post ) {
     // Set data
 //    $data['post_id'] = !empty( $post->ID ) ? $post->ID : -1;
     $data['attachment_id'] = $attachment_id;
-    $data['file'] = !empty( $file ) ? $file : '';
+    $data['file'] = !empty($file) ? $file : '';
 
     return array(
         'supports' => array('styling', 'style'),

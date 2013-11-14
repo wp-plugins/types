@@ -135,6 +135,12 @@ function wpcf_fields_checkboxes_editor_submit( $data, $field, $context ) {
                 $i++;
             }
         }
+    } else {
+        if ( $types_attr == 'usermeta' ) {
+            $shortcode .= wpcf_usermeta_get_shortcode( $field, $add );
+        } else {
+            $shortcode .= wpcf_fields_get_shortcode( $field, $add );
+        }
     }
     return $shortcode;
 }

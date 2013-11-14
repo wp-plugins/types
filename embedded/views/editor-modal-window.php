@@ -171,10 +171,12 @@ $data = array_merge( array(
         <input type="radio" id="post-id-related" name="post_id" value="related" data-bind="checked: relatedPost" />
         <label for="post-id-related"><?php _e( 'A related post to the current post', 'wpcf' ); ?></label>
     </p>
-    <div><?php foreach ( $data['parents'] as $post ): ?>
+    <div class="group-nested" data-bind="visible: relatedPost() == 'related'">
+        <p class="form-inline"><?php foreach ( $data['parents'] as $post ): ?>
         <input type="radio" name="related_post" id="post-id-<?php echo $post->ID; ?>" value="<?php echo $post->post_type; ?>" data-bind="checked: radioPostType" />
         <label for="post-id-<?php echo $post->ID; ?>"><?php echo $post->post_type; ?></label>
-    <?php endforeach; ?></div>
+    <?php endforeach; ?></p>
+    </div>
     <?php endif; ?>
 
     <?php if ( empty( $data['parents'] ) ): ?>

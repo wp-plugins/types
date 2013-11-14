@@ -24,6 +24,7 @@ class Wpcf_Validate
         'number' => 'numeric',
         'alphanumeric' => 'alphaNumericWhitespaces',
         'nospecialchars' => 'noSpecialChars',
+        'maxlength' => 'maxLength',
     );
 
     /**
@@ -45,11 +46,6 @@ class Wpcf_Validate
         // Init validation object
         if ( is_null( self::$_validation_object ) ) {
             self::$_validation_object = new Wpcf_Cake_Validation();
-        }
-
-        // Init messages
-        if ( is_null( self::$messages ) ) {
-            self::_set_messages();
         }
         // Check if there is 'required' method
         if ( array_key_exists( 'required', $args ) ) {
@@ -109,7 +105,8 @@ class Wpcf_Validate
                 // Don't return error if it's empty but not required
                 if ( (!empty( $value ) && $method != 'required' && self::$_is_required)
                         || (empty( $value ) && $method == 'required') ) {
-                    $check['message'] = !empty( $v['message'] ) ? $v['message'] : self::$messages[$method];
+                    $sprintf = isset($v['value']) ? $v['value'] : '';
+                    $check['message'] = !empty( $v['message'] ) ? $v['message'] : self::get_message($method, $sprintf);
                     return $check;
                 }
             }
@@ -158,8 +155,9 @@ class Wpcf_Validate
      * @param type $method
      * @return type 
      */
-    public static function get_message( $method )
+    public static function get_message( $method, $sprintf = '' )
     {
+        return wpcf_admin_validation_messages($method, $sprintf);
         if ( is_null( self::$messages ) ) {
             self::_set_messages();
         }
@@ -290,6 +288,9 @@ class Wpcf_Validate
             '#inline' => true,
             '#suffix' => '<br />',
         );
+        
+        $form['url-checkbox'] = self::setForced( $form['url-checkbox'],
+                        $field, $data );
 
         $form['url-message'] = self::get_custom_message( $field,
                         self::get_message( 'url' ), $data );

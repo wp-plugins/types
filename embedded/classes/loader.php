@@ -35,6 +35,7 @@ class WPCF_Loader
      * Register scripts.
      */
     private static function __registerScripts() {
+        $min = '';//WPCF_DEBUG ? '-min' : '';
         wp_register_script( 'types', WPCF_EMBEDDED_RES_RELPATH . '/js/basic.js',
                 array('jquery'), WPCF_VERSION, true );
         wp_register_script( 'types-knockout',
@@ -46,14 +47,17 @@ class WPCF_Loader
                     array('jquery'), WPCF_VERSION, true );
         }
         wp_register_script( 'types-utils',
-                WPCF_EMBEDDED_RES_RELPATH . '/js/utils-min.js', array('jquery'),
+                WPCF_EMBEDDED_RES_RELPATH . "/js/utils{$min}.js", array('jquery'),
                 WPCF_VERSION, true );
         wp_register_script( 'types-wp-views',
                 WPCF_EMBEDDED_RES_RELPATH . '/js/wp-views.js', array('jquery'),
                 WPCF_VERSION, true );
         wp_register_script( 'types-conditional',
-                WPCF_EMBEDDED_RES_RELPATH . '/js/conditional.js', array('types-utils'),
-                WPCF_VERSION, true );
+                WPCF_EMBEDDED_RES_RELPATH . '/js/conditional.js',
+                array('types-utils'), WPCF_VERSION, true );
+        wp_register_script( 'types-validation',
+                WPCF_EMBEDDED_RES_RELPATH . "/js/validation{$min}.js",
+                array('jquery'), WPCF_VERSION, true );
 //        wp_register_script( 'types-jquery-validation',
 //                WPCF_EMBEDDED_RES_RELPATH . '/js/jquery-form-validation/jquery.validate-1.11.1.min.js',
 //                array('jquery'), WPCF_VERSION, true );
@@ -109,6 +113,22 @@ class WPCF_Loader
     /**
      * Returns HTML formatted output.
      * 
+     * @param string $view
+     * @param mixed $data
+     * @return string
+     */
+    public static function loadView( $view ) {
+        $file = WPCF_EMBEDDED_ABSPATH . '/views/'
+                . strtolower( strval( $view ) ) . '.php';
+        if ( !file_exists( $file ) ) {
+            return new WP_Error( 'types_loader', 'missing view ' . $view );
+        }
+        require_once $file;
+    }
+
+    /**
+     * Returns HTML formatted output.
+     * 
      * @param string $template
      * @param mixed $data
      * @return string
@@ -138,7 +158,7 @@ class WPCF_Loader
         $file = WPCF_EMBEDDED_ABSPATH . '/models/'
                 . strtolower( strval( $model ) ) . '.php';
         if ( !file_exists( $file ) ) {
-            return new WP_Error( 'types-loader-model', 'missing model ' . $model );
+            return new WP_Error( 'types_loader', 'missing model ' . $model );
         }
         require_once $file;
     }
@@ -154,7 +174,7 @@ class WPCF_Loader
         $file = WPCF_EMBEDDED_ABSPATH . '/classes/'
                 . strtolower( strval( $class ) ) . '.php';
         if ( !file_exists( $file ) ) {
-            return new WP_Error( 'types-loader-class', 'missing class ' . $class );
+            return new WP_Error( 'types_loader', 'missing class ' . $class );
         }
         require_once $file;
     }
@@ -170,7 +190,7 @@ class WPCF_Loader
         $path = $mode == 'plugin' ? WPCF_ABSPATH : WPCF_EMBEDDED_ABSPATH;
         $file = $path . '/includes/' . strtolower( strval( $name ) ) . '.php';
         if ( !file_exists( $file ) ) {
-            return new WP_Error( 'types-loader-include', 'missing include ' . $name );
+            return new WP_Error( 'types_loader', 'missing include ' . $name );
         }
         require_once $file;
     }
@@ -194,6 +214,7 @@ class WPCF_Loader
         $settings['wpnonce'] = wp_create_nonce( '_typesnonce' );
         $settings['cookiedomain'] = COOKIE_DOMAIN;
         $settings['cookiepath'] = COOKIEPATH;
+        $settings['validation'] = array();
         echo '
         <script type="text/javascript">
             //<![CDATA[

@@ -16,19 +16,15 @@
  */
 function types_get_field( $field, $meta_type = 'postmeta' ) {
     static $cache = array();
-    $cache_key = md5( $field );
+    $cache_key = md5( strval( $field ) . strval( $meta_type ) );
     if ( isset( $cache[$cache_key] ) ) {
         return $cache[$cache_key];
     }
     WPCF_Loader::loadInclude( 'fields' );
     $meta_type = $meta_type == 'usermeta' ? 'wpcf-usermeta' : 'wpcf-fields';
-    $field = wpcf_admin_fields_get_field( strval( $field ), false, false, false,
-            $meta_type );
-    if ( empty( $field ) ) {
-        return array();
-    }
-    $cache[$cache_key] = $field;
-    return $field;
+    $cache[$cache_key] = wpcf_admin_fields_get_field( strval( $field ), false,
+            false, false, $meta_type );
+    return $cache[$cache_key];
 }
 
 /**
@@ -204,12 +200,23 @@ function types_get_fields_by_group( $group, $only_active = 'only_active' ){
 function types_child_posts( $post_type, $args = array() ) {
 
     static $cache = array();
-    $cache_key = md5( serialize( func_get_args() ) );
+    
+    if ( isset( $args['post_id'] ) ) {
+        $post = $args['post_id'] != '0' ? get_post( $args['post_id'] ) : null;
+    } else {
+        global $post;
+    }
+
+    if ( empty( $post->ID ) ) {
+        return array();
+    }
+    
+    $cache_key = md5( $post->ID . serialize( func_get_args() ) );
     if ( isset( $cache[$cache_key] ) ) {
         return $cache[$cache_key];
     }
 
-    global $post, $wp_post_types;
+    global $wp_post_types;
 
     // WP allows querying inactive post types
     if ( !isset( $wp_post_types[$post_type] )
@@ -281,10 +288,10 @@ function types_conditional_evaluate( $field, $post_id = null ) {
  * @param array $posts array( $post_type => $post_id )
  * @param string $action set_child | set_parent
  */
-function types_create_relationship( $post_id, $posts = array() ) {
+function types_create_relationship( $post_id, $posts = array(), $error = false ) {
     $updated = wpcf_pr_admin_update_belongs( $post_id, $posts );
-    if ( !$updated ) {
-        return FALSE;
+    if ( is_wp_error( $updated ) ) {
+        return $error? $updated : FALSE;
     }
     return TRUE;
 }

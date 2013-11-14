@@ -269,7 +269,7 @@ function wpcf_admin_menu_edit_fields() {
         $title = __( 'Add New Group', 'wpcf' );
     }
     echo wpcf_add_admin_header( $title );
-
+    wpcf_wpml_warning();
     $form = wpcf_form( 'wpcf_form_fields' );
     echo '<br /><form method="post" action="" class="wpcf-fields-form '
     . 'wpcf-form-validate" onsubmit="';
@@ -360,6 +360,7 @@ function wpcf_admin_menu_edit_type() {
         $title = __( 'Add New Custom Post Type', 'wpcf' );
     }
     echo wpcf_add_admin_header( $title );
+    wpcf_wpml_warning();
     $form = wpcf_form( 'wpcf_form_types' );
     echo '<br /><form method="post" action="" class="wpcf-types-form '
     . 'wpcf-form-validate">';
@@ -398,6 +399,7 @@ function wpcf_admin_menu_edit_tax() {
         $title = __( 'Add New Taxonomy', 'wpcf' );
     }
     echo wpcf_add_admin_header( $title );
+    wpcf_wpml_warning();
     $form = wpcf_form( 'wpcf_form_tax' );
     echo '<br /><form method="post" action="" class="wpcf-tax-form '
     . 'wpcf-form-validate">';

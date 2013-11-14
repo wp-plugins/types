@@ -97,11 +97,37 @@ if ($data['warning_remote']) {
 	    	<label for="image-height" class="input-title"><?php _e( 'Height', 'wpcf' ); ?></label>
 	    	<input id="image-height" type="text" name="height" value="<?php echo $data['height']; ?>" />
 	    </p>
-	    <p>
-	    	<label for="image-proportional" class="input-title"><?php _e( 'Keep proportional', 'wpcf' ); ?></label>
-	    	<input id="image-proportional" type="checkbox" name="proportional" value="1" checked="checked" />
-	    </p>
 	</div>
+</div>
+
+<div class="fieldset form-inline" data-bind="visible: image_size() != 'full'">
+    <p><?php _e('If images have a different aspect ratio than the display size, what would you like to do?', 'wpcf'); ?></p>
+    <p>
+        <label for="image-proportional" class="input-title"><?php _e( 'Keep proportional', 'wpcf' ); ?></label>
+        <input id="image-proportional" type="checkbox" name="proportional" value="1" data-bind="checked: imageKeepProportional" />
+    </p>
+    <div class="group-nested" data-bind="visible: imageKeepProportional()">
+        <p>
+            <input id="resize-proportional" type="radio" name="resize" value="proportional" data-bind="checked: imageResize" />
+            <label for="resize-proportional" class="input-title"><?php _e( 'Resize images to fit inside the new size. Width or height might be smaller than the specified dimensions.', 'wpcf' ); ?></label>
+        </p>
+        <p>
+            <input id="resize-pad" type="radio" name="resize" value="pad" data-bind="checked: imageResize" />
+            <label for="resize-pad" class="input-title"><?php _e( 'Pad images, so that they fill the specified dimensions exactly.', 'wpcf' ); ?></label>
+        </p>
+        <p data-bind="visible: imageResize() == 'pad'">
+            <label for="padding-transparent" class="input-title"><?php _e( 'Transparent', 'wpcf' ); ?></label>
+            <input id="padding-transparent" type="checkbox" name="padding_transparent" data-bind="checked: imagePaddingTransparent" value="1" />
+        </p>
+        <p data-bind="visible: imageResize() == 'pad' && !imagePaddingTransparent()">
+            <label for="padding-color" class="input-title"><?php _e( 'Padding color', 'wpcf' ); ?></label>
+            <input id="padding-color" type="text" name="padding_color" data-bind="value: imagePaddingColor()" class="js-types-colorpicker" />
+        </p>
+        <p>
+            <input id="resize-crop" type="radio" name="resize" value="crop" data-bind="checked: imageResize" />
+            <label for="resize-crop" class="input-title"><?php _e( 'Crop images, so that they fill the specified dimensions exactly.', 'wpcf' ); ?></label>
+        </p>
+    </div>
 </div>
 
 <p class="form-inline">
@@ -114,3 +140,9 @@ if ($data['warning_remote']) {
 
 
 </script><!--END TYPES MODAL IMAGE-->
+
+<?php
+WPCF_Loader::loadInclude('fields/colorpicker');
+wpcf_fields_colorpicker_enqueue_scripts();
+wpcf_fields_colorpicker_render_js();
+?>

@@ -201,9 +201,6 @@ function wpcf_fields_image_editor_submit( $data, $field, $context ) {
         if ( !empty( $data['height'] ) ) {
             $add .= ' height="' . intval( $data['height'] ) . '"';
         }
-        if ( !empty( $data['proportional'] ) ) {
-            $add .= ' proportional="true"';
-        }
     } else if ( !empty( $size ) ) {
         $add .= ' size="' . $size . '"';
         $settings['image_size'] = $size;
@@ -217,6 +214,29 @@ function wpcf_fields_image_editor_submit( $data, $field, $context ) {
     }
     if ( !empty( $data['onload'] ) ) {
         $add .= ' onload="' . $data['onload'] . '"';
+    }
+
+    if ( $data['image_size'] != 'full' ) {
+        if ( !empty( $data['proportional'] ) ) {
+            $settings['resize'] = isset( $data['resize'] ) ? $data['resize'] : 'proportional';
+            $add .= " resize=\"{$settings['resize']}\"";
+            if ( $settings['resize'] == 'pad' ) {
+                if ( isset( $data['padding_transparent'] ) ) {
+                    $data['padding_color'] = 'transparent';
+                }
+                if ( empty( $data['padding_color'] ) ) {
+                    $data['padding_color'] = '#FFF';
+                }
+                if ( ( strpos( $data['padding_color'], '#' ) !== 0 || !( strlen( $data['padding_color'] ) == 4 || strlen( $data['padding_color'] ) == 7 ) ) && $data['padding_color'] != 'transparent' ) {
+                    $data['padding_color'] = '#FFF';
+                }
+                $settings['padding_color'] = $data['padding_color'];
+                $add .= " padding_color=\"{$data['padding_color']}\"";
+            }
+        } else if ( !isset( $data['raw_mode'] ) ) {
+            $settings['resize'] = 'stretch';
+            $add .= ' resize="stretch"';
+        }
     }
 
     $field = apply_filters( 'wpcf_fields_image_editor_submit_field', $field );
@@ -283,9 +303,13 @@ function wpcf_fields_image_view( $params ) {
     if ( !empty( $params['style'] ) ) {
         $style[] = $params['style'];
     }
+    
+    // Compatibility with old parameters
+    $old_param = isset( $params['proportional'] ) && $params['proportional'] == 'true' ? 'proportional' : 'crop';
+    $resize = isset( $params['resize'] ) ? $params['resize'] : $old_param;
 
-    // Pre-configured size (use WP function)
-    if ( $image_data['is_attachment'] && !empty( $params['size'] ) ) {
+    // Pre-configured size (use WP function) IF NOT CROPPED
+    if ( $resize == 'crop' && $image_data['is_attachment'] && !empty( $params['size'] ) ) {
         //print_r('is_attachment');
         if ( isset( $params['url'] ) && $params['url'] == 'true' ) {
             //print_r('is_url');
@@ -315,8 +339,6 @@ function wpcf_fields_image_view( $params ) {
         //print_r('custom_size');
         $width = !empty( $params['width'] ) ? intval( $params['width'] ) : null;
         $height = !empty( $params['height'] ) ? intval( $params['height'] ) : null;
-        $crop = (!empty( $params['proportional'] ) && $params['proportional'] == 'true') ? false : true;
-
 
         //////////////////////////
         // If width and height are not set then check the size parameter.
@@ -354,21 +376,38 @@ function wpcf_fields_image_view( $params ) {
 
         // Check if image is outsider and require $width and $height
         if ( (!empty( $width ) || !empty( $height )) && !$image_data['is_outsider'] ) {
-            //print_r('Not is_outsider');
-            $resized_image = wpcf_fields_image_resize_image(
-                    $params['field_value'], $width, $height, 'relpath', false,
-                    $crop
+
+            // Resize args
+            $args = array(
+                'resize' => $resize,
+                'padding_color' => isset( $params['padding_color'] ) ? $params['padding_color'] : '#FFF',
+                'width' => $width,
+                'height' => $height,
+                'return' => 'object',
+                'suppress_errors' => false,
+                'clear_cache' => false,
             );
-            if ( !$resized_image ) {
+            WPCF_Loader::loadView( 'image' );
+            $__resized_image = types_image_resize( $image_data['fullabspath'],
+                    $args );
+            
+            //print_r('Not is_outsider');
+//            $resized_image = wpcf_fields_image_resize_image(
+//                    $params['field_value'], $width, $height, 'relpath', false,
+//                    $crop
+//            );
+            if ( is_wp_error( $__resized_image ) ) {
                 //print_r('Not resized image');
                 $resized_image = $params['field_value'];
             } else {
                 //print_r('resized image add to lib');
                 // Add to library
-                $image_abspath = wpcf_fields_image_resize_image(
-                        $params['field_value'], $width, $height, 'abspath',
-                        false, $crop
-                );
+//                $image_abspath = wpcf_fields_image_resize_image(
+//                        $params['field_value'], $width, $height, 'abspath',
+//                        false, $crop
+//                );
+                $resized_image = $__resized_image->url;
+                $image_abspath = $__resized_image->path;
                 $add_to_library = wpcf_get_settings( 'add_resized_images_to_library' );
                 if ( $add_to_library ) {
                     //print_r('add to lib');

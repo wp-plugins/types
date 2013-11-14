@@ -6,6 +6,7 @@ require_once WPCF_EMBEDDED_ABSPATH . '/includes/conditional-display.php';
 
 add_filter( 'wpcf_form_field', 'wpcf_cd_form_field_filter', 10, 2 );
 add_filter( 'wpcf_field_pre_save', 'wpcf_cd_field_pre_save_filter' );
+add_filter( 'wpcf_group_pre_save', 'wpcf_cd_group_pre_save_filter' );
 add_filter( 'wpcf_fields_form_additional_filters',
         'wpcf_cd_fields_form_additional_filters', 10, 2 );
 add_action( 'wpcf_save_group', 'wpcf_cd_save_group_action' );
@@ -44,6 +45,16 @@ function wpcf_cd_form_field_filter( $form, $data ) {
     }
     $form = $form + wpcf_cd_admin_form_filter( $data );
     return $form;
+}
+
+/**
+ * Group pre-save filter.
+ * 
+ * @param array $data
+ * @return array 
+ */
+function wpcf_cd_group_pre_save_filter( $data ) {
+    return wpcf_cd_field_pre_save_filter( $data );
 }
 
 /**

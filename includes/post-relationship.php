@@ -135,7 +135,8 @@ function wpcf_pr_post_type_form_filter( $form, $post_type ) {
                         . '&_wpnonce='
                         . wp_create_nonce( 'pt_edit_fields' )
                         . '&KeepThis=true&TB_iframe=true' )
-                . '" class="thickbox">('
+                . '" class="thickbox" title="'
+                . __('Select child fields to be displayed', 'wpcf') . '">('
                 . __( 'Edit fields' ) . ')</a>&nbsp;&nbsp;' : ''
                 . '<a href="javascript:void(0);" style="color:Gray;" title="'
                 . __( 'Please save the page first, before you can edit the child items',
@@ -242,6 +243,7 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
     }
     $data = $relationships[$parent][$child];
     wp_enqueue_script( 'jquery' );
+    wp_enqueue_style( 'types' );
     wpcf_admin_ajax_head( 'Edit fields', 'wpcf' );
     // Process submit
     if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'],
@@ -267,10 +269,11 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
     foreach ( $groups as $group ) {
         $fields = wpcf_admin_fields_get_fields_by_group( $group['id'] );
         foreach ( $fields as $key => $cf ) {
-            $options_cf[WPCF_META_PREFIX . $key] = array();
-            $options_cf[WPCF_META_PREFIX . $key]['#title'] = $cf['name'];
-            $options_cf[WPCF_META_PREFIX . $key]['#name'] = 'fields[' . WPCF_META_PREFIX . $key . ']';
-            $options_cf[WPCF_META_PREFIX . $key]['#default_value'] = isset( $data['fields'][WPCF_META_PREFIX . $key] ) ? 1 : 0;
+            $__key = wpcf_types_cf_under_control( 'check_outsider', $key ) ? $key : WPCF_META_PREFIX . $key;
+            $options_cf[$__key] = array();
+            $options_cf[$__key]['#title'] = $cf['name'];
+            $options_cf[$__key]['#name'] = 'fields[' . $__key . ']';
+            $options_cf[$__key]['#default_value'] = isset( $data['fields'][$__key] ) ? 1 : 0;
             // Repetitive warning
             if ( wpcf_admin_is_repetitive( $cf ) ) {
                 if ( !$repetitive_warning ) {
@@ -280,10 +283,10 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
                     );
                 }
                 $repetitive_warning = true;
-                $options_cf[WPCF_META_PREFIX . $key]['#after'] = !isset( $data['fields'][WPCF_META_PREFIX . $key] ) ? '<div class="message error" style="display:none;"><p>' : '<div class="message error"><p>';
-                $options_cf[WPCF_META_PREFIX . $key]['#after'] .= $repetitive_warning_txt;
-                $options_cf[WPCF_META_PREFIX . $key]['#after'] .= '</p></div>';
-                $options_cf[WPCF_META_PREFIX . $key]['#attributes'] = array('onclick' => 'jQuery(this).parent().find(\'.message\').toggle();');
+                $options_cf[$__key]['#after'] = !isset( $data['fields'][$__key] ) ? '<div class="message error" style="display:none;"><p>' : '<div class="message error"><p>';
+                $options_cf[$__key]['#after'] .= $repetitive_warning_txt;
+                $options_cf[$__key]['#after'] .= '</p></div>';
+                $options_cf[$__key]['#attributes'] = array('onclick' => 'jQuery(this).parent().find(\'.message\').toggle();');
             }
         }
     }
@@ -323,6 +326,16 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
         $options[$temp_parent]['#name'] = 'fields[_wpcf_pr_parents][' . $temp_parent . ']';
         $options[$temp_parent]['#default_value'] = isset( $data['fields']['_wpcf_pr_parents'][$temp_parent] ) ? 1 : 0;
     }
+    // Taxonomies
+    $taxonomies = get_object_taxonomies( $post_type_child->name, 'objects' );
+    if ( !empty( $taxonomies ) ) {
+        foreach ( $taxonomies as $tax_id => $taxonomy ) {
+            $options[$tax_id] = array();
+            $options[$tax_id]['#title'] = sprintf( __('Taxonomy - %s', ''), $taxonomy->label );
+            $options[$tax_id]['#name'] = 'fields[_wpcf_pr_taxonomies][' . $tax_id . ']';
+            $options[$tax_id]['#default_value'] = isset( $data['fields']['_wpcf_pr_taxonomies'][$tax_id] ) ? 1 : 0;
+        }
+    }
     $form['specific'] = array(
         '#type' => 'checkboxes',
         '#name' => 'fields',
@@ -337,7 +350,7 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
         '#value' => __( 'Save', 'wpcf' ),
         '#attributes' => array('class' => 'button-primary'),
     );
-    echo '<form method="post" action="">';
+    echo '<form method="post" action="" class="types-select-child-fields">';
     echo wpcf_form_simple( $form );
     echo wp_nonce_field( 'pt_edit_fields' );
     echo '</form>';

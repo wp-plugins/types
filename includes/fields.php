@@ -214,6 +214,7 @@ function wpcf_admin_fields_save_group( $group, $post_type = 'wp-types-group' ) {
         'post_status' => 'publish',
         'post_type' => $post_type,
         'post_title' => $group['name'],
+        'post_name' => $group['name'],
         'post_content' => !empty( $group['description'] ) ? $group['description'] : '',
     );
 
@@ -497,19 +498,22 @@ function wpcf_admin_custom_fields_change_type( $fields, $type,
     $fields = wpcf_types_cf_under_control( 'add',
             array('fields' => $fields, 'type' => $type), $post_type, $meta_name );
     $allowed = array(
-        'textfield' => array('wysiwyg', 'textfield', 'textarea', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
-        'textarea' => array('wysiwyg', 'textfield', 'textarea', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
-        'date' => array('wysiwyg', 'date', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'image', 'numeric'),
-        'email' => array('wysiwyg', 'email', 'textarea', 'textfield', 'date', 'url', 'phone', 'file', 'image', 'numeric'),
-        'file' => array('wysiwyg', 'file', 'textarea', 'textfield', 'email', 'url', 'phone', 'fdate', 'image', 'numeric'),
-        'image' => array('wysiwyg', 'image', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'idate', 'numeric'),
-        'numeric' => array('wysiwyg', 'numeric', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'image', 'date'),
-        'phone' => array('wysiwyg', 'phone', 'textarea', 'textfield', 'email', 'url', 'date', 'file', 'image', 'numeric'),
-        'select' => array('wysiwyg', 'select', 'textarea', 'textfield', 'date', 'email', 'url', 'phone', 'file', 'image', 'numeric'),
-        'skype' => array('wysiwyg', 'skype', 'textarea', 'textfield', 'date', 'email', 'url', 'phone', 'file', 'image', 'numeric'),
-        'url' => array('wysiwyg', 'url', 'textarea', 'textfield', 'email', 'date', 'phone', 'file', 'image', 'numeric'),
-        'checkbox' => array('wysiwyg', 'checkbox', 'textarea', 'textfield', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
-        'radio' => array('wysiwyg', 'radio', 'textarea', 'textfield', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric'),
+        'audio' => array('wysiwyg', 'url', 'textarea', 'textfield', 'email', 'date', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'textfield' => array('wysiwyg', 'textfield', 'textarea', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'textarea' => array('wysiwyg', 'textfield', 'textarea', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'date' => array('wysiwyg', 'date', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'email' => array('wysiwyg', 'email', 'textarea', 'textfield', 'date', 'url', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'embed' => array('wysiwyg', 'url', 'textarea', 'textfield', 'email', 'date', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'file' => array('wysiwyg', 'file', 'textarea', 'textfield', 'email', 'url', 'phone', 'fdate', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'image' => array('wysiwyg', 'image', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'idate', 'numeric', 'audio', 'video', 'embed'),
+        'numeric' => array('wysiwyg', 'numeric', 'textarea', 'textfield', 'email', 'url', 'phone', 'file', 'image', 'date', 'audio', 'video', 'embed'),
+        'phone' => array('wysiwyg', 'phone', 'textarea', 'textfield', 'email', 'url', 'date', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'select' => array('wysiwyg', 'select', 'textarea', 'textfield', 'date', 'email', 'url', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'skype' => array('wysiwyg', 'skype', 'textarea', 'textfield', 'date', 'email', 'url', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'url' => array('wysiwyg', 'url', 'textarea', 'textfield', 'email', 'date', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'checkbox' => array('wysiwyg', 'checkbox', 'textarea', 'textfield', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'radio' => array('wysiwyg', 'radio', 'textarea', 'textfield', 'email', 'url', 'date', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
+        'video' => array('wysiwyg', 'url', 'textarea', 'textfield', 'email', 'date', 'phone', 'file', 'image', 'numeric', 'audio', 'video', 'embed'),
         'wysiwyg' => array('wysiwyg', 'textarea'),
     );
     $all_fields = wpcf_admin_fields_get_fields( false, false, false, $meta_name );
@@ -657,27 +661,43 @@ function wpcf_admin_fields_get_ajax_deactivation_link( $group_id ) {
  * @return boolean|int 
  */
 function wpcf_admin_fields_checkbox_migrate_empty_check( $field, $action ) {
-    $field = wpcf_admin_fields_get_field( $field );
-    if ( empty( $field ) || $field['type'] != 'checkbox' ) {
+    if ( $field['type'] != 'checkbox' ) {
         return false;
     }
-    $filter = wpcf_admin_fields_get_filter_by_field( $field['id'] );
-    if ( !empty( $filter ) ) {
-        $posts = array();
-        $meta_key = wpcf_types_get_meta_prefix( $field ) . $field['id'];
-        $meta_query = '';
-        if ( $action == 'do_not_save_check' ) {
-            $meta_query = "(m.meta_key = '$meta_key' AND m.meta_value = '0')";
-            $posts = wpcf_admin_fields_get_posts_by_filter( $filter, $meta_query );
-        } else if ( $action == 'save_check' ) {
-            $posts = wpcf_admin_fields_get_posts_by_filter_missing_meta( $filter,
-                    $meta_key );
+    if ($field['meta_type'] == 'postmeta') {
+        $filter = wpcf_admin_fields_get_filter_by_field( $field['id'] );
+        if ( !empty( $filter ) ) {
+            $posts = array();
+            $meta_key = wpcf_types_get_meta_prefix( $field ) . $field['id'];
+            $meta_query = '';
+            if ( $action == 'do_not_save_check' ) {
+                $meta_query = "(m.meta_key = '$meta_key' AND m.meta_value = '0')";
+                $posts = wpcf_admin_fields_get_posts_by_filter( $filter, $meta_query );
+            } else if ( $action == 'save_check' ) {
+                $posts = wpcf_admin_fields_get_posts_by_filter_missing_meta( $filter,
+                        $meta_key );
+            }
+            $option = get_option( 'wpcf_checkbox_migration', array() );
+            $cache_key = $action == 'do_not_save_check' ? 'do_not_save' : 'save';
+            $option[$cache_key] = $posts;
+            update_option( 'wpcf_checkbox_migration', $option );
+            return $posts;
         }
-        $option = get_option( 'wpcf_checkbox_migration', array() );
+    } else if ($field['meta_type'] == 'usermeta') {
+        $option = get_option( 'wpcf_checkbox_migration_usermeta', array() );
         $cache_key = $action == 'do_not_save_check' ? 'do_not_save' : 'save';
-        $option[$cache_key] = $posts;
-        update_option( 'wpcf_checkbox_migration', $option );
-        return $posts;
+        if ( $action == 'do_not_save_check' ) {
+            $user_query = new WP_User_Query( array('meta_key' => $field['meta_key'],
+                'meta_value' => '0', 'meta_compare' => '=', 'fields' => 'ID') );
+            $r =  $user_query->results;
+        } else if ( $action == 'save_check' ) {
+            global $wpdb;
+            $_query = "SELECT u.ID FROM {$wpdb->users} u WHERE NOT EXISTS (SELECT um.user_id FROM {$wpdb->usermeta} um WHERE u.ID = um.user_id AND um.meta_key = '%s')";
+            $r = $wpdb->get_col($wpdb->prepare( $_query, $field['meta_key']) );
+        }
+        $option[$field['meta_key']][$cache_key] = $r;
+        update_option( 'wpcf_checkbox_migration_usermeta', $option );
+        return $r;
     }
     return false;
 }
@@ -690,14 +710,58 @@ function wpcf_admin_fields_checkbox_migrate_empty_check( $field, $action ) {
  * @return boolean|int 
  */
 function wpcf_admin_fields_checkbox_migrate_empty( $field, $action ) {
-    $field = wpcf_admin_fields_get_field( $field );
-    if ( empty( $field ) || $field['type'] != 'checkbox' ) {
+    if ( $field['type'] != 'checkbox' ) {
+        return false;
+    }
+    if ( $field['meta_type'] == 'usermeta' ) {
+        $option = get_option( 'wpcf_checkbox_migration_usermeta', array() );
+        if ( empty( $option[$field['meta_key']][$action] ) ) {
+            $users = wpcf_admin_fields_checkbox_migrate_empty_check( $field,
+                    $action . '_check' );
+        } else {
+            $users = $option[$field['meta_key']][$action];
+        }
+        if ( !empty( $users ) ) {
+            if ( $action == 'do_not_save' ) {
+                $count = 0;
+                foreach ( $users as $temp_key => $user_id ) {
+                    if ( $count == 1000 ) {
+                        $option[$field['meta_key']][$action] = $users;
+                        update_option( 'wpcf_checkbox_migration', $option );
+                        $data = array('offset' => $temp_key);
+                        return $data;
+                    }
+                    delete_user_meta( $user_id, $field['meta_key'], 0 );
+                    unset( $users[$temp_key] );
+                    $count++;
+                }
+                unset( $option[$field['meta_key']][$action] );
+                update_option( 'wpcf_checkbox_migration_usermeta', $option );
+                return $users;
+            } else if ( $action == 'save' ) {
+                $count = 0;
+                foreach ( $users as $temp_key => $user_id ) {
+                    if ( $count == 1000 ) {
+                        $option[$field['meta_key']][$action] = $users;
+                        update_option( 'wpcf_checkbox_migration_usermeta', $option );
+                        $data = array('offset' => $temp_key);
+                        return $data;
+                    }
+                    update_user_meta( $user_id, $field['meta_key'], 0 );
+                    unset( $users[$temp_key] );
+                    $count++;
+                }
+                unset( $option[$field['meta_key']][$action] );
+                update_option( 'wpcf_checkbox_migration_usermeta', $option );
+                return $users;
+            }
+        }
         return false;
     }
     $option = get_option( 'wpcf_checkbox_migration', array() );
     $meta_key = wpcf_types_get_meta_prefix( $field ) . $field['id'];
     if ( empty( $option[$action] ) ) {
-        $posts = wpcf_admin_fields_checkbox_migrate_empty_check( $field['id'],
+        $posts = wpcf_admin_fields_checkbox_migrate_empty_check( $field,
                 $action . '_check' );
     } else {
         $posts = $option[$action];
@@ -904,9 +968,39 @@ function wpcf_admin_fields_get_posts_by_filter_missing_meta( $filter,
  * @return boolean|int 
  */
 function wpcf_admin_fields_checkboxes_migrate_empty_check( $field, $action ) {
-    $field = wpcf_admin_fields_get_field( $field );
-    if ( empty( $field ) || $field['type'] != 'checkboxes' || empty( $field['data']['options'] ) ) {
+    if ( $field['type'] != 'checkboxes' || empty( $field['data']['options'] ) ) {
         return false;
+    }
+    if ( $field['meta_type'] == 'usermeta' ) {
+        global $wpdb;
+        if ( $action == 'do_not_save_check' ) {
+            $query = array();
+            foreach ( $field['data']['options'] as $option_id => $option_data ) {
+//                $query[] = '\"' . $option_id . '\";s:1:\"0\";';
+                $query[] = '\"' . $option_id . '\";i:0;';
+            }
+            $meta_query = "SELECT u.ID FROM {$wpdb->users} u
+                LEFT JOIN {$wpdb->usermeta} um ON u.ID = um.user_id 
+                WHERE (um.meta_key = '%s' AND (um.meta_value LIKE '%%"
+                    . implode( "%%' OR um.meta_value LIKE '%%", $query ) . "%%'))";
+        } else if ( $action == 'save_check' ) {
+            $query = array();
+            foreach ( $field['data']['options'] as $option_id => $option_data ) {
+//                $query[] = '\"' . $option_id . '\";s:1:\"0\";';
+                // Check only if missing
+                $query[] = '\"' . $option_id . '\"';
+            }
+            $meta_query = "SELECT u.ID FROM {$wpdb->users} u
+                LEFT JOIN {$wpdb->usermeta} um ON u.ID = um.user_id 
+                WHERE (um.meta_key = '%s' AND (um.meta_value NOT LIKE '%%"
+                    . implode( "%%' OR um.meta_value NOT LIKE '%%", $query ) . "%%'))";
+        }
+        $users = $wpdb->get_col( $wpdb->prepare( $meta_query, $field['meta_key'] ) );
+        $option = get_option( 'wpcf_checkboxes_migration_usermeta', array() );
+        $cache_key = $action == 'do_not_save_check' ? 'do_not_save' : 'save';
+        $option[$field['meta_key']][$cache_key] = $users;
+        update_option( 'wpcf_checkboxes_migration_usermeta', $option );
+        return $users;
     }
     $filter = wpcf_admin_fields_get_filter_by_field( $field['id'] );
     if ( !empty( $filter ) ) {
@@ -917,7 +1011,7 @@ function wpcf_admin_fields_checkboxes_migrate_empty_check( $field, $action ) {
         if ( $action == 'do_not_save_check' ) {
             $query = array();
             foreach ( $field['data']['options'] as $option_id => $option_data ) {
-                $query[] = '\"' . $option_id . '\";s:1:\"0\";';
+                $query[] = '\"' . $option_id . '\";i:0;';
             }
             $meta_query = "(m.meta_key = '$meta_key' AND (m.meta_value LIKE '%%"
                     . implode( "%%' OR m.meta_value LIKE '%%", $query ) . "%%'))";
@@ -925,10 +1019,11 @@ function wpcf_admin_fields_checkboxes_migrate_empty_check( $field, $action ) {
         } else if ( $action == 'save_check' ) {
             $query = array();
             foreach ( $field['data']['options'] as $option_id => $option_data ) {
-                $query[] = '\"' . $option_id . '\";s:1:\"0\";';
+                // Check only if missing
+                $query[] = '\"' . $option_id . '\"';
             }
             $meta_query = "(m.meta_key = '$meta_key' AND (m.meta_value NOT LIKE '%%"
-                    . implode( "%%' AND m.meta_value NOT LIKE '%%", $query ) . "%%'))";
+                    . implode( "%%' OR m.meta_value NOT LIKE '%%", $query ) . "%%'))";
             $posts = wpcf_admin_fields_get_posts_by_filter( $filter, $meta_query );
         }
         $option = get_option( 'wpcf_checkboxes_migration', array() );
@@ -948,14 +1043,93 @@ function wpcf_admin_fields_checkboxes_migrate_empty_check( $field, $action ) {
  * @return boolean|int 
  */
 function wpcf_admin_fields_checkboxes_migrate_empty( $field, $action ) {
-    $field = wpcf_admin_fields_get_field( $field );
-    if ( empty( $field ) || $field['type'] != 'checkboxes' || empty( $field['data']['options'] ) ) {
+    if ( $field['type'] != 'checkboxes' || empty( $field['data']['options'] ) ) {
+        return false;
+    }
+    if ( $field['meta_type'] == 'usermeta' ) {
+        $option = get_option( 'wpcf_checkboxes_migration_usermeta', array() );
+        if ( empty( $option[$field['meta_key']][$action] ) ) {
+            $users = wpcf_admin_fields_checkboxes_migrate_empty_check( $field,
+                    $action . '_check' );
+        } else {
+            $users = $option[$field['meta_key']][$action];
+        }
+
+        if ( !empty( $users ) ) {
+            if ( $action == 'do_not_save' ) {
+                $count = 0;
+                foreach ( $users as $temp_key => $user_id ) {
+                    if ( $count == 1000 ) {
+                        $option[$field['meta_key']][$action] = $users;
+                        update_option( 'wpcf_checkboxes_migration_usermeta', $option );
+                        $data = array('offset' => $temp_key);
+                        return $data;
+                    }
+                    $meta_saved = get_user_meta( $user_id, $field['meta_key'] );
+                    if ( !empty( $meta_saved ) ) {
+                        foreach ( $meta_saved as $key => $value ) {
+                            if ( !is_array( $value ) ) {
+                                $value_check = array();
+                            } else {
+                                $value_check = $value;
+                            }
+                            foreach ( $field['data']['options'] as $option_id => $option_data ) {
+                                if ( isset( $value_check[$option_id] ) && $value_check[$option_id] == '0' ) {
+                                    unset( $value_check[$option_id] );
+                                }
+                            }
+                            update_user_meta( $user_id, $field['meta_key'], $value_check,
+                                    $value );
+                        }
+                    }
+                    unset( $users[$temp_key] );
+                    $count++;
+                }
+                unset( $option[$field['meta_key']][$action] );
+                update_option( 'wpcf_checkboxes_migration_usermeta', $option );
+                return $users;
+            } else if ( $action == 'save' ) {
+                $count = 0;
+                foreach ( $users as $temp_key => $user_id ) {
+                    if ( $count == 1000 ) {
+                        $option[$field['meta_key']][$action] = $users;
+                        update_option( 'wpcf_checkboxes_migration_usermeta', $option );
+                        $data = array('offset' => $temp_key);
+                        return $data;
+                    }
+                    $meta_saved = get_user_meta( $user_id, $field['meta_key'] );
+                    if ( !empty( $meta_saved ) ) {
+                        foreach ( $meta_saved as $key => $value ) {
+                            if ( !is_array( $value ) ) {
+                                $value_check = array();
+                            } else {
+                                $value_check = $value;
+                            }
+                            $set_value = array();
+                            foreach ( $field['data']['options'] as $option_id => $option_data ) {
+                                if ( !isset( $value_check[$option_id] ) ) {
+                                    $set_value[$option_id] = 0;
+                                }
+                            }
+                            $updated_value = $value_check + $set_value;
+                            update_user_meta( $user_id, $field['meta_key'],
+                                    $updated_value, $value );
+                        }
+                    }
+                    unset( $users[$temp_key] );
+                    $count++;
+                }
+                unset( $option[$field['meta_key']][$action] );
+                update_option( 'wpcf_checkboxes_migration_usermeta', $option );
+                return $users;
+            }
+        }
         return false;
     }
     $option = get_option( 'wpcf_checkboxes_migration', array() );
     $meta_key = wpcf_types_get_meta_prefix( $field ) . $field['id'];
     if ( empty( $option[$action] ) ) {
-        $posts = wpcf_admin_fields_checkboxes_migrate_empty_check( $field['id'],
+        $posts = wpcf_admin_fields_checkboxes_migrate_empty_check( $field,
                 $action . '_check' );
     } else {
         $posts = $option[$action];
@@ -981,7 +1155,7 @@ function wpcf_admin_fields_checkboxes_migrate_empty( $field, $action ) {
                         }
                         foreach ( $field['data']['options'] as $option_id =>
                                     $option_data ) {
-                            if ( isset( $value_check[$option_id] ) ) {
+                            if ( isset( $value_check[$option_id] )  && $value_check[$option_id] == '0' ) {
                                 unset( $value_check[$option_id] );
                             }
                         }

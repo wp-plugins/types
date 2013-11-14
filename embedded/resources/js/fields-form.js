@@ -23,22 +23,22 @@ jQuery(document).ready(function($){
         }
     });
     // Sort and Drag
-    jQuery('#wpcf-fields-sortable').sortable({
+    $('#wpcf-fields-sortable').sortable({
         revert: true,
         handle: 'img.wpcf-fields-form-move-field',
         containment: 'parent'
     });
-    jQuery('.wpcf-fields-radio-sortable').sortable({
+    $('.wpcf-fields-radio-sortable').sortable({
         revert: true,
         handle: 'img.js-types-sort-button',
         containment: 'parent'
     });
-    jQuery('.wpcf-fields-checkboxes-sortable').sortable({
+    $('.wpcf-fields-checkboxes-sortable').sortable({
         revert: true,
         handle: 'img.js-types-sort-button',
         containment: 'parent'
     });
-    jQuery('.wpcf-fields-select-sortable').sortable({
+    $('.wpcf-fields-select-sortable').sortable({
         revert: true,
         handle: 'img.js-types-sort-button',
         containment: 'parent'

@@ -273,16 +273,20 @@ final class WPCF_Path
         $baseurl = $use_baseurl ? self::getBaseUrl() : self::getHostUrl();
 
         if ( 0 === strpos( $__FILE__, $docroot ) ) {
-            return $baseurl . self::str_after( $__FILE__, $docroot );
+            return self::_join_paths( $baseurl, self::str_after( $__FILE__, $docroot ) );
         } else {
             $map = self::getUSymlink( /* $_SERVER['SCRIPT_NAME'], $_SERVER['SCRIPT_FILENAME'] */ );
             if ( !empty( $map ) && false !== strpos( $__FILE__, $map[1] ) ) {
-                return $baseurl . str_replace( $map[1], $map[0], $__FILE__ );
+                return self::_join_paths( $baseurl, str_replace( $map[1], $map[0], $__FILE__ ) );
             } else {
                 // finally here
-                return $baseurl . $__FILE__;
+                return self::_join_paths( $baseurl, $__FILE__ );
             }
         }
+    }
+    
+    private static function _join_paths( $part1, $part2 ) {
+        return trailingslashit( $part1 ) . ltrim( $part2, '/' );
     }
 
     public static function getCurrentUrl( $q = true )

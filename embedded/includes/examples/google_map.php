@@ -150,9 +150,11 @@ function wpcf_fields_google_map_editor_callback( $field, $settings ) {
     ob_start();
 
     ?>
-    <label><input type="text" name="width" value="<?php echo isset( $settings['width'] ) ? $settings['width'] : '425'; ?>" />&nbsp;<?php _e('Width', 'wpcf'); ?></label>
+    <label><input type="text" name="width" value="<?php echo isset( $settings['width'] ) ? $settings['width'] : '425'; ?>" />&nbsp;<?php _e( 'Width',
+            'wpcf' ); ?></label>
     <br />
-    <label><input type="text" name="height" value="<?php echo isset( $settings['height'] ) ? $settings['height'] : '350'; ?>" />&nbsp;<?php _e('Height', 'wpcf'); ?></label>
+    <label><input type="text" name="height" value="<?php echo isset( $settings['height'] ) ? $settings['height'] : '350'; ?>" />&nbsp;<?php _e( 'Height',
+            'wpcf' ); ?></label>
     <?php
     $form = ob_get_contents();
     ob_get_clean();
@@ -209,5 +211,4 @@ function wpcf_fields_google_map_view( $data ) {
             . '&amp;source=embed" style="color:#0000FF;text-align:left">'
             . __( 'View Larger Map', 'wpcf' )
             . '</a></small><br />';
-    }
-
+}

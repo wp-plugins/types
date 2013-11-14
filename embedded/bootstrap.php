@@ -52,6 +52,9 @@ define( 'WPCF_EMBEDDED_RES_ABSPATH', WPCF_EMBEDDED_ABSPATH . '/resources' );
 if ( !defined( 'WPCF_DEBUG' ) ) {
     define( 'WPCF_DEBUG', false );
 }
+if ( !defined( 'TYPES_DEBUG' ) ) {
+    define( 'TYPES_DEBUG', false );
+}
 
 /*
  * 
@@ -111,7 +114,7 @@ function wpcf_embedded_init() {
     // Define necessary constants if plugin is not present
     // This ones are skipped if used as embedded code!
     if ( !defined( 'WPCF_VERSION' ) ) {
-        define( 'WPCF_VERSION', '1.4.0.2' );
+        define( 'WPCF_VERSION', '1.5' );
         define( 'WPCF_META_PREFIX', 'wpcf-' );
     }
 

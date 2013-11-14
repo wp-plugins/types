@@ -72,22 +72,23 @@ function wpcf_pr_admin_post_init_action( $post_type, $post, $groups,
  * @return type 
  */
 function wpcf_pr_admin_get_has( $post_type ) {
-    if ( empty( $post_type ) ) {
-        return false;
+    static $cache = array();
+    if ( isset( $cache[$post_type] ) ) {
+        return $cache[$post_type];
     }
     $relationships = get_option( 'wpcf_post_relationship', array() );
     if ( empty( $relationships[$post_type] ) ) {
         return false;
     }
     // See if enabled
-    foreach ( $relationships[$post_type] as $temp_post_type =>
-                $temp_post_type_data ) {
+    foreach ( $relationships[$post_type] as $temp_post_type => $temp_post_type_data ) {
         $active = get_post_type_object( $temp_post_type );
         if ( !$active ) {
             unset( $relationships[$post_type][$temp_post_type] );
         }
     }
-    return !empty( $relationships[$post_type] ) ? $relationships[$post_type] : false;
+    $cache[$post_type] = !empty( $relationships[$post_type] ) ? $relationships[$post_type] : false;
+    return $cache[$post_type];
 }
 
 /**
@@ -97,8 +98,9 @@ function wpcf_pr_admin_get_has( $post_type ) {
  * @return type 
  */
 function wpcf_pr_admin_get_belongs( $post_type ) {
-    if ( empty( $post_type ) ) {
-        return false;
+    static $cache = array();
+    if ( isset( $cache[$post_type] ) ) {
+        return $cache[$post_type];
     }
     $relationships = get_option( 'wpcf_post_relationship', array() );
     $results = array();
@@ -114,7 +116,8 @@ function wpcf_pr_admin_get_belongs( $post_type ) {
             }
         }
     }
-    return !empty( $results ) ? $results : false;
+    $cache[$post_type] = !empty( $results ) ? $results : false;
+    return $cache[$post_type];
 }
 
 /**
@@ -281,19 +284,45 @@ function wpcf_pr_admin_post_meta_box_belongs_form( $post, $type, $belongs ) {
  */
 function wpcf_pr_admin_update_belongs( $post_id, $data ) {
 
+    $errors = array();
     $post = get_post( intval( $post_id ) );
-    if ( empty( $post ) ) {
-        return false;
+    if ( empty( $post->ID ) ) {
+        return new WP_Error( 'wpcf_update_belongs',
+                sprintf( __( 'Missing child post ID %d', 'wpcf' ),
+                        intval( $post_id ) ) );
     }
 
     foreach ( $data as $post_type => $post_owner_id ) {
-        $post_owner = get_post( intval( $post_owner_id ) );
-        if ( intval( $post_owner_id ) == 0 ) {
-            delete_post_meta( $post_id, '_wpcf_belongs_' . $post_type . '_id' );
-        } else if ( !empty( $post_owner ) ) {
-            update_post_meta( $post_id, '_wpcf_belongs_' . $post_type . '_id',
-                    $post_owner_id );
+        // Check if relationship exists
+        if ( !wpcf_relationship_is_parent( $post_type, $post->post_type ) ) {
+            $errors[] = sprintf( __( 'Relationship do not exist %s -> %s',
+                            'wpcf' ), strval( $post_type ),
+                    strval( $post->post_type ) );
+            continue;
         }
+        if ( $post_owner_id == '0' ) {
+            delete_post_meta( $post_id, "_wpcf_belongs_{$post_type}_id" );
+            continue;
+        }
+        $post_owner = get_post( intval( $post_owner_id ) );
+        // Check if owner post exists
+        if ( empty( $post_owner->ID ) ) {
+            $errors[] = sprintf( __( 'Missing parent post ID %d', 'wpcf' ),
+                    intval( $post_owner_id ) );
+            continue;
+        }
+        // Check if owner post type matches required
+        if ( $post_owner->post_type != $post_type ) {
+            $errors[] = sprintf( __( 'Parent post ID %d is not type of %s',
+                            'wpcf' ), intval( $post_owner_id ),
+                    strval( $post_type ) );
+            continue;
+        }
+        update_post_meta( $post_id, "_wpcf_belongs_{$post_type}_id", $post_owner->ID );
+    }
+
+    if ( !empty( $errors ) ) {
+        return new WP_Error( 'wpcf_update_belongs', implode( '; ', $errors ) );
     }
 
     return __( 'Post updated', 'wpcf' );
@@ -431,4 +460,15 @@ function wpcf_relationship_ajax_data_filter( $posted, $field ) {
             $field );
 
     return is_null( $value ) ? $posted : $value;
+}
+
+/**
+ * Checks if post type is parent
+ * @param type $parent_post_type
+ * @param type $child_post_type
+ * @return type
+ */
+function wpcf_relationship_is_parent( $parent_post_type, $child_post_type ) {
+    $has = wpcf_pr_admin_get_has( $parent_post_type );
+    return isset( $has[$child_post_type] );
 }

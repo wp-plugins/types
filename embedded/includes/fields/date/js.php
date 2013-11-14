@@ -10,6 +10,7 @@ function wpcf_fields_date_meta_box_js_inline() {
 
     $date_format_note = '<span style="margin-left:10px"><i>' . esc_js( sprintf( __( 'Input format: %s',
                                     'wpcf' ), wpcf_get_date_format_text() ) ) . '</i></span>';
+    $year_range = fields_date_timestamp_neg_supported() ? '1902:2037' : '1970:2037';
 
     ?>
     <script type="text/javascript">
@@ -33,6 +34,7 @@ function wpcf_fields_date_meta_box_js_inline() {
                             altFormat: "<?php echo $date_format; ?>",
                             changeMonth: true,
                             changeYear: true,
+                            yearRange: "<?php echo $year_range; ?>",
                             onSelect: function(dateText, inst) {
                                 jQuery(this).trigger('wpcfDateBlur');
                             }

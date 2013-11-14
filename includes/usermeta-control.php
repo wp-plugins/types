@@ -11,7 +11,6 @@ class WPCF_User_Fields_Control_Table extends WP_List_Table
 {
 
     function prepare_items() {
-        $time = time();
         global $wpdb;
         $wpcf_per_page = 15;
 
@@ -211,7 +210,8 @@ class WPCF_User_Fields_Control_Table extends WP_List_Table
             $add = '<br /><span style="color:red;">(' . __("This field was disabled during conversion. You need to set some further settings in the group editor.",
                             'wpcf') . ')</span>';
             if (isset($item['groups']) && sizeof($item['groups'])) {
-                $add .= ' <a href="' . admin_url('admin.php?page=wpcf-edit-usermeta&group_id=' . key( $item['groups'] ) ) . '">' . __('Edit', 'wpcf') . '</a>';
+                $add .= ' <a href="' . admin_url('admin.php?page=wpcf-edit-usermeta&group_id='
+                        . key( $item['groups'] ) ) . '">' . __('Edit', 'wpcf') . '</a>';
             }
         }
         return $item['type'] . $add;

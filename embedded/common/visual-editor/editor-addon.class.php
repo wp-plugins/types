@@ -38,7 +38,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             $menus = array();
             $sub_menus = array();
 
-			if( $this->items )
+            if( $this->items )
             foreach ( $this->items as $item ) {
                 $parts = explode( '-!-', $item[2] );
                 $menu_level = &$menus;
@@ -64,6 +64,8 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
                         __( 'Post View', 'wpv-views' ) );
                 $this->add_view_type( $menus, 'view',
                         __( 'Taxonomy View', 'wpv-views' ) );
+                $this->add_view_type( $menus, 'view',
+                        __( 'User View', 'wpv-views' ) );
             }
 
             if ( $standard_v && $add_views ) {
@@ -71,6 +73,8 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
                         __( 'Post View', 'wpv-views' ) );
                 $this->add_view_type( $menus, 'view',
                         __( 'Taxonomy View', 'wpv-views' ) );
+                $this->add_view_type( $menus, 'view',
+                        __( 'User View', 'wpv-views' ) );
             }
 
             // Sort menus
@@ -128,6 +132,208 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
         }
 
         /**
+         * Adding a "V" button to the menu (for user fields)
+         * @param string $context
+         * @param string $text_area
+         * @param boolean $standard_v is this a standard V button
+         */
+        function add_users_form_button( $context, $text_area = 'textarea#content', $codemirror_button = false ) {
+            global $wp_version, $sitepress, $wpdb, $WP_Views;
+            $standard_v = true;
+            // WP 3.3 changes ($context arg is actually a editor ID now)
+            if ( version_compare( $wp_version, '3.1.4', '>' ) && !empty( $context ) ) {
+                $text_area = $context;
+            }
+            //print_r($this->items);exit;
+            $this->items = array();
+
+            $unused_field = array('comment_shortcuts','managenav-menuscolumnshidden','dismissed_wp_pointers','meta-box-order_dashboard','nav_menu_recently_edited',
+            'primary_blog','rich_editing','source_domain','use_ssl','user_level','user-settings-time'
+            ,'user-settings','dashboard_quick_press_last_post_id','capabilities','new_date','show_admin_bar_front','show_welcome_panel','show_highlight','admin_color'
+            ,'language_pairs','first_name','last_name','name','nickname','description','yim','jabber','aim');
+            $exclude_these_hidden_var = '/('.implode('|', $unused_field).')/';
+            $this->items = array( 
+                array(__('User Email', 'wpv-views'), 'wpv-user field="user_email"',__('Basic', 'wpv-views'),''),
+                array(__('User Login', 'wpv-views'), 'wpv-user field="user_login"',__('Basic', 'wpv-views'),''),
+                array(__('First Name', 'wpv-views'), 'wpv-user field="user_firstname"',__('Basic', 'wpv-views'),''),
+                array(__('Last Name', 'wpv-views'), 'wpv-user field="user_lastname"',__('Basic', 'wpv-views'),''),
+                array(__('Nickname', 'wpv-views'), 'wpv-user field="nickname"',__('Basic', 'wpv-views'),''),
+                array(__('Display Name', 'wpv-views'), 'wpv-user field="display_name"',__('Basic', 'wpv-views'),''),
+                array(__('Description', 'wpv-views'), 'wpv-user field="description"',__('Basic', 'wpv-views'),''),
+                array(__('Yahoo IM', 'wpv-views'), 'wpv-user field="yim"',__('Basic', 'wpv-views'),''),
+                array(__('Jabber', 'wpv-views'), 'wpv-user field="jabber"',__('Basic', 'wpv-views'),''),
+                array(__('AIM', 'wpv-views'), 'wpv-user field="aim"',__('Basic', 'wpv-views'),''),
+                array(__('User Url', 'wpv-views'), 'wpv-user field="user_url"',__('Basic', 'wpv-views'),''),
+                array(__('Registration Date', 'wpv-views'), 'wpv-user field="user_registered"',__('Basic', 'wpv-views'),''),
+                array(__('User Status', 'wpv-views'), 'wpv-user field="user_status"',__('Basic', 'wpv-views'),''),
+                array(__('User Spam Status', 'wpv-views'), 'wpv-user field="spam"',__('Basic', 'wpv-views'),'')
+                );
+            
+            if ( isset( $sitepress ) && function_exists( 'wpml_string_shortcode' ) ) {
+		$this->items[] = array(__('Translatable string', 'wpv-views'), 'wpml-string',__('Basic', 'wpv-views'),'wpv_insert_translatable_string_popup()');
+	    }
+	    
+            
+
+            $meta_keys = get_user_meta_keys();
+            $all_types_fields = get_option( 'wpcf-fields', array() );
+            foreach ($meta_keys as $key) {
+                $key_nicename = '';
+                if ( function_exists('wpcf_init') ){
+                    if (stripos($key, 'wpcf-') === 0) {
+                        //
+                    }
+                    else {
+                        if ( preg_match($exclude_these_hidden_var , $key) ){
+                            continue;
+                        }
+                        $this->items[] = array($key, 
+                            'wpv-user field="'.$key.'"',
+                            __('Users fields', 'wpv-views'),'');
+                    }
+                }
+                else{
+                    if ( preg_match($exclude_these_hidden_var , $key) ){
+                            continue;
+                    }
+                    $this->items[] = array($key, 
+                          'wpv-user field="'.$key.'"',
+                          __('User fields', 'wpv-views'),'');
+                }
+                
+            }
+            
+            if ( function_exists('wpcf_init') ){
+                //Get types groups and fields
+                $groups = wpcf_admin_fields_get_groups( 'wp-types-user-group' );            
+                $user_id = wpcf_usermeta_get_user();
+                $add = array();
+                if ( !empty( $groups ) ) {
+                    foreach ( $groups as $group_id => $group ) {
+                        if ( empty( $group['is_active'] ) ) {
+                            continue;
+                        }
+                        $fields = wpcf_admin_fields_get_fields_by_group( $group['id'],
+                                'slug', true, false, true, 'wp-types-user-group',
+                                'wpcf-usermeta' );
+            
+                        if ( !empty( $fields ) ) {
+                            foreach ( $fields as $field_id => $field ) {
+                                $add[] = $field['meta_key'];
+                                $callback = 'wpcfFieldsEditorCallback(\'' . $field['id'] . '\', \'views-usermeta\', -1)';
+                                $this->items[] = array($field['name'], 
+                                  'types usermeta="'.$field['meta_key'].'"][/types',
+                                  $group['name'],$callback);  
+                                 
+                              
+                            }
+                        }
+                    }
+                }
+
+                //Get unused types fields
+                $cf_types = wpcf_admin_fields_get_fields( true, true, false, 'wpcf-usermeta' );
+                foreach ( $cf_types as $cf_id => $cf ) {
+                     if ( !in_array( $cf['meta_key'], $add) ){
+                         $callback = 'wpcfFieldsEditorCallback(\'' . $cf['id'] . '\', \'views-usermeta\', -1)';
+                                $this->items[] = array($cf['name'], 
+                                  'types usermeta="'.$cf['meta_key'].'"][/types',
+                                  __('Types fields', 'wpv-views'),$callback); 
+                         
+                     }
+                }
+             }
+             
+		$view_available = $wpdb->get_results("SELECT ID, post_title FROM {$wpdb->posts} WHERE post_type='view' AND post_status in ('publish')");
+		foreach($view_available as $view) {
+
+			$view_settings = get_post_meta($view->ID, '_wpv_settings', true);
+			if (isset($view_settings['query_type'][0]) && $view_settings['query_type'][0] == 'posts' && !$WP_Views->is_archive_view($view->ID)) {
+			
+				$this->items[] = array($view->post_title,
+					$view->post_title,
+					__('Post View', 'wpv-views'),
+					''
+				);
+			}
+		}
+           
+            $out = array();
+            
+            $menus = array();
+            $sub_menus = array();
+            
+            if( $this->items )
+            foreach ( $this->items as $item ) {
+                $parts = explode( '-!-', $item[2] );
+                $menu_level = &$menus;
+                foreach ( $parts as $part ) {
+                    if ( $part != '' ) {
+                        if ( !array_key_exists( $part, $menu_level ) ) {
+                            $menu_level[$part] = array();
+                        }
+                        $menu_level = &$menu_level[$part];
+                    }
+                }
+                $menu_level[$item[0]] = $item;
+            }
+
+            
+             
+
+            // Sort menus
+            if ( is_array( $menus ) ) {
+                $menus = $this->sort_menus_alphabetically( $menus );
+            }
+
+
+            $this->_media_menu_direct_links = array();
+            $menus_output = $this->_output_media_menu( $menus, $text_area,
+                    $standard_v );
+
+            $direct_links = implode( ' ', $this->_media_menu_direct_links );
+            $dropdown_class = 'js-editor_addon_dropdown-'.$this->name;
+            $icon_class = 'js-wpv-shortcode-post-icon-'.$this->name;
+            $addon_button = '<img src="' . $this->media_button_image . '" class="wpv-shortcode-post-icon '. $icon_class .'" />';
+            if ( !$standard_v ) {
+                $addon_button = '<img src="' . $this->media_button_image . '" class="vicon wpv-shortcode-post-icon '. $icon_class .'" />';
+            }
+            // Codemirrir (new layout) button
+            if ( $codemirror_button ){
+                 $addon_button = '<button class="js-code-editor-toolbar-button js-code-editor-toolbar-button-v-icon button-secondary">'.
+                        '<i class="icon-views"></i><span class="button-label">'. __('Fields', 'wpv-views') .'</span></button>';
+            }
+            // add search box
+            $searchbar = $this->get_search_bar();
+
+            // generate output content
+            $out = '' .
+            $addon_button . '
+            <div class="editor_addon_dropdown '. $dropdown_class .'" id="editor_addon_dropdown_' . md5( serialize( debug_backtrace() ) ) . '">
+                <h3 class="title">' . $this->button_text . '</h3>
+                <div class="close">&nbsp;</div>
+                <div class="editor_addon_dropdown_content">
+                        ' . apply_filters( 'editor_addon_dropdown_top_message_' . $this->name,
+                                        '' ) . '
+                        <p class="direct-links-desc">'. __('Go to','wpv-views') .': </p>
+                        <ul class="direct-links">' . $direct_links . '</ul>
+                        ' . $searchbar . '
+                        ' . $menus_output . '
+                        ' . apply_filters( 'editor_addon_dropdown_bottom_message' . $this->name,
+                                        '' ) .
+                        '
+                </div>
+            </div>';
+            // WP 3.3 changes
+            if ( version_compare( $wp_version, '3.1.4', '>' ) ) {
+                echo apply_filters( 'wpv_add_media_buttons', $out );
+            } else {
+                return apply_filters( 'wpv_add_media_buttons', $context . $out );
+            }
+             
+        }
+
+        /**
          * Output a single menu item
          * @param string $menu
          * @param string $text_area
@@ -166,11 +372,14 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
 
                                 if ( $menu_item[2] == __( 'Post View',
                                                 'wpv-views' ) || $menu_item[2] == __( 'Taxonomy View',
+                                                'wpv-views' ) || $menu_item[2] == __( 'User View',
                                                 'wpv-views' ) ) {
                                     $short_code = 'wpv-view name="' . $short_code . '"';
                                     $link_text = str_replace( ' - ' . __( 'Post View' ),
                                             '', $link_text );
                                     $link_text = str_replace( ' - ' . __( 'Taxonomy View' ),
+                                            '', $link_text );
+                                    $link_text = str_replace( ' - ' . __( 'User View' ),
                                             '', $link_text );
                                 }
                                 $short_code = '[' . $short_code . ']';
@@ -182,7 +391,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
                             }
                         }
                     } else {
-			if ( 'wpcf' != $key ) {  // for some reason it displays a group wpcf on sites with WPLANG different from ''
+            if ( 'wpcf' != $key && 'views' != $key ) {  // for some reason it displays a group wpcf on sites with WPLANG different from ''
                         // a sum menu.
                         /*
                          * SRDJAN
@@ -192,7 +401,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
                         $css_classes = '';
 //                        $css_classes = isset($menu_item['css']) ? $menu_item['css'] : '';
 //                        if($key == __('Taxonomy', 'wpv-views') || $key == __('Basic', 'wpv-views')) {
-//                        	$css_classes = $all_post_types;
+//                          $css_classes = $all_post_types;
 //                        }
                         $this->_media_menu_direct_links[] = '<li data-id="' . md5( $key ) .'" class="editor-addon-top-link" data-editor_addon_target="editor-addon-link-' . md5( $key ) . '">' . $key . ' </li>';
                         /*
@@ -260,7 +469,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
                 $param1 = 'View template';
             }
             if ( $menu_item[2] == __( 'Post View', 'wpv-views' ) || $menu_item[2] == __( 'Taxonomy View',
-                            'wpv-views' ) ) {
+                            'wpv-views' ) || $menu_item[2] == __( 'User View', 'wpv-views' ) ) {
                 $param1 = 'Child View';
             }
             if ( strpos( $slug, 'wpv-post-field' ) !== false ) {
@@ -288,6 +497,8 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
                 $link_text = str_replace( ' - ' . __( 'Post View' ), '',
                         $link_text );
                 $link_text = str_replace( ' - ' . __( 'Taxonomy View' ), '',
+                        $link_text );
+                $link_text = str_replace( ' - ' . __( 'User View' ), '',
                         $link_text );
             }
             return '<li class="item" onclick="on_add_field_wpv(\'' . $param1 . '\', \'' . esc_js( $slug ) . '\', \'' . base64_encode( $menu_item[0] ) . '\')">' . $link_text . "</li>\n";
@@ -364,6 +575,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             $menu_temp = array();
             $menu_names = array(
                 __( 'Taxonomy View', 'wpv-views' ),
+                __( 'User View', 'wpv-views' ),
                 __( 'Post View', 'wpv-views' ),
                 __( 'View', 'wpv-views' ),
                 __( 'View templates', 'wpv-views' ),
@@ -432,11 +644,17 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
                     if ( isset( $view_settings['query_type'][0] ) && $view_settings['query_type'][0] == 'taxonomy' ) {
                         $title = $vtemplate->post_title . ' - ' . __( 'Taxonomy View',
                                         'wpv-views' );
-                        if ( $post_name == __( 'Post View', 'wpv-views' ) ) {
+                        if ( $post_name == __( 'Post View', 'wpv-views' ) || $post_name == __( 'User View', 'wpv-views' ) ) {
+                            continue;
+                        }
+                    } elseif ( isset( $view_settings['query_type'][0] ) && $view_settings['query_type'][0] == 'users' ) {
+                        $title = $vtemplate->post_title . ' - ' . __( 'User View',
+                                        'wpv-views' );
+                        if ( $post_name == __( 'Post View', 'wpv-views' ) || $post_name == __( 'Taxonomy View', 'wpv-views' ) ) {
                             continue;
                         }
                     } else {
-                        if ( $post_name == __( 'Taxonomy View', 'wpv-views' ) ) {
+                        if ( $post_name == __( 'Taxonomy View', 'wpv-views' ) || $post_name == __( 'User View', 'wpv-views' ) ) {
                             continue;
                         }
                     }
@@ -486,32 +704,32 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
       Register this plugin as a mce 'addon'
       Tell the mce editor the url of the javascript file.
      */
-	if( !function_exists('wpv_mce_register') )
-	{
-		function wpv_mce_register( $plugin_array )
-	    {
-	        $plugin_array[str_replace( '-', '_', $this->name )] = $this->plugin_js_url;
-	        return $plugin_array;
-	    }
-	}
+    if( !function_exists('wpv_mce_register') )
+    {
+        function wpv_mce_register( $plugin_array )
+        {
+            $plugin_array[str_replace( '-', '_', $this->name )] = $this->plugin_js_url;
+            return $plugin_array;
+        }
+    }
     
-	if( !function_exists('editor_add_js') )
-	{
-		function editor_add_js() {
-	        global $pagenow;
+    if( !function_exists('editor_add_js') )
+    {
+        function editor_add_js() {
+            global $pagenow;
 
-	       if ( 
-			$pagenow == 'post.php' || $pagenow == 'post-new.php' ||
-			( $pagenow == 'admin.php' && ( isset( $_GET['page'] ) && ( $_GET['page'] == 'views-editor' || $_GET['page'] == 'view-archives-editor' ) ) ) // add the new Views edit screens
-	        ) {
+           if ( 
+            $pagenow == 'post.php' || $pagenow == 'post-new.php' ||
+            ( $pagenow == 'admin.php' && ( isset( $_GET['page'] ) && ( $_GET['page'] == 'views-editor' || $_GET['page'] == 'view-archives-editor' ) ) ) // add the new Views edit screens
+            ) {
 
 
-	            wp_enqueue_script( 'icl_editor-script',
-	                    EDITOR_ADDON_RELPATH . '/res/js/icl_editor_addon_plugin.js',
-	                    array() );
-	        }
-	    }
-	}
+                wp_enqueue_script( 'icl_editor-script',
+                        EDITOR_ADDON_RELPATH . '/res/js/icl_editor_addon_plugin.js',
+                        array() );
+            }
+        }
+    }
     
 
     /**
@@ -519,30 +737,30 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
      *
      * @param type $shortcode
      */
-	if( !function_exists('editor_admin_popup_insert_shortcode_js') )
-	{
-		function editor_admin_popup_insert_shortcode_js( $shortcode ) {
+    if( !function_exists('editor_admin_popup_insert_shortcode_js') )
+    {
+        function editor_admin_popup_insert_shortcode_js( $shortcode ) { // Types now uses ColorBox, it's not used in Views anymore. Maybe DEPRECATED
 
-	        ?>
-	        <script type="text/javascript">
-	            //<![CDATA[
+            ?>
+            <script type="text/javascript">
+                //<![CDATA[
 
-	            // Close popup
-	            window.parent.jQuery('#TB_closeWindowButton').trigger('click');
+                // Close popup
+                window.parent.jQuery('#TB_closeWindowButton').trigger('click');
 
-	            // Check if there is custom handler
-	            if (window.parent.wpcfFieldsEditorCallback_redirect) {
-	                eval(window.parent.wpcfFieldsEditorCallback_redirect['function'] + '(\'<?php echo esc_js( $shortcode ); ?>\', window.parent.wpcfFieldsEditorCallback_redirect[\'params\'])');
-	            } else {
-	                // Use default handler
-	                window.parent.icl_editor.insert('<?php echo $shortcode; ?>');
-	            }
+                // Check if there is custom handler
+                if (window.parent.wpcfFieldsEditorCallback_redirect) {
+                    eval(window.parent.wpcfFieldsEditorCallback_redirect['function'] + '(\'<?php echo esc_js( $shortcode ); ?>\', window.parent.wpcfFieldsEditorCallback_redirect[\'params\'])');
+                } else {
+                    // Use default handler
+                    window.parent.icl_editor.insert('<?php echo $shortcode; ?>');
+                }
 
-	            //]]>
-	        </script>
-	        <?php
-	    }
-	}
+                //]]>
+            </script>
+            <?php
+        }
+    }
     
 
 

@@ -40,6 +40,8 @@ class WPCF_Relationship
     function __construct() {
         $this->cf = new WPCF_Field;
         $this->settings = get_option( 'wpcf_post_relationship', array() );
+        add_action( 'wp_ajax_add-types_reltax_add',
+                array($this, 'ajaxAddTax') );
     }
 
     /**
@@ -210,10 +212,6 @@ class WPCF_Relationship
             return new WP_Error( 'wpcf-relationship-save-child', 'no parent/child post' );
         }
 
-        // TODO REMOVE
-        // Fix for Common Conditional check
-//        $_POST['post_ID'] = $child->ID;
-
         // Save relationship
         update_post_meta( $child->ID,
                 '_wpcf_belongs_' . $parent->post_type . '_id', $parent->ID );
@@ -223,10 +221,6 @@ class WPCF_Relationship
         $check = get_post_meta( $child->ID, '_wpcf_relationship_new', true );
         $new = !empty( $check );
         delete_post_meta( $child->ID, '_wpcf_relationship_new' );
-
-        if ( $new ) {
-            
-        }
 
         // Set post data
         $post_data['ID'] = $child->ID;
@@ -247,10 +241,14 @@ class WPCF_Relationship
         $post_data['post_title'] = $post_title;
         $post_data['post_name'] = $post_title;
         $post_data['post_content'] = isset( $save_fields['_wp_body'] ) ? $save_fields['_wp_body'] : $child->post_content;
-
         $post_data['post_type'] = $child->post_type;
-        // TODO This should be revised
-        $post_data['post_status'] = 'publish';
+        
+        // Check post status - if new, convert to 'publish' else keep remaining
+        if ( $new ) {
+            $post_data['post_status'] =  'publish';
+        } else {
+            $post_data['post_status'] =  get_post_status( $child->ID );
+        }
 
         /*
          * 
@@ -275,9 +273,35 @@ class WPCF_Relationship
             }
         }
 
+        // Update taxonomies
+        if ( !empty( $save_fields['taxonomies'] ) && is_array( $save_fields['taxonomies'] ) ) {
+            $_save_data = array();
+            foreach ( $save_fields['taxonomies'] as $taxonomy => $t ) {
+                if ( !is_taxonomy_hierarchical( $taxonomy ) ) {
+                    $_save_data[$taxonomy] = strval( $t );
+                    continue;
+                }
+                foreach ( $t as $term_id ) {
+                    if ( $term_id != '-1' ) {
+                        $term = get_term( $term_id, $taxonomy );
+                        if ( empty( $term ) ) {
+                            continue;
+                        }
+                        $_save_data[$taxonomy][] = $term_id;
+                    }
+                }
+            }
+            wp_delete_object_term_relationships( $child->ID,
+                    array_keys( $save_fields['taxonomies'] ) );
+            foreach ( $_save_data as $_taxonomy => $_terms ) {
+                wp_set_post_terms( $child->ID, $_terms, $_taxonomy,
+                        $append = false );
+            }
+        }
+
         // Unset non-types
         unset( $save_fields['_wp_title'], $save_fields['_wp_body'],
-                $save_fields['parents'] );
+                $save_fields['parents'], $save_fields['taxonomies'] );
         /*
          * 
          * 
@@ -323,8 +347,6 @@ class WPCF_Relationship
         );
         $id = wp_insert_post( $new_post, true );
         if ( !is_wp_error( $id ) ) {
-            // TODO REMOVE Fix for Common Conditional check
-//            $_POST['post_ID'] = $id;
             // Mark that it is new post
             update_post_meta( $id, '_wpcf_relationship_new', 1 );
             // Save relationship
@@ -404,6 +426,26 @@ class WPCF_Relationship
     public static function get_parent( $post_id, $parent_post_type ) {
         return wpcf_get_post_meta( $post_id,
                         '_wpcf_belongs_' . $parent_post_type . '_id', true );
+    }
+    
+    /**
+     * AJAX adding taxonomies
+     */
+    public function ajaxAddTax() {
+        if ( isset( $_POST['types_reltax'] ) ) {
+            $data = array_shift( $_POST['types_reltax'] );
+            $tax = key( $data );
+            $val = array_shift( $data );
+            $__nonce = array_shift( $_POST['types_reltax_nonce'] );
+            $nonce = array_shift( $__nonce );
+            $_POST['action'] = 'add-' . $tax;
+            $_POST['post_category'][$tax] = $val;
+            $_POST['tax_input'][$tax] = $val;
+            $_POST['new'.$tax] = $val;
+            $_REQUEST["_ajax_nonce-add-{$tax}"] = $nonce;
+            _wp_ajax_add_hierarchical_term();
+        }
+        die();
     }
 
 }

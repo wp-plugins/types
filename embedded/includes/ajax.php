@@ -34,12 +34,18 @@ function wpcf_ajax_embedded() {
 
         case 'editor_callback':
             // Determine Field type and context
+            $views_usermeta = false;
             if ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'usermeta' ) {
                 // Group filter
                 wp_enqueue_script( 'suggest' );
                 $field = types_get_field( $_GET['field_id'], 'usermeta' );
                 $meta_type = 'usermeta';
-            } else {
+            } 
+            elseif ( isset( $_GET['field_type'] ) && $_GET['field_type'] == 'views-usermeta' ){
+                $field = types_get_field( $_GET['field_id'], 'usermeta' );
+                $meta_type = 'usermeta';
+                $views_usermeta = true;
+            }else {
                 $field = types_get_field( $_GET['field_id'] );
                 $meta_type = 'postmeta';
             }
@@ -51,7 +57,7 @@ function wpcf_ajax_embedded() {
                 WPCF_Loader::loadClass( 'editor' );
                 $editor = new WPCF_Editor();
                 $editor->frame( $field, $meta_type, $post_id, $shortcode,
-                        $callback );
+                        $callback, $views_usermeta );
             }
             break;
 
@@ -198,8 +204,7 @@ function wpcf_ajax_embedded() {
                 $post_id = intval( $_POST['post_id'] );
                 $updated = wpcf_pr_admin_update_belongs( $post_id,
                         $_POST['wpcf_pr_belongs'][$post_id] );
-                $output = $updated ? $updated : __( 'Passed wrong parameters',
-                                'wpcf' );
+                $output = is_wp_error( $updated ) ? $updated->get_error_message() : $updated;
             }
             echo json_encode( array(
                 'output' => $output,
@@ -440,8 +445,6 @@ function wpcf_ajax_embedded() {
                 if ( isset( $split[1] ) ) {
                     parse_str( $split[1], $vars );
                     if ( isset( $vars['post'] ) ) {
-                        // TODO REMOVE
-//                        $_POST['post_ID'] = $vars['post'];
                         $post = get_post( $vars['post'] );
                     }
                 }
@@ -461,12 +464,12 @@ function wpcf_ajax_embedded() {
                     $passed = false;
                 }
                 if ( !$passed ) {
-                    $execute = 'jQuery("#' . $group['slug']
+                    $execute = 'jQuery("#wpcf-group-' . $group['slug']
                             . '").slideUp().find(".wpcf-cd-group")'
                             . '.addClass(\'wpcf-cd-group-failed\')'
                             . '.removeClass(\'wpcf-cd-group-passed\').hide();';
                 } else {
-                    $execute = 'jQuery("#' . $group['slug']
+                    $execute = 'jQuery("#wpcf-group-' . $group['slug']
                             . '").show().find(".wpcf-cd-group")'
                             . '.addClass(\'wpcf-cd-group-passed\')'
                             . '.removeClass(\'wpcf-cd-group-failed\').slideDown();';

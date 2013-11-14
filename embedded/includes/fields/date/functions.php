@@ -86,7 +86,7 @@ function wpcf_fields_date_conditional_value_filter( $value, $field, $operation,
     global $wpcf;
 
     $field = wpcf_admin_fields_get_field( $wpcf->field->__get_slug_no_prefix( $field ) );
-    if ( !empty( $field ) && isset( $field['type'] ) && $field['type'] == 'date' ) {
+    if ( !empty( $field ) && isset( $field['type'] ) && $field['type'] == 'date' && isset($value['datepicker']) ) {
         $value['timestamp'] = wpcf_fields_date_convert_datepicker_to_timestamp( $value['datepicker'] );
         $value = wpcf_fields_date_calculate_time( $value );
     }
@@ -409,6 +409,10 @@ function wpcf_fields_date_datepicker_is_valid( $datepicker ) {
  * @param type $field
  */
 function __wpcf_fields_date_check_leftover( $value, $field, $use_cache = true ) {
+    
+    if ( empty( $value )) {
+        return $value;
+    }
 
     if ( !is_object( $field ) ) {
         $post_id = wpcf_get_post_id();

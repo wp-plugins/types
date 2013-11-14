@@ -175,7 +175,9 @@ class Enlimbo_Forms_Wpcf
         if ( isset( $check['error'] ) ) {
             $this->_errors = true;
             $element['#error'] = $check['message'];
-            $this->_elements_not_valid[$element['wpcf-id']] = $element;
+            if ( isset( $element['wpcf-id'] ) ) {
+                $this->_elements_not_valid[$element['wpcf-id']] = $element;
+            }
         }
     }
     
@@ -322,6 +324,12 @@ class Enlimbo_Forms_Wpcf
         $error_class = isset( $element['#error'] ) ? ' ' . $this->css_class . '-error ' . $this->css_class . '-' . $element['#type'] . '-error ' . ' form-' . $element['#type'] . '-error ' . $element['#type'] . '-error form-error ' : '';
         $class = $this->css_class . '-' . $element['#type']
                 . ' form-' . $element['#type'] . ' ' . $element['#type'];
+        // Add JS validation
+        if ( !empty( $element['#validate'] ) ) {
+            $class .= ' js-types-validate';
+        } else {
+            $class .= ' js-types-validate-ignore';
+        }
         if ( isset( $element['#attributes'] ) ) {
             foreach ( $element['#attributes'] as $attribute => $value ) {
                 // Prevent undesired elements
@@ -329,9 +337,9 @@ class Enlimbo_Forms_Wpcf
                     continue;
                 }
                 // Don't set disabled for checkbox
-                if ( $attribute == 'disabled' && $element['#type'] == 'checkbox' ) {
-                    continue;
-                }
+//                if ( $attribute == 'disabled' && $element['#type'] == 'checkbox' ) {
+//                    continue;
+//                }
                 // Append class values
                 if ( $attribute == 'class' ) {
                     $value = $value . ' ' . $class . $error_class;
@@ -574,9 +582,10 @@ class Enlimbo_Forms_Wpcf
                 && !empty( $element['#default_value'] ))
                 || ($this->isSubmitted()
                 && !empty( $element['#value'] ))) ? ' checked="checked"' : '';
-        if ( !empty( $element['#attributes']['disabled'] ) || !empty( $element['#disable'] ) ) {
-            $element['_render']['element'] .= ' onclick="javascript:return false; if(this.checked == 1){this.checked=1; return true;}else{this.checked=0; return false;}"';
-        }
+        // Removed because not checkboxes can be disabled
+//        if ( !empty( $element['#attributes']['disabled'] ) || !empty( $element['#disable'] ) ) {
+//            $element['_render']['element'] .= ' onclick="javascript:return false; if(this.checked == 1){this.checked=1; return true;}else{this.checked=0; return false;}"';
+//        }
         $element['_render']['element'] .= ' />';
         $pattern = isset( $element['#pattern'] ) ? $element['#pattern'] : '<BEFORE><PREFIX><ELEMENT>&nbsp;<LABEL><ERROR><SUFFIX><DESCRIPTION><AFTER>';
         $output = $this->_pattern( $pattern, $element );

@@ -212,9 +212,8 @@ function wpcf_custom_types_register( $post_type, $data ) {
 
     // make sure the function name is OK
     $post_type = str_replace( '-', '_', $post_type );
-    if ( $body != '' && !function_exists( $post_type . '_add_default_taxes' ) ) {
-        eval( 'function ' . $post_type . '_add_default_taxes() { ' . $body . ' }' );
-        add_action( 'init', $post_type . '_add_default_taxes' );
+    if ( $body != '' ) {
+        add_action( 'init', create_function('', $body ));
     }
 }
 

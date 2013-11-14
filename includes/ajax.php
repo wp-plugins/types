@@ -530,41 +530,49 @@ function wpcf_ajax() {
                     . __('Wrong field specified', 'wpcf') . '</div>';
             if (isset($_GET['field']) && isset($_GET['subaction'])) {
                 require_once WPCF_INC_ABSPATH . '/fields.php';
-                $field = wpcf_admin_fields_get_field($_GET['field']);
+                $option = $_GET['meta_type'] == 'usermeta' ? 'wpcf-usermeta' : 'wpcf-fields';
+                $meta_type = $_GET['meta_type'];
+                $field = wpcf_admin_fields_get_field($_GET['field'], false, false,
+                        false, $option);
+                
+                $_txt_updates = $meta_type == 'usermeta' ? __( '%d users require update',
+                                'wpcf' ) : __( '%d posts require update', 'wpcf' );
+                $_txt_no_updates = $meta_type == 'usermeta' ? __('No users require update', 'wpcf') : __('No posts require update', 'wpcf');
+                $_txt_updated = $meta_type == 'usermeta' ? __('Users updated', 'wpcf') : __('Posts updated', 'wpcf');
+                
                 if (!empty($field)) {
                     if ($_GET['subaction'] == 'save_check'
                             || $_GET['subaction'] == 'do_not_save_check') {
                         if ($field['type'] == 'checkbox') {
-                            $posts = wpcf_admin_fields_checkbox_migrate_empty_check($_GET['field'],
+                            $posts = wpcf_admin_fields_checkbox_migrate_empty_check($field,
                                     $_GET['subaction']);
                         } else if ($field['type'] == 'checkboxes') {
-                            $posts = wpcf_admin_fields_checkboxes_migrate_empty_check($_GET['field'],
+                            $posts = wpcf_admin_fields_checkboxes_migrate_empty_check($field,
                                     $_GET['subaction']);
                         }
                         if (!empty($posts)) {
                             $output = '<div class="message updated"><p>'
-                                    . sprintf(__('%d posts require update',
-                                                    'wpcf'), count($posts)) . '&nbsp;'
+                                    . sprintf($_txt_updates, count($posts)) . '&nbsp;'
                                     . '<a href="javascript:void(0);" class="button-primary" onclick="'
                                     . 'wpcfCbSaveEmptyMigrate(jQuery(this).parent().parent().parent(), \''
                                     . $_GET['field'] . '\', '
                                     . count($posts) . ', \''
                                     . wp_create_nonce('cb_save_empty_migrate') . '\', \'';
                             $output .= $_GET['subaction'] == 'save_check' ? 'save' : 'do_not_save';
-                            $output .= '\');'
+                            $output .= '\', \'' . $meta_type . '\');'
                                     . '">'
                                     . __('Update') . '</a>' . '</p></div>';
                         } else {
                             $output = '<div class="message updated"><p><em>'
-                                    . __('No posts require update', 'wpcf') . '</em></p></div>';
+                                    . $_txt_no_updates . '</em></p></div>';
                         }
                     } else if ($_GET['subaction'] == 'save'
                             || $_GET['subaction'] == 'do_not_save') {
                         if ($field['type'] == 'checkbox') {
-                            $posts = wpcf_admin_fields_checkbox_migrate_empty($_GET['field'],
+                            $posts = wpcf_admin_fields_checkbox_migrate_empty($field,
                                     $_GET['subaction']);
                         } else if ($field['type'] == 'checkboxes') {
-                            $posts = wpcf_admin_fields_checkboxes_migrate_empty($_GET['field'],
+                            $posts = wpcf_admin_fields_checkboxes_migrate_empty($field,
                                     $_GET['subaction']);
                         }
                         if (isset($posts['offset'])) {
@@ -577,22 +585,14 @@ function wpcf_ajax() {
                                         . $posts['offset'] . ','
                                         . '\'' . $_GET['field'] . '\','
                                         . '\'' . wp_create_nonce('cb_save_empty_migrate')
-                                        . '\');</script>'
+                                        . '\', \'' . $meta_type . '\');</script>'
                                         . number_format($posts['offset'])
                                         . '/' . number_format(intval($_GET['total']))
                                         . '<div class="wpcf-ajax-loading-small"></div>';
                             }
                         } else {
                             $output = '<div class="message updated"><p>'
-                                    . __('Posts updated', 'wpcf') . '</p></div>';
-//                        if (!empty($posts)) {
-//                            $output = '<div class="message updated"><p>'
-//                                    . sprintf(__('%d posts updated', 'wpcf'),
-//                                            count($posts)) . '</p></div>';
-//                        } else {
-//                            $output = '<div class="message updated"><p><em>'
-//                                    . __('No posts updated', 'wpcf') . '</em></p></div>';
-//                        }
+                                    . $_txt_updated . '</p></div>';
                         }
                     }
                 }

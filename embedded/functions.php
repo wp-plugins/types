@@ -653,3 +653,38 @@ function wpcf_get_file_url( $file, $use_baseurl = true ) {
 function fields_date_timestamp_neg_supported() {
     return strtotime( 'Fri, 13 Dec 1950 20:45:54 UTC' ) === -601010046;
 }
+
+/**
+ * Returns media size.
+ * 
+ * @global type $content_width
+ * @param type $widescreen
+ * @return type
+ */
+function wpcf_media_size( $widescreen = false ) {
+    global $content_width;
+    if ( !empty($content_width) ) {
+        $height = $widescreen ? round( $content_width * 9 / 16 ) : round( $content_width * 3 / 4 );
+        return array($content_width, $height);
+    }
+    return $widescreen ? array(450, 253) : array(450, 320);
+}
+
+/**
+ * Validation wrapper.
+ * 
+ * @param type $method
+ * @param type $args
+ * @return boolean
+ */
+function types_validate( $method, $args ) {
+    WPCF_Loader::loadClass( 'validation-cakephp' );
+    if ( is_callable( array('Wpcf_Cake_Validation', $method) ) ) {
+        if ( !is_array( $args ) ) {
+            $args = array($args);
+        }
+        return @call_user_func_array( array('Wpcf_Cake_Validation', $method),
+                        $args );
+    }
+    return false;
+}

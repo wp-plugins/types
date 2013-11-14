@@ -27,6 +27,7 @@
  * @return type 
  */
 function wpcf_fields_checkboxes_insert_form( $form_data, $parent_name = '' ) {
+    $meta_type = isset($_GET['page']) && $_GET['page'] != 'wpcf-edit' ? 'usermeta' : 'postmeta';
     $id = 'wpcf-fields-checkboxes-' . wpcf_unique_id( serialize( $form_data ) . $parent_name );
     $form = array();
     $form['name'] = array(
@@ -45,8 +46,8 @@ function wpcf_fields_checkboxes_insert_form( $form_data, $parent_name = '' ) {
         '#name' => 'description',
         '#attributes' => array('rows' => 5, 'cols' => 1),
     );
-    $cb_migrate_save = !empty( $form_data['slug'] ) ? 'wpcfCbSaveEmptyMigrate(jQuery(this), \'' . $form_data['slug'] . '\', \'\', \'' . wp_create_nonce( 'cb_save_empty_migrate' ) . '\', \'save_check\');' : '';
-    $cb_migrate_do_not_save = !empty( $form_data['slug'] ) ? 'wpcfCbSaveEmptyMigrate(jQuery(this), \'' . $form_data['slug'] . '\', \'\', \'' . wp_create_nonce( 'cb_save_empty_migrate' ) . '\', \'do_not_save_check\');' : '';
+    $cb_migrate_save = !empty( $form_data['slug'] ) ? 'wpcfCbSaveEmptyMigrate(jQuery(this), \'' . $form_data['slug'] . '\', \'\', \'' . wp_create_nonce( 'cb_save_empty_migrate' ) . '\', \'save_check\', \'' . $meta_type . '\');' : '';
+    $cb_migrate_do_not_save = !empty( $form_data['slug'] ) ? 'wpcfCbSaveEmptyMigrate(jQuery(this), \'' . $form_data['slug'] . '\', \'\', \'' . wp_create_nonce( 'cb_save_empty_migrate' ) . '\', \'do_not_save_check\', \'' . $meta_type . '\');' : '';
     $update_response = !empty( $form_data['slug'] ) ? '<div id="wpcf-cb-save-empty-migrate-response-'
             . $form_data['slug'] . '" class="wpcf-cb-save-empty-migrate-response"></div>' : '<div class="wpcf-cb-save-empty-migrate-response"></div>';
     $form['save_empty'] = array(
@@ -85,12 +86,12 @@ function wpcf_fields_checkboxes_insert_form( $form_data, $parent_name = '' ) {
             $option['key'] = $option_key;
             $option['default'] = isset( $options['default'] ) ? $options['default'] : null;
             $form_option = wpcf_fields_checkboxes_get_option( $parent_name,
-                    $option );
+                    $option, $form_data );
             $existing_options[array_shift( $form_option )] = $option;
             $form = $form + $form_option;
         }
     } else {
-        $form_option = wpcf_fields_checkboxes_get_option( $parent_name );
+        $form_option = wpcf_fields_checkboxes_get_option( $parent_name, array(), $form_data );
         $existing_options[array_shift( $form_option )] = array();
         $form = $form + $form_option;
     }
@@ -131,7 +132,7 @@ function wpcf_fields_checkboxes_insert_form( $form_data, $parent_name = '' ) {
  * @return type 
  */
 function wpcf_fields_checkboxes_get_option( $parent_name = '',
-        $form_data = array() ) {
+        $form_data = array(), $field = array() ) {
     $id = isset( $form_data['key'] ) ? $form_data['key'] : 'wpcf-fields-checkboxes-option-' . wpcf_unique_id( serialize( $form_data ) . $parent_name );
     $form = array();
     $count = isset( $_GET['count'] ) ? $_GET['count'] : 1;
@@ -176,13 +177,15 @@ function wpcf_fields_checkboxes_get_option( $parent_name = '',
         '#name' => $parent_name . '[options][' . $id . '][set_value]',
         '#value' => isset( $form_data['set_value'] ) ? $form_data['set_value'] : 1,
     );
-    $form[$id]['checked'] = array(
-        '#id' => 'checkboxes-' . wpcf_unique_id( serialize( $form_data ) . $parent_name ),
-        '#type' => 'checkbox',
-        '#title' => __( 'Set checked by default (on new post)?', 'wpcf' ),
-        '#name' => $parent_name . '[options][' . $id . '][checked]',
-        '#default_value' => !empty( $form_data['checked'] ) ? 1 : 0,
-    );
+    if ( isset($_GET['page']) && $_GET['page'] == 'wpcf-edit' ) {
+        $form[$id]['checked'] = array(
+            '#id' => 'checkboxes-' . wpcf_unique_id( serialize( $form_data ) . $parent_name ),
+            '#type' => 'checkbox',
+            '#title' => __( 'Set checked by default (on new post)?', 'wpcf' ),
+            '#name' => $parent_name . '[options][' . $id . '][checked]',
+            '#default_value' => !empty( $form_data['checked'] ) ? 1 : 0,
+        );
+    }
     $form[$id]['display'] = array(
         '#type' => 'radios',
         '#default_value' => !empty( $form_data['display'] ) ? $form_data['display'] : 'db',

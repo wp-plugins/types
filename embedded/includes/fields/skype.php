@@ -65,6 +65,7 @@ function wpcf_fields_skype_meta_box_form( $field ) {
             $preview_style );
 
     // Set button
+    // TODO WPML move
     if ( isset( $field['disable'] ) || wpcf_wpml_field_is_copied( $field ) ) {
         $edit_button = '';
     } else {
@@ -258,7 +259,7 @@ function wpcf_fields_skype_get_button( $skypename, $template = '',
         case 'btn4':
 // Call me small
             $output = '<script type="text/javascript" src="http://download.skype.com/share/skypebuttons/js/skypeCheck.js"></script>
-<a href="skype:' . $skypename . '?call"><img src="http://download.skype.com/share/skypebuttons/buttons/call_blue_transparent_34x34.png" style="border: none;" width="34" height="34" alt="Skype Me™!" /></a>';
+<a href="skype:' . $skypename . '?call"><img src="http://download.skype.com/share/skypebuttons/buttons/call_blue_transparent_34x34.png" style="border: none;" width="34" height="34" alt="Skype Me™!"' . $class . ' /></a>';
             break;
 
         case 'btn3':
@@ -406,13 +407,7 @@ function wpcf_field_skype_repetitive( $element, $post, $field, $array_key ) {
 
     switch ( $array_key ) {
         case 'skypename':
-            /*
-             * Mark as copied because of WPML
-             * Do this on first field only
-             * 
-             * TODO Revise this
-             * Why do we need this?
-             */
+            // TODO WPML move
             if ( wpcf_wpml_field_is_copied( $field ) ) {
                 $element['#after'] .= '<input type="hidden" name="wpcf_repetitive_copy['
                         . $field['id'] . '][' . $wpcf->repeater->index

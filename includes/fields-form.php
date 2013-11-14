@@ -14,12 +14,6 @@ if ( version_compare( $wp_version, '3.5', '<' ) ) {
     $wpcf_button_style30 = 'style="line-height: 30px;"';
 }
 
-/*
- * Hook some JS
- */
-add_filter( 'wpcf_validation_js_invalid_handler',
-        '_wpcf_fields_form_js_validation_invalid_handler' );
-
 /**
  * Saves fields and groups.
  * 
@@ -1242,7 +1236,7 @@ function wpcf_fields_get_field_form_data( $type, $form_data = array() ) {
         }
 
         // WPML Translation Preferences
-        if ( function_exists( 'wpml_cf_translation_preferences' ) ) {
+        if ( function_exists( 'wpml_cf_translation_preferences' ) && defined('WPML_TM_VERSION') ) {
             $custom_field = !empty( $form_data['slug'] ) ? wpcf_types_get_meta_prefix( $form_data ) . $form_data['slug'] : false;
             $suppress_errors = $custom_field == false ? true : false;
             $translatable = array('textfield', 'textarea', 'wysiwyg');
@@ -1584,15 +1578,4 @@ function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e, $edit_button = ''
     );
 
     return $form;
-}
-
-/**
- * Validation JS.
- * 
- * @param type $string
- * @param type $selector
- */
-function _wpcf_fields_form_js_validation_invalid_handler( $string ) {
-    $string .= "\r\n" . 'wpcfLoadingButtonStop();' . "\r\n";
-    return $string;
 }

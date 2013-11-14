@@ -85,7 +85,7 @@ class WPCF_Relationship_Child_Form
             }
         }
     }
-
+    
     function getParamsQuery() {
         return count( $this->__urlParams ) ? '&amp;' . http_build_query( $this->__urlParams,
                         '', '&amp;' ) : '';
@@ -233,20 +233,36 @@ class WPCF_Relationship_Child_Form
             }
             // Loop over Types fields
             foreach ( $this->data['fields'] as $field_key => $true ) {
+                // If field belongs only to disabled group - remove it.
+                $groups = wpcf_admin_fields_get_groups_by_field( $this->cf->__get_slug_no_prefix( $field_key ) );
+                if ( empty($groups ) ) {
+                    continue;
+                }
+                $_continue = false;
+                // If at least one active - proceed
+                foreach ( $groups as $group ) {
+                    if ( $group['is_active'] ) {
+                        $_continue = true;
+                    }
+                }
+                if ( !$_continue ) {
+                    continue;
+                }
                 // Skip parents
                 if ( in_array( $field_key,
-                                array('_wp_title', '_wp_body', '_wpcf_pr_parents') ) ) {
+                                array('_wp_title', '_wp_body', '_wpcf_pr_parents', '_wpcf_pr_taxonomies') ) ) {
                     continue;
                 } else {
                     /*
                      * Set field
                      */
-                    $field_key = $this->cf->__get_slug_no_prefix( $field_key );
+//                    $field_key = $this->cf->__get_slug_no_prefix( $field_key );
                     $this->cf->set( $this->child, $field_key );
                     $row[] = $this->field_form();
                     $this->_field_triggers();
                     // Add to header
-                    $this->headers[] = WPCF_META_PREFIX . $field_key;
+//                    $this->headers[] = WPCF_META_PREFIX . $field_key;
+                    $this->headers[] = $field_key;
                 }
             }
             // Add parent forms
@@ -256,6 +272,18 @@ class WPCF_Relationship_Child_Form
                     $row[] = $this->_parent_form( $_parent );
                     // Add to header
                     $this->headers['__parents'][$_parent] = $_true;
+                }
+            }
+            // Add taxonomies forms
+            if ( !empty( $this->data['fields']['_wpcf_pr_taxonomies'] ) ) {
+                $_temp = (array) $this->data['fields']['_wpcf_pr_taxonomies'];
+                foreach ( $_temp as $taxonomy => $_true ) {
+                    $_taxonomy = get_taxonomy($taxonomy);
+                    if ( !empty( $_taxonomy ) ) {
+                        $row[] = $this->taxonomy_form( $_taxonomy );
+                        // Add to header
+                        $this->headers['__taxonomies'][$taxonomy] = $_taxonomy->label;
+                    }
                 }
             }
             /*
@@ -382,6 +410,63 @@ class WPCF_Relationship_Child_Form
                             )
                         )
         );
+    }
+    
+    /**
+     * Returns HTML formatted taxonomy form.
+     * 
+     * @param type $taxonomy
+     * @return type
+     */
+    function taxonomy_form( $taxonomy, $simple = false ) {
+        // SIMPLIFIED VERSION
+        if ( $simple ) {
+            $terms = wp_get_post_terms( $this->child->ID, $taxonomy->name, array() );
+            $selected = ( !empty( $terms ) ) ? array_shift($terms)->term_id : -1;
+            $output =  wp_dropdown_categories( array(
+                'taxonomy' => $taxonomy->name,
+                'selected' => $selected,
+                'echo' => false,
+                'hide_empty' => false,
+                'hide_if_empty' => true,
+                'show_option_none' => sprintf( __( 'No %s', 'wpcf' ),
+                        $taxonomy->name ),
+                'name' => 'wpcf_post_relationship['
+                . $this->parent->ID . '][' . $this->child->ID
+                . '][taxonomies][' . $taxonomy->name . ']',
+                'id' => 'wpcf_pr_' . $this->child->ID . '_' . $taxonomy->name,
+                'hierarchical' => true,
+                'depth' => 9999
+                    )
+            );
+
+            return empty( $output ) ? sprintf( __( 'No %s', 'wpcf' ),
+                    $taxonomy->label ) : $output; 
+        }
+
+        $data = array(
+            'post' => $this->child,
+            'taxonomy' => $taxonomy->name,
+        );
+        if ( $taxonomy->name == 'category' ) {
+            $data['_wpcf_name'] = "wpcf_post_relationship[{$this->parent->ID}][{$this->child->ID}][taxonomies][{$taxonomy->name}][]";
+            $output = WPCF_Loader::template('child-tax-category', $data);
+            // Reduce JS processing
+            return str_replace( "name=\"post_category[]",
+                    "name=\"{$data['_wpcf_name']}", $output );
+        }
+        if ( $taxonomy->hierarchical ) {
+            $data['_wpcf_name'] = "wpcf_post_relationship[{$this->parent->ID}][{$this->child->ID}][taxonomies][{$taxonomy->name}][]";
+            $output = WPCF_Loader::template('child-tax-category', $data);
+            // Reduce JS processing
+            return str_replace( "name=\"tax_input[{$taxonomy->name}][]",
+                    "name=\"{$data['_wpcf_name']}", $output );
+        }
+        $data['_wpcf_name'] = "wpcf_post_relationship[{$this->parent->ID}][{$this->child->ID}][taxonomies][{$taxonomy->name}]";
+        $output = WPCF_Loader::template('child-tax-tag', $data);
+        // Reduce JS processing
+        return str_replace( "name=\"tax_input[{$taxonomy->name}]",
+                "name=\"{$data['_wpcf_name']}", $output );
     }
 
     /**
@@ -549,7 +634,7 @@ class WPCF_Relationship_Child_Form
         $headers = array();
 
         foreach ( $this->headers as $k => $header ) {
-            if ( $k === '__parents' ) {
+            if ( $k === '__parents' || $k === '__taxonomies' ) {
                 continue;
             }
 
@@ -610,6 +695,11 @@ class WPCF_Relationship_Child_Form
                                 . $post_type . '&amp;post_type_sort_parent='
                                 . $_parent . '&amp;_wpnonce='
                                 . wp_create_nonce( 'pr_sort' ) ) . '">' . $temp_parent_type->label . '</a>';
+            }
+        }
+        if ( !empty( $this->headers['__taxonomies'] ) ) {
+            foreach ( $this->headers['__taxonomies'] as $tax_id => $taxonomy ) {
+                $headers["_wpcf_pr_taxonomy_$tax_id"] = $taxonomy;
             }
         }
         return $headers;

@@ -96,7 +96,9 @@ class WPCF_Repeater extends WPCF_Field
         global $wpcf;
 
         // Delete all fields
+        do_action('wpcf_postmeta_before_delete_repetitive', $this->post, $this->cf);
         delete_post_meta( $this->post->ID, $this->slug );
+        do_action('wpcf_postmeta_after_delete_repetitive', $this->post, $this->cf);
 
         // Allow $data to replace $_POST
         if ( is_null( $data ) && isset( $_POST['wpcf'][$this->cf['slug']] ) ) {
@@ -105,9 +107,12 @@ class WPCF_Repeater extends WPCF_Field
 
         // Set data
         if ( !empty( $data ) ) {
+            
+            do_action('wpcf_postmeta_before_add_repetitive', $this->post, $this->cf);
 
             // Insert new meta and collect all new mids
             $mids = array();
+            $i = 1;
             foreach ( $data as $meta_value ) {
 
                 /*
@@ -127,14 +132,18 @@ class WPCF_Repeater extends WPCF_Field
                 $_meta_value = $this->_filter_save_value( $meta_value );
 
                 // Adding each field will return $mid
-                $mid = add_post_meta( $this->post->ID, $this->slug,
-                        $_meta_value, false );
+                if ( count($data) == $i++ ) {
+                    do_action('wpcf_postmeta_before_add_last_repetitive', $this->post, $this->cf);
+                }
+                $mid = add_post_meta( $this->post->ID, $this->slug, $_meta_value, false );
 
                 $mids[] = $mid;
 
                 // Call insert post actions on each field
                 $this->_action_save( $this->cf, $_meta_value, $mid, $meta_value );
             }
+            
+            do_action('wpcf_postmeta_after_add_repetitive', $this->post, $this->cf);
 
             // Save order
             if ( !empty( $mids ) ) {

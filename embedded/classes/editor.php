@@ -87,7 +87,7 @@ class WPCF_Editor
      * @param string $shortcode
      */
     function frame( $field, $meta_type = 'postmeta', $post_id = -1,
-            $shortcode = null, $callback = false ) {
+            $shortcode = null, $callback = false, $views_usermeta = false ) {
 
         global $wp_version, $wpcf;
 
@@ -127,14 +127,13 @@ class WPCF_Editor
             'output' => 'html',
             'user_form' => '',
         );
-        
+
         // Set title if updated
         if ( !is_null( $shortcode ) ) {
             $this->_data['title'] = sprintf( __( 'Update %s', 'wpcf' ),
                     $this->_data['field_type_data']['title'] );
             $this->_data['submit_button_title'] = __( 'Update shortcode', 'wpcf' );
         }
-
 
         // Exclude post types
         foreach ( $wpcf->excluded_post_types as $_post_type ) {
@@ -177,8 +176,11 @@ class WPCF_Editor
 
         // Add User ID form
         if ( $this->_meta_type == 'usermeta' ) {
-            $this->_data['user_form'] = wpcf_form_simple( wpcf_get_usermeta_form_addon( $this->_settings ) );
-            $this->_data['supports'][] = 'user_id';
+            if ( !$views_usermeta ){    
+                $this->_data['user_form'] = wpcf_form_simple( wpcf_get_usermeta_form_addon( $this->_settings ) );
+                $this->_data['supports'][] = 'user_id';
+            }
+           
         } else {
             // Add Post ID form
             $this->_data['supports'][] = 'post_id';
@@ -191,10 +193,13 @@ class WPCF_Editor
 
         // Set icons
         $icons = array(
+            'audio' => 'icon-music',
             'checkbox' => 'icon-check',
             'checkboxes' => 'icon-checkboxes',
+            'colorpicker' => 'icon-tint',
             'date' => 'icon-calendar',
             'email' => 'icon-envelope-alt',
+            'embed' => 'icon-youtube-play',
             'file' => 'icon-file-alt',
             'image' => 'icon-picture',
             'map' => 'icon-map-marker',
@@ -206,6 +211,7 @@ class WPCF_Editor
             'textarea' => 'icon-text-area',
             'textfield' => 'icon-text-field',
             'url' => 'icon-link',
+            'video' => 'icon-film',
             'wysiwyg' => 'icon-wysiwyg',
         );
         $this->_data['icon_class'] = isset( $icons[$field['type']] ) ? $icons[$field['type']] : 'icon-text-field';
@@ -345,15 +351,15 @@ class WPCF_Editor
                     '$0 show_name="true"', $shortcode );
         }
         if ( isset( $data['raw_mode'] ) && $data['raw_mode'] == '1' ) {
-            $shortcode = preg_replace( '/\[types([^\]]*)/', '$0 raw="true"',
+            $shortcode = preg_replace( '/\[types([^\]]*)/', '$0 output="raw"',
                     $shortcode );
         }
-        if ( isset( $data['post_id'] ) ) {
+        if ( isset( $data['post_id'] ) && $data['post_id'] != 'current' ) {
             $post_id = 'id=';
             if ( $data['post_id'] == 'post_id' ) {
                 $post_id .= '"' . trim( strval( $data['specific_post_id'] ) ) . '"';
-            } else if ( $data['post_id'] == 'current' ) {
-                $post_id .= '""';
+//            } else if ( $data['post_id'] == 'current' ) {
+//                $post_id .= '""';
             } else if ( $data['post_id'] == 'parent' ) {
                 $post_id .= '"$parent"';
             } else if ( $data['post_id'] == 'related' ) {
@@ -454,7 +460,7 @@ class WPCF_Editor
                 $params['options'] = $options;
             }
         }
-        
+
         if ( !is_array( $params ) ) {
             return array();
         }

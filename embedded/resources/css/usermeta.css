@@ -68,3 +68,14 @@
 .wpcf-repeater-profile-line-right .wpcf-profile-line-left {
     display: none;
 }
+
+#createuser .wpcf-group-area {
+    margin-top: 0px;
+    margin-bottom: 20px;
+}
+#createuser .wpcf-group-area .wpcf-profile-field-line {
+    margin-top: 0px;
+}
+#createuser .wpcf-profile-field-line .wpcf-profile-field-line {
+    margin-bottom: 10px;
+}

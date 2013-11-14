@@ -264,19 +264,11 @@ function wpcf_form_add_js_validation( $element ) {
  */
 function wpcf_form_render_js_validation( $selector = '.wpcf-form-validate',
         $echo = true ) {
-
-    global $wpcf;
-
-    /*
-     * Since Types 1.1.5 we use Validation object.
-     */
-    $output = $wpcf->validation->js_fields( $selector );
-
+    $output = WPCF_Validation::renderJsonData( $selector );
     if ( $echo ) {
         echo $output;
-    } else {
-        return $output;
     }
+    return $output;
 }
 
 /**
@@ -310,7 +302,7 @@ function wpcf_custom_fields_to_be_copied( $copied_fields, $original_post_id ) {
  * @param type $method
  * @return type 
  */
-function wpcf_admin_validation_messages( $method = false ) {
+function wpcf_admin_validation_messages( $method = false, $sprintf = '' ) {
     $messages = array(
         'required' => __( 'This Field is required', 'wpcf' ),
         'email' => __( 'Please enter a valid email address', 'wpcf' ),
@@ -326,6 +318,8 @@ function wpcf_admin_validation_messages( $method = false ) {
                 'wpcf' ),
         'negativeTimestamp' => __( 'Please enter a date after 1 January 1970.',
                 'wpcf' ),
+        'maxlength' => sprintf( __( 'Maximum of %s characters exceeded.', 'wpcf' ),
+                strval( $sprintf ) ),
     );
     if ( $method ) {
         return isset( $messages[$method] ) ? $messages[$method] : '';

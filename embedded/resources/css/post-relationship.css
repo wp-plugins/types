@@ -21,10 +21,6 @@
 #wpcf-post-relationship .wpcf-pr-has-entries {
     margin: 0;
 }
-#wpcf-post-relationship table .wpcf-fields-image-upload-link,
-#wpcf-post-relationship table .wpcf-fields-file-upload-link {
-    /*line-height: 30px;*/
-}
 .wpcf-pr-sort-DESC,
 .wpcf-pr-sort-ASC {
     width: 7px;
@@ -82,4 +78,22 @@
     height: 1px;
     border: 0px;
     margin: 20px 0;
+}
+
+.types-child-categorydiv div.tabs-panel {
+	min-height: 42px;
+	max-height: 200px;
+	overflow: auto;
+	padding: 0 0.9em;
+	border-style: solid;
+	border-width: 1px;
+}
+
+.types-child-categorydiv ul.categorychecklist ul {
+	margin-left: 18px;
+}
+
+.types-child-categorydiv .tabs-panel {
+	border-width: 3px;
+	border-style: solid;
 }

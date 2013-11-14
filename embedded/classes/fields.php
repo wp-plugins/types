@@ -34,22 +34,26 @@ class WPCF_Fields
      */
     public static function getFieldsTypes() {
         $fields = array(
-            'checkbox' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'checkbox.php',
-            'checkboxes' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'checkboxes.php',
-            'date' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'date.php',
-            'email' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'email.php',
-            'file' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'file.php',
-            'image' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'image.php',
-            'map' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'map.php',
-            'numeric' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'numeric.php',
-            'phone' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'phone.php',
-            'radio' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'radio.php',
-            'select' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'select.php',
-            'skype' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'skype.php',
-            'textarea' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'textarea.php',
-            'textfield' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'textfield.php',
-            'twitter' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'twitter.php',
-            'url' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . 'url.php',
+            'audio' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/audio.php',
+            'checkbox' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/checkbox.php',
+            'checkboxes' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/checkboxes.php',
+            'colorpicker' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/colorpicker.php',
+            'date' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/date.php',
+            'email' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/email.php',
+            'embed' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/embed.php',
+            'file' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/file.php',
+            'image' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/image.php',
+            'map' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/map.php',
+            'numeric' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/numeric.php',
+            'phone' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/phone.php',
+            'radio' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/radio.php',
+            'select' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/select.php',
+            'skype' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/skype.php',
+            'textarea' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/textarea.php',
+            'textfield' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/textfield.php',
+            'twitter' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/twitter.php',
+            'url' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/url.php',
+            'video' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/video.php',
             'wysiwyg' => WPCF_EMBEDDED_INC_ABSPATH . '/fields/wysiwyg.php',
         );
         return apply_filters( 'types_register_fields', $fields );
@@ -138,7 +142,7 @@ class WPCF_Fields
         $fields = self::getFields();
         return !empty( $fields[$field_key] );
     }
-    
+
     /**
      * Enqueue all files from config
      */

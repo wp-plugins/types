@@ -24,6 +24,7 @@ function wpcf_repetitive_add_another_umbutton( $field, $user_id ) {
 
     global $wpcf;
 
+    $title = wpcf_translate( "field {$field['id']} name", $field['name'] );
     $button = '<a href="'
             . admin_url( 'admin-ajax.php?action=wpcf_ajax'
                     . '&amp;wpcf_action=um_repetitive_add'
@@ -32,8 +33,7 @@ function wpcf_repetitive_add_another_umbutton( $field, $user_id ) {
             . md5( $field['id'] )
             . '&amp;user_id=' . $user_id
             . '" class="wpcf-repetitive-add button-primary">'
-            . sprintf( __( 'Add Another %s', 'wpcf' ),
-                    rtrim( $field['name'], 's' ) ) . '</a>';
+            . sprintf( __( 'Add Another %s', 'wpcf' ), $title ) . '</a>';
     return $button;
 }
 
@@ -46,7 +46,7 @@ function wpcf_repetitive_add_another_umbutton( $field, $user_id ) {
  */
 function wpcf_repetitive_delete_umbutton( $field, $user_id, $meta_id ) {
 
-    // Add repetitive control buttons if not copied by WPML
+    // TODO WPML move Add repetitive control buttons if not copied by WPML
     if ( wpcf_wpml_is_translated_profile_page( $field ) ) {
         return '';
     }
@@ -74,11 +74,11 @@ function wpcf_repetitive_delete_umbutton( $field, $user_id, $meta_id ) {
 
     // Regular delete button
     $button = '';
+    $title = wpcf_translate( "field {$field['id']} name", $field['name'] );
     /*
      * No need for old_value anymore.
      * Use meta_id.
      */
-	 
     $button .= '&nbsp;<a href="'
             . admin_url( 'admin-ajax.php?action=wpcf_ajax'
                     . '&amp;wpcf_action=um_repetitive_delete'
@@ -90,7 +90,7 @@ function wpcf_repetitive_delete_umbutton( $field, $user_id, $meta_id ) {
             . '&amp;field_id_md5='
             . md5( $field['id'] )
             . '" class="wpcf-repetitive-delete button-secondary">'
-            . sprintf( __( 'Delete %s', 'wpcf' ), rtrim( $field['name'], 's' ) ) . '</a>';
+            . sprintf( __( 'Delete %s', 'wpcf' ), $title ) . '</a>';
 
 
     // Cache it
@@ -123,6 +123,7 @@ function wpcf_repetitive_delete_new_umbutton( $field, $post ) {
  */
 function wpcf_repetitive_umform( $field, $user_id ) {
     // Add repetitive control buttons if not copied by WPML
+    // TODO WPML move
     if ( wpcf_wpml_is_translated_profile_page( $field ) ) {
         return '';
     }

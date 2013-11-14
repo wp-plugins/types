@@ -5,11 +5,11 @@
   Description: Define custom post types, custom taxonomy and custom fields.
   Author: ICanLocalize
   Author URI: http://wp-types.com
-  Version: 1.4.0.2
+  Version: 1.5
  */
 // Added check because of activation hook and theme embedded code
 if ( !defined( 'WPCF_VERSION' ) ) {
-    define( 'WPCF_VERSION', '1.4.0.2' );
+    define( 'WPCF_VERSION', '1.5' );
 }
 
 define( 'WPCF_REPOSITORY', 'http://api.wp-types.com/' );
@@ -215,6 +215,7 @@ function wpcf_reserved_names() {
         'error',
         'exact',
         'feed',
+        'format',
         'hour',
         'link_category',
         'm',
@@ -286,4 +287,15 @@ function wpcf_fix_translated_post_relationships( $post_id ) {
     require_once WPCF_EMBEDDED_ABSPATH . '/includes/post-relationship.php';
     wpcf_post_relationship_set_translated_parent( $post_id );
     wpcf_post_relationship_set_translated_children( $post_id );
+}
+
+// Fix to set correct parent and children for duplicated posts
+
+add_action('icl_make_duplicate',
+        'wpcf_fix_duplicated_post_relationships', 20, 4);
+
+function wpcf_fix_duplicated_post_relationships( $original_post_id, $lang, $postarr, $duplicate_post_id ) {
+    require_once WPCF_EMBEDDED_ABSPATH . '/includes/post-relationship.php';
+    wpcf_post_relationship_set_translated_parent( $duplicate_post_id );
+    wpcf_post_relationship_set_translated_children( $duplicate_post_id );
 }

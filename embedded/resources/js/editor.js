@@ -30,7 +30,13 @@ var tedForm = {
         }
         return true;
     },
+    imageResize: ko.observable(ted.params.resize != 'stretch' ? (ted.params.resize || 'proportional') : 'proportional'),
     image_size: ko.observable(ted.params.image_size || 'full'),
+    imageKeepProportional: ko.observable(ted.params.resize != 'stretch'),
+    imagePaddingColor: function() {
+        return ted.params.padding_color == 'transparent' ? '#FFFFFF' : ted.params.padding_color;
+    },
+    imagePaddingTransparent: ko.observable(ted.params.padding_color == 'transparent'),
     imageUrl: ko.observable(ted.params.imageUrl || ''),
     imageUrlDisable: function() {
         var elements = tedFrame.form()

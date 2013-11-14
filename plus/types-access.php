@@ -60,11 +60,19 @@ function wpcf_access_teaser_admin_menu_load() {
  */
 function wpcf_access_teaser_admin_menu_page() {
     echo wpcf_add_admin_header( __( 'Access', 'wpcf' ), 'icon-wpcf-access' );
-    echo '<p>' . __( 'To enjoy access management for your site, you need to have the Access plugin.',
-            'wpcf' )
-    . '<br /><br /><a href="http://wp-types.com/home/types-access/?utm_source=typesplugin&utm_medium=accessadmin&utm_term=Meet&utm_campaign=typesplugin" class="button-primary" target="_blank">'
-    . __( 'Meet Access' ) . '</a>&nbsp;<a href="http://wp-types.com/buy/?utm_source=typesplugin&utm_medium=accessadmin&utm_term=Pricing&utm_campaign=typesplugin" class="button-primary" target="_blank">'
-    . __( 'Pricing' ) . '</a>' . '<br /><br /></p>';
+    echo '<div class="types-help"><div class="types-help-content"';
+    echo '<p>' . sprintf(__( 'This screen shows a preview of %sAccess%s - the access control and roles management addon for Types.',
+            'wpcf' ), '<strong><a href="http://wp-types.com/home/types-access/?utm_source=typesplugin&utm_medium=accessadmin&utm_term=Access&utm_campaign=typesplugin" target="_blank">','</a></strong>')
+    . '</p>'
+    . '<p>' . __('Access lets you control what content types different users can read, edit and publish on your site and create custom roles.','wpcf') . '</p>'
+    . '<p>' . sprintf(__('%sBuy Access%s to unlock this screen and add access control management to your site.','wpcf'),
+                      '<strong><a href="http://wp-types.com/buy/?add-to-cart=38997&buy_now=1&utm_source=typesplugin&utm_medium=accessadmin&utm_term=Buy&utm_campaign=typesplugin" target="_blank">',
+                      '</a></strong>')
+    . '</p>'
+    . '<p><a href="http://wp-types.com/home/types-access/?utm_source=typesplugin&utm_medium=accessadmin&utm_term=AccessFeatures&utm_campaign=typesplugin" class="button-primary" target="_blank">'
+    . __( 'Access Features' ) . '</a>&nbsp;<a href="http://wp-types.com/buy/?add-to-cart=38997&buy_now=1&utm_source=typesplugin&utm_medium=accessadmin&utm_term=Buy&utm_campaign=typesplugin" class="button-primary" target="_blank">'
+    . __( 'Buy Access - $39 (USD)' ) . '</a>' . '</p>';
+    echo '</div></div>';
     require_once WPCF_ACCESS_INC . '/admin-edit-access.php';
     wpcf_access_admin_edit_access( false );
     echo wpcf_add_admin_footer();

@@ -10,6 +10,7 @@
  */
 
 add_action( 'wpcf_after_init', 'wpcf_wpml_init' );
+add_action( 'init', 'wpcf_wpml_warnings_init', 999999 );
 
 // Only when WPML active
 if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
@@ -48,6 +49,24 @@ if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
     // Relationship save child language
     add_action( 'wpcf_relationship_save_child',
             'wpcf_wpml_relationship_save_child', 10, 2 );
+
+    // Dissallow WPML to delete fields in translated posts
+    add_action( 'wpcf_postmeta_before_delete',
+            'wpcf_wpml_remove_delete_postmeta_hook_remove', 10, 2 );
+    add_action( 'wpcf_postmeta_after_delete',
+            'wpcf_wpml_remove_delete_postmeta_hook_add', 10, 2 );
+    add_action( 'wpcf_postmeta_before_delete_repetitive',
+            'wpcf_wpml_remove_delete_postmeta_hook_remove', 10, 2 );
+    add_action( 'wpcf_postmeta_after_delete_repetitive',
+            'wpcf_wpml_remove_delete_postmeta_hook_add', 10, 2 );
+
+    // Fix saving repetitive
+    add_action( 'wpcf_postmeta_before_add_repetitive',
+            'wpcf_wpml_sync_postmeta_hook_remove', 10, 2 );
+    add_action( 'wpcf_postmeta_before_add_last_repetitive',
+            'wpcf_wpml_sync_postmeta_hook_add', 10, 2 );
+    add_action( 'wpcf_postmeta_after_add_repetitive',
+            'wpcf_wpml_sync_postmeta_hook_add', 10, 2 );
 }
 
 /**
@@ -57,8 +76,8 @@ if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
  * @return array
  */
 function wpcf_wpml_fields_filter( $fields ) {
-    foreach ( $fields as $field_id => $field ) {
-        $fields[$field_id] = wpcf_wpml_field_filter( $field );
+    foreach ( $fields as &$field ) {
+        $field = wpcf_wpml_field_filter( $field );
     }
     return $fields;
 }
@@ -105,7 +124,9 @@ function wpcf_wpml_field_filter( $field ) {
  * @return type
  */
 function wpcf_wpml_get_action_by_type( $type ) {
-    return in_array( $type, array('date', 'skype', 'numeric', 'phone', 'image', 'file', 'email', 'url') ) ? 1 : 2;
+    return in_array( $type,
+                    array('date', 'skype', 'numeric', 'phone', 'image', 'file', 'email',
+                'url') ) ? 1 : 2;
 }
 
 function wpcf_wpml_init() {
@@ -598,8 +619,7 @@ function wpcf_wpml_register_labels( $prefix, $data, $context = 'post' ) {
                             $prefix . ' ' . $label, $string );
                     continue;
                 }
-                if ( isset( $default['labels'][$label] )
-                        && $string == $default['labels'][$label] ) {
+                if ( isset( $default['labels'][$label] ) && $string == $default['labels'][$label] ) {
                     wpcf_translate_register_string( 'Types-TAX', $label, $string );
                 } else {
                     wpcf_translate_register_string( 'Types-TAX',
@@ -618,8 +638,7 @@ function wpcf_wpml_register_labels( $prefix, $data, $context = 'post' ) {
                 }
 
                 // Check others for defaults
-                if ( isset( $default['labels'][$label] )
-                        && $string == $default['labels'][$label] ) {
+                if ( isset( $default['labels'][$label] ) && $string == $default['labels'][$label] ) {
                     // Register default translation
                     wpcf_translate_register_string( 'Types-CPT', $label, $string );
                 } else {
@@ -949,9 +968,9 @@ function wpcf_wpml_relationship_save_child( $child, $parent ) {
  * @return boolean
  */
 function wpcf_wpml_field_is_copied( $field, $post = null ) {
-    if ( defined( 'ICL_SITEPRESS_VERSION' ) && !defined( 'DOING_AJAX' ) ) {
+    if ( defined( 'ICL_SITEPRESS_VERSION' ) && defined( 'WPML_TM_VERSION' ) && !defined( 'DOING_AJAX' ) ) {
         if ( !wpcf_wpml_post_is_original( $post ) ) {
-            return wpcf_wpml_field_is_copy( $field );
+            return wpcf_wpml_have_original( $post ) && wpcf_wpml_field_is_copy( $field );
         }
     }
     return false;
@@ -965,7 +984,7 @@ function wpcf_wpml_field_is_copied( $field, $post = null ) {
  * @return boolean
  */
 function wpcf_wpml_is_translated_profile_page( $field ) {
-    if ( defined( 'ICL_SITEPRESS_VERSION' ) && !defined( 'DOING_AJAX' ) ) {
+    if ( defined( 'ICL_SITEPRESS_VERSION' ) && defined( 'WPML_TM_VERSION' ) && !defined( 'DOING_AJAX' ) ) {
         global $sitepress;
         if ( $sitepress->get_default_language() !== $sitepress->get_current_language() ) {
             return wpcf_wpml_field_is_copy( $field );
@@ -981,6 +1000,7 @@ function wpcf_wpml_is_translated_profile_page( $field ) {
  * @return type
  */
 function wpcf_wpml_field_is_copy( $field ) {
+    if ( !defined( 'WPML_TM_VERSION' ) ) return false;
     return isset( $field['wpml_action'] ) && $field['wpml_action'] === 1;
 }
 
@@ -991,7 +1011,19 @@ function wpcf_wpml_field_is_copy( $field ) {
  * @return type
  */
 function wpcf_wpml_field_is_translated( $field ) {
+    if ( !defined( 'WPML_TM_VERSION' ) ) return false;
     return isset( $field['wpml_action'] ) && $field['wpml_action'] === 2;
+}
+
+/**
+ * Checks if field is ignored.
+ * 
+ * @param type $field
+ * @return type
+ */
+function wpcf_wpml_field_is_ignored( $field ) {
+    if ( !defined( 'WPML_TM_VERSION' ) ) return true;
+    return !wpcf_wpml_field_is_copy( $field ) && !wpcf_wpml_field_is_translated( $field );
 }
 
 /**
@@ -1023,12 +1055,209 @@ function wpcf_wpml_post_is_original( $post = null ) {
                                 array_keys( $sitepress->get_translatable_documents() ) ) ) {
                     $post_lang = $sitepress->get_element_language_details( $post->ID,
                             'post_' . $post->post_type );
-                    if ( isset( $post_lang->language_code ) ) {
-                        return $sitepress->get_default_language() == $post_lang->language_code;
+                    // Suggestion from Black Studio
+                    // http://wp-types.com/forums/topic/major-bug-on-types-when-setting-fields-to-be-copied-wo-wpml-translated-posts/#post-146182
+                    if ( isset( $post_lang->source_language_code ) ) {
+                        return $post_lang->source_language_code == null;
+
+//                        return $sitepress->get_default_language() == $post_lang->language_code;
                     }
                 }
             }
         }
     }
     return true;
+}
+
+function wpcf_wpml_have_original( $post = null ) {
+    static $cache = array();
+    global $pagenow;
+    $res = false;
+    
+    // WPML There is no lang on new post
+    if ( $pagenow == 'post-new.php' ) {
+        return isset( $_GET['trid'] );
+    }
+    
+    if ( empty( $post->ID ) ) {
+        $post = wpcf_admin_get_edited_post();
+    }
+    if ( !empty( $post->ID ) ) {
+        $cache_key = $post->ID;
+        if ( isset( $cache[$cache_key] ) ) {
+            return $cache[$cache_key];
+        }
+        global $wpdb, $sitepress;
+        $post_lang = $sitepress->get_element_language_details( $post->ID,
+                'post_' . $post->post_type );
+        if ( isset( $post_lang->language_code ) ) {
+            $sql = "SELECT trid FROM {$wpdb->prefix}icl_translations
+                WHERE language_code = '{$post_lang->language_code}'
+                AND element_id = {$post->ID}
+                AND element_type = 'post_{$post->post_type}'
+                AND source_language_code IS NOT NULL";
+            $res = (bool) $wpdb->get_var( $sql );
+        }
+        $cache[$cache_key] = $res;
+    }
+    return $res;
+}
+
+/**
+ * Removes temporarily hook to avoid deleting custom fields from translated post.
+ * 
+ * @global type $sitepress
+ * @param type $post
+ * @param type $field
+ */
+function wpcf_wpml_remove_delete_postmeta_hook_remove( $post, $field ) {
+    if ( wpcf_wpml_field_is_translated( $field ) ) {
+        global $sitepress;
+        remove_action( 'delete_postmeta', array($sitepress, 'delete_post_meta') );
+    }
+}
+
+/**
+ * Re-enables hook.
+ * 
+ * @see wpcf_wpml_remove_delete_postmeta_hook_remove()
+ * @global type $sitepress
+ * @param type $post
+ * @param type $field
+ */
+function wpcf_wpml_remove_delete_postmeta_hook_add( $post, $field ) {
+    if ( wpcf_wpml_field_is_translated( $field ) ) {
+        global $sitepress;
+        add_action( 'delete_postmeta', array($sitepress, 'delete_post_meta') );
+    }
+}
+
+/**
+ * Removes temporarily hook to fix asving repetitive fields.
+ * 
+ * @global type $sitepress
+ * @param type $post
+ * @param type $field
+ */
+function wpcf_wpml_sync_postmeta_hook_remove( $post, $field ) {
+    global $sitepress;
+    remove_action( 'updated_post_meta', array($sitepress, 'update_post_meta'),
+            100, 4 );
+    remove_action( 'added_post_meta', array($sitepress, 'update_post_meta'),
+            100, 4 );
+    remove_action( 'updated_postmeta', array($sitepress, 'update_post_meta'),
+            100, 4 ); // ajax
+    remove_action( 'added_postmeta', array($sitepress, 'update_post_meta'), 100,
+            4 ); // ajax
+}
+
+/**
+ * Re-enables hook.
+ * 
+ * @see wpcf_wpml_remove_delete_postmeta_hook_remove()
+ * @global type $sitepress
+ * @param type $post
+ * @param type $field
+ */
+function wpcf_wpml_sync_postmeta_hook_add( $post, $field ) {
+    global $sitepress;
+    add_action( 'updated_post_meta', array($sitepress, 'update_post_meta'), 100,
+            4 );
+    add_action( 'added_post_meta', array($sitepress, 'update_post_meta'), 100, 4 );
+    add_action( 'updated_postmeta', array($sitepress, 'update_post_meta'), 100,
+            4 ); // ajax
+    add_action( 'added_postmeta', array($sitepress, 'update_post_meta'), 100, 4 ); // ajax
+    add_action( 'delete_postmeta', array($sitepress, 'delete_post_meta') ); // ajax
+}
+
+function wpcf_wpml_warnings_init()
+{
+	if(!defined('WPML_ST_PATH') || !class_exists( 'ICL_AdminNotifier' )) return;
+
+	global $sitepress, $sitepress_settings;
+	if ( $sitepress->get_default_language() != $sitepress_settings[ 'st' ][ 'strings_language' ] ) {
+		wp_types_default_language_warning();
+	} elseif ( $sitepress_settings[ 'st' ][ 'strings_language' ] != 'en' ) {
+		wp_types_st_language_warning();
+	} else {
+		ICL_AdminNotifier::removeMessage( 'wp_types_default_language_warning' );
+		ICL_AdminNotifier::removeMessage( 'wp_types_st_language_warning' );
+	}
+}
+
+function wpcf_wpml_warning()
+{
+	if(!defined('WPML_ST_PATH') || !class_exists( 'ICL_AdminNotifier' )) return;
+	ICL_AdminNotifier::displayMessages('wp-types');
+}
+
+/**
+ * Handle notification messages for WPML String Translation when default language is != 'en'
+ */
+function wp_types_default_language_warning()
+{
+	if ( class_exists( 'ICL_AdminNotifier' ) && defined( 'ICL_SITEPRESS_VERSION' ) ) {
+		ICL_AdminNotifier::removeMessage( 'wp_types_st_language_warning' );
+		static $called = false;
+		if ( !$called ) {
+			global $sitepress;
+			$languages             = $sitepress->get_active_languages();
+			$translation_languages = array();
+			foreach ( $languages as $language ) {
+				if ( $language[ 'code' ] != 'en' ) {
+					$translation_languages[ ] = $language[ 'display_name' ];
+				}
+			}
+			$last_translation_language = $translation_languages[ count( $translation_languages ) - 1 ];
+			unset( $translation_languages[ count( $translation_languages ) - 1 ] );
+			$translation_languages_list = is_Array( $translation_languages ) ? implode( ', ', $translation_languages ) : $translation_languages;
+
+			$message = 'Because your default language is not English, you need to enter all strings in English and translate them to %s and %s.';
+			$message .= ' ';
+			$message .= '<strong><a href="%s" target="_blank">Read more</a></strong>';
+
+			$message = __( $message, 'Read more string-translation-default-language-not-english', 'wpml-string-translation' );
+			$message = sprintf( $message, $translation_languages_list, $last_translation_language, 'http://wpml.org/faq/string-translation-default-language-not-english/' );
+
+			$fallback_message = _( '<a href="%s" target="_blank">How to translate strings when default language is not English</a>' );
+			$fallback_message = sprintf( $fallback_message, 'http://wpml.org/faq/string-translation-default-language-not-english/' );
+
+			ICL_AdminNotifier::addMessage( 'wp_types_default_language_warning', $message, 'icl-admin-message icl-admin-message-information', true, $fallback_message, false, 'wp-types' );
+			$called = true;
+		}
+	}
+}
+
+/**
+ * Handle notification messages for WPML String Translation when default language and ST language is != 'en'
+ */
+function wp_types_st_language_warning()
+{
+	global $sitepress, $sitepress_settings;
+
+	if ( class_exists( 'ICL_AdminNotifier' ) && defined( 'ICL_SITEPRESS_VERSION' ) ) {
+		ICL_AdminNotifier::removeMessage( 'wp_types_default_language_warning' );
+		static $called = false;
+		if ( !$called ) {
+			$st_language_code = $sitepress_settings[ 'st' ][ 'strings_language' ];
+			$st_language = $sitepress->get_display_language_name($st_language_code, $sitepress->get_admin_language());
+
+			$st_page_url = admin_url('admin.php?page=wpml-string-translation/menu/string-translation.php');
+
+			$message = 'The strings language in your site is set to %s instead of English. ';
+			$message .= 'This means that all English texts that are hard-coded in PHP will appear when displaying content in %s.';
+			$message .= ' ';
+			$message .= '<strong><a href="%s" target="_blank">Read more</a> | ';
+			$message .= '<a href="%s#icl_st_sw_form">Change strings language</a></strong>';
+
+			$message = __( $message, 'wpml-string-translation' );
+			$message = sprintf( $message, $st_language, $st_language, 'http://wpml.org/faq/string-translation-default-language-not-english/', $st_page_url );
+
+			$fallback_message = _( '<a href="%s" target="_blank">How to translate strings when default language is not English</a>' );
+			$fallback_message = sprintf( $fallback_message, 'http://wpml.org/faq/string-translation-default-language-not-english/' );
+
+			ICL_AdminNotifier::addMessage( 'wp_types_st_language_warning', $message, 'icl-admin-message icl-admin-message-warning', true, $fallback_message, false, 'wp-types' );
+			$called = true;
+		}
+	}
 }

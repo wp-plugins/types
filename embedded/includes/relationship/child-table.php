@@ -3,6 +3,11 @@
  * Child table
  */
 
+/*
+ * 
+ * Append pagination and sort GET vars if present
+ */
+
 ?>
 
 <!--WRAPPER-->
@@ -60,7 +65,7 @@ echo admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_save_all'
     <!--TABLE-->
     <div class="wpcf-pr-pagination-update--old">
         <div class="wpcf-pr-table-wrapper">
-            <table id="wpcf_pr_table_sortable_<?php echo md5( $this->child_post_type ); ?>" class="tablesorter wpcf_pr_table_sortable" cellpadding="0" cellspacing="0" style="width:100%;">
+            <table id="wpcf_pr_table_sortable_<?php echo md5( $this->child_post_type ); ?>" class="tablesorter wpcf_pr_table_sortable js-types-child-table" cellpadding="0" cellspacing="0" style="width:100%;">
                 <thead>
                     <tr>
                         <?php

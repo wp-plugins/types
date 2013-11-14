@@ -39,8 +39,6 @@ class WPCF_Helper_Ajax
             $post_id = key( $_data );
             $post = get_post( $post_id );
             $posted_fields = $_data[$post_id];
-            // TODO REMOVE This is forced because of wpv_condition() uses $_POST['post_ID']
-//            $_POST['post_ID'] = $post_id;
             $_flag_relationship = true;
             /*
              * 
@@ -49,8 +47,6 @@ class WPCF_Helper_Ajax
         } else {
             if ( isset( $data['wpcf_main_post_id'] ) ) {
                 $post_id = intval( $data['wpcf_main_post_id'] );
-                // TODO REMOVE This is forced because of wpv_condition() uses $_POST['post_ID']
-//                $_POST['post_ID'] = $post_id;
                 $post = get_post( $post_id );
             }
         }

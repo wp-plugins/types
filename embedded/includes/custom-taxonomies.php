@@ -18,6 +18,7 @@ function wpcf_custom_taxonomies_default() {
         'hierarchical' => false,
         'show_ui' => true,
         'show_tagcloud' => true,
+        'show_admin_column' => false,
         'update_count_callback' => '',
         'query_var_enabled' => true,
         'query_var' => '',
