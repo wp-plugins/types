@@ -21,12 +21,24 @@ function types_image_resize( $img, $args = array() ) {
     $args = wp_parse_args( $args,
             array('return' => 'url', 'suppress_errors' => !TYPES_DEBUG) );
     $resized = $view->resize( $img, $args );
+	$upload_dir = wp_upload_dir();
     if ( !is_wp_error( $resized ) ) {
         if ( is_string( $resized ) ) {
-            $resized = (object) array(
+            /*$resized = (object) array(
                         'url' => WPCF_Path::getFileUrl( $resized, false ) . '/' . basename( $resized ),
                         'path' => $resized,
+            );*/
+            $image = basename( $resized );
+            $resized = (object) array(
+                        'url' => $upload_dir['baseurl'] . '/types_image_cache/' . $image ,
+                        'path' => $upload_dir['basedir'] . '/types_image_cache/' . $image,
             );
+        }
+        else{
+        	$image = basename( $resized->url );
+        	$resized->url = $upload_dir['baseurl'] . '/types_image_cache/' . $image;
+			$resized->path = $upload_dir['basedir'] . '/types_image_cache/' . $image;
+			$resized->pathinfo['dirname'] = $upload_dir['baseurl'] . '/types_image_cache/';
         }
         switch ( $args['return'] ) {
             case 'object':
