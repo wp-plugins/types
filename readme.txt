@@ -24,7 +24,7 @@ Types and the other [Toolset](http://wp-types.com) plugins let you build complet
 * **[CRED](http://wp-types.com/home/cred/)** - front-end form builder for content creation and editing
 * **[Access](http://wp-types.com/home/types-access/)** - roles and access control management
 
-The [Toolset](http://wp-types.com) package will let you build complete WordPress sites right from within the admin dashboard, without any PHP.
+The full [Toolset](http://wp-types.com) package lets you build complete WordPress sites from within the admin dashboard.
 
 = CUSTOM FIELDS FOR CONTENT AND USERS =
 Types lets you add custom fields for both posts (meaning, WordPress posts, pages and custom content types), as well as users. You can add any field types to different user profiles.
