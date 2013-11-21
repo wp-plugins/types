@@ -327,8 +327,6 @@ class Enlimbo_Forms_Wpcf
         // Add JS validation
         if ( !empty( $element['#validate'] ) ) {
             $class .= ' js-types-validate';
-        } else {
-            $class .= ' js-types-validate-ignore';
         }
         if ( isset( $element['#attributes'] ) ) {
             foreach ( $element['#attributes'] as $attribute => $value ) {

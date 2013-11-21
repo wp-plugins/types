@@ -67,6 +67,10 @@ if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
             'wpcf_wpml_sync_postmeta_hook_add', 10, 2 );
     add_action( 'wpcf_postmeta_after_add_repetitive',
             'wpcf_wpml_sync_postmeta_hook_add', 10, 2 );
+    
+    // Fix to set correct parent and children for duplicated posts
+    add_action( 'icl_make_duplicate', 'wpcf_wpml_duplicated_post_relationships',
+            20, 4);
 }
 
 /**
@@ -1260,4 +1264,13 @@ function wp_types_st_language_warning()
 			$called = true;
 		}
 	}
+}
+
+
+// Fix to set correct parent and children for duplicated posts
+function wpcf_wpml_duplicated_post_relationships( $original_post_id, $lang,
+        $postarr, $duplicate_post_id ) {
+    require_once WPCF_EMBEDDED_ABSPATH . '/includes/post-relationship.php';
+    wpcf_post_relationship_set_translated_parent( $duplicate_post_id );
+    wpcf_post_relationship_set_translated_children( $duplicate_post_id );
 }

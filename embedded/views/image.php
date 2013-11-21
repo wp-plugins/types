@@ -16,7 +16,7 @@
  * @return type
  */
 function types_image_resize( $img, $args = array() ) {
-    WPCF_Loader::loadView( 'image' );
+   WPCF_Loader::loadView( 'image' );
     $view = Types_Image_View::getInstance();
     $args = wp_parse_args( $args,
             array('return' => 'url', 'suppress_errors' => !TYPES_DEBUG) );
@@ -159,10 +159,14 @@ class Types_Image_View
                 )
         );
         if ( intval( $args['width'] ) < 1 ) {
-            $args['width'] = 1;
+            $args['width'] = null;
         }
         if ( intval( $args['height'] ) < 1 ) {
-            $args['height'] = 1;
+            $args['height'] = null;
+        }
+        if ( $args['width'] === null && $args['height'] === null ) {
+            return new WP_Error( __CLASS__ . '::' . __METHOD__,
+                    "Could not calculate resized image dimensions {$img}", $args );
         }
         $dims = image_resize_dimensions( $imgData->width, $imgData->height,
                 intval( $args['width'] ), intval( $args['height'] ),

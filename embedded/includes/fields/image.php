@@ -435,6 +435,17 @@ function wpcf_fields_image_view( $params ) {
                         require_once(ABSPATH . "wp-admin" . '/includes/image.php');
                         $attach_data = wp_generate_attachment_metadata( $attach_id,
                                 $image_abspath );
+						if (DIRECTORY_SEPARATOR == '\\') {   
+                         $var = $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$wpdb->postmeta}
+                         WHERE post_id = '%s' AND meta_key='_wp_attached_file'",
+                                    $attach_id ) );
+							if ( !strpos($var, 'types_image_cache/') ){
+								$newvar = str_replace('types_image_cache','types_image_cache/',$var);
+								$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->postmeta} SET meta_value='%s' WHERE post_id = '%s' AND meta_key='_wp_attached_file'",
+                                    $newvar, $attach_id ) );
+									
+							}
+						}			
                         wp_update_attachment_metadata( $attach_id, $attach_data );
                     }
                 }

@@ -168,15 +168,6 @@ function wpcf_add_meta_boxes( $post_type, $post ) {
 
         // Process fields
         if ( !empty( $group['fields'] ) && empty( $only_preview ) ) {
-            $group['html'] = '';
-            if ( function_exists( 'wptoolset_form_field' ) ) {
-            foreach ( $group['fields'] as $config ) {
-                $config['title'] = $config['name'];
-                $config['name'] = "wpcf[{$config['id']}]";
-                $config['value'] = get_post_meta( $post->ID, $config['meta_key'], true );
-                $group['html'] .= wptoolset_form_field( $config );
-            }
-            }
             // Process fields
             $group['fields'] = wpcf_admin_post_process_fields( $post,
                     $group['fields'], true );
@@ -364,11 +355,6 @@ function wpcf_admin_post_meta_box_preview( $post, $group, $echo = '' ){
  * @param type $group 
  */
 function wpcf_admin_post_meta_box( $post, $group, $echo = '' ) {
-
-    if (!empty($group['args']['html'])) {
-        echo $group['args']['html'];
-        return;
-    }
 
     global $wpcf;
 
