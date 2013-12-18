@@ -31,7 +31,7 @@ var typesValidation = (function($) {
         $(selector).validate({
             // :hidden is kept because it's default value.
             // All accepted by jQuery.not() can be added.
-            ignore: 'input[type="hidden"], .wpcf-form-groups-support-post-type, .wpcf-form-groups-support-tax, .wpcf-form-groups-support-templates, .js-types-validate-ignore',
+            ignore: 'input[type="hidden"], .wpcf-form-groups-support-post-type, .wpcf-form-groups-support-tax, .wpcf-form-groups-support-templates, :not(.js-types-validate)',
             errorPlacement: function(error, element) {
                 error.insertBefore(element);
             },
@@ -129,11 +129,13 @@ var typesValidation = (function($) {
                 $.each(element.rules, function() {
                     if (conditionalIsHidden($(element.selector))) {
                         $(element.selector).rules("remove", this.method);
+                        $(element.selector).removeClass('js-types-validate');
                     } else {
                         var rule = {messages: {}};
                         rule[this.method] = this.value == 'true' ? true : this.value;
                         rule.messages[this.method] = this.message;
                         $(element.selector).rules("add", rule);
+                        $(element.selector).addClass('js-types-validate');
                     }
                 });
             }

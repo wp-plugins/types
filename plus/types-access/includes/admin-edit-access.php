@@ -23,6 +23,11 @@ function wpcf_access_admin_edit_access($enabled = true) {
         if (isset($types[$type_slug])) {
             continue;
         }
+        if ($type_slug == 'view-template' || $type_slug == 'view' || $type_slug == 'cred-form') {
+                // Don't list Views and View templates separately.
+                // Don't list CRED form post types.
+                continue;
+        }
         $types[$type_slug] = (array) $type_data;
         unset($types[$type_slug]->labels, $types[$type_slug]->cap);
         $types[$type_slug]['labels'] = (array) $type_data->labels;

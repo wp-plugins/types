@@ -765,18 +765,19 @@ function wpcf_fields_image_value_filter( $value ) {
  * @return \WP_Error 
  */
 function wpcf_fields_image_get_cache_directory( $suppress_filters = false ) {
-    $wp_upload_dir = wp_upload_dir();
-    if ( !empty( $wp_upload_dir['error'] ) ) {
-        return new WP_Error( 'wpcf_image_cache_dir', $wp_upload_dir['error'] );
-    } else {
-        $cache_dir = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . 'types_image_cache';
+    WPCF_Loader::loadView( 'image' );
+    $utils = Types_Image_Utils::getInstance();
+    $cache_dir = $utils->getWritablePath();
+    if ( is_wp_error( $cache_dir ) ) {
+        return $cache_dir;
     }
     if ( !$suppress_filters ) {
         $cache_dir = apply_filters( 'types_image_cache_dir', $cache_dir );
         if ( !wp_mkdir_p( $cache_dir ) ) {
-            return new WP_Error( 'wpcf_image_cache_dir', sprintf( __( 'Image cache directory %s could not be created',
-                                            'wpcf' ),
-                                    '<strong>' . $cache_dir . '</strong>' ) );
+            return new WP_Error( 'wpcf_image_cache_dir',
+                    sprintf( __( 'Image cache directory %s could not be created',
+                                    'wpcf' ),
+                            '<strong>' . $cache_dir . '</strong>' ) );
         }
     }
     return $cache_dir;
@@ -880,10 +881,12 @@ function wpcf_fields_image_get_remote( $url ) {
                                             'wpcf' ), size_format( $max_size ) ) );
         }
     }
-
+    
+    WPCF_Loader::loadView( 'image' );
+    $utils = Types_Image_Utils::getInstance();
     return array(
         'abspath' => $image,
-        'relpath' => wpcf_get_file_url( $image, false ) . '/' . basename( $image )
+        'relpath' => $utils->normalizeAttachmentUrl( $image ),
     );
 }
 

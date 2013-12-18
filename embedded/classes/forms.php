@@ -325,9 +325,9 @@ class Enlimbo_Forms_Wpcf
         $class = $this->css_class . '-' . $element['#type']
                 . ' form-' . $element['#type'] . ' ' . $element['#type'];
         // Add JS validation
-        if ( !empty( $element['#validate'] ) ) {
-            $class .= ' js-types-validate';
-        }
+//        if ( !empty( $element['#validate'] ) ) {
+//            $class .= ' js-types-validate';
+//        }
         if ( isset( $element['#attributes'] ) ) {
             foreach ( $element['#attributes'] as $attribute => $value ) {
                 // Prevent undesired elements

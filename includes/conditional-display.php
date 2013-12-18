@@ -333,7 +333,7 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
 //    if ( $group_id && !$group ) {// Allow group to use other fields
 //        $fields = wpcf_admin_fields_get_fields_by_group( $group_id );
 //    } else {
-    $fields = wpcf_admin_fields_get_fields();
+    $fields = wpcf_admin_fields_get_fields(true, false, true);
     ksort( $fields, SORT_STRING );
 //    }
 

@@ -129,13 +129,18 @@ function wpcf_admin_fields_get_fields( $only_active = false,
     $required_data = array('id', 'name', 'type', 'slug');
     $fields = (array) get_option( $option_name, array() );
     foreach ( $fields as $k => $v ) {
+        $failed = false;
         foreach ( $required_data as $required ) {
             if ( !isset( $v[$required] ) ) {
                 $failed = true;
                 continue;
             }
+            if ( is_numeric($v[$required]) === true) {
+                $failed = true;
+                continue;
+            }
         }
-        if ( !empty($failed) ) {
+        if ( is_numeric($k) === true || $failed ) {
             unset( $fields[$k] );
             continue;
         }
@@ -170,8 +175,8 @@ function wpcf_admin_fields_get_fields( $only_active = false,
         $v['meta_type'] = $option_name == 'wpcf-fields' ? 'postmeta' : 'usermeta'; 
         $fields[$k] = wpcf_sanitize_field( $v );
     }
-    $cache[$cache_key] = $fields;
-    return apply_filters( 'types_fields', $fields );
+    $cache[$cache_key] = apply_filters( 'types_fields', $fields );
+    return $cache[$cache_key];
 }
 
 /**

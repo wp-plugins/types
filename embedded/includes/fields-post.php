@@ -103,6 +103,7 @@ function wpcf_admin_post_init( $post ) {
 
     // Activate scripts
     if ( $wpcf_active ) {
+        add_action( 'admin_head', 'wpcf_post_preview_warning' );
         wpcf_edit_post_screen_scripts();
     }
 
@@ -168,6 +169,16 @@ function wpcf_add_meta_boxes( $post_type, $post ) {
 
         // Process fields
         if ( !empty( $group['fields'] ) && empty( $only_preview ) ) {
+            $group['html'] = '';
+//            if ( function_exists( 'wptoolset_form_field' ) ) {
+//                foreach ( $group['fields'] as $config ) {//debug($config);
+//                    //$config['data']['repetitive'] = true;
+//                    //$config['type'] = 'textfield'; //rand(0, 1) ? 'textfield' : 'skype';//$field['type'];
+//                    $_meta = get_post_meta( $post->ID, $config['meta_key'], true );
+//                    $config = wptoolset_forms_types_filter_field( $config, $_meta );
+//                    $group['html'] .= wptoolset_form_field( 'post', $config, $_meta );
+//                }
+//            }
             // Process fields
             $group['fields'] = wpcf_admin_post_process_fields( $post,
                     $group['fields'], true );
@@ -356,6 +367,11 @@ function wpcf_admin_post_meta_box_preview( $post, $group, $echo = '' ){
  */
 function wpcf_admin_post_meta_box( $post, $group, $echo = '' ) {
 
+//    if ( !empty( $group['args']['html'] ) ) {
+//        echo $group['args']['html'];
+//        return;
+//    }
+
     global $wpcf;
 
     static $nonce_added = false;
@@ -507,10 +523,10 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post ) {
     /*
      * Allow this hook to be triggered only if Types form is submitted
      */
-    if ( !isset( $_POST['_wpcf_post_wpnonce'] ) || !wp_verify_nonce( $_POST['_wpcf_post_wpnonce'],
-                    'update-' . $post->post_type . '_' . $post_ID ) ) {
-        return false;
-    }
+//    if ( !isset( $_POST['_wpcf_post_wpnonce'] ) || !wp_verify_nonce( $_POST['_wpcf_post_wpnonce'],
+//                    'update-' . $post->post_type . '_' . $post_ID ) ) {
+//        return false;
+//    }
     /*
      * Do not save post if is type of:
      * revision
@@ -620,6 +636,22 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post ) {
             if ( empty( $field ) ) {
                 continue;
             }
+
+//            if ( function_exists( 'wptoolset_form_validate_field' ) ) {
+//                $config = $field;
+//                //$config['type'] = 'textfield'; //rand(0, 1) ? 'textfield' : 'skype';//$field['type'];
+//                $config = wptoolset_forms_types_filter_field( $config,
+//                        $field_value ); //debug($_toolset_field);
+//                //$field_value = null;
+//                $valid = wptoolset_form_validate_field( 'post', $config,
+//                        $field_value );
+//                if ( is_wp_error( $valid ) ) {
+//                    $_errors = $valid->get_error_data();
+//                    $_msg = sprintf(__('Field "%s" not updated:', 'wpcf'), $field['name']);
+//                    wpcf_admin_message_store( $_msg . ' ' . implode(', ', $_errors), 'error');
+//                    continue;
+//                }
+//            }
 
             // Set field
             $wpcf->field->set( $post_ID, $field );
@@ -1173,7 +1205,7 @@ function wpcf_admin_post_process_field( $field_object ) {
                 $element['#name'] = "wpcf-disabled[{$field['id']}_{$element['#id']}]";
             } else {
                 $element['#attributes']['disabled'] = 'disabled';
-                if ( is_array($element['#value'])) {//$field['type'] == 'skype' ) {
+                if ( is_array( $element['#value'] ) ) {//$field['type'] == 'skype' ) {
                     $element['#value'] = array_shift( $element['#value'] );
                 }
                 $value = htmlentities( $element['#value'] );
@@ -1557,3 +1589,33 @@ function wpcf_admin_post_marketing_meta_box() {
     echo $output;
 }
 
+function wpcf_post_preview_warning() {
+    $post = wpcf_admin_get_edited_post();
+    // Add preview warning
+    if ( isset( $post->post_status ) && !in_array( $post->post_status,
+                    array('auto-draft', 'draft') ) && !in_array( $post->post_type,
+                    array('cred', 'view', 'view-template') ) ) {
+//        require_once WPCF_EMBEDDED_ABSPATH . '/common/wp-pointer.php';
+//        
+//        $pointer = new WPV_wp_pointer('types-post-preview-warning');
+//        $pointer->add_pointer(__('Preview warning'),
+//                sprintf(__('Custom field changes cannot be previewed until %s is updated'), $post->post_type),
+//                $jquery_id = '#types-preview-warning',
+//                $position = 'left',
+//                $pointer_name = 'types_preview_warning',
+//                $activate_function = null,
+//                $activate_selector = false
+//        );
+//        $pointer->admin_enqueue_scripts();
+        wp_enqueue_style( 'wp-pointer' );
+        wp_enqueue_script( 'wp-pointer' );
+
+        ?><script type="text/javascript">typesPostScreen.previewWarning('<?php _e( 'Preview warning',
+                'wpcf' );
+
+        ?>', '<?php printf( __( 'Custom field changes cannot be previewed until %s is updated',
+                        'wpcf' ), $post->post_type );
+
+        ?>');</script><?php
+    }
+}

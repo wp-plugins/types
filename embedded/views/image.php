@@ -16,30 +16,12 @@
  * @return type
  */
 function types_image_resize( $img, $args = array() ) {
-   WPCF_Loader::loadView( 'image' );
+    WPCF_Loader::loadView( 'image' );
     $view = Types_Image_View::getInstance();
     $args = wp_parse_args( $args,
             array('return' => 'url', 'suppress_errors' => !TYPES_DEBUG) );
     $resized = $view->resize( $img, $args );
-	$upload_dir = wp_upload_dir();
     if ( !is_wp_error( $resized ) ) {
-        if ( is_string( $resized ) ) {
-            /*$resized = (object) array(
-                        'url' => WPCF_Path::getFileUrl( $resized, false ) . '/' . basename( $resized ),
-                        'path' => $resized,
-            );*/
-            $image = basename( $resized );
-            $resized = (object) array(
-                        'url' => $upload_dir['baseurl'] . '/types_image_cache/' . $image ,
-                        'path' => $upload_dir['basedir'] . '/types_image_cache/' . $image,
-            );
-        }
-        else{
-        	$image = basename( $resized->url );
-        	$resized->url = $upload_dir['baseurl'] . '/types_image_cache/' . $image;
-			$resized->path = $upload_dir['basedir'] . '/types_image_cache/' . $image;
-			$resized->pathinfo['dirname'] = $upload_dir['baseurl'] . '/types_image_cache/';
-        }
         switch ( $args['return'] ) {
             case 'object':
                 return $resized;
@@ -81,6 +63,7 @@ class Types_Image_View
 
     private static $__singleton;
     private static $__cache;
+    private static $__utils;
 
     /**
      * Construct.
@@ -89,6 +72,7 @@ class Types_Image_View
      */
     private function __construct() {
         self::$__cache = new Types_Cache();
+        self::$__utils = Types_Image_Utils::getInstance();
     }
 
     /**
@@ -138,15 +122,13 @@ class Types_Image_View
      * @return type
      */
     private static function __resizeImg( $img, $args = array() ) {
-        WPCF_Loader::loadClass( 'types_image_utils' );
-        $utils = Types_Image_Utils::getInstance();
-        if ( is_wp_error( $check = $utils->checkEditRequirements() ) ) {
+        if ( is_wp_error( $check = self::$__utils->checkEditRequirements( $img ) ) ) {
             return $check;
         }
-        if ( is_wp_error( $imgData = $utils->getImg( $img ) ) ) {
+        if ( is_wp_error( $imgData = self::$__utils->getImg( $img ) ) ) {
             return $imgData;
         }
-        if ( is_wp_error( $path = $utils->getWritablePath( $img ) ) ) {
+        if ( is_wp_error( $path = self::$__utils->getWritablePath( $img ) ) ) {
             return $path;
         }
         $args = wp_parse_args( $args,
@@ -175,25 +157,30 @@ class Types_Image_View
             return new WP_Error( __CLASS__ . '::' . __METHOD__,
                     "Could not calculate resized image dimensions {$img}", $dims );
         }
-        $basename = $utils->basename( $img, ".{$imgData->pathinfo['extension']}" );
+
+        //
+        $__dst_w = intval( $args['width'] ) < 1 ? $dims[4] : intval( $args['width'] );
+        $__dst_h = intval( $args['height'] ) < 1 ? $dims[5] : intval( $args['height'] );
+
+        $basename = self::$__utils->basename( $img,
+                ".{$imgData->pathinfo['extension']}" );
         switch ( $args['resize'] ) {
             case 'stretch':
-                $suffix = "{$args['width']}x{$args['height']}-stretched";
+                $suffix = "{$__dst_w}x{$__dst_h}-stretched";
                 break;
-            
+
             case 'pad':
                 $_padding_color_suffix = $args['padding_color'] == 'transparent' ? 'transparent' : hexdec( $args['padding_color'] );
-                $suffix = "{$args['width']}x{$args['height']}-pad-"
-                        . $_padding_color_suffix;
+                $suffix = "{$__dst_w}x{$__dst_h}-pad-" . $_padding_color_suffix;
                 break;
 
             default:
                 $suffix = "{$dims[4]}x{$dims[5]}";
                 break;
         }
-        $croppedImg = "{$path}{$basename}-{$suffix}.{$imgData->pathinfo['extension']}";
+        $croppedImg = "{$path}{$basename}-wpcf_{$suffix}.{$imgData->pathinfo['extension']}";
         if ( !$args['clear_cache'] ) {
-            if ( !is_wp_error( $cropped = $utils->getImg( $croppedImg ) ) ) {
+            if ( !is_wp_error( $cropped = self::$__utils->getImg( $croppedImg ) ) ) {
                 return $cropped;
             }
         }
@@ -201,7 +188,7 @@ class Types_Image_View
          * 
          * Cropping
          */
-        $imgRes = $utils->loadImg( $img );
+        $imgRes = self::$__utils->loadImg( $img );
         if ( !is_resource( $imgRes ) ) {
             return new WP_Error( __CLASS__ . '::' . __METHOD__,
                     "error_loading_image {$img}", $imgRes );
@@ -215,7 +202,9 @@ class Types_Image_View
 
         switch ( $args['resize'] ) {
             case 'stretch':
-                $new_image = wp_imagecreatetruecolor( $dst_w, $dst_h );
+                $dst_w = $__dst_w;
+                $dst_h = $__dst_h;
+                $new_image = wp_imagecreatetruecolor( $__dst_w, $__dst_h );
                 break;
 
             case 'crop':
@@ -228,8 +217,8 @@ class Types_Image_View
                 $image_x = $imgData->width;
                 $image_y = $imgData->height;
                 $image_ar = $image_x / $image_y;
-                $disp_x = intval( $args['width'] );
-                $disp_y = intval( $args['height'] );
+                $disp_x = $dst_w = $__dst_w;
+                $disp_y = $dst_h = $__dst_h;
                 $disp_ar = $disp_x / $disp_y;
                 if ( $image_ar > $disp_ar ) {
                     $ratio = $disp_x / $image_x;
@@ -240,17 +229,15 @@ class Types_Image_View
                     $dst_x = ($disp_x - $image_x * $ratio) / 2; // $offset_left
                     $dst_w = $disp_x - $dst_x * 2;
                 }
-                $new_image = wp_imagecreatetruecolor( intval( $args['width'] ),
-                        intval( $args['height'] ) );
+                $new_image = wp_imagecreatetruecolor( $__dst_w, $__dst_h );
                 if ( $args['padding_color'] == 'transparent' ) {
-                    $t = imagecolorallocatealpha( $new_image, 255, 255, 255,
-                            127 );
+                    $t = imagecolorallocatealpha( $new_image, 255, 255, 255, 127 );
                     imagefill( $new_image, 0, 0, $t );
                     imagealphablending( $new_image, true );
                 } else {
-                    $rgb = $utils->hex2rgb( $args['padding_color'] );
-                    $padding_color = imagecolorallocate( $new_image, $rgb['red'],
-                            $rgb['green'], $rgb['blue'] );
+                    $rgb = self::$__utils->hex2rgb( $args['padding_color'] );
+                    $padding_color = imagecolorallocate( $new_image,
+                            $rgb['red'], $rgb['green'], $rgb['blue'] );
                     imagefill( $new_image, 0, 0, $padding_color );
                 }
                 break;
@@ -317,7 +304,8 @@ class Types_Image_View
         $perms = $stat['mode'] & 0000666;
         @chmod( $croppedImg, $perms );
 
-        return $croppedImg;
+        return self::$__utils->getImgObject( $croppedImg, $dst_w, $dst_h,
+                        $imgData->imagetype, $imgData->mime );
     }
 
 }
@@ -328,7 +316,7 @@ class Types_Image_View
 class Types_Image_Utils
 {
 
-    const DESTINATION_DIR = 'types_image_cache';
+    const DESTINATION_DIR = '1970/01';
 
     private static $__singleton;
     private static $__cache;
@@ -363,7 +351,7 @@ class Types_Image_Utils
      * 
      * @return \WP_Error|boolean
      */
-    public static function checkEditRequirements() {
+    public static function checkEditRequirements( $img ) {
         if ( $cached = self::$__cache->getCache( 'check_edit_requirements' ) ) {
             return $cached;
         }
@@ -372,8 +360,8 @@ class Types_Image_Utils
         if ( !extension_loaded( 'gd' ) || !function_exists( 'gd_info' ) ) {
             self::$errors->addError( 'GD library not present' );
         }
-        // Check writable paths
-        if ( is_wp_error( $path = self::getWritablePath() ) ) {
+        // Check writable path
+        if ( is_wp_error( $path = self::getWritablePath( $img ) ) ) {
             self::$errors->addError( $path );
         }
         // Check if any errors
@@ -391,14 +379,30 @@ class Types_Image_Utils
      * @return type
      */
     public static function getWritablePath( $img = null ) {
-        if ( $cached = self::$__cache->getCache( 'writable_path' ) ) {
+        if ( !is_null( $img ) ) {
+            if ( $cached = self::$__cache->getCache( "writable_path_$img" ) ) {
+                return $cached;
+            }
+            $dir = dirname( $img ) . DIRECTORY_SEPARATOR;
+            if ( !is_writable( $dir ) || !is_dir( $dir ) ) {
+                return self::$__cache->setCache( "writable_path_$img",
+                                new WP_Error( __CLASS__ . '::' . __METHOD__,
+                                'Destination dir not writable' ) );
+            }
+            return self::$__cache->setCache( "writable_path_$img", $dir );
+        }
+        if ( $cached = self::$__cache->getCache( 'temp_writable_path' ) ) {
             return $cached;
         }
-        $wpud = wp_upload_dir();
-        $path = $wpud['basedir'];
-        $dir = $path . DIRECTORY_SEPARATOR . self::DESTINATION_DIR . DIRECTORY_SEPARATOR;
+        $upload_info = self::uploadInfo();
+        if ( !$upload_info ) {
+            return self::$__cache->setCache( 'temp_writable_path',
+                            new WP_Error( __CLASS__ . '::' . __METHOD__,
+                            'WP upload dir error' ) );
+        }
+        $dir = $upload_info['basedir'] . DIRECTORY_SEPARATOR . self::DESTINATION_DIR . DIRECTORY_SEPARATOR;
         if ( !wp_mkdir_p( $dir ) || !is_writable( $dir ) || !is_dir( $dir ) ) {
-            return self::$__cache->setCache( 'writable_path',
+            return self::$__cache->setCache( 'temp_writable_path',
                             new WP_Error( __CLASS__ . '::' . __METHOD__,
                             'Can not create writable dir' ) );
         }
@@ -421,13 +425,9 @@ class Types_Image_Utils
             if ( !is_file( $img ) || !is_readable( $img ) ) {
                 self::$errors->addError( 'File not readable', $img );
             } else {
-                if ( !@exif_imagetype( $img ) ) {
-                    self::$errors->addError( 'File not image', $img );
-                } else {
-                    $size = @getimagesize( $img );
-                    if ( !$size ) {
-                        self::$errors->addError( 'Cannot read image size', $img );
-                    }
+                $size = @getimagesize( $img );
+                if ( !$size ) {
+                    self::$errors->addError( 'Cannot read image size', $img );
                 }
             }
             if ( self::$errors->hasErrors() ) {
@@ -437,17 +437,26 @@ class Types_Image_Utils
             return self::$__cache->setCache( $img, self::$errors );
         }
         list($imgWidth, $imgHeight, $imgType) = $size;
+        return self::$__cache->setCache( $img,
+                        self::getImgObject( $img, $imgWidth, $imgHeight,
+                                $imgType, $size['mime'] ) );
+    }
+
+    public static function getImgObject( $img, $width, $height, $type, $mime ) {
+        if ( $cached = self::$__cache->getCache( "imgobj_$img" ) ) {
+            return $cached;
+        }
         $data = array(
-            'width' => $imgWidth,
-            'height' => $imgHeight,
-            'imagetype' => $imgType,
-            'mime' => $size['mime'],
-            'url' => WPCF_Path::getFileUrl( $img, false ) . '/' . basename( $img ),
+            'width' => $width,
+            'height' => $height,
+            'imagetype' => $type,
+            'mime' => $mime,
+            'url' => self::normalizeAttachmentUrl( $img ),
             'path' => $img,
             'pathinfo' => pathinfo( $img ),
         );
         $imgData = new Types_Image_Model( (object) $data );
-        return self::$__cache->setCache( $img, $imgData->getImg() );
+        return self::$__cache->setCache( "imgobj_$img", $imgData->getImg() );
     }
 
     /**
@@ -498,7 +507,62 @@ class Types_Image_Utils
             $b = hexdec( substr( $hex, 4, 2 ) );
         }
         return array('red' => $r, 'green' => $g, 'blue' => $b);
-}
+    }
+
+    /**
+     * WP upload dir.
+     * 
+     * @staticvar null $upload_info
+     * @return boolean
+     */
+    public static function uploadInfo() {
+        static $upload_info = null;
+
+        if ( $upload_info === null ) {
+            $upload_info = @wp_upload_dir();
+
+            if ( empty( $upload_info['error'] ) ) {
+                $parse_url = @parse_url( $upload_info['baseurl'] );
+
+                if ( $parse_url ) {
+                    $baseurlpath = (!empty( $parse_url['path'] ) ? trim( $parse_url['path'],
+                                            '/' ) : '');
+                } else {
+                    $baseurlpath = 'wp-content/uploads';
+                }
+
+                $upload_info['baseurlpath'] = '/' . $baseurlpath . '/';
+            } else {
+                $upload_info = false;
+            }
+        }
+
+        return $upload_info;
+    }
+
+    /**
+     * Normalize attachment URL.
+     * 
+     * @param type $file
+     * @return string
+     */
+    public static function normalizeAttachmentUrl( $file ) {
+
+        $upload_info = self::uploadInfo();
+        if ( $upload_info ) {
+            $file = ltrim( str_replace( $upload_info['basedir'], '', $file ),
+                    '/\\' );
+            $matches = null;
+
+            if ( preg_match( '~(\d{4}/\d{2}/)?[^/]+$~', $file, $matches ) ) {
+                $file = $matches[0];
+            }
+
+            $file = $upload_info['baseurl'] . '/' . $file;
+        }
+
+        return $file;
+    }
 
 }
 

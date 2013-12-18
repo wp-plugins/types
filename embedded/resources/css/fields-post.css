@@ -71,3 +71,8 @@ img.ui-datepicker-trigger {
     float: left;
     border: 1px solid #BBBBBB;
 }
+#types-preview-warning {
+    margin: 10px 5px 0 0;
+    display: none;
+    clear: both;
+}

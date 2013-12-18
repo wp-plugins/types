@@ -64,8 +64,8 @@ function wpcf_fields_checkboxes_editor_callback( $field, $settings ) {
             $data['checkboxes'][$option_key] = array(
                 'id' => $option_key,
                 'title' => $option['title'],
-                'selected' => isset( $settings['options'][$index]['selected'] ) ? $settings['options'][$index]['selected'] : WPCF_Editor::sanitizeParams( $option['display_value_selected'] ),
-                'not_selected' => isset( $settings['options'][$index]['not_selected'] ) ? $settings['options'][$index]['not_selected'] : WPCF_Editor::sanitizeParams( $option['display_value_not_selected'] ),
+                'selected' => isset( $settings['options'][$index]['selected'] ) ? $settings['options'][$index]['selected'] : htmlspecialchars( stripslashes( strval( ( $option['display_value_selected'] )))),
+                'not_selected' => isset( $settings['options'][$index]['not_selected'] ) ? $settings['options'][$index]['not_selected'] : htmlspecialchars(stripslashes( strval(  $option['display_value_not_selected'] ))),
             );
             $index++;
         }

@@ -531,6 +531,12 @@ function wpcf_admin_custom_fields_change_type( $fields, $type,
             $all_fields[$field_id]['data']['disabled'] = 0;
             $all_fields[$field_id]['data']['disabled_by_type'] = 0;
         }
+        if ( $field['type'] == 'numeric' && isset( $all_fields[$field_id]['data']['validate']['number'] ) ) {
+            unset( $all_fields[$field_id]['data']['validate']['number'] );
+        } else if ( $type == 'numeric' ) {
+            $all_fields[$field_id]['data']['validate'] = array('number' => array(
+                    'active' => true, 'message' => __('Please enter numeric data', 'wpcf')));
+        }
         $all_fields[$field_id]['type'] = $type;
     }
     update_option( $meta_name, $all_fields );

@@ -158,17 +158,10 @@ function types_render_field( $field_id, $params, $content = null, $code = '' ) {
         $meta = $_meta['custom_order'];
 
         // Sometimes if meta is empty - array(0 => '') is returned
-        if ( (count( $meta ) == 1 ) ) {
-            $meta_id = key( $meta );
-            $_temp = array_shift( $meta );
-            if ( strval( $_temp ) == '' ) {
-                return '';
-            } else {
-                $params['field_value'] = $_temp;
-                return types_render_field_single( $field, $params, $content,
-                                $code, $meta_id );
-            }
-        } else if ( !empty( $meta ) ) {
+        if ( count( $meta ) == 1 && reset( $meta ) == '' ) {
+            return '';
+        }
+        if ( !empty( $meta ) ) {
             $output = '';
 
             if ( isset( $params['index'] ) ) {

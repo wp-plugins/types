@@ -89,6 +89,13 @@ function wpcf_admin_save_fields_groups_submit( $form ) {
                                         'wpcf' ), $field['name'] ), 'error' );
                 return $form;
             }
+            if ( (!empty( $field['name'] ) && is_numeric($field['name'] ))
+                    || (!empty( $field['slug'] ) && is_numeric($field['slug'] )) ) {
+                $form->triggerError();
+                wpcf_admin_message( sprintf( __( 'Field names or slugs cannot contain only numbers.',
+                                        'wpcf' ), $field['name'] ), 'error' );
+                return $form;
+            }
         }
         foreach ( $_POST['wpcf']['fields'] as $key => $field ) {
             $field = apply_filters( 'wpcf_field_pre_save', $field );

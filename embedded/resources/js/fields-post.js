@@ -155,3 +155,42 @@ function wpcfGetParameterByName(name, string){
         return decodeURIComponent(results[1].replace(/\+/g, " "));
     }
 }
+
+var typesPostScreen = (function($){
+    previewWarningMsg = '';
+    function bindChange() {
+        // Bind actions according to form element type
+        $(document).ready(function(){
+            $('[name^="wpcf["]').each(function() {
+                var $this = $(this);
+                if ($this.hasClass('radio') || $this.hasClass('checkbox')) {
+                    $this.bind('click', previewWarningShow);
+                } else if ($this.hasClass('select')) {
+                    $this.bind('change', previewWarningShow);
+                } else if ($this.hasClass('wpcf-datepicker')) {
+                    $this.bind('wpcfDateBlur', previewWarningShow);
+                } else {
+                    $this.bind('blur', previewWarningShow);
+                }
+            });
+        });
+    }
+    function previewWarning(header, content) {
+        $(document).ready(function(){
+            $('#post-preview').before('<i class="icon-warning-sign" id="types-preview-warning" data-header="'+header+'" data-content="'+content+'"></i>');
+            bindChange();
+        });
+    }
+    function previewWarningShow() {
+        $('#types-preview-warning').show().on('click', function() {
+                var $this = $(this);
+                $this.pointer({
+                content: '<h3>' + $this.data('header') + '</h3>' + '<p>' + $this.data('content') + '</p>',
+                position: { edge: "right", align: "middle", offset: "0 0"}
+            }).pointer('open');
+        });
+    }
+    return {
+        previewWarning: previewWarning
+    };
+})(jQuery);

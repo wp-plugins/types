@@ -128,16 +128,25 @@ function wpcf_fields_wysiwyg_view( $params ) {
         $output .= '>';
     }
 
-    $output .= apply_filters( 'the_content',
+    if ( isset( $params['suppress_filters'] ) && $params['suppress_filters'] == 'true' ) {
+        $the_content_filters = array(
+            'wptexturize', 'convert_smilies', 'convert_chars', 'wpautop',
+            'shortcode_unautop', 'prepend_attachment', 'capital_P_dangit', 'do_shortcode');
+        $content = htmlspecialchars_decode( stripslashes( $params['field_value'] ) );
+        foreach ($the_content_filters as $func) {
+            if (  function_exists( $func ) ) {
+                $content = call_user_func($func, $content);
+            }
+        }
+        $output .= $content;
+    } else {
+        $output .= apply_filters( 'the_content',
             htmlspecialchars_decode( stripslashes( $params['field_value'] ) ) );
+    }
+    
+    
     if ( !empty( $params['style'] ) || !empty( $params['class'] ) ) {
         $output .= '</div>';
     }
     return $output;
-
-//    $content = $params['field_value'];
-//    $content = htmlspecialchars_decode(stripslashes($content));
-//    $content = do_shortcode($content);
-//    $content = wpautop($content);
-//    return $content;
 }
