@@ -131,8 +131,8 @@ function wpcf_embedded_check_import() {
                         '</a>' );
                 wpcf_admin_message( $text );
             }
-            if ( $auto_import || (isset( $_GET['types-embedded-import'] ) && isset( $_GET['_wpnonce'] )
-                    && wp_verify_nonce( $_GET['_wpnonce'], 'embedded-import' )) ) {
+            if ( $auto_import || (isset( $_GET['types-embedded-import'] ) && isset( $_GET['_wpnonce'] ) && wp_verify_nonce( $_GET['_wpnonce'],
+                            'embedded-import' )) ) {
                 if ( file_exists( WPCF_EMBEDDED_ABSPATH . '/settings.xml' ) ) {
                     $_POST['overwrite-groups'] = 1;
                     $_POST['overwrite-fields'] = 1;
@@ -180,11 +180,11 @@ function wpcf_promote_types_admin() {
 
     ?>
     <p><?php
-    echo sprintf( __( 'If you want to edit these or create your own you can download the full version of <strong>Types</strong> from <a href="%s">%s</a>',
-                    'wpcf' ), 'http://wordpress.org/extend/plugins/types/',
-            'http://wordpress.org/extend/plugins/types/' );
+        echo sprintf( __( 'If you want to edit these or create your own you can download the full version of <strong>Types</strong> from <a href="%s">%s</a>',
+                        'wpcf' ), 'http://wordpress.org/extend/plugins/types/',
+                'http://wordpress.org/extend/plugins/types/' );
 
-    ?></p>
+        ?></p>
 
     <?php
 }
@@ -386,8 +386,7 @@ function wpcf_admin_is_repetitive( $field ) {
         return false;
     }
     $check = intval( $field['data']['repetitive'] );
-    return !empty( $check )
-            && wpcf_admin_can_be_repetitive( $field['type'] );
+    return !empty( $check ) && wpcf_admin_can_be_repetitive( $field['type'] );
 }
 
 /**
@@ -663,7 +662,7 @@ function fields_date_timestamp_neg_supported() {
  */
 function wpcf_media_size( $widescreen = false ) {
     global $content_width;
-    if ( !empty($content_width) ) {
+    if ( !empty( $content_width ) ) {
         $height = $widescreen ? round( $content_width * 9 / 16 ) : round( $content_width * 3 / 4 );
         return array($content_width, $height);
     }
@@ -687,4 +686,120 @@ function types_validate( $method, $args ) {
                         $args );
     }
     return false;
+}
+
+/**
+ * Filters field for Toolset forms.
+ * 
+ * @param type $field
+ * @param type $post
+ * @param type $value
+ * @return type
+ */
+function wptoolset_forms_types_filter_field( $form_id, $field, $value = null ) {
+    if ( is_array( $value ) ) $value = array_shift( $value );
+    $value = '$value';
+    
+    $cond = array();
+    if ( !empty( $field['data']['conditional_display']['custom_use'] ) ) {
+        $cond = array(
+            'prefix' => WPCF_META_PREFIX,
+            'custom' => $field['data']['conditional_display']['custom'],
+        );
+    } else if ( isset( $field['data']['conditional_display']['conditions'] ) ) {
+        $cond = array(
+            'relation' => $field['data']['conditional_display']['relation'],
+            'conditions' => array()
+        );
+        foreach ( $field['data']['conditional_display']['conditions'] as $d ) {
+            $c_field = types_get_field( $d['field'] );
+            if ( !empty( $c_field ) ) {
+                if ( $c_field['type'] == 'date' ) {
+                    $date_format = get_option( 'date_format' );
+                    switch ( $date_format ) {
+                        case 'd/m/Y':
+                            $d['value'] = str_replace( '/', '-', $d['value'] );
+                            break;
+
+                        default:
+                            break;
+                    }
+                    $d['value'] = strtotime( $d['value'] );
+                }
+                $_c = array(WPCF_META_PREFIX . $d['field'], $d['operation'], $d['value'],
+                    $c_field['type']);
+                $cond['conditions'][] = $_c;
+            }
+        }
+    }
+    $validation = array();
+    if ( isset( $field['data']['validate'] ) ) {
+        foreach ( $field['data']['validate'] as $rule => $d ) {
+            if ( $d['active'] ) {
+                $validation[$rule] = array(
+                    'args' => isset( $d['args'] ) ? array_unshift( $value,
+                                    $d['args'] ) : array($value, true),
+                    'message' => $d['message']
+                );
+            }
+        }
+    }
+    $_field = array(
+//        'form_id' => $form_id,
+        'id' => WPCF_META_PREFIX . $field['id'],
+        'meta_key' => $field['meta_key'],
+        'meta_type' => 'postmeta',
+        'type' => $field['type'],
+        'slug' => $field['id'],
+        'title' => $field['name'],
+        'description' => $field['description'],
+        'name' => "wpcf[{$field['id']}]",
+//        'value' => $value,
+        'repetitive' => (bool) @$field['data']['repetitive'],
+        'validation' => $validation,
+        'conditional' => $cond,
+    );
+    if ( $field['type'] == 'checkbox' ) {
+        $_field['default_value'] = $field['data']['set_value'];
+    }
+    if ( $field['type'] == 'checkboxes' && !empty( $field['data']['options'] ) ) {
+        global $pagenow;
+        foreach ( $field['data']['options'] as $option_key => $option ) {
+            // Set value
+            $_field['options'][$option_key] = array(
+                'value' => $option['set_value'],
+                'title' => wpcf_translate( 'field ' . $field['id'] . ' option '
+                        . $option_key . ' title', $option['title'] ),
+                'checked' => (!empty( $field['value'][$option_key] )// Also check new post
+                || ($pagenow == 'post-new.php' && !empty( $option['checked'] ))) ? true : false,
+                'name' => 'wpcf[' . $field['id'] . '][' . $option_key . ']',
+                'id' => $option_key . '_'
+                . wpcf_unique_id( serialize( $field ) ),
+            );
+        }
+    }
+    if ( $field['type'] == 'date' ) {
+        $_field['add_time'] = !empty( $field['data']['date_and_time'] ) && $field['data']['date_and_time'] == 'and_time';
+    }
+    if ( ($field['type'] == 'radio' || $field['type'] == 'select') && !empty( $field['data']['options'] ) ) {
+//        debug( $field, false );
+        foreach ( $field['data']['options'] as $k => $option ) {
+            if ( $k == 'default' ) {
+                continue;
+            }
+            if ( $field['data']['options']['default'] == $k ) {
+                $_field['default_value'] = $option['value'];
+            }
+            $_field['options'][] = array(
+                'value' => $option['value'],
+                'title' => wpcf_translate( 'field ' . $field['id'] . ' option '
+                        . $k . ' title', $option['title'] ),
+            );
+        }
+//        debug( $_field );
+    }
+    if ( $field['type'] == 'radio' ) {
+        $_field['type'] = 'radios';
+    }
+    return $_field;
 }

@@ -86,7 +86,7 @@ class WPCF_Validation
                 }
                 //Check if wordpress date format is d/m/Y and use ITA validation
                 if ( $method == 'date' && isset( $element['wpcf-type'] ) && $element['wpcf-type'] == 'date' && get_option( 'date_format' ) == 'd/m/Y' ) {
-                    $method = 'dateITA:true';
+                    $method = 'dateITA';
                 }
                 // Set JSON data
                 $json['elements'][$id]['rules'][] = array(

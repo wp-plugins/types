@@ -446,12 +446,18 @@ class Types_Image_Utils
         if ( $cached = self::$__cache->getCache( "imgobj_$img" ) ) {
             return $cached;
         }
+        if ( self::inUploadAbsPath( $img ) ) {
+            $url = self::normalizeAttachmentUrl( $img );
+        } else {
+            WPCF_Loader::loadClass( 'path' );
+            $url = WPCF_Path::getFileUrl( $img, false ) . '/' . basename( $img );
+        }
         $data = array(
             'width' => $width,
             'height' => $height,
             'imagetype' => $type,
             'mime' => $mime,
-            'url' => self::normalizeAttachmentUrl( $img ),
+            'url' => $url,
             'path' => $img,
             'pathinfo' => pathinfo( $img ),
         );
@@ -535,9 +541,21 @@ class Types_Image_Utils
             } else {
                 $upload_info = false;
             }
+            $upload_info['path'] = self::realpath( $upload_info['path'] );
+            $upload_info['basedir'] = self::realpath( $upload_info['basedir'] );
+            $upload_info['subdir'] = self::realpath( $upload_info['subdir'] );
         }
-
         return $upload_info;
+    }
+
+    /**
+     * Returns realpath if applicable.
+     * 
+     * @param string $path Absolute path to file
+     */
+    public static function realpath( $path ) {
+        $realpath = @realpath( $path );
+        return $realpath ? $realpath : $path;
     }
 
     /**
@@ -547,21 +565,147 @@ class Types_Image_Utils
      * @return string
      */
     public static function normalizeAttachmentUrl( $file ) {
-
         $upload_info = self::uploadInfo();
         if ( $upload_info ) {
-            $file = ltrim( str_replace( $upload_info['basedir'], '', $file ),
-                    '/\\' );
+            $file = ltrim( str_replace( $upload_info['basedir'], '',
+                            self::realpath( $file ) ), '/\\' );
             $matches = null;
 
             if ( preg_match( '~(\d{4}/\d{2}/)?[^/]+$~', $file, $matches ) ) {
                 $file = $matches[0];
             }
 
-            $file = $upload_info['baseurl'] . '/' . $file;
+            $file = $upload_info['baseurl'] . '/' . str_replace( '\\', '/',
+                            $file );
         }
 
         return $file;
+    }
+
+    /**
+     * Returns path to file relative to upload_dir.
+     * 
+     * @param $file Absolute path to file
+     * @return string '2014/01/img.jpg'
+     */
+    public static function normalizeAttachment( $file ) {
+        $upload_info = self::uploadInfo();
+        if ( $upload_info ) {
+            $file = ltrim( str_replace( $upload_info['basedir'], '',
+                            self::realpath( $file ) ), '/\\' );
+            $matches = null;
+
+            if ( preg_match( '~(\d{4}/\d{2}/)?[^/]+$~', $file, $matches ) ) {
+                $file = $matches[0];
+            }
+        }
+
+        return $file;
+    }
+
+    /**
+     * Get absolute path from URL.
+     * 
+     * @param type $imgUrl
+     */
+    public static function getAbsPath( $imgUrl ) {
+        $upload_dir = wp_upload_dir();
+        $parsed = parse_url( $imgUrl );
+        $parsed_wp = parse_url( get_site_url() );
+        if ( $upload_dir ) {
+            $upload_dir_parsed = parse_url( $upload_dir['baseurl'] );
+            // This works for regular installation and main blog on multisite
+            if ( (!is_multisite() || is_main_site()) && strpos( $parsed['path'],
+                            $upload_dir_parsed['path'] ) === 0 ) {
+                if ( !empty( $parsed_wp['path'] ) ) {
+                    $abspath = dirname( str_replace( $parsed_wp['path'] . '/',
+                                    ABSPATH, $parsed['path'] ) );
+                } else {
+                    $abspath = ABSPATH . dirname( $parsed['path'] );
+                }
+                $abspath .= DIRECTORY_SEPARATOR . basename( $imgUrl );
+                // Check Multisite
+            } else if ( is_multisite() && !is_main_site() ) {
+                $multisite_parsed = explode( '/files/', $parsed['path'] );
+                if ( isset( $multisite_parsed[1] ) ) {
+                    $abspath = $upload_dir['basedir'] . DIRECTORY_SEPARATOR . dirname( $multisite_parsed[1] ) . DIRECTORY_SEPARATOR . basename( $imgUrl );
+                }
+            }
+        }
+
+        // Manual upload
+        if ( empty( $abspath ) ) {
+            if ( !empty( $parsed_wp['path'] ) ) {
+                $abspath = dirname( str_replace( $parsed_wp['path'] . '/',
+                                ABSPATH, $parsed['path'] ) );
+            } else {
+                $abspath = ABSPATH . dirname( $parsed['path'] );
+            }
+            $abspath .= DIRECTORY_SEPARATOR . basename( $imgUrl );
+        }
+
+        return $abspath;
+    }
+
+    /**
+     * Checks if file is in upload path.
+     * 
+     * @param type $imgUrl
+     * @return boolean
+     */
+    public static function inUploadPath( $imgUrl ) {
+        $upload_dir = self::uploadInfo();
+        if ( $upload_dir ) {
+            $parsed = parse_url( $imgUrl );
+            $upload_dir_parsed = parse_url( $upload_dir['baseurl'] );
+            // This works for regular installation and main blog on multisite
+            if ( (!is_multisite() || is_main_site()) && strpos( $parsed['path'],
+                            $upload_dir_parsed['path'] ) === 0 ) {
+                return true;
+                // Check Multisite
+            } else if ( is_multisite() && !is_main_site() ) {
+                if ( strpos( $parsed['path'], $upload_dir_parsed['path'] ) === 0 ) {
+                    return true;
+                }
+                $multisite_parsed = explode( '/files/', $parsed['path'] );
+                if ( isset( $multisite_parsed[1] ) ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static function inUploadAbsPath( $img ) {
+        $upload_dir = self::uploadInfo();
+        if ( $upload_dir ) {
+            return strpos( $img, $upload_dir['basedir'] ) === 0;
+        }
+        return false;
+    }
+
+    /**
+     * Checks if file is on same domain.
+     * 
+     * @param type $imgUrl
+     * @return type
+     */
+    public static function onDomain( $imgUrl ) {
+        $parsed = parse_url( $imgUrl );
+        $parsed_wp = parse_url( get_site_url() );
+        if ( preg_match( '/(?P<domain>[a-z0-9][a-z0-9\-]{1,63}\.[a-z\.]{2,6})$/i',
+                        $parsed['host'], $regs ) ) {
+            $parsed['domain'] = $regs['domain'];
+        } else {
+            $parsed['domain'] = $parsed['host'];
+        }
+        if ( preg_match( '/(?P<domain>[a-z0-9][a-z0-9\-]{1,63}\.[a-z\.]{2,6})$/i',
+                        $parsed_wp['host'], $regs ) ) {
+            $parsed_wp['domain'] = $regs['domain'];
+        } else {
+            $parsed_wp['domain'] = $parsed_wp['host'];
+        }
+        return $parsed['domain'] == $parsed_wp['domain'];
     }
 
 }

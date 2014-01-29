@@ -279,6 +279,7 @@ final class WPCF_Path
             if ( !empty( $map ) && false !== strpos( $__FILE__, $map[1] ) ) {
                 return self::_join_paths( $baseurl, str_replace( $map[1], $map[0], $__FILE__ ) );
             } else {
+                return icl_get_file_relpath( $__FILE__ . DIRECTORY_SEPARATOR . 'dummy.php' );
                 // finally here
                 return self::_join_paths( $baseurl, $__FILE__ );
             }

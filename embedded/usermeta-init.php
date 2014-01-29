@@ -451,21 +451,64 @@ function types_render_usermeta( $field_id, $params, $content = null, $code = '' 
 
     //If Access plugin activated
     if ( function_exists( 'wpcf_access_register_caps' ) ) {
-        require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
-        $field_groups = wpcf_admin_fields_get_groups_by_field( $field_id,
-                'wp-types-user-group' );
-        if ( !empty( $field_groups ) ) {
-            foreach ( $field_groups as $field_group ) {
-                if ( $user_id == $current_user ) {
-                    if ( !current_user_can( 'view_own_on_site_' . $field_group['slug'] ) ) {
-                        return;
-                    }
-                } else {
-                    if ( !current_user_can( 'view_others_on_site_' . $field_group['slug'] ) ) {
-                        return;
-                    }
-                }
-            }
+        $forbidden_self = false;
+        $forbidden_other = false;
+        $forbidden = false;
+        $cache_group = 'types_access_cache_forbidden';
+		$cache_key = md5( 'access::types_render_usermeta' . $field_id );
+		$cached_object = wp_cache_get( $cache_key, $cache_group );
+		$current_user_object = wp_get_current_user();
+		if ( false === $cached_object ) {
+			
+			require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+			$field_groups = wpcf_admin_fields_get_groups_by_field( $field_id,
+					'wp-types-user-group' );
+			$cache_data = array();
+			if ( !empty( $field_groups ) ) {
+				foreach ( $field_groups as $field_group ) {
+					if ( $user_id == $current_user ) {
+						if ( !current_user_can( 'view_own_on_site_' . $field_group['slug'] ) ) {
+							$forbidden_self = true;
+							$forbidden = true;
+						}
+					} else {
+						if ( !current_user_can( 'view_others_on_site_' . $field_group['slug'] ) ) {
+							$forbidden_other = true;
+							$forbidden = true;
+						}
+					}
+				}
+			}
+			foreach ( $current_user_object->roles as $role ) {
+				if ( $forbidden_self ) {
+					$cache_data[$role]['self'] = 'disallow';
+				} else {
+					$cache_data[$role]['self'] = 'allow';
+				}
+				if ( $forbidden_other ) {
+					$cache_data[$role]['other'] = 'disallow';
+				} else {
+					$cache_data[$role]['other'] = 'allow';
+				}
+			}
+			wp_cache_add( $cache_key, $cache_data, $cache_group );
+		} else {
+			if ( $user_id == $current_user ) {
+				foreach ( $current_user_object->roles as $role ) {
+					if ( is_array( $cached_object ) && isset( $cached_object[$role] ) && is_array( $cached_object[$role] ) && isset( $cached_object[$role]['self'] ) && $cached_object[$role]['self'] == 'disallow' ) {
+						$forbidden = true;
+					}
+				}
+			} else {
+				foreach ( $current_user_object->roles as $role ) {
+					if ( is_array( $cached_object ) && isset( $cached_object[$role] ) && is_array( $cached_object[$role] ) && isset( $cached_object[$role]['other'] ) && $cached_object[$role]['other'] == 'disallow' ) {
+						$forbidden = true;
+					}
+				}
+			}
+		}
+        if ( $forbidden ) {
+			return;
         }
     }
     // If field not found return empty string
@@ -788,15 +831,17 @@ function wpcf_admin_user_profile_save_hook( $user_id ){
 class Usermeta_Access
 {
 
+    public static $user_groups = '';
+    
     /**
      * Initialize plugin enviroment
      */
     public function __construct() {
         // setup custom capabilities
+        self::$user_groups = wpcf_admin_fields_get_groups();
         //If access plugin installed
         if ( function_exists( 'wpcf_access_register_caps' ) ) { // integrate with Types Access
-            $fields_groups = wpcf_admin_fields_get_groups( 'wp-types-user-group' );
-            if ( !empty( $fields_groups ) ) {
+            if ( !empty( self::$user_groups ) ) {
                 //Add Usermeta Fields area
                 add_filter( 'types-access-area',
                         array('Usermeta_Access', 'register_access_usermeta_area'),
@@ -902,12 +947,15 @@ class Post_Fields_Access
     /**
      * Initialize plugin enviroment
      */
+    public static $fields_groups = '';
+	
     public function __construct() {
+    	//Get list of groups
+    	self::$fields_groups = wpcf_admin_fields_get_groups();
         // setup custom capabilities
         //If access plugin installed
         if ( function_exists( 'wpcf_access_register_caps' ) ) { // integrate with Types Access
-            $fields_groups = wpcf_admin_fields_get_groups();
-            if ( !empty( $fields_groups ) ) {
+            if ( !empty( self::$fields_groups ) ) {
                 //Add Fields area
                 add_filter( 'types-access-area',
                         array('Post_Fields_Access', 'register_access_fields_area'),
@@ -916,10 +964,12 @@ class Post_Fields_Access
                 add_filter( 'types-access-group',
                         array('Post_Fields_Access', 'register_access_fields_groups'),
                         10, 2 );
+                
                 //Add Fields caps to groups
                 add_filter( 'types-access-cap',
                         array('Post_Fields_Access', 'register_access_fields_caps'),
                         10, 3 );
+				//}		
             }
         }
     }
@@ -942,9 +992,9 @@ class Post_Fields_Access
                         'wpcf' )),
         );
         if ( $area_id == $FIELDS_ACCESS_AREA_ID ) {
-            $fields_groups = wpcf_admin_fields_get_groups();
-            if ( !empty( $fields_groups ) ) {
-                foreach ( $fields_groups as $group ) {
+
+            if ( !empty( self::$fields_groups ) ) {
+                foreach ( self::$fields_groups as $group ) {
                     $FIELDS_ACCESS_GROUP_NAME = $group['name'] . ' Access Group';
                     $FIELDS_ACCESS_GROUP_ID = '__FIELDS_GROUP_' . $group['slug'];
                     if ( $group_id == $FIELDS_ACCESS_GROUP_ID ) {
@@ -968,11 +1018,10 @@ class Post_Fields_Access
     {
         $FIELDS_ACCESS_AREA_NAME = __( 'Post Fields Frontend Access', 'wpcf' );
         $FIELDS_ACCESS_AREA_ID = '__FIELDS';
-
+		
         if ( $id == $FIELDS_ACCESS_AREA_ID ) {
-            $fields_groups = wpcf_admin_fields_get_groups();
-            if ( !empty( $fields_groups ) ) {
-                foreach ( $fields_groups as $group ) {
+            if ( !empty( self::$fields_groups ) ) {
+                foreach ( self::$fields_groups as $group ) {
                     $FIELDS_ACCESS_GROUP_NAME = $group['name'];
                     //. ' User Meta Fields Access Group'
                     $FIELDS_ACCESS_GROUP_ID = '__FIELDS_GROUP_' . $group['slug'];

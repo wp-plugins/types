@@ -8,6 +8,7 @@ class WPCF_WPViews
      */
     public static function init() {
         add_action( 'views_edit_screen', array('WPCF_WPViews', 'editScreenInit') );
+        add_action( 'layouts_edit_screen', array('WPCF_WPViews', 'editScreenInit') );
         add_action( 'views_ct_inline_editor',
                 array('WPCF_WPViews', 'addEditorDropdownFilter') );
     }

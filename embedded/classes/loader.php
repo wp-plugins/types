@@ -29,6 +29,45 @@ class WPCF_Loader
         self::__toolset();
         add_action( 'admin_print_scripts',
                 array('WPCF_Loader', 'renderJsSettings'), 5 );
+		add_filter( 'the_posts', array('WPCF_Loader', 'wpcf_cache_complete_postmeta') );
+    }
+    
+    /**
+    * Cache the postmeta for posts returned by a WP_Query
+    */
+    
+    public static function wpcf_cache_complete_postmeta( $posts ) {
+		global $wpdb;
+		if ( !$posts )
+			return $posts;
+		$post_ids = array();
+		$cache_group_ids = 'types_cache_ids';
+		$cache_group = 'types_cache';
+		foreach ( $posts as $post ) {
+			$cache_key_looped_post = md5( 'post::_is_cached' . $post->ID );
+			$cached_object = wp_cache_get( $cache_key_looped_post, $cache_group_ids );
+			if ( false === $cached_object ) {
+				$post_ids[] = $post->ID;
+				wp_cache_add( $cache_key_looped_post, $post->ID, $cache_group_ids );
+			}
+		}
+		if ( count( $post_ids ) > 0 ) {
+			$id_list = join( ',', $post_ids );
+			$all_postmeta = $wpdb->get_results( "SELECT * FROM {$wpdb->postmeta} WHERE post_id IN ($id_list)", OBJECT );
+			if ( !empty( $all_postmeta ) ) {
+				$cache_key_keys = array();
+				foreach ( $all_postmeta as $metarow ) {
+					$mpid = intval($metarow->post_id);
+					$mkey = $metarow->meta_key;
+					$cache_key_keys[$mpid . $mkey][] = $metarow;
+				}
+				foreach ( $cache_key_keys as $single_meta_keys => $single_meta_values ) {
+					$cache_key_looped_new = md5( 'field::_get_meta' . $single_meta_keys );
+					wp_cache_add( $cache_key_looped_new, $single_meta_values, $cache_group );// WordPress cache
+				}
+			}
+		}
+		return $posts;
     }
 
     /**

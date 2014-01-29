@@ -4,14 +4,14 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields
 License: GPLv2
 Requires at least: 3.4
-Tested up to: 3.8
-Stable tag: 1.5.3
+Tested up to: 3.8.1
+Stable tag: 1.5.4
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
 == Description ==
 
-Types let's you customize the WordPress admin by adding content types, custom fields and taxonomy. You will be able to craft the WordPress admin and turn it into your very own content management system.
+Types lets you customize the WordPress admin by adding content types, custom fields and taxonomy. You will be able to craft the WordPress admin and turn it into your very own content management system.
 
 [vimeo http://vimeo.com/43104695]
 
@@ -59,6 +59,10 @@ Types includes support for a wide list of custom fields.
 * **Phone**
 * **Skype**
 * **URL**
+* **Audio**
+* **Video**
+* **Embedded media**
+* **Colorpicker**
 * **Post reference** (using Types Parent / Child relationships management)
 
 Types custom fields use the standard WordPress post-meta table, making it cross-compatible with any theme or plugin. Additionally, all fields can be **repeating fields**.
@@ -146,6 +150,10 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 5. Bulk editing child content using Field Tables
 
 == Changelog ==
+
+= 1.5.4 =
+* Caching improvements
+* Image resizing adjustments
 
 = 1.5.3 =
 * Fixed caching field data before applying WPML filters

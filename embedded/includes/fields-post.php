@@ -169,16 +169,6 @@ function wpcf_add_meta_boxes( $post_type, $post ) {
 
         // Process fields
         if ( !empty( $group['fields'] ) && empty( $only_preview ) ) {
-            $group['html'] = '';
-//            if ( function_exists( 'wptoolset_form_field' ) ) {
-//                foreach ( $group['fields'] as $config ) {//debug($config);
-//                    //$config['data']['repetitive'] = true;
-//                    //$config['type'] = 'textfield'; //rand(0, 1) ? 'textfield' : 'skype';//$field['type'];
-//                    $_meta = get_post_meta( $post->ID, $config['meta_key'], true );
-//                    $config = wptoolset_forms_types_filter_field( $config, $_meta );
-//                    $group['html'] .= wptoolset_form_field( 'post', $config, $_meta );
-//                }
-//            }
             // Process fields
             $group['fields'] = wpcf_admin_post_process_fields( $post,
                     $group['fields'], true );
@@ -366,11 +356,6 @@ function wpcf_admin_post_meta_box_preview( $post, $group, $echo = '' ){
  * @param type $group 
  */
 function wpcf_admin_post_meta_box( $post, $group, $echo = '' ) {
-
-//    if ( !empty( $group['args']['html'] ) ) {
-//        echo $group['args']['html'];
-//        return;
-//    }
 
     global $wpcf;
 
@@ -636,22 +621,6 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post ) {
             if ( empty( $field ) ) {
                 continue;
             }
-
-//            if ( function_exists( 'wptoolset_form_validate_field' ) ) {
-//                $config = $field;
-//                //$config['type'] = 'textfield'; //rand(0, 1) ? 'textfield' : 'skype';//$field['type'];
-//                $config = wptoolset_forms_types_filter_field( $config,
-//                        $field_value ); //debug($_toolset_field);
-//                //$field_value = null;
-//                $valid = wptoolset_form_validate_field( 'post', $config,
-//                        $field_value );
-//                if ( is_wp_error( $valid ) ) {
-//                    $_errors = $valid->get_error_data();
-//                    $_msg = sprintf(__('Field "%s" not updated:', 'wpcf'), $field['name']);
-//                    wpcf_admin_message_store( $_msg . ' ' . implode(', ', $_errors), 'error');
-//                    continue;
-//                }
-//            }
 
             // Set field
             $wpcf->field->set( $post_ID, $field );
@@ -1610,10 +1579,11 @@ function wpcf_post_preview_warning() {
         wp_enqueue_style( 'wp-pointer' );
         wp_enqueue_script( 'wp-pointer' );
 
-        ?><script type="text/javascript">typesPostScreen.previewWarning('<?php _e( 'Preview warning',
-                'wpcf' );
+        ?><script type="text/javascript">typesPostScreen.previewWarning('<?php
+        _e( 'Preview warning', 'wpcf' );
 
-        ?>', '<?php printf( __( 'Custom field changes cannot be previewed until %s is updated',
+        ?>', '<?php
+        printf( __( 'Custom field changes cannot be previewed until %s is updated',
                         'wpcf' ), $post->post_type );
 
         ?>');</script><?php

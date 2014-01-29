@@ -321,6 +321,8 @@ class WPCF_Relationship
 
         clean_post_cache( $parent->ID );
         clean_post_cache( $child->ID );
+        // Added because of caching meta 1.5.4
+        wp_cache_flush();
 
         return true;
     }
@@ -357,6 +359,7 @@ class WPCF_Relationship
                     array('post_title' => $post_type . ' ' . $id),
                     array('ID' => $id), array('%s'), array('%d') );
         }
+        wp_cache_flush();
         return $id;
     }
 

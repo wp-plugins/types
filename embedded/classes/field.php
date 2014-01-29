@@ -97,7 +97,7 @@ class WPCF_Field
     var $use_cache = true;
 
     /**
-     * Cache.
+     * Cache.DEPRECATED
      * 
      * @var type 
      */
@@ -239,20 +239,43 @@ class WPCF_Field
         global $wpdb;
 
         $cache_key = md5( 'field::_get_meta' . $this->post->ID . $this->slug );
-        if ( $this->use_cache && isset( $this->cache[$cache_key] ) ) {
-            $r = $this->cache[$cache_key];
-        } else {
-            // Get straight from DB single value
+        $cache_group = 'types_cache';
+        $cached_object = wp_cache_get( $cache_key, $cache_group );
+        if ( $this->use_cache ) {
+			if ( false != $cached_object && is_array( $cached_object ) && isset( $cached_object[0] ) ) {// WordPress cache
+				$r = $cached_object[0];
+			} else {
+				// Cache all the postmeta for this same post
+				$all_postmeta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->postmeta} WHERE post_id=%d", $this->post->ID), OBJECT );
+				if ( !empty( $all_postmeta ) ) {
+					$cache_key_keys = array();
+					foreach ( $all_postmeta as $metarow ) {
+						$mpid = intval($metarow->post_id);
+						$mkey = $metarow->meta_key;
+						$cache_key_keys[$mpid . $mkey][] = $metarow;
+						$cache_key_looped = md5( 'field::_get_meta' . $mpid . $mkey );
+						if ( $mkey == $this->slug ) {
+							$r = $metarow;
+						}
+					}
+					foreach ( $cache_key_keys as $single_meta_keys => $single_meta_values ) {
+						$cache_key_looped_new = md5( 'field::_get_meta' . $single_meta_keys );
+						wp_cache_add( $cache_key_looped_new, $single_meta_values, $cache_group );// WordPress cache
+					}
+				}
+			}
+		} else {
+			// If not using cache, get straight from DB single value
             $r = $wpdb->get_row(
                     $wpdb->prepare(
                             "SELECT * FROM $wpdb->postmeta
-                WHERE post_id=%d
-                AND meta_key=%s",
+							WHERE post_id=%d
+							AND meta_key=%s",
                             $this->post->ID, $this->slug )
             );
             // Cache it
-            $this->cache[$cache_key] = $r;
-        }
+            wp_cache_add( $cache_key, array( $r ), $cache_group );// WordPress cache
+		}
 
         // Sort meta
         $meta = array();

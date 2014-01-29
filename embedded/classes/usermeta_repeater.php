@@ -130,8 +130,13 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
         global $wpdb;
 
         $cache_key = md5( 'usermetarepeater::_get_meta' . $this->currentUID . $this->slug );
-        if ( $this->use_cache && isset( $this->cache[$cache_key] ) ) {
-            return $this->cache[$cache_key];
+        $cache_group = 'types_cache';
+        $cached_object = wp_cache_get( $cache_key, $cache_group );
+        
+        if ( $this->use_cache ) {
+			if ( false != $cached_object && is_array( $cached_object ) ) {
+				return $cached_object;
+			}
         }
 
         $this->order_meta_name = '_' . $this->slug . '-sort-order';
@@ -141,14 +146,24 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
         $ordered = array();
         $this->order = get_user_meta( $this->currentUID, $this->order_meta_name,
                 true );
+		
+		$cache_key_userfield = md5( 'usermeta::_get_meta' . $this->currentUID . $this->slug );
+        $cached_object_userfield = wp_cache_get( $cache_key_userfield, $cache_group );
+        
+        if ( $this->use_cache ) {
+			if ( false != $cached_object_userfield && is_array( $cached_object_userfield ) ) {// WordPress cache
+				$r = $cached_object_userfield;
+			} else {
+				$r = $wpdb->get_results(
+						$wpdb->prepare(
+								"SELECT * FROM $wpdb->usermeta
+								WHERE user_id=%d
+								AND meta_key=%s",
+								$this->currentUID, $this->slug )
+				);
+			}
+		}
 
-        $r = $wpdb->get_results(
-                $wpdb->prepare(
-                        "SELECT * FROM $wpdb->usermeta
-                WHERE user_id=%d
-                AND meta_key=%s",
-                        $this->currentUID, $this->slug )
-        );
         if ( !empty( $r ) ) {
             $_meta = array();
             $_meta['by_meta_id'] = array();
@@ -201,7 +216,7 @@ class WPCF_Usermeta_Repeater extends WPCF_Usermeta_Field
             $_meta['custom_order'] = $_meta['by_meta_id'];
         }
 
-        $this->cache[$cache_key] = $_meta;
+        wp_cache_add( $cache_key, $_meta, $cache_group );// WordPress cache
         return $_meta;
     }
 

@@ -11,7 +11,15 @@
  */
 function wpcf_admin_fields_get_groups( $post_type = 'wp-types-group',
         $only_active = false, $add_fields = false ) {
-    $groups = get_posts( 'numberposts=-1&post_type=' . $post_type . '&post_status=null' );
+    $cache_group = 'types_cache_groups';
+	$cache_key = md5( 'group::_get_group' . $post_type );
+	$cached_object = wp_cache_get( $cache_key, $cache_group );
+    if ( false === $cached_object ) {
+		$groups = get_posts( 'numberposts=-1&post_type=' . $post_type . '&post_status=null' );
+		wp_cache_add( $cache_key, $groups, $cache_group );
+	} else {
+		$groups = $cached_object;
+	}
     $_groups = array();
     if ( !empty( $groups ) ) {
         foreach ( $groups as $k => $group ) {

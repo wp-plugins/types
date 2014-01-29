@@ -97,6 +97,7 @@ function wpcf_admin_save_fields_groups_submit( $form ) {
                 return $form;
             }
         }
+        // First check all fields
         foreach ( $_POST['wpcf']['fields'] as $key => $field ) {
             $field = apply_filters( 'wpcf_field_pre_save', $field );
             if ( !empty( $field['is_new'] ) ) {
@@ -116,6 +117,10 @@ function wpcf_admin_save_fields_groups_submit( $form ) {
                     return $form;
                 }
             }
+        }
+        // Now save fields
+        foreach ( $_POST['wpcf']['fields'] as $key => $field ) {
+            $field = apply_filters( 'wpcf_field_pre_save', $field );
             // Field ID and slug are same thing
             $field_id = wpcf_admin_fields_save_field( $field );
             if ( is_wp_error( $field_id ) ) {
@@ -769,6 +774,8 @@ function wpcf_admin_fields_form() {
     );
 
     /** Admin styles* */
+    // messes up menu buttons
+//    wp_deregister_style('editor-buttons');
     $form['adminstyles-table-open'] = array(
         '#type' => 'markup',
         '#markup' => '<table class="widefat" id="wpcf-admin-styles-box"><thead><tr><th>'

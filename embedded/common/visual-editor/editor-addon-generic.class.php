@@ -18,8 +18,12 @@ if( !class_exists( 'Editor_addon_generic' ) )
 		function add_menu_css() {
 	        global $pagenow;
 
-	        if ( $pagenow == 'post.php' || $pagenow == 'post-new.php' ||
-			( $pagenow == 'admin.php' && ( isset( $_GET['page'] ) && ( $_GET['page'] == 'views-editor' || $_GET['page'] == 'view-archives-editor' ) ) ) // add the new Views edit screens
+	        if ( $pagenow == 'post.php' ||
+					$pagenow == 'post-new.php' || 
+					( $pagenow == 'admin.php' && ( isset( $_GET['page'] ) &&
+												  ( $_GET['page'] == 'views-editor' ||
+												    $_GET['page'] == 'view-archives-editor' ||
+													$_GET['page'] == 'dd_layouts_edit') ) ) // add the new Views edit screens
 	        ) {
 	            wp_enqueue_style( 'editor_addon_menu',
 	                    EDITOR_ADDON_RELPATH . '/res/css/pro_dropdown_2.css' );

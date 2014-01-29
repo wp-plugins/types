@@ -8,7 +8,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
     {
 
         function get_fields_list() {
-            return $this->items;
+            return apply_filters( 'toolset_editor_addon_post_fields_list', $this->items );
         }
 
         /**
@@ -152,7 +152,8 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             ,'user-settings','dashboard_quick_press_last_post_id','capabilities','new_date','show_admin_bar_front','show_welcome_panel','show_highlight','admin_color'
             ,'language_pairs','first_name','last_name','name','nickname','description','yim','jabber','aim');
             $exclude_these_hidden_var = '/('.implode('|', $unused_field).')/';
-            $this->items = array( 
+            $this->items = array(
+				array(__('User ID', 'wpv-views'), 'wpv-user field="ID"',__('Basic', 'wpv-views'),''),
                 array(__('User Email', 'wpv-views'), 'wpv-user field="user_email"',__('Basic', 'wpv-views'),''),
                 array(__('User Login', 'wpv-views'), 'wpv-user field="user_login"',__('Basic', 'wpv-views'),''),
                 array(__('First Name', 'wpv-views'), 'wpv-user field="user_firstname"',__('Basic', 'wpv-views'),''),
@@ -719,8 +720,12 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             global $pagenow;
 
            if ( 
-            $pagenow == 'post.php' || $pagenow == 'post-new.php' ||
-            ( $pagenow == 'admin.php' && ( isset( $_GET['page'] ) && ( $_GET['page'] == 'views-editor' || $_GET['page'] == 'view-archives-editor' ) ) ) // add the new Views edit screens
+            $pagenow == 'post.php' ||
+            $pagenow == 'post-new.php' ||
+            ( $pagenow == 'admin.php' && ( isset( $_GET['page'] ) &&
+                                          ( $_GET['page'] == 'views-editor' ||
+                                            $_GET['page'] == 'view-archives-editor' ||
+                                            $_GET['page'] == 'dd_layouts_edit') ) ) // add the new Views edit screens
             ) {
 
 
