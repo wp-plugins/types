@@ -583,7 +583,8 @@ function wpv_dismiss_message_ajax() {
     if ( isset( $_GET['message_id'] ) && isset( $_GET['_wpnonce'] )
             && wp_verify_nonce( $_GET['_wpnonce'], 'dismiss_message' ) ) {
         $dismissed_messages = get_option( 'wpv-dismissed-messages', array() );
-        $dismissed_messages[strval( $_GET['message_id'] )] = 1;
+		$dismissed_image_val = isset( $_GET['timestamp'] ) ? $_GET['timestamp'] : 1;
+        $dismissed_messages[strval( $_GET['message_id'] )] = $dismissed_image_val;
         update_option( 'wpv-dismissed-messages', $dismissed_messages );
     }
     die( 'ajax' );

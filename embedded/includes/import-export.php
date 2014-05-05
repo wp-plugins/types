@@ -3,7 +3,7 @@
  * Import/export data.
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.5.6/embedded/includes/import-export.php $
- * $LastChangedDate: 2014-05-02 17:54:57 +0200 (pią) $
+ * $LastChangedDate: 2014-05-02 15:54:57 +0000 (Fri, 02 May 2014) $
  * $LastChangedRevision: 21982 $
  * $LastChangedBy: marcin $
  *

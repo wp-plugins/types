@@ -426,12 +426,15 @@ if(!class_exists('Wpcf_Cake_Validation')) {
 	    function date($check, $format = 'ymd', $regex = null) {
 	
 	        $date_format = wpcf_get_date_format();
-	        $cake_date_formats = array('F j, Y' => 'Mdy',
+            $cake_date_formats = array(
+                'F j, Y' => 'Mdy',
 	            'Y/m/d' => 'ymd',
 	            'm/d/Y' => 'mdy',
-	            'd/m/Y' => 'dmy'
-	        );
-	        $format = $cake_date_formats[$date_format];
+	            'd/m/Y' => 'dmy',
+	            'd/m/y' => 'dmy',
+            );
+
+            $format = $cake_date_formats[$date_format];
 	
 	        $_this = & Wpcf_Cake_Validation::getInstance();
 	        $_this->__reset();

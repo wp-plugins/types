@@ -11,7 +11,7 @@ define( "CLASS_NAME_PREFIX", "WPToolset_Field_" );
  * @author onTheGo System
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6-Types-1.5.6/toolset-forms/classes/class.form_factory.php $
- * $LastChangedDate: 2014-04-15 18:12:53 +0200 (wto) $
+ * $LastChangedDate: 2014-04-15 16:12:53 +0000 (Tue, 15 Apr 2014) $
  * $LastChangedRevision: 21541 $
  * $LastChangedBy: francesco $
  *

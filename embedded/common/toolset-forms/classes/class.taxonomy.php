@@ -3,7 +3,7 @@
 /**
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6-Types-1.5.6/toolset-forms/classes/class.taxonomy.php $
- * $LastChangedDate: 2014-04-15 16:33:44 +0200 (wto) $
+ * $LastChangedDate: 2014-04-15 14:33:44 +0000 (Tue, 15 Apr 2014) $
  * $LastChangedRevision: 21529 $
  * $LastChangedBy: francesco $
  *

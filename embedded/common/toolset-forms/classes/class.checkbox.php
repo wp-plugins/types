@@ -2,7 +2,7 @@
 /**
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6-Types-1.5.6/toolset-forms/classes/class.checkbox.php $
- * $LastChangedDate: 2014-04-29 14:07:22 +0200 (wto) $
+ * $LastChangedDate: 2014-04-29 12:07:22 +0000 (Tue, 29 Apr 2014) $
  * $LastChangedRevision: 21855 $
  * $LastChangedBy: marcin $
  *

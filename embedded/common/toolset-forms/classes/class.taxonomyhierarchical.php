@@ -2,7 +2,7 @@
 /**
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6-Types-1.5.6/toolset-forms/classes/class.taxonomyhierarchical.php $
- * $LastChangedDate: 2014-04-18 12:07:10 +0200 (pią) $
+ * $LastChangedDate: 2014-04-18 10:07:10 +0000 (Fri, 18 Apr 2014) $
  * $LastChangedRevision: 21640 $
  * $LastChangedBy: marcin $
  *

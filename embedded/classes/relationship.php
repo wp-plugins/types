@@ -3,7 +3,7 @@
  * Post relationship class.
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.5.6/embedded/classes/relationship.php $
- * $LastChangedDate: 2014-05-05 14:15:33 +0200 (pon) $
+ * $LastChangedDate: 2014-05-05 12:15:33 +0000 (Mon, 05 May 2014) $
  * $LastChangedRevision: 22012 $
  * $LastChangedBy: marcin $
  *
