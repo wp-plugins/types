@@ -311,6 +311,7 @@ function wpcf_admin_export_selected_data( array $items, $_type = 'all',
     require_once WPCF_EMBEDDED_ABSPATH . '/common/array2xml.php';
     $xml = new ICL_Array2XML();
     $data = array();
+    $data['settings'] = wpcf_get_settings();
 
     if ( 'user_groups' == $_type || 'all' == $_type ) {
         // Get groups

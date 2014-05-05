@@ -284,6 +284,13 @@ function wpcf_admin_import_export_settings( $data ) {
         '#type' => 'markup',
         '#markup' => '<h2>' . __( 'General Settings', 'wpcf' ) . '</h2>',
     );
+    $form['overwrite-settings'] = array(
+        '#type' => 'checkbox',
+        '#title' => __( 'Overwrite settings', 'wpcf' ),
+        '#name' => 'overwrite-settings',
+        '#inline' => true,
+        '#after' => '<br />',
+    );
     $form['overwrite-or-add-groups'] = array(
         '#type' => 'checkbox',
         '#title' => __( 'Bulk overwrite groups if exist', 'wpcf' ),

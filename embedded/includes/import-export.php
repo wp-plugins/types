@@ -1,6 +1,12 @@
 <?php
 /*
  * Import/export data.
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.5.6/embedded/includes/import-export.php $
+ * $LastChangedDate: 2014-05-02 17:54:57 +0200 (pią) $
+ * $LastChangedRevision: 21982 $
+ * $LastChangedBy: marcin $
+ *
  */
 
 /**
@@ -20,6 +26,7 @@ function wpcf_admin_import_data( $data = '', $redirect = true,
         libxml_clear_errors();
         return false;
     }
+    $overwrite_settings = isset( $_POST['overwrite-settings'] );
     $overwrite_groups = isset( $_POST['overwrite-groups'] );
     $overwrite_fields = isset( $_POST['overwrite-fields'] );
     $overwrite_types = isset( $_POST['overwrite-types'] );
@@ -28,6 +35,18 @@ function wpcf_admin_import_data( $data = '', $redirect = true,
     $delete_fields = isset( $_POST['delete-fields'] );
     $delete_types = isset( $_POST['delete-types'] );
     $delete_tax = isset( $_POST['delete-tax'] );
+
+    /**
+     * process settings
+     */
+    if ( $overwrite_settings && isset( $data->settings ) ) {
+        $wpcf_settings = wpcf_get_settings();
+        foreach( wpcf_admin_import_export_simplexml2array( $data->settings ) as $key => $value ) {
+            $wpcf_settings[$key] =  $value;
+        }
+        wpcf_save_settings( $wpcf_settings );
+        wpcf_admin_message_store( __( 'Setting are updated.', 'wpcf' ) );
+    }
 
     // Process groups
 
@@ -63,6 +82,12 @@ function wpcf_admin_import_data( $data = '', $redirect = true,
                 'post_title' => $group['post_title'],
                 'post_content' => !empty( $group['post_content'] ) ? $group['post_content'] : '',
             );
+            /**
+             * preserve slug
+             */
+            if ( array_key_exists( '__types_id', $group ) ) {
+                $post['post_name'] = $group['__types_id'];
+            }
             if ( (isset( $group['add'] ) && $group['add'] ) ) {
                 $post_to_update = $wpdb->get_var( $wpdb->prepare(
                                 "SELECT ID FROM $wpdb->posts

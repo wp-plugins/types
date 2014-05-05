@@ -1,6 +1,12 @@
 <?php
 /*
  * Post relationship code.
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.5.6/embedded/includes/post-relationship.php $
+ * $LastChangedDate: 2014-04-28 18:20:36 +0200 (pon) $
+ * $LastChangedRevision: 21804 $
+ * $LastChangedBy: marcin $
+ *
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/editor-support/post-relationship-editor-support.php';
 
@@ -219,7 +225,7 @@ function wpcf_pr_admin_post_meta_box_belongs_form( $post, $type, $belongs ) {
 
     global $wpdb;
 
-    if ( empty( $post ) ) {
+    if ( empty( $post ) || empty( $post->ID ) ) {
         return array();
     }
     $temp_type = get_post_type_object( $type );
@@ -246,11 +252,20 @@ function wpcf_pr_admin_post_meta_box_belongs_form( $post, $type, $belongs ) {
      * add WMPL support
      */
     $wpml_where = '';
-    if ( defined('ICL_SITEPRESS_VERSION') && function_exists('wpml_get_language_information') ) {
-        $post_language_information = wpml_get_language_information($post->ID);
-        $sql .= sprintf( ' LEFT JOIN %sicl_translations t on t.element_id = p.ID and t.element_type = \'post_%s\' ', $wpdb->prefix, $type);
-        $sql .= sprintf( ' LEFT JOIN %sicl_languages l on l.code = t.language_code ', $wpdb->prefix);
-        $wpml_where = sprintf( ' AND l.default_locale = \'%s\'', $post_language_information['locale'] );
+    if (
+        defined('ICL_SITEPRESS_VERSION')
+        && function_exists('wpml_get_language_information')
+    ) {
+        global $sitepress;
+        if (
+            is_object( $sitepress )
+            &&  $sitepress->is_translated_post_type($type)
+        ) {
+            $post_language_information = wpml_get_language_information($post->ID);
+            $sql .= sprintf( ' LEFT JOIN %sicl_translations t on t.element_id = p.ID and t.element_type = \'post_%s\' ', $wpdb->prefix, $type);
+            $sql .= sprintf( ' LEFT JOIN %sicl_languages l on l.code = t.language_code ', $wpdb->prefix);
+            $wpml_where = sprintf( ' AND l.default_locale = \'%s\'', $post_language_information['locale'] );
+        }
     }
 
     /**

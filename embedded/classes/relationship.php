@@ -1,11 +1,17 @@
 <?php
 /*
  * Post relationship class.
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.5.6/embedded/classes/relationship.php $
+ * $LastChangedDate: 2014-05-05 14:15:33 +0200 (pon) $
+ * $LastChangedRevision: 22012 $
+ * $LastChangedBy: marcin $
+ *
  */
 
 /**
  * Post relationship class
- * 
+ *
  * @since Types 1.2
  * @package Types
  * @subpackage Classes
@@ -18,16 +24,16 @@ class WPCF_Relationship
 {
     /**
      * Custom field
-     * 
-     * @var type 
+     *
+     * @var type
      */
     var $cf = array();
     var $data = array();
 
     /**
      * Settings
-     * 
-     * @var type 
+     *
+     * @var type
      */
     var $settings = array();
     var $items_per_page = 5;
@@ -37,7 +43,8 @@ class WPCF_Relationship
     /**
      * Construct function.
      */
-    function __construct() {
+    function __construct()
+    {
         $this->cf = new WPCF_Field;
         $this->settings = get_option( 'wpcf_post_relationship', array() );
         add_action( 'wp_ajax_add-types_reltax_add',
@@ -46,25 +53,27 @@ class WPCF_Relationship
 
     /**
      * Sets current data.
-     * 
+     *
      * @param type $parent
      * @param type $child
      * @param type $field
      * @param type $data
      */
-    function set( $parent, $child, $data = array() ) {
+    function set( $parent, $child, $data = array() )
+    {
         return $this->_set( $parent, $child, $data );
     }
 
     /**
      * Sets current data.
-     * 
+     *
      * @param type $parent
      * @param type $child
      * @param type $field
      * @param type $data
      */
-    function _set( $parent, $child, $data = array() ) {
+    function _set( $parent, $child, $data = array() )
+    {
         $this->parent = $parent;
         $this->child = $child;
         $this->cf = new WPCF_Field;
@@ -74,12 +83,13 @@ class WPCF_Relationship
 
     /**
      * Meta box form on post edit page.
-     * 
+     *
      * @param type $parent Parent post
      * @param type $post_type Child post type
      * @return type string HTML formatted form table
      */
-    function child_meta_form( $parent, $post_type ) {
+    function child_meta_form($parent, $post_type)
+    {
         if ( is_integer( $parent ) ) {
             $parent = get_post( $parent );
         }
@@ -97,12 +107,13 @@ class WPCF_Relationship
 
     /**
      * Child row rendered on AJAX 'Add New Child' call.
-     * 
+     *
      * @param type $parent_id
      * @param type $child_id
      * @return type
      */
-    function child_row( $parent_id, $child_id ) {
+    function child_row($parent_id, $child_id)
+    {
         $parent = get_post( intval( $parent_id ) );
         $child = get_post( intval( $child_id ) );
         if ( empty( $parent ) || empty( $child ) ) {
@@ -117,12 +128,13 @@ class WPCF_Relationship
 
     /**
      * Returns HTML formatted form.
-     * 
+     *
      * @param type $parent
      * @param type $child
      * @return \WPCF_Relationship_Child_Form
      */
-    function _get_child_form( $parent, $child ) {
+    function _get_child_form($parent, $child)
+    {
         require_once dirname( __FILE__ ) . '/relationship/form-child.php';
         return new WPCF_Relationship_Child_Form(
                         $parent,
@@ -131,7 +143,8 @@ class WPCF_Relationship
         );
     }
 
-    function get_child() {
+    function get_child()
+    {
         $r = $this->child;
         $r->parent = $this->parent;
         $r->form = $this->_get_child_form( $r->parent, $this->child );
@@ -140,12 +153,13 @@ class WPCF_Relationship
 
     /**
      * Save items_per_page settings.
-     * 
+     *
      * @param type $parent
      * @param type $child
-     * @param int $num 
+     * @param int $num
      */
-    function save_items_per_page( $parent, $child, $num ) {
+    function save_items_per_page($parent, $child, $num)
+    {
         if ( post_type_exists( $parent ) && post_type_exists( $child ) ) {
             $option_name = $this->items_per_page_option_name . '_' . $parent . '_' . $child;
             if ( $num == 'all' ) {
@@ -157,12 +171,13 @@ class WPCF_Relationship
 
     /**
      * Return items_per_page settings
-     * 
+     *
      * @param type $parent
      * @param type $child
-     * @return type 
+     * @return type
      */
-    function get_items_per_page( $parent, $child ) {
+    function get_items_per_page($parent, $child)
+    {
         $per_page = get_option( $this->items_per_page_option_name . '_' . $parent . '_' . $child,
                 $this->items_per_page );
         return empty( $per_page ) ? $this->items_per_page : $per_page;
@@ -170,12 +185,13 @@ class WPCF_Relationship
 
     /**
      * Adjusts post name when saving.
-     * 
+     *
      * @todo Revise (not used?)
      * @param type $post
      * @return type
      */
-    function get_insert_post_name( $post ) {
+    function get_insert_post_name($post)
+    {
         if ( empty( $post->post_title ) ) {
             return $post->post_type . '-' . $post->ID;
         }
@@ -184,11 +200,12 @@ class WPCF_Relationship
 
     /**
      * Bulk saving children.
-     * 
+     *
      * @param type $parent_id
      * @param type $children
      */
-    function save_children( $parent_id, $children ) {
+    function save_children($parent_id, $children)
+    {
         foreach ( $children as $child_id => $fields ) {
             $this->save_child( $parent_id, $child_id, $fields );
         }
@@ -196,12 +213,12 @@ class WPCF_Relationship
 
     /**
      * Unified save child function.
-     * 
+     *
      * @param type $child_id
      * @param type $parent_id
      */
-    function save_child( $parent_id, $child_id, $save_fields = array() ) {
-
+    function save_child( $parent_id, $child_id, $save_fields = array() )
+    {
         global $wpdb;
 
         $parent = get_post( intval( $parent_id ) );
@@ -215,7 +232,6 @@ class WPCF_Relationship
         // Save relationship
         update_post_meta( $child->ID,
                 '_wpcf_belongs_' . $parent->post_type . '_id', $parent->ID );
-
 
         // Check if added via AJAX
         $check = get_post_meta( $child->ID, '_wpcf_relationship_new', true );
@@ -239,10 +255,9 @@ class WPCF_Relationship
         }
 
         $post_data['post_title'] = $post_title;
-        $post_data['post_name'] = $post_title;
         $post_data['post_content'] = isset( $save_fields['_wp_body'] ) ? $save_fields['_wp_body'] : $child->post_content;
         $post_data['post_type'] = $child->post_type;
-        
+
         // Check post status - if new, convert to 'publish' else keep remaining
         if ( $new ) {
             $post_data['post_status'] =  'publish';
@@ -251,14 +266,15 @@ class WPCF_Relationship
         }
 
         /*
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
+         *
+         *
+         *
+         *
+         *
+         *
          * UPDATE POST
          */
+
         $updated_id = wp_update_post( $post_data );
         if ( empty( $updated_id ) ) {
             return new WP_Error( 'relationship-update-post-failed', 'Updating post failed' );
@@ -303,12 +319,12 @@ class WPCF_Relationship
         unset( $save_fields['_wp_title'], $save_fields['_wp_body'],
                 $save_fields['parents'], $save_fields['taxonomies'] );
         /*
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
+         *
+         *
+         *
+         *
+         *
+         *
          * UPDATE Loop over fields
          */
         foreach ( $save_fields as $slug => $value ) {
@@ -329,13 +345,13 @@ class WPCF_Relationship
 
     /**
      * Saves new child.
-     * 
+     *
      * @param type $parent_id
      * @param type $post_type
      * @return type
      */
-    function add_new_child( $parent_id, $post_type ) {
-
+    function add_new_child($parent_id, $post_type)
+    {
         global $wpdb;
 
         $parent = get_post( $parent_id );
@@ -358,33 +374,33 @@ class WPCF_Relationship
             $wpdb->update( $wpdb->posts,
                     array('post_title' => $post_type . ' ' . $id),
                     array('ID' => $id), array('%s'), array('%d') );
-            
             do_action( 'wpcf_relationship_add_child', get_post( $id ), $parent );
             wp_cache_flush();
         }
-        
         return $id;
     }
 
     /**
      * Saved relationship settings.
-     * 
+     *
      * @param type $parent
      * @param type $child
      * @return type
      */
-    function settings( $parent, $child ) {
+    function settings($parent, $child)
+    {
         return isset( $this->settings[$parent][$child] ) ? $this->settings[$parent][$child] : array();
     }
 
     /**
      * Fetches submitted data.
-     * 
+     *
      * @param type $parent_id
      * @param type $child_id
      * @return type
      */
-    function get_submitted_data( $parent_id, $child_id, $field ) {
+    function get_submitted_data($parent_id, $child_id, $field)
+    {
         if ( !is_string( $field ) ) {
             $_field_slug = $field->slug;
         } else {
@@ -395,11 +411,12 @@ class WPCF_Relationship
 
     /**
      * Gets all parents per post type.
-     * 
+     *
      * @param type $child
      * @return type
      */
-    public static function get_parents( $child ) {
+    public static function get_parents($child)
+    {
         $parents = array();
         $item_parents = wpcf_pr_admin_get_belongs( $child->post_type );
         if ( $item_parents ) {
@@ -424,20 +441,22 @@ class WPCF_Relationship
 
     /**
      * Gets post parent by post type.
-     * 
+     *
      * @param type $post_id
      * @param type $parent_post_type
      * @return type
      */
-    public static function get_parent( $post_id, $parent_post_type ) {
+    public static function get_parent($post_id, $parent_post_type)
+    {
         return wpcf_get_post_meta( $post_id,
                         '_wpcf_belongs_' . $parent_post_type . '_id', true );
     }
-    
+
     /**
      * AJAX adding taxonomies
      */
-    public function ajaxAddTax() {
+    public function ajaxAddTax()
+    {
         if ( isset( $_POST['types_reltax'] ) ) {
             $data = array_shift( $_POST['types_reltax'] );
             $tax = key( $data );

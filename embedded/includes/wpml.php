@@ -7,6 +7,12 @@
  * Mind wpml_action parameter for field.
  * Values:
  * 0 nothing (ignore), 1 copy, 2 translate
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.5.6/embedded/includes/wpml.php $
+ * $LastChangedDate: 2014-04-14 16:54:27 +0200 (pon) $
+ * $LastChangedRevision: 21445 $
+ * $LastChangedBy: marcin $
+ *
  */
 
 add_action( 'wpcf_after_init', 'wpcf_wpml_init' );
@@ -1195,7 +1201,14 @@ function wpcf_wpml_warnings_init()
 {
 	if(!defined('WPML_ST_PATH') || !class_exists( 'ICL_AdminNotifier' )) return;
 
-	global $sitepress, $sitepress_settings;
+    /**
+     * check is configuration done?!
+     */
+    global $sitepress, $sitepress_settings;
+    if ( !array_key_exists( 'st', $sitepress_settings ) ) {
+        return;
+    }
+
 	if ( $sitepress->get_default_language() != $sitepress_settings[ 'st' ][ 'strings_language' ] ) {
 		wp_types_default_language_warning();
 	} elseif ( $sitepress_settings[ 'st' ][ 'strings_language' ] != 'en' ) {
