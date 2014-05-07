@@ -1,8 +1,12 @@
 <?php
-/*
- * 
- * 
+/**
  * Fields class.
+ *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
 
@@ -173,7 +177,7 @@ class WPCF_Fields
             foreach ( $config->meta_box_css as $handle => $data_script ) {
                 $deps = !empty( $data_script['deps'] ) ? $data_script['deps'] : array();
                 if ( isset( $data_script['inline'] ) ) {
-                    add_action( 'admin_header', $data_script['inline'] );
+                    add_action( 'admin_head', $data_script['inline'] );
                     continue;
                 }
                 if ( !isset( $data_script['src'] ) ) {
