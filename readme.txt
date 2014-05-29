@@ -1,11 +1,11 @@
 === Types - Custom Fields and Custom Post Types Management ===
-Contributors: brucepearson, AmirHelzer, jozik, mihaimihai
+Contributors: brucepearson, AmirHelzer, jozik, mihaimihai, iworks
 Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields
 License: GPLv2
 Requires at least: 3.4
-Tested up to: 3.9
-Stable tag: 1.5.6
+Tested up to: 3.9.1
+Stable tag: 1.5.7
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -150,6 +150,23 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 5. Bulk editing child content using Field Tables
 
 == Changelog ==
+
+= 1.5.7 =
+
+* Fixed action "admin_header" to "admin_head" thx for (anarchocoder)[https://wordpress.org/support/profile/anarchocoder]
+* Fixed english suggests in non-english sites.
+* Fixed missing icons in WordPress menu on custom fields edit screen.
+* Fixed problem with posts relations if post has no parent.
+* Fixed problems with checkbox field. Sometimes "check for new posts" do not works correctly.
+* Fixed Media Library size if post have no editor.
+* Fixed empty fields in "Styling Editor" when editing custom fields.
+* Fixed usage of custom fields with prefix "wpcf-" but added by default interface.
+* Fixed save fields on attachment edit page.
+* Fixed save custom checkbox fields for new attachments.
+* Fixed problems with id when repetitive fields are added very fast.
+* Fixed problems with displaying options witch apostrophe like "90's".
+* Removed clickable links on preview when editing Custom Fields Groups.
+* Check compatibility with WordPress 3.9.1.
 
 = 1.5.6 =
 

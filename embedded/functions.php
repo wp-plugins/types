@@ -2,6 +2,12 @@
 /*
  * Basic and init functions.
  * Since Types 1.2 moved from /embedded/types.php
+ *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
  */
 
 /**
@@ -205,16 +211,16 @@ function wpcf_types_cf_under_control( $action = 'add', $args = array(),
             foreach ( $args['fields'] as $field_id ) {
                 $field_type = !empty( $args['type'] ) ? $args['type'] : 'textfield';
                 if ( strpos( $field_id, md5( 'wpcf_not_controlled' ) ) !== false ) {
-                    $field_id_add = str_replace( '_' . md5( 'wpcf_not_controlled' ),
-                            '', $field_id );
+                    $field_id_name = str_replace( '_' . md5( 'wpcf_not_controlled' ), '', $field_id );
+                    $field_id_add = preg_replace( '/^wpcf\-/', '', $field_id_name );
                     // Activating field that previously existed in Types
                     if ( array_key_exists( $field_id_add, $fields ) ) {
                         $fields[$field_id_add]['data']['disabled'] = 0;
                     } else { // Adding from outside
                         $fields[$field_id_add]['id'] = $field_id_add;
                         $fields[$field_id_add]['type'] = $field_type;
-                        $fields[$field_id_add]['name'] = $field_id_add;
-                        $fields[$field_id_add]['slug'] = $field_id_add;
+                        $fields[$field_id_add]['name'] = $field_id_name;
+                        $fields[$field_id_add]['slug'] = $field_id_name;
                         $fields[$field_id_add]['description'] = '';
                         $fields[$field_id_add]['data'] = array();
                         // @TODO WATCH THIS! MUST NOT BE DROPPED IN ANY CASE
@@ -397,7 +403,7 @@ function wpcf_admin_is_repetitive( $field ) {
  * @return type 
  */
 function wpcf_unique_id( $cache_key ) {
-    $cache_key = md5( strval( $cache_key ) . strval( time() ) );
+    $cache_key = md5( strval( $cache_key ) . strval( time() ) . rand() );
     static $cache = array();
     if ( !isset( $cache[$cache_key] ) ) {
         $cache[$cache_key] = 1;

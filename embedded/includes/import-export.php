@@ -2,10 +2,10 @@
 /*
  * Import/export data.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.5.6/embedded/includes/import-export.php $
- * $LastChangedDate: 2014-05-02 15:54:57 +0000 (Fri, 02 May 2014) $
- * $LastChangedRevision: 21982 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 
@@ -220,12 +220,15 @@ function wpcf_admin_import_data( $data = '', $redirect = true,
                 continue;
             }
             $field_data = array();
-            $field_data['id'] = $field['id'];
-            $field_data['name'] = $field['name'];
             $field_data['description'] = isset( $field['description'] ) ? $field['description'] : '';
-            $field_data['type'] = $field['type'];
-            $field_data['slug'] = $field['slug'];
             $field_data['data'] = (isset( $field['data'] ) && is_array( $field['data'] )) ? $field['data'] : array();
+
+            foreach( array( 'id', 'name', 'type', 'slug', 'meta_key', 'meta_type' ) as $key ) {
+                if ( array_key_exists( $key, $field ) ) {
+                    $field_data[$key] = $field[$key];
+                }
+            }
+
             $fields_existing[$field_id] = $field_data;
             $fields_check[] = $field_id;
 

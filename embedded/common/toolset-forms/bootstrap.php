@@ -2,10 +2,10 @@
 
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6-Types-1.5.6/toolset-forms/bootstrap.php $
- * $LastChangedDate: 2014-04-16 11:16:58 +0000 (Wed, 16 Apr 2014) $
- * $LastChangedRevision: 21563 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 
@@ -40,6 +40,7 @@ class WPToolset_Forms_Bootstrap
             require_once WPTOOLSET_FORMS_ABSPATH . '/classes/class.file.php';
             add_action( 'init', array('WPToolset_Field_File', 'mediaPopup') );
         }
+        add_filter('sanitize_file_name', array( $this, 'sanitize_file_name' ) );
         /**
          * common class for calendar
          */
@@ -137,6 +138,28 @@ class WPToolset_Forms_Bootstrap
         return WPToolset_Field_Date::timetodate( $timestamp, $format );
     }
 
+    public function sanitize_file_name( $filename )
+    {
+        /**
+         * replace german special characters
+         */
+        $de_from   = array('ä','ö','ü','ß','Ä','Ö','Ü');
+        $de_to     = array('ae','oe','ue','ss','Ae','Oe','Ue');
+        $filename = str_replace($de_from, $de_to, $filename);
+        /**
+         * replace polish special characters
+         */
+        $pl_from   = array( 'ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ź', 'ż', 'Ą', 'Ć', 'Ę', 'Ł', 'Ń', 'Ó', 'Ś', 'Ź', 'Ż' );
+        $pl_to     = array( 'a', 'c', 'e', 'l', 'n', 'o', 's', 'z', 'z', 'A', 'C', 'E', 'L', 'N', 'O', 'S', 'Z', 'Z' );
+        $filename = str_replace($pl_from, $pl_to, $filename);
+        /**
+         * remove special characters
+         */
+        $filename = preg_replace( '/[^A-Za-z0-9\._]/', '-', $filename);
+        $filename = preg_replace( '/[_ ]+/', '-', $filename);
+        $filename = preg_replace( '/%20/', '-', $filename);
+        return $filename;
+    }
 }
 
 $GLOBALS['wptoolset_forms'] = new WPToolset_Forms_Bootstrap();

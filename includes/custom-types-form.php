@@ -1,6 +1,13 @@
 <?php
-/*
+/**
+ *
  * Custom types form
+ *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
  */
 
 /**
@@ -263,7 +270,7 @@ function wpcf_admin_custom_types_form() {
             '#name' => 'ct[labels][' . $name . ']',
             '#title' => ucwords( str_replace( '_', ' ', $name ) ),
             '#description' => $data['description'],
-            '#value' => isset( $ct['labels'][$name] ) ? $ct['labels'][$name] : '',
+            '#value' => empty($ct['slug'])? $data['title']:(isset( $ct['labels'][$name] ) ? $ct['labels'][$name] : ''),
             '#inline' => true,
             '#pattern' => '<tr><td><LABEL></td><td><ELEMENT></td><td><DESCRIPTION></td>',
         );
@@ -622,7 +629,6 @@ function wpcf_admin_custom_types_form_submit( $form ) {
 
     if ( empty( $post_type ) ) {
         wpcf_admin_message( __( 'Please set post type name', 'wpcf' ), 'error' );
-//        $form->triggerError();
         return false;
     }
 
@@ -638,9 +644,7 @@ function wpcf_admin_custom_types_form_submit( $form ) {
 
     // Check overwriting
     if ( ( !array_key_exists( 'wpcf-post-type', $data ) || $data['wpcf-post-type'] != $post_type ) && array_key_exists( $post_type, $custom_types ) ) {
-        wpcf_admin_message( __( 'Custom post type already exists', 'wpcf' ),
-                'error' );
-//            $form->triggerError();
+        wpcf_admin_message( __( 'Custom post type already exists', 'wpcf' ), 'error' );
         return false;
     }
 

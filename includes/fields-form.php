@@ -1,6 +1,12 @@
 <?php
 /*
  * Fields and groups form functions.
+ *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
  */
 require_once WPCF_EMBEDDED_ABSPATH . '/classes/validate.php';
 require_once WPCF_ABSPATH . '/includes/conditional-display.php';
@@ -238,7 +244,7 @@ function wpcf_admin_fields_form() {
     $form['help-icon'] = array(
         '#type' => 'markup',
         '#markup' => '<div class="wpcf-admin-fields-help"><img src="' . WPCF_EMBEDDED_RELPATH
-        . '/common/res/images/question.png" style="position:relative;top:2px;" />&nbsp;<a href="http://wp-types.com/documentation/user-guides/using-custom-fields/" target="_blank">'
+        . '/common/res/images/question.png" style="position:relative;top:2px;" />&nbsp;<a href="http://wp-types.com/documentation/user-guides/using-custom-fields/?utm_source=typesplugin&utm_medium=help&utm_term=fields-help&utm_content=fields-editor&utm_campaign=types" target="_blank">'
         . __( 'Custom fields help', 'wpcf' ) . '</a></div>',
     );
     $form['submit2'] = array(
@@ -803,12 +809,11 @@ function wpcf_admin_fields_form() {
 
         if ( !empty( $post ) && count( $post ) != '' ) {
             $post = $post[0];
-            $preview_profile = wpcf_admin_post_meta_box_preview( $post, $update,
-                    1 );
+            $preview_profile = wpcf_admin_post_meta_box_preview( $post, $update, 1 );
             $group = $update;
-            $group['fields'] = wpcf_admin_post_process_fields( $post,
-                    $group['fields'], true, false );
+            $group['fields'] = wpcf_admin_post_process_fields( $post, $group['fields'], true, false );
             $edit_profile = wpcf_admin_post_meta_box( $post, $group, 1 );
+            add_action( 'admin_enqueue_scripts', 'wpcf_admin_fields_form_fix_styles', PHP_INT_MAX  );
         }
     }
 
@@ -980,9 +985,20 @@ function wpcf_admin_fields_form() {
     wpcf_admin_add_js_settings( 'wpcfFormUniqueNamesCheckText',
             '\'' . __( 'Warning: field name already used', 'wpcf' ) . '\'' );
     wpcf_admin_add_js_settings( 'wpcfFormUniqueSlugsCheckText',
-            '\'' . __( 'Warning: field slug already used', 'wpcf' ) . '\'' );
+        '\'' . __( 'Warning: field slug already used', 'wpcf' ) . '\'' );
+
+    wpcf_admin_add_js_settings( 'wpcfFormAlertOnlyPreview', sprintf( "'%s'", __( 'Sorry, but this is only preview!', 'wpcf' ) ) );
 
     return $form;
+}
+
+function wpcf_admin_fields_form_fix_styles()
+{
+    $suffix = SCRIPT_DEBUG ? '' : '.min';
+    wp_enqueue_style(
+        'wpcf-dashicons',
+        site_url( "/wp-includes/css/dashicons$suffix.css" )
+    );
 }
 
 /**

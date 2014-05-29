@@ -1,10 +1,15 @@
 <?php
 /*
  * Edit post page functions
- * 
+ *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
  * Core file with stable and working functions.
  * Please add hooks if adjustment needed, do not add any more new code here.
- * 
+ *
  * Consider this file half-locked since Types 1.2
  */
 
@@ -492,10 +497,10 @@ function wpcf_admin_post_meta_box( $post, $group, $echo = '' ) {
 
 /**
  * Important save_post hook.
- * 
+ *
  * Core function. Works and stable. Do not move or change.
  * If required, add hooks only.
- * 
+ *
  * @internal breakpoint
  * @param type $post_ID
  * @param type $post 
@@ -721,6 +726,111 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post ) {
     do_action( 'wpcf_post_saved', $post_ID );
 }
 
+/**
+ *
+ * Only for attachments, only default checkboxes!
+ *
+ * @internal breakpoint
+ * @param type $post_ID
+ * @param type $post 
+ */
+function wpcf_admin_post_add_attachment_hook( $post_ID, $post )
+{
+    global $wpcf;
+    /**
+     * Basic check: only attachment
+     */
+    if ( 'attachment' !=  $post->post_type ) {
+        return false;
+    }
+
+    /**
+     * Get all groups connected to this $post
+     */
+    $groups = wpcf_admin_post_get_post_groups_fields( $post );
+    if ( empty( $groups ) ) {
+        return false;
+    }
+    $all_fields = array();
+    $_not_valid = array();
+    $_error = false;
+
+
+    /**
+     * Loop over each group
+     *
+     * TODO Document this
+     * Connect 'wpcf-invalid-fields' with all fields
+     */
+    foreach ( $groups as $group ) {
+        if ( isset( $group['fields'] ) ) {
+            // Process fields
+            $fields = wpcf_admin_post_process_fields( $post, $group['fields'],
+                true, false, 'validation' );
+            // Validate fields
+            $form = wpcf_form_simple_validate( $fields );
+            $all_fields = $all_fields + $fields;
+            // Collect all not valid fields
+            if ( $form->isError() ) {
+                $_error = true; // Set error only to true
+                $_not_valid = array_merge( $_not_valid,
+                    (array) $form->get_not_valid() );
+            }
+        }
+    }
+    // Set fields
+    foreach ( $all_fields as $k => $v ) {
+        // only Types field
+        if ( empty( $v['wpcf-id'] ) ) {
+            continue;
+        }
+        $_temp = new WPCF_Field();
+        $_temp->set( $wpcf->post, $v['wpcf-id'] );
+        $all_fields[$k]['_field'] = $_temp;
+    }
+    foreach ( $_not_valid as $k => $v ) {
+        // only Types field
+        if ( empty( $v['wpcf-id'] ) ) {
+            continue;
+        }
+        $_temp = new WPCF_Field();
+        $_temp->set( $wpcf->post, $v['wpcf-id'] );
+        $_not_valid[$k]['_field'] = $_temp;
+    }
+
+    /**
+     * Process all checkbox fields
+     */
+
+    foreach ( $all_fields as $field ) {
+        /**
+         * only checkbox
+         */
+        if ( !isset( $field['#type'] ) || 'checkbox' != $field['#type'] ) {
+            continue;
+        }
+        $field_data = wpcf_admin_fields_get_field( $field['wpcf-id'] );
+        /**
+         * check is checked for new!
+         */
+        $checked = array_key_exists( 'checked', $field_data['data'] ) && $field_data['data']['checked'];
+        /**
+         * do not save empty and not checked? fine, go away...
+         */
+        if ( 'no' == $field_data['data']['save_empty'] && !$checked ) {
+            continue;
+        }
+        /**
+         * all other just save...
+         */
+        $update_data = 0;
+        if ( $checked ) {
+            $update_data = $field_data['data']['set_value'];
+        }
+        add_post_meta( $post_ID, wpcf_types_get_meta_prefix( $field ) . $field['wpcf-slug'], $update_data );
+    }
+    do_action( 'wpcf_attachement_add', $post_ID );
+}
 /**
  * Renders JS validation script.
  */
@@ -1532,7 +1642,7 @@ function wpcf_admin_post_marketing_meta_box() {
     if ( $views_plugin_available ) {
         $output .= '<p><strong>' . sprintf( __( "Build this site with %sViews%s",
                                 'wpcf' ),
-                        '<a href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=types&utm_medium=plugin&utm_term=views&utm_content=promobox&utm_campaign=types" title="Views" target="_blank">',
+                        '<a href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=typesplugin&utm_medium=postedit&utm_term=views&utm_content=promobox&utm_campaign=types" title="Views" target="_blank">',
                         '</a>' ) . '</strong></p>';
         $output .= '<p><a href="' . admin_url( 'edit.php?post_type=view-template' ) . '">' . __( 'Create <strong>View Templates</strong> for single pages &raquo;',
                         'wpcf' ) . '</a></p>';
@@ -1541,7 +1651,7 @@ function wpcf_admin_post_marketing_meta_box() {
     } else {
         $output .= '<p><strong>' . sprintf( __( "%sViews%s let's you build complete websites without coding.",
                                 'wpcf' ),
-                        '<a href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=types&utm_medium=plugin&utm_term=views&utm_content=promobox&utm_campaign=types" title="Views" target="_blank">',
+                        '<a href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=typesplugin&utm_medium=postedit&utm_term=views&utm_content=promobox&utm_campaign=types" title="Views" target="_blank">',
                         '</a>' )
                 . '</strong></p>'
                 . '<ul style="list-style:disc; margin-left: 2em;">'
@@ -1551,7 +1661,7 @@ function wpcf_admin_post_marketing_meta_box() {
                 . '<li>' . __( 'Create your own widgets', 'wpcf' ) . '</li>'
                 . '<li>' . __( 'No coding necessary', 'wpcf' ) . '</li>'
                 . '</ul>'
-                . '<p style="margin-top:2em;"><a class="button button-highlighted" href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=types&utm_medium=plugin&utm_term=views&utm_content=promobox&utm_campaign=types" target="_blank">'
+                . '<p style="margin-top:2em;"><a class="button button-highlighted" href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=typesplugin&utm_medium=postedit&utm_term=views&utm_content=promobox&utm_campaign=types" target="_blank">'
                 . __( 'Get Views', 'wpcf' )
                 . '</a></p>';
     }

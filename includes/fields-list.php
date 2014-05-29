@@ -1,6 +1,12 @@
 <?php
 /*
  * Fields and groups list functions
+ *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
  */
 
 /**
@@ -11,18 +17,17 @@ function wpcf_admin_fields_list() {
     
     if (empty($groups)) {
         echo '<p>'
-        . __("Custom Fields (also known as post-meta) are information attached to WordPress posts. This data can then be queried and filtered in your database. With Types you can create Custom Field Groups which are then attached to any post type (including Posts, Pages and Custom Post Types) or taxonomy.",
-                'wpcf')
-        . '<br /><br />'
-        . __('You can read more about Custom Fields in this tutorial: <a href="http://wp-types.com/user-guides/using-custom-fields/" target="_blank">http://wp-types.com/user-guides/using-custom-fields/ &raquo;</a>.',
+        . __("To use custom fields, please create a group to hold them.",
                 'wpcf')
         . '</p>';
-    }
-    
-    echo '<br /><a class="button-secondary" href="'
-    . admin_url('admin.php?page=wpcf-edit')
-    . '">' . __('Add a custom fields group', 'wpcf') . '</a><br /><br />';
-    if (!empty($groups)) {
+        echo '<br /><a class="button-primary" href="'
+        . admin_url('admin.php?page=wpcf-edit')
+        . '">' . __('Add a custom fields group', 'wpcf') . '</a><br /><br />';
+    } else {
+        echo '<br /><a class="button-secondary" href="'
+        . admin_url('admin.php?page=wpcf-edit')
+        . '">' . __('Add a custom fields group', 'wpcf') . '</a><br /><br />';
+
         $rows = array();
         $header = array(
             'group_name' => __('Group name', 'wpcf'),

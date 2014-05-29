@@ -1,13 +1,20 @@
 <?php
-//add_action('wpcf_relationship_save_child', 'wpcf_fields_checkbox_save_check',
-//        10, 3);
-// Trigger after main hook
-add_action( 'save_post', 'wpcf_fields_checkbox_save_check', 15, 3 );
+/**
+ *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
+ */
+
+add_action( 'save_post', 'wpcf_fields_checkbox_save_check', 15, 1 );
+add_action( 'edit_attachment', 'wpcf_fields_checkbox_save_check', 15, 1 );
 
 /**
  * Register data (called automatically).
- * 
- * @return type 
+ *
+ * @return type
  */
 function wpcf_fields_checkbox() {
     return array(
@@ -21,8 +28,8 @@ function wpcf_fields_checkbox() {
 
 /**
  * Form data for post edit page.
- * 
- * @param type $field 
+ *
+ * @param type $field
  */
 function wpcf_fields_checkbox_meta_box_form( $field, $field_object ) {
     global $wpcf;
@@ -125,8 +132,8 @@ function wpcf_fields_checkbox_editor_submit( $data, $field, $context ) {
 
 /**
  * View function.
- * 
- * @param type $params 
+ *
+ * @param type $params
  */
 function wpcf_fields_checkbox_view( $params ) {
     $output = '';
@@ -196,9 +203,9 @@ function wpcf_fields_checkbox_view( $params ) {
 
 /**
  * Check if checkbox is submitted.
- * 
+ *
  * Currently used on Relationship saving. May be expanded to general code.
- * 
+ *
  * @param type $post_id
  */
 function wpcf_fields_checkbox_save_check( $post_id ) {
@@ -207,7 +214,7 @@ function wpcf_fields_checkbox_save_check( $post_id ) {
     $cf = new WPCF_Field();
 
     /*
-     * 
+     *
      * We hve several calls on this:
      * 1. Saving post with Update
      * 2. Saving all children
@@ -250,8 +257,7 @@ function wpcf_fields_checkbox_save_check( $post_id ) {
                     }
                     continue;
                 }
-                /*
-                 * 
+                /**
                  * Relationship check
                  */
                 if ( $mode == 'save_main' ) {

@@ -2,6 +2,11 @@
 /**
  * Returns HTML formatted output for elements and handles form submission.
  *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
  * @version 1.0
  */
 if (!class_exists('Enlimbo_Forms_Wpcf')) {

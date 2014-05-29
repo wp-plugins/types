@@ -1,4 +1,12 @@
 <?php
+/**
+ *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
+ */
 require_once(WPCF_EMBEDDED_ABSPATH . '/common/visual-editor/editor-addon.class.php');
 require_once WPCF_EMBEDDED_ABSPATH . '/includes/post-relationship.php';
 
@@ -26,6 +34,7 @@ function wpcf_embedded_admin_init_hook() {
 
     // Add Media callback
     add_action( 'add_attachment', 'wpcf_admin_save_attachment_hook', 10 );
+    add_action( 'add_attachment', 'wpcf_admin_add_attachment_hook', 10 );
     add_action( 'edit_attachment', 'wpcf_admin_save_attachment_hook', 10 );
 
     // Render messages
@@ -106,6 +115,17 @@ function wpcf_admin_save_post_hook( $post_ID, $post ) {
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
     wpcf_admin_post_save_post_hook( $post_ID, $post );
+}
+
+/**
+ * Save attachment hook.
+ * 
+ * @param type $attachment_id
+ */
+function wpcf_admin_add_attachment_hook( $attachment_id )
+{
+    $post = get_post( $attachment_id );
+    wpcf_admin_post_add_attachment_hook( $attachment_id, $post );
 }
 
 /**

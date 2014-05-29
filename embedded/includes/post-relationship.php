@@ -2,10 +2,10 @@
 /*
  * Post relationship code.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.5.6/embedded/includes/post-relationship.php $
- * $LastChangedDate: 2014-04-28 16:20:36 +0000 (Mon, 28 Apr 2014) $
- * $LastChangedRevision: 21804 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/editor-support/post-relationship-editor-support.php';

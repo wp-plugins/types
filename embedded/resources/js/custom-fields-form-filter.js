@@ -158,6 +158,14 @@ function wpcfFilterEditClick(object, edit, title, title_not_empty, title_empty) 
     
     // Hide until OK or Cancel
     object.css('visibility', 'hidden');
+
+    /**
+     * remove functionality from links in preview mode
+     */
+    jQuery('#wpcf-update-preview-div a').on('click', function() {
+        alert(wpcfFormAlertOnlyPreview);
+        return false;
+    });
 }
 
 

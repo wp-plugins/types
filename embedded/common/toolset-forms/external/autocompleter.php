@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6-Types-1.5.6/toolset-forms/external/autocompleter.php $
- * $LastChangedDate: 2014-04-15 06:05:11 +0000 (Tue, 15 Apr 2014) $
- * $LastChangedRevision: 21477 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 

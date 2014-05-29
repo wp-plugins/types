@@ -524,7 +524,9 @@ function WPV_wpcf_record_post_relationship_belongs( $content ) {
                 $related_id = wpcf_pr_post_get_belongs( $post->ID, $post_type );
                 if ( $related_id ) {
                     $WPV_wpcf_post_relationship['$' . $post_type . '_id'] = $related_id;
-                }
+                } else {
+					$WPV_wpcf_post_relationship['$' . $post_type . '_id'] = 0;
+				}
             }
         }
     }

@@ -146,6 +146,17 @@ function wpcf_fields_file_media_admin_head() {
     </script>
     <style type="text/css">
         tr.submit, .ml-submit, #save, #media-items .A1B1 p:last-child  { display: none; }
+        #media-search
+        {
+            position: static;
+            height: auto;
+            width: auto;
+        }
+        #media-search.search-box input[name="s"]
+        {
+            float: left;
+            width: auto;
+        }
     </style>
     <?php
 }

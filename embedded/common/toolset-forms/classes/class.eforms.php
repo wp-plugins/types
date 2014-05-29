@@ -27,10 +27,10 @@
  * @link http://enlimbo.net/forms
  * @author srdjan <srdjan@enlimbo.net>
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6-Types-1.5.6/toolset-forms/classes/class.eforms.php $
- * $LastChangedDate: 2014-04-15 16:12:53 +0000 (Tue, 15 Apr 2014) $
- * $LastChangedRevision: 21541 $
- * $LastChangedBy: francesco $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 class Enlimbo_Forms
@@ -73,13 +73,15 @@ class Enlimbo_Forms
 
     public function __construct( $id )
     {
+        /**
+         * default settings
+         */
+        $this->form_settings = array(
+            'has_media_button' => true,
+            'use_bootstrap' => false,
+        );
         $this->_id = $id;
-        $cred_cred_settings = get_option( 'cred_cred_settings' );
-        if ( is_admin() ) {
-            $this->form_settings = array(
-                'has_media_button' => true,
-            );
-        } else {
+        if ( !is_admin() ) {
             $this->post_form_id = preg_replace( '/^cred_form_(\d+)_\d+$/', "$1", $this->_id );
             $form_settings = get_post_meta( $this->post_form_id, '_cred_form_settings', true );
             if ( isset($form_settings->form) ) {
@@ -87,7 +89,13 @@ class Enlimbo_Forms
             }
             unset($form_settings);
         }
-        $this->form_settings['use_bootstrap'] = array_key_exists( 'use_bootstrap', $cred_cred_settings ) && $cred_cred_settings['use_bootstrap'];
+        /**
+         * check cread seting for bootstrap
+         */
+        $cred_cred_settings = get_option( 'cred_cred_settings' );
+        if ( is_array($cred_cred_settings) ) {
+            $this->form_settings['use_bootstrap'] = array_key_exists( 'use_bootstrap', $cred_cred_settings ) && $cred_cred_settings['use_bootstrap'];
+        }
     }
 
     /**
@@ -147,9 +155,9 @@ class Enlimbo_Forms
 
     /**
      * Checks if form is submitted.
-     * 
+     *
      * @param type $id
-     * @return type 
+     * @return type
      */
     public function isSubmitted($id = '')
     {
@@ -159,11 +167,11 @@ class Enlimbo_Forms
         return (isset($_REQUEST['_nonce'])
                 && md5($_REQUEST['_nonce']) == $id);
     }
-    
+
     /**
      * Sets validation function.
-     * 
-     * @param type $class 
+     *
+     * @param type $class
      */
 //    public function setValidationFunc($func)
 //    {
@@ -172,8 +180,8 @@ class Enlimbo_Forms
 
     /**
      * Loops over elements and validates them.
-     * 
-     * @param type $elements 
+     *
+     * @param type $elements
      */
     public function validate(&$elements)
     {
@@ -214,8 +222,8 @@ class Enlimbo_Forms
 
     /**
      * Validates element.
-     * 
-     * @param type $element 
+     *
+     * @param type $element
      */
     public function validateElement( &$element )
     {
@@ -234,8 +242,8 @@ class Enlimbo_Forms
 
     /**
      * Checks if there are errors.
-     * 
-     * @return type 
+     *
+     * @return type
      */
     public function isError()
     {
@@ -252,8 +260,8 @@ class Enlimbo_Forms
 
     /**
      * Renders form.
-     * 
-     * @return type 
+     *
+     * @return type
      */
     public function renderForm()
     {
@@ -263,9 +271,9 @@ class Enlimbo_Forms
 
     /**
      * Counts element types.
-     * 
+     *
      * @param type $type
-     * @return type 
+     * @return type
      */
     private function _count($type) {
         if (!isset($this->_count[$type])) {
@@ -291,14 +299,14 @@ class Enlimbo_Forms
 
     /**
      * Renders elements.
-     * 
+     *
      * @param type $elements
-     * @return type 
+     * @return type
      */
     public function renderElements($elements)
     {
         $output = '';
-        foreach ($elements as $key => $element) {            
+        foreach ($elements as $key => $element) {
             if (!isset($element['#type']) || !$this->_isValidType($element['#type'])) {
                 continue;
             }
@@ -644,10 +652,17 @@ class Enlimbo_Forms
         $element['_render']['element'] .=
                 !empty($element['#value']) ? htmlspecialchars($element['#value']) : 1;
         $element['_render']['element'] .= '"' . $element['_attributes_string'];
-        $element['_render']['element'] .= ((!$this->isSubmitted()
-                && !empty($element['#default_value']))
-                || ($this->isSubmitted()
-                && !empty($element['#value']))) ? ' checked="checked"' : '';
+        if (
+            (
+                !$this->isSubmitted() && (
+                    ( !empty($element['#default_value']) && $element['#default_value'] == $element['#value'] )
+                    || $element['#checked']
+                )
+            )
+            || ($this->isSubmitted() && !empty($element['#value']))
+        ) {
+            $element['_render']['element'] .= ' checked="checked"';
+        }
         if (!empty($element['#attributes']['disabled']) || !empty($element['#disable'])) {
             $element['_render']['element'] .= ' onclick="javascript:return false; if(this.checked == 1){this.checked=1; return true;}else{this.checked=0; return false;}"';
         }
@@ -806,7 +821,7 @@ class Enlimbo_Forms
         $element = $this->_setRender($element);
         $element['_render']['element'] = '<input type="text" id="'
                 . $element['#id'] . '" name="' . $element['#name'] . '" value="';
-        $element['_render']['element'] .= isset($element['#value']) ? @htmlspecialchars(stripslashes($element['#value'])) : '';
+        $element['_render']['element'] .= isset($element['#value']) ? htmlspecialchars($element['#value']) : '';
         $element['_render']['element'] .= '"' . $element['_attributes_string'];
         if (isset($element['#disable']) && $element['#disable']) {
             $element['_render']['element'] .= ' disabled="disabled"';
@@ -861,7 +876,7 @@ class Enlimbo_Forms
         $element['_render']['element'] = '<textarea id="' . $element['#id']
                 . '" name="' . $element['#name'] . '"'
                 . $element['_attributes_string'] . '>';
-        $element['_render']['element'] .= isset($element['#value']) ? htmlspecialchars(stripslashes($element['#value'])) : '';
+        $element['_render']['element'] .= isset($element['#value']) ? htmlspecialchars($element['#value']) : '';
         $element['_render']['element'] .= '</textarea>' . "\r\n";
         $pattern = isset($element['#pattern']) ? $element['#pattern'] : '<BEFORE><LABEL><DESCRIPTION><ERROR><PREFIX><ELEMENT><SUFFIX><AFTER>';
         $output = $this->_pattern($pattern, $element);
@@ -968,7 +983,7 @@ class Enlimbo_Forms
 
     /**
      * Searches and returns submitted data for element.
-     * 
+     *
      * @param type $element
      * @return type mixed
      */

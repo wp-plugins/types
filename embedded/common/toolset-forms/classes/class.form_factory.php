@@ -7,13 +7,13 @@ define( "CLASS_NAME_PREFIX", "WPToolset_Field_" );
 
 /**
  * FormFactory
- * Creation Form Class 
+ * Creation Form Class
  * @author onTheGo System
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6-Types-1.5.6/toolset-forms/classes/class.form_factory.php $
- * $LastChangedDate: 2014-04-15 16:12:53 +0000 (Tue, 15 Apr 2014) $
- * $LastChangedRevision: 21541 $
- * $LastChangedBy: francesco $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  *
  */
@@ -176,9 +176,9 @@ class FormFactory extends FormAbstract
             if ( !empty( $config['repetitive'] ) ) {
                 $_gnf = $_cfg['name'] = "{$global_name_field}[{$count}]";
             }
-            
-            if ( !is_wp_error( $field = $this->loadField( $_cfg, $_gnf, $val ) ) ) {                
-                $form = $field->metaform();                
+
+            if ( !is_wp_error( $field = $this->loadField( $_cfg, $_gnf, $val ) ) ) {
+                $form = $field->metaform();
                 // Set $config['validate'] to trigger PHP validation
                 // when rendering metaform
                 if ( !empty( $_cfg['validate'] ) && is_wp_error( $valid = $this->validateField( $field, $val ) ) ) {
@@ -189,7 +189,7 @@ class FormFactory extends FormAbstract
                     }
                     $form[$key]['#error'] = $error;
                 }
-                
+
                 if ( isset( $_cfg['validation_error'] ) ) {
                     $key = key( $form );
                     $form[$key]['#error'] = $_cfg['validation_error'];
@@ -213,7 +213,7 @@ class FormFactory extends FormAbstract
     }
 
     /**
-     * 
+     *
      * @staticvar array $loaded
      * @param type $config
      * @param string $global_name_field
@@ -259,7 +259,7 @@ class FormFactory extends FormAbstract
     protected function _checkValidation( $config ) {
         if ( isset( $config['validation'] ) && is_null( $this->_validation ) ) {
             require_once 'class.validation.php';
-            $this->_validation = new WPToolset_Forms_Validation( $this->nameForm );                
+            $this->_validation = new WPToolset_Forms_Validation( $this->nameForm );
         }
     }
 
@@ -272,7 +272,7 @@ class FormFactory extends FormAbstract
     public function addConditional( $config ) {
         $this->getConditionalClass()->add( $config );
     }
-    
+
     public function getConditionalClass(){
         if ( is_null( $this->_conditional ) ) {
             require_once 'class.conditional.php';
@@ -303,12 +303,12 @@ class FormFactory extends FormAbstract
         $o = ob_get_contents();
         ob_get_clean();
         return $o;
-    }    
-    
-    public function validateField( $field, $value ) {           
+    }
+
+    public function validateField( $field, $value ) {
         if ( is_array( $field ) ) {
             $field = $this->loadField( $field, $field['name'], $value );
-        }        
+        }
         if ( !is_wp_error( $field ) ) {
             if ( $field->getValidationData() ) {
                 return $this->_validation->validateField( $field );
@@ -318,7 +318,7 @@ class FormFactory extends FormAbstract
         return new WP_Error( 'wpt-validation', 'Field do not exist',
                 array('Field do not exist') );
     }
-    
+
     protected function _setGlobalField( $field ) {
         global $wptoolset_field;
         $wptoolset_field = $field;
@@ -327,7 +327,7 @@ class FormFactory extends FormAbstract
     public function __toString() {
         return join( "\n", $this->elements );
     }
-    
+
     public function loadFieldClass( $type ) {
         $type = strtolower( $type );
         $class = $this->getClassFromType( $type );
