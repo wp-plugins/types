@@ -16,11 +16,16 @@ require_once WPCF_EMBEDDED_ABSPATH . '/includes/conditional-display.php';
 */
 function wpcf_admin_userprofile_init($user_id){
 	global $wpcf;
-	
+	if ( !is_object($user_id) ){
+		$user_id = new stdClass();
+		$user_id->ID = 0;
+	}
 	$user_role = isset($user_id->roles) ? array_shift($user_id->roles) : 'subscriber';
 	$groups = wpcf_admin_usermeta_get_groups_fields();
 	$wpcf_active = false;
 	$profile_only_preview = '';
+
+
     foreach ( $groups as $group ) {
         if ( !empty( $group['fields'] ) ) {
             $wpcf_active = true;
@@ -60,8 +65,59 @@ function wpcf_admin_userprofile_init($user_id){
 
             // Process fields
 			if ( empty($profile_only_preview) ){
-				$group['fields'] = wpcf_admin_usermeta_process_fields( $user_id, $group['fields'], true );
-				wpcf_admin_render_fields($group, $user_id);
+                if ( defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+                    $errors = get_user_meta( $user_id->ID, '__wpcf-invalid-fields',
+                            true );
+                    // OLD
+                    delete_post_meta( $user_id->ID, 'wpcf-invalid-fields' );
+                    delete_post_meta( $user_id->ID, '__wpcf-invalid-fields' );
+                    if ( empty( $group['fields'] ) ) continue;
+
+                    $output = '<div class="wpcf-group-area wpcf-group-area_'
+                    . $group['slug'] . '">' . "\n\n" . '<h3>'
+                    . wpcf_translate( 'group ' . $group['id'] . ' name',
+                            $group['name'] ) . '</h3>' . "\n\n";
+                    
+                    if ( !empty( $group['description'] ) ) {
+                        $output .= '<span>' . wpautop( wpcf_translate( 'group ' . $group['id'] . ' description', $group['description'] ) )
+                                . '</span>' . "\n\n";
+                    }
+
+                    $output .= '<div class="wpcf-profile-field-line">' . "\n\n";
+                    
+                    foreach ( $group['fields'] as $field ) {
+                        $config = wptoolset_form_filter_types_field( $field,
+                                $user_id->ID );
+
+                        $config = array_map( 'fix_fields_config_output_for_display', $config);
+
+                        $meta = get_user_meta( $user_id->ID, $field['meta_key'] );
+                        if ( $errors ) {
+                            $config['validate'] = true;
+                        }
+                        if ( isset( $config['validation']['required'] ) ) {
+                            $config['title'] .= '&#42;';
+                        }
+                        $output .= '
+<div class="wpcf-profile-field-line">
+	<div class="wpcf-profile-line-left">
+        ' . $config['title'] . $config['description'] . '
+    </div>
+	<div class="wpcf-profile-line-right">
+        ';
+                        $config['title'] = $config['description'] = '';
+                        $output .= wptoolset_form_field( 'your-profile', $config, $meta ) . '
+    </div>
+</div>';
+                    }
+                    
+                    $output .= '</div></div>';
+                    echo $output;
+                } else {
+                    $group['fields'] = wpcf_admin_usermeta_process_fields( $user_id,
+                            $group['fields'], true );
+                    wpcf_admin_render_fields( $group, $user_id );
+                }
 			}
 			else{
 				// Render profile fields (text only)
@@ -105,6 +161,15 @@ function wpcf_admin_userprofile_init($user_id){
     }
 }
 
+function fix_fields_config_output_for_display($match)
+{
+    if( gettype($match) === 'string' )
+    {
+        $match = stripcslashes( $match );
+    }
+    return $match;
+}
+
 /*
 * Show user fields values in profile
 * $user_id = array, $group = array
@@ -139,9 +204,9 @@ function wpcf_usermeta_preview_profile( $user_id, $group, $echo = ''){
 		$content = $code = '';
 		// Sometimes if meta is empty - array(0 => '') is returned
         if ( (count( $meta ) == 1 ) ) {
-            $meta_id = key( $meta );
+            $meta_id = key( $meta ); 
             $_temp = array_shift( $meta );
-            if ( strval( $_temp ) == '' ) {
+            if (!is_array($_temp) && strval( $_temp ) == '' ) {
                
             } else {
                 $params['field_value'] = $_temp;
@@ -247,6 +312,83 @@ function wpcf_admin_profile_js_validation(){
 * Save user profile custom fields
 */
 function wpcf_admin_userprofilesave_init($user_id){
+    
+    if ( defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+
+        global $wpcf;
+        $errors = false;
+
+        // Save meta fields
+        if ( !empty( $_POST['wpcf'] ) ) {
+            foreach ( $_POST['wpcf'] as $field_slug => $field_value ) {
+                // Get field by slug
+                $field = wpcf_fields_get_field_by_slug( $field_slug, 'wpcf-usermeta' );
+                if ( empty( $field ) ) {
+                    continue;
+                }
+                // Skip copied fields
+                if ( isset( $_POST['wpcf_repetitive_copy'][$field['slug']] ) ) {
+                    continue;
+                }
+                $_field_value = !types_is_repetitive( $field ) ? array($field_value) : $field_value;
+                // Set config
+                $config = wptoolset_form_filter_types_field( $field, $user_id );
+                foreach ( $_field_value as $_k => $_val ) {
+                    // Check if valid
+                    $valid = wptoolset_form_validate_field( 'your-profile', $config,
+                            $_val );
+                    if ( is_wp_error( $valid ) ) {
+                        $errors = true;
+                        $_errors = $valid->get_error_data();
+                        $_msg = sprintf( __( 'Field "%s" not updated:', 'wpcf' ),
+                                $field['name'] );
+                        wpcf_admin_message_store( $_msg . ' ' . implode( ', ',
+                                        $_errors ), 'error' );
+                        if ( types_is_repetitive( $field ) ) {
+                            unset( $field_value[$_k] );
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                // Save field
+                if ( types_is_repetitive( $field ) ) {
+                    $wpcf->usermeta_repeater->set( $user_id, $field );
+                    $wpcf->usermeta_repeater->save( $field_value );
+                } else {
+                    $wpcf->usermeta_field->set( $user_id, $field );
+                    $wpcf->usermeta_field->usermeta_save( $field_value );
+                }
+
+                do_action( 'wpcf_user_field_saved', $user_id, $field );
+
+                // TODO Move to checkboxes
+
+                if ( $field['type'] == 'checkboxes' ) {
+                    $field_data = wpcf_admin_fields_get_field( $field['id'], false, false, false, 'wpcf-usermeta' );
+                    if ( !empty( $field_data['data']['options'] ) ) {
+                        $update_data = array();
+                        foreach ( $field_data['data']['options'] as $option_id => $option_data ) {
+                            if ( !isset( $_POST['wpcf'][$field['id']][$option_id] ) ) {
+                                if ( isset( $field_data['data']['save_empty'] ) && $field_data['data']['save_empty'] == 'yes' ) {
+                                    $update_data[$option_id] = 0;
+                                }
+                            } else {
+                                $update_data[$option_id] = $_POST['wpcf'][$field['id']][$option_id];
+                            }
+                        }
+                        update_user_meta( $user_id, $field['meta_key'], $update_data );
+                    }
+                }
+            }
+        }
+        if ( $errors ) {
+            update_post_meta( $user_id, '__wpcf-invalid-fields', true );
+        }
+        do_action( 'wpcf_user_saved', $user_id );
+        return;
+    }
+    
 	global $wpcf;
 	
 	$all_fields = array();

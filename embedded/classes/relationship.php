@@ -328,7 +328,27 @@ class WPCF_Relationship
          * UPDATE Loop over fields
          */
         foreach ( $save_fields as $slug => $value ) {
-            $this->cf->set( $child, $slug );
+            if ( defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+                // Get field by slug
+                $field = wpcf_fields_get_field_by_slug( str_replace( WPCF_META_PREFIX,
+                                '', $slug ) );
+                if ( empty( $field ) ) {
+                    continue;
+                }
+                // Set config
+                $config = wptoolset_form_filter_types_field( $field, $child->ID );
+                // Check if valid
+                $valid = wptoolset_form_validate_field( 'post', $config, $value );
+                if ( is_wp_error( $valid ) ) {
+                    $errors = $valid->get_error_data();
+                    $msg = sprintf( __( 'Child post "%s" field "%s" not updated:',
+                                    'wpcf' ), $child->post_title, $field['name'] );
+                    wpcf_admin_message_store( $msg . ' ' . implode( ', ',
+                                    $errors ), 'error' );
+                    continue;
+                }
+            }
+            $this->cf->set( $child, $field );
             $this->cf->context = 'post_relationship';
             $this->cf->save( $value );
         }

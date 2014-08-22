@@ -17,8 +17,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
          * @param string $text_area
          * @param boolean $standard_v is this a standard V button
          */
-        function add_form_button( $context, $text_area = 'textarea#content',
-                $standard_v = true, $add_views = false, $codemirror_button = false ) {
+        function add_form_button( $context, $text_area = 'textarea#content', $standard_v = true, $add_views = false, $codemirror_button = false ) {
             global $wp_version;
 
             // WP 3.3 changes ($context arg is actually a editor ID now)
@@ -90,16 +89,38 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             $direct_links = implode( ' ', $this->_media_menu_direct_links );
             $dropdown_class = 'js-editor_addon_dropdown-'.$this->name;
             $icon_class = 'js-wpv-shortcode-post-icon-'.$this->name;
-            $addon_button = '<img src="' . $this->media_button_image . '" class="wpv-shortcode-post-icon '. $icon_class .'" />';
-            if ( !$standard_v ) {
-                $addon_button = '<img src="' . $this->media_button_image . '" class="vicon wpv-shortcode-post-icon '. $icon_class .'" />';
-                // $addon_button = '<input id="addingbutton" alt="#TB_inline?inlineId=add_field_popup" class="thickbox wpv_add_fields_button button-primary field_adder" type="button" value="'. __('Add field', 'wpv-views') .'" name="" />';
-                //$addon_button = '<span class="wpv_add_fields_button button-primary field_adder">'. __('Add field', 'wpv-views') .'</span>';
+			if ( $this->name == 'wpv-views' ) {
+				$button_label = __( 'Views', 'wpv-views' );
+			} else if ( $this->name == 'types' ) {
+				$button_label = __( 'Types', 'wpv-views' );
+			} else {
+				$button_label = '';
+			}
+
+            if( '' !== $this->media_button_image )
+            {
+                $addon_button = '<span class="button wpv-shortcode-post-icon '. $icon_class .'"><img src="' . $this->media_button_image . '" />' . $button_label . '</span>';
             }
-            // Codemirrir (new layout) button
+            else if( '' !== $this->icon_class ){
+
+                $addon_button = '<span class="button wpv-shortcode-post-icon '. $icon_class .'"><i class="'.$this->icon_class.'"></i><span class="button-label">' . $button_label . '</span></span>';
+            }
+
+            if ( !$standard_v ) {
+
+                if( '' !== $this->media_button_image )
+                {
+                    $addon_button = '<span class="button vicon wpv-shortcode-post-icon '. $icon_class .'"><img src="' . $this->media_button_image . '" />' . $button_label . '</span>';
+                }
+                else if( '' !== $this->icon_class )
+                {
+                    $addon_button = '<span class="button vicon wpv-shortcode-post-icon '. $icon_class .'"><i class="'.$this->icon_class.'"></i><span class="button-label">' . $button_label . '</span></span>';
+                }
+            }
+            // Codemirror (new layout) button
             if ( $codemirror_button ){
                  $addon_button = '<button class="js-code-editor-toolbar-button js-code-editor-toolbar-button-v-icon button-secondary">'.
-                        '<i class="icon-views"></i><span class="button-label">'. __('Fields', 'wpv-views') .'</span></button>';
+                        '<i class="icon-views ont-icon-25"></i><span class="button-label">'. __('Fields', 'wpv-views') .'</span></button>';
             }
             // add search box
             $searchbar = $this->get_search_bar();
@@ -107,7 +128,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             // generate output content
             $out = '' .
             $addon_button . '
-            <div class="editor_addon_dropdown '. $dropdown_class .'" id="editor_addon_dropdown_' . md5( serialize( debug_backtrace() ) ) . '">
+            <div class="editor_addon_dropdown '. $dropdown_class .'" id="editor_addon_dropdown_' . rand() . '">
                 <h3 class="title">' . $this->button_text . '</h3>
                 <div class="close">&nbsp;</div>
                 <div class="editor_addon_dropdown_content">
@@ -295,14 +316,23 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             $direct_links = implode( ' ', $this->_media_menu_direct_links );
             $dropdown_class = 'js-editor_addon_dropdown-'.$this->name;
             $icon_class = 'js-wpv-shortcode-post-icon-'.$this->name;
-            $addon_button = '<img src="' . $this->media_button_image . '" class="wpv-shortcode-post-icon '. $icon_class .'" />';
+            if ( $this->name == 'wpv-views' ) {
+				$button_label = __( 'Views', 'wpv-views' );
+			} else if ( $this->name == 'types' ) {
+				$button_label = __( 'Types', 'wpv-views' );
+			} else {
+				$button_label = '';
+			}
+            $addon_button = '<span class="button wpv-shortcode-post-icon '. $icon_class .'"><img src="' . $this->media_button_image . '" />' . $button_label . '</span>';
             if ( !$standard_v ) {
-                $addon_button = '<img src="' . $this->media_button_image . '" class="vicon wpv-shortcode-post-icon '. $icon_class .'" />';
+                $addon_button = '<span class="button vicon wpv-shortcode-post-icon '. $icon_class .'"><img src="' . $this->media_button_image . '" />' . $button_label . '</span>';
+                // $addon_button = '<input id="addingbutton" alt="#TB_inline?inlineId=add_field_popup" class="thickbox wpv_add_fields_button button-primary field_adder" type="button" value="'. __('Add field', 'wpv-views') .'" name="" />';
+                //$addon_button = '<span class="wpv_add_fields_button button-primary field_adder">'. __('Add field', 'wpv-views') .'</span>';
             }
             // Codemirrir (new layout) button
             if ( $codemirror_button ){
                  $addon_button = '<button class="js-code-editor-toolbar-button js-code-editor-toolbar-button-v-icon button-secondary">'.
-                        '<i class="icon-views"></i><span class="button-label">'. __('Fields', 'wpv-views') .'</span></button>';
+                        '<i class="icon-views ont-icon-25"></i><span class="button-label">'. __('Fields', 'wpv-views') .'</span></button>';
             }
             // add search box
             $searchbar = $this->get_search_bar();
@@ -310,7 +340,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             // generate output content
             $out = '' .
             $addon_button . '
-            <div class="editor_addon_dropdown '. $dropdown_class .'" id="editor_addon_dropdown_' . md5( serialize( debug_backtrace() ) ) . '">
+            <div class="editor_addon_dropdown '. $dropdown_class .'" id="editor_addon_dropdown_' . rand() . '">
                 <h3 class="title">' . $this->button_text . '</h3>
                 <div class="close">&nbsp;</div>
                 <div class="editor_addon_dropdown_content">

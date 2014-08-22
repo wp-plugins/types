@@ -311,7 +311,13 @@ class WPCF_Evaluate
         if ( !empty( $null ) && !empty( $field ) && $field['type'] == 'date' ) {
             $time = strtotime( $null );
             if ( $time ) {
-                return $time;
+                $null = $time;
+            }
+            /**
+             * be sure do not return string if array is expected!
+             */
+            if ( !$single && !is_array($null) ) {
+                return array($null);
             }
         }
 
@@ -331,7 +337,14 @@ class WPCF_Evaluate
             $meta_key, $single ) {
         $meta_key = str_replace( 'wpcf-', '', $meta_key );
         $field = wpcf_admin_fields_get_field( $meta_key );
-        return !empty( $field ) && isset( $_POST['wpcf'][$meta_key] ) ? $_POST['wpcf'][$meta_key] : '';
+        $value = !empty( $field ) && isset( $_POST['wpcf'][$meta_key] ) ? $_POST['wpcf'][$meta_key] : '';
+        /**
+         * be sure do not return string if array is expected!
+         */
+        if ( !$single && !is_array($value) ) {
+            return array($value);
+        }
+        return $value;
     }
 
 }

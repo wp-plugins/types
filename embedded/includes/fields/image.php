@@ -1,4 +1,12 @@
 <?php
+/**
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/includes/fields/image.php $
+ * $LastChangedDate: 2014-07-15 22:18:54 +0800 (Tue, 15 Jul 2014) $
+ * $LastChangedRevision: 24974 $
+ * $LastChangedBy: marcin $
+ *
+ */
 add_filter( 'wpcf_fields_type_image_value_get', 'wpcf_fields_image_value_filter' );
 add_filter( 'wpcf_fields_type_image_value_save',
         'wpcf_fields_image_value_filter' );
@@ -261,7 +269,7 @@ function wpcf_fields_image_editor_submit( $data, $field, $context ) {
  */
 function wpcf_fields_image_view( $params ) {
 
-    global $wpcf, $post;
+    global $wpcf;
 
     $output = '';
     $alt = false;
@@ -302,17 +310,6 @@ function wpcf_fields_image_view( $params ) {
     }
     if ( !empty( $params['style'] ) ) {
         $style[] = $params['style'];
-    }
-
-    // Add remote to library
-    if ( wpcf_get_settings( 'add_resized_images_to_library' )
-            && !empty( $image_data['remotely_fetched'] )
-            && $image_data['is_in_upload_path'] ) {
-        if ( $image_data['is_attachment'] = wpcf_image_add_to_library( $post,
-                $image_data['fullabspath'] ) ) {
-            wpcf_file_recreate_library_images( $image_data['is_attachment'],
-                    $image_data['fullabspath'] );
-        }
     }
     
     // Compatibility with old parameters
@@ -408,15 +405,10 @@ function wpcf_fields_image_view( $params ) {
                 $resized_image = $__resized_image->url;
                 $image_abspath = $__resized_image->path;
                 if ( wpcf_get_settings( 'add_resized_images_to_library' )
+                        && !wpcf_image_is_attachment( $__resized_image->url )
                         && $image_data['is_in_upload_path'] ) {
-                    $attach_id = wpcf_image_is_attachment( $__resized_image->url );
-                    if ( !$attach_id ) {
-                        wpcf_image_add_to_library( $post, $image_abspath );
-                    } else if ( !empty( $image_data['remotely_fetched'] ) ) {
-                        // Maybe remote cleared from cache
-                        wpcf_file_recreate_library_images( $attach_id,
-                                $__resized_image->path );
-                    }
+                    global $post;
+                    wpcf_image_add_to_library( $post, $image_abspath );
                 }
             }
         } else {
@@ -728,7 +720,6 @@ function wpcf_fields_image_get_remote( $url ) {
     }
 
     $image = $cache_dir . md5( $url ) . '.' . $extension;
-    $relpath = wpcf_image_attachment_url( $image );
 
     // Refresh if necessary
     $refresh_time = intval( wpcf_get_settings( 'images_remote_cache_time' ) );
@@ -800,7 +791,7 @@ function wpcf_fields_image_get_remote( $url ) {
 
     return array(
         'abspath' => $image,
-        'relpath' => $relpath,
+        'relpath' => wpcf_image_attachment_url( $image ),
     );
 }
 
@@ -1042,7 +1033,7 @@ function wpcf_fields_image_view_filter( $output, $value, $type, $slug, $name,
  */
 function wpcf_image_add_to_library( $post, $abspath ){
     $guid = wpcf_image_attachment_url( $abspath );
-    if ( !($attach_id = wpcf_image_is_attachment( $guid )) ) {
+    if ( !wpcf_image_is_attachment( $guid ) ) {
         $wp_filetype = wp_check_filetype( basename( $abspath ), null );
         $attachment = array(
             'post_mime_type' => $wp_filetype['type'],
@@ -1059,7 +1050,6 @@ function wpcf_image_add_to_library( $post, $abspath ){
         wp_update_attachment_metadata( $attach_id, $attach_data );
         update_attached_file( $attach_id, $attach_data['file'] );
     }
-    return $attach_id;
 }
 
 /**
@@ -1096,19 +1086,4 @@ function wpcf_image_attachment_url( $abspath ) {
 function wpcf_image_normalize_attachment( $abspath ) {
     WPCF_Loader::loadView( 'image' );
     return Types_Image_Utils::getInstance()->normalizeAttachment( $abspath );
-}
-
-function wpcf_file_recreate_library_images( $attach_id, $abspath ) {
-    $src = wp_get_attachment_image_src( $attach_id );
-    if ( isset( $src[0] ) ) {
-        $thumbnail = dirname( $abspath )
-                . DIRECTORY_SEPARATOR . basename( $src[0] );
-        if ( !file_exists( $thumbnail ) ) {
-            require_once(ABSPATH . 'wp-admin/includes/image.php');
-            $attach_data = wp_generate_attachment_metadata( $attach_id, $abspath );
-            $attach_data['file'] = str_replace( '\\', '/',
-                    wpcf_image_normalize_attachment( $attach_data['file'] ) );
-            wp_update_attachment_metadata( $attach_id, $attach_data );
-        }
-    }
 }

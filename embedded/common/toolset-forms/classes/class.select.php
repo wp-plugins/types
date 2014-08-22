@@ -1,4 +1,12 @@
 <?php
+/**
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.select.php $
+ * $LastChangedDate: 2014-07-29 22:50:22 +0800 (Tue, 29 Jul 2014) $
+ * $LastChangedRevision: 25428 $
+ * $LastChangedBy: marcin $
+ *
+ */
 require_once 'class.field_factory.php';
 
 /**
@@ -12,6 +20,7 @@ class WPToolset_Field_Select extends FieldFactory
     public function metaform() {
         $value = $this->getValue();
         $data = $this->getData();
+        $attributes = $this->getAttr();
 
         $form = array();
         $options = array();
@@ -34,9 +43,16 @@ class WPToolset_Field_Select extends FieldFactory
                 $options[] = $one_option_data;
             }
         }
+        $options = apply_filters( 'wpt_field_options', $options, $this->getTitle(), 'select' );
+        /**
+         * default_value
+         */
         if ( !empty( $value ) || $value == '0' ) {
             $data['default_value'] = $value;
         }
+        /**
+         * metaform
+         */
         $form[] = array(
             '#type' => 'select',
             '#title' => $this->getTitle(),
@@ -44,9 +60,12 @@ class WPToolset_Field_Select extends FieldFactory
             '#name' => $this->getName(),
             '#options' => $options,
             '#default_value' => isset( $data['default_value'] ) ? $data['default_value'] : null,
+            '#multiple' => array_key_exists('multiple', $attributes) && 'multiple' == $attributes['multiple'],
             '#validate' => $this->getValidationData(),
             '#class' => 'form-inline',
+            '#repetitive' => $this->isRepetitive(),
         );
+
         return $form;
     }
 

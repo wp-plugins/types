@@ -22,10 +22,10 @@ if ( version_compare( $wp_version, '3.5', '<' ) ) {
 
 /**
  * Filters group field form.
- * 
+ *
  * @param type $form
  * @param type $data
- * @return type 
+ * @return type
  */
 function wpcf_cd_form_field_filter( $form, $data ) {
     if ( defined( 'DOING_AJAX' ) && isset( $_SERVER['HTTP_REFERER'] ) ) {
@@ -35,31 +35,23 @@ function wpcf_cd_form_field_filter( $form, $data ) {
         $vars['group_id'] = $_GET['group_id'];
     }
     if ( !isset( $vars['group_id'] ) ) {
-        $form = $form + array(
+        return $form + array(
             'cd_not_available' => array(
                 '#type' => 'markup',
                 '#markup' => '<p>' . __( 'You will be able to set conditional field display once this group is saved.',
-                        'wpcf' ) . '</p><div style="display:none;">',
+                        'wpcf' ) . '</p>',
             ),
         );
     }
     $form = $form + wpcf_cd_admin_form_filter( $data );
-    if ( !isset( $vars['group_id'] ) ) {
-        $form = $form + array(
-            'cd_not_available2' => array(
-                '#type' => 'markup',
-                '#markup' => '</div>',
-            ),
-        );
-    }
     return $form;
 }
 
 /**
  * Group pre-save filter.
- * 
+ *
  * @param array $data
- * @return array 
+ * @return array
  */
 function wpcf_cd_group_pre_save_filter( $data ) {
     return wpcf_cd_field_pre_save_filter( $data );
@@ -67,15 +59,18 @@ function wpcf_cd_group_pre_save_filter( $data ) {
 
 /**
  * Field pre-save filter.
- * 
+ *
  * @param array $data
- * @return array 
+ * @return array
  */
 function wpcf_cd_field_pre_save_filter( $data ) {
     if ( empty( $data['conditional_display'] ) ) {
         $data['conditional_display'] = array();
     } else if ( !empty( $data['conditional_display']['conditions'] ) ) {
         foreach ( $data['conditional_display']['conditions'] as $k => $condition ) {
+            if ( !array_key_exists( 'field', $condition ) ) {
+                continue;
+            }
             $field = wpcf_admin_fields_get_field( $condition['field'] );
             if ( !empty( $field ) ) {
                 // Date conversions
@@ -84,12 +79,17 @@ function wpcf_cd_field_pre_save_filter( $data ) {
                         && isset( $condition['month'] )
                         && isset( $condition['year'] )
                 ) {
-                    $time = mktime( 0, 0, 0, $condition['month'],
+                    $time = adodb_mktime( 0, 0, 0, $condition['month'],
                             $condition['date'], $condition['year'] );
+					if ( wpcf_fields_date_timestamp_is_valid( $time ) ) {
+						$condition['value'] = $time;
+					}
+					/*
                     $date = date( wpcf_get_date_format(), $time );
                     if ( $date !== false ) {
                         $condition['value'] = $date;
                     }
+					*/
                 }
                 if ( isset( $condition['date'] ) && isset( $condition['month'] )
                         && isset( $condition['year'] )
@@ -106,10 +106,10 @@ function wpcf_cd_field_pre_save_filter( $data ) {
 
 /**
  * Conditional display form.
- * 
+ *
  * @param type $data
  * @param type $group
- * @return type 
+ * @return type
  */
 function wpcf_cd_admin_form_filter( $data, $group = false ) {
     global $wpcf_button_style30;
@@ -125,12 +125,26 @@ function wpcf_cd_admin_form_filter( $data, $group = false ) {
     if ( !empty( $data['data']['conditional_display']['conditions'] ) ) {
         $conditions = $data['data']['conditional_display']['conditions'];
         $count = count( $conditions );
-        $_count_txt = '&nbsp;(' . $count . ')';
+        $_count_txt = $count;
     } else {
         $_count_txt = '';
         $count = 1;
     }
 
+    /**
+     * state of conditional display custom use
+     */
+    $use_custom_logic= 0;
+    if ( 1
+        && array_key_exists( 'data', $data )
+        && is_array( $data['data'] )
+        && array_key_exists( 'conditional_display', $data['data'] )
+        && is_array( $data['data']['conditional_display'] )
+        && array_key_exists( 'custom_use', $data['data']['conditional_display'] )
+        && !empty( $data['data']['conditional_display']['custom_use'] )
+    ) {
+        $use_custom_logic = 1;
+    }
 
     if ( !$group ) {
         $form['cd'] = array(
@@ -141,16 +155,31 @@ function wpcf_cd_admin_form_filter( $data, $group = false ) {
             '#attributes' => array('class' => 'wpcf-cd-fieldset'),
         );
     } else {
+        $count_text = sprintf(
+            '<span class="count" data-wpcf-custom-logic="%s">(%s)</span>',
+            esc_attr__('custom logic', 'wpcf'),
+            $use_custom_logic? __('custom logic', 'wpcf'):$_count_txt
+        );
         $form['cd']['wrap'] = array(
             '#type' => 'markup',
             '#markup' => '<strong>' . sprintf( __( 'Data-dependent display filters %s',
-                            'wpcf' ), $_count_txt ) . '</strong><br />'
+                            'wpcf' ), $count_text ) . '</strong><br />'
             . __( "Specify additional filters that control this group's display, based on values of custom fields.",
                     'wpcf' )
-            . '<br /><a class="button-secondary" onclick="jQuery(this).css(\'visibility\',\'hidden\').next().slideToggle();" ' . $wpcf_button_style30 . '  href="javascript:void(0);">'
-            . __( 'Edit', 'wpcf' ) . '</a><div id="wpcf-cd-group" style="display:none;">',
+            . '<br /><a class="button-secondary" onclick="jQuery(this).css(\'display\',\'none\').next().slideToggle();" ' . $wpcf_button_style30 . '  href="javascript:void(0);">'
+            . __( 'Edit', 'wpcf' ) . '</a><div id="wpcf-cd-group" class="wpcf-cd-fieldset" style="display:none;">',
         );
     }
+
+    $form['cd']['custom_use'] = array(
+        '#type' => 'hidden',
+        '#name' => $name . '[custom_use]',
+        '#default_value' => isset( $data['data']['conditional_display']['custom_use'] ),
+        '#attributes' => array(
+            'class' => 'conditional-display-custom-use',
+        ),
+        '#value' => $use_custom_logic,
+    );
 
     // Stop for Usermeta Group edit screen
     if ( isset( $_GET['page'] ) && $_GET['page'] == 'wpcf-edit-usermeta' ) {
@@ -176,12 +205,11 @@ function wpcf_cd_admin_form_filter( $data, $group = false ) {
 
     $form['cd']['add'] = array(
         '#type' => 'markup',
-        '#markup' => '<a id="' . $_add_id
-        . '" class="button-secondary"'
+        '#markup' => '<br /><a id="' . $_add_id
+        . '" class="button-secondary simple-logic"'
         . ' onclick="wpcfCdAddCondition(jQuery(this),' . $add . '); return false;"'
         . ' href="' . $_url . '">' . __( 'Add condition', 'wpcf' ) . '</a>'
-        . '<br />'
-        . '<div class="wpcf-cd-entries">',
+        . '<div class="wpcf-cd-entries simple-logic">',
     );
 
     /*
@@ -223,27 +251,32 @@ function wpcf_cd_admin_form_filter( $data, $group = false ) {
         ),
         '#default_value' => isset( $data['data']['conditional_display']['relation'] ) ? $data['data']['conditional_display']['relation'] : 'AND',
         '#inline' => true,
-        '#before' => '<div class="wpcf-cd-relation" style="display:none;">',
+        '#before' => '<div class="wpcf-cd-relation simple-logic" style="display:none;">',
         '#after' => '</div>',
     );
+    /**
+     * logic form
+     */
     $form['cd']['toggle_open'] = array(
         '#type' => 'markup',
-        '#markup' => '<div class="toggle-cd" style="display:none;">',
+        '#markup' => '<div class="toggle-cd">',
     );
-    $prepopulate = !empty( $data['data']['conditional_display']['custom'] ) ? ' jQuery(\'#' . md5( $data['id'] ) . '_cd_summary\').val();' : ' wpcfCdCreateSummary(\'' . md5( $data['id'] ) . '_cd_summary\');';
-    $form['cd']['customize_display_logic_link'] = array(
-        '#type' => 'markup',
-        '#markup' => '<a href="javascript:void(0);" class="button-secondary wpcf-cd-enable-custom-mode" onclick="window.wpcfCdState_' . md5( $data['id'] )
-        . ' = jQuery(\'#' . md5( $data['id'] ) . '_cd_summary\').val();' . $prepopulate . ' jQuery(\'#' . md5( $data['id'] ) . '_cd_summary\').parent().slideDown(); jQuery(this).hide().next().show();wpcfCdCheckDateCustomized(jQuery(this));">'
-        . __( 'Customize the display logic', 'wpcf' )
-        . '</a>',
+
+    $form['cd']['display_logic_button'] = array(
+        '#name' => $name.'[display-logic-button]',
+        '#type' => 'button',
+        '#value' => '',
+        '#patern' => '<ELEMENT>',
+        '#attributes' => array(
+            'data-wpcf-custom-logic-simple' => esc_attr__( 'Go back to simple logic', 'wpcf' ),
+            'data-wpcf-custom-logic-customize' => esc_attr__( 'Customize the display logic', 'wpcf' ),
+            'data-wpcf-custom-logic' => '',
+            'data-wpcf-custom-logic-change' => !$use_custom_logic,
+            'data-wpcf-custom-summary' => md5( $data['id'] ) . '_cd_summary',
+            'class' => 'wpcf-cd-display-logic-button',
+        ),
     );
-    $form['cd']['revert_display_logic_link'] = array(
-        '#type' => 'markup',
-        '#markup' => '<a href="javascript:void(0);" class="button-secondary wpcf-cd-enable-custom-mode hidden wpcf-hidden" style="display:none;" onclick="jQuery(\'#' . md5( $data['id'] ) . '_cd_summary\').parent().slideUp().find(\'.checkbox\').removeAttr(\'checked\'); jQuery(this).hide().prev().show();">'
-        . __( 'Go back to simple logic', 'wpcf' )
-        . '</a>',
-    );
+
     $form['cd']['toggle_open_area'] = array(
         '#type' => 'markup',
         '#markup' => '<div class="area-toggle-cd" style="margin-top:10px;display:none;">',
@@ -253,40 +286,16 @@ function wpcf_cd_admin_form_filter( $data, $group = false ) {
         '#name' => $name . '[custom]',
         '#title' => __( 'Customize conditions', 'wpcf' ),
         '#id' => md5( $data['id'] ) . '_cd_summary',
-        '#after' => '<br /><a href="javascript:void(0);" onclick="wpcfCdCreateSummary(\''
-        . md5( $data['id'] ) . '_cd_summary\');">'
-        . __( 'Re-read structure', 'wpcf' ) . '</a><br />',
         '#inline' => true,
         '#value' => isset( $data['data']['conditional_display']['custom'] ) ? $data['data']['conditional_display']['custom'] : '',
-    );
-    $form['cd']['custom_use'] = array(
-        '#type' => 'checkbox',
-        '#name' => $name . '[custom_use]',
-        '#title' => __( 'Use customized conditions', 'wpcf' ),
-        '#inline' => true,
-        '#default_value' => isset( $data['data']['conditional_display']['custom_use'] ),
-        '#after' => '',
     );
     $form['cd']['date_notice'] = array(
         '#type' => 'markup',
         '#markup' => '<div style="display:none; margin-top:15px;" class="wpcf-cd-notice-date">'
         . sprintf( __( '%sDates can be entered using the date filters &raquo;%s',
-                        'wpcf' ),
-                '<a href="http://wp-types.com/documentation/user-guides/date-filters/" target="_blank">',
-                '</a>' ) . '</div>',
-    );
-    $form['cd']['apply_display_logic_link'] = array(
-        '#type' => 'markup',
-        '#markup' => '<br /><br /><a href="javascript:void(0);" class="button-primary" onclick="window.wpcfCdState_' . md5( $data['id'] )
-        . ' = jQuery(\'#' . md5( $data['id'] ) . '_cd_summary\').parent().slideUp().prev().hide().prev().show();">'
-        . __( 'Apply', 'wpcf' )
-        . '</a>&nbsp&nbsp;',
-    );
-    $form['cd']['cancel_display_logic_link'] = array(
-        '#type' => 'markup',
-        '#markup' => '<a href="javascript:void(0);" class="button-primary" onclick="jQuery(\'#' . md5( $data['id'] ) . '_cd_summary\').val(window.wpcfCdState_' . md5( $data['id'] ) . ').parent().slideUp().prev().hide().prev().show();">'
-        . __( 'Cancel', 'wpcf' )
-        . '</a>',
+            'wpcf' ),
+        '<a href="http://wp-types.com/documentation/user-guides/date-filters/" target="_blank">',
+        '</a>' ) . '</div>',
     );
     $form['cd']['toggle_close'] = array(
         '#type' => 'markup',
@@ -300,11 +309,14 @@ function wpcf_cd_admin_form_filter( $data, $group = false ) {
         '#type' => 'hidden',
         '#name' => '_wpcf_cd_count_' . $data['id'],
         '#value' => $count,
+        '#attributes' => array(
+            'class' => 'wpcf-cd-count',
+        ),
     );
     if ( $group ) {
         $form['cd']['wrap_close'] = array(
             '#type' => 'markup',
-            '#markup' => '<br /><a class="button-primary" onclick="jQuery(this).parent().slideUp().prev().css(\'visibility\',\'visible\');" ' . $wpcf_button_style30 . '  href="javascript:void(0);">'
+            '#markup' => '<br /><a class="button-primary" onclick="jQuery(this).parent().slideUp().prev().css(\'display\',\'static\');" ' . $wpcf_button_style30 . '  href="javascript:void(0);">'
             . __( 'OK', 'wpcf' ) . '</a></div>',
         );
     }
@@ -313,11 +325,11 @@ function wpcf_cd_admin_form_filter( $data, $group = false ) {
 
 /**
  * Single condition form elements.
- * 
+ *
  * @param type $data
  * @param type $condition
  * @param type $key
- * @return string 
+ * @return string
  */
 function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
         $group = false, $force_multi = false ) {
@@ -332,8 +344,8 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
     $group_id = isset( $_GET['group_id'] ) ? intval( $_GET['group_id'] ) : false;
 
     /*
-     * 
-     * 
+     *
+     *
      * TODO Review this allowing fields from same group as conditional (self loop)
      * I do not remember allowing fields from same group as conditional (self loop)
      * on Group Fields edit screen.
@@ -347,6 +359,7 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
 
     if ( $group ) {
         $_distinct = wpcf_admin_fields_get_fields_by_group( $group_id );
+
         foreach ( $_distinct as $_field_id => $_field ) {
             if ( isset( $fields[$_field_id] ) ) {
                 unset( $fields[$_field_id] );
@@ -354,6 +367,17 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
         }
     }
     $options = array();
+
+    $ignore_field_type_array = array(
+        'audio',
+        'checkboxes',
+        'embed',
+        'file',
+        'image',
+        'video',
+        'wysiwyg',
+    );
+
     $flag_repetitive = false;
     foreach ( $fields as $field_id => $field ) {
         if ( !$group && $data['id'] == $field_id ) {
@@ -364,10 +388,15 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
             $flag_repetitive = true;
             continue;
         }
-        // Skip Checkboxes
-        if ( $field['type'] == 'checkboxes' ) {
+        /**
+         * Skip some files
+         */
+        if ( in_array( $field['type'], $ignore_field_type_array ) ) {
             continue;
         }
+        /**
+         * build options
+         */
         $options[$field_id] = array(
             '#value' => $field_id,
             '#title' => stripslashes( $field['name'] ),
@@ -377,7 +406,7 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
     /*
      * Special case
      * https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/153565054/comments
-     * 
+     *
      * When field is new and only one diff field in list - that
      * means one field is saved but other not yet.
      */
@@ -389,7 +418,7 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
         }
     }
     /*
-     * 
+     *
      * This means all fields are repetitive and no one left to compare with.
      * WE DO NOT ALLOW repetitive fields to be compared.
      */
@@ -440,17 +469,21 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
         '#attributes' => array('class' => 'wpcf-cd-value'),
     );
     /*
-     * 
+     *
      * Adjust for date
      */
     if ( !empty( $condition['value'] ) ) {
         WPCF_Loader::loadInclude( 'fields/date/functions.php' );
         $timestamp = wpcf_fields_date_convert_datepicker_to_timestamp( $condition['value'] );
         if ( $timestamp !== false ) {
-            $date_value = date( 'd', $timestamp ) . ',' . date( 'm', $timestamp ) . ',' . date( 'Y',
+            $date_value = adodb_date( 'd', $timestamp ) . ',' . adodb_date( 'm', $timestamp ) . ',' . adodb_date( 'Y',
                             $timestamp );
             $date_function = 'date';
-        }
+        } else if ( wpcf_fields_date_timestamp_is_valid( $condition['value'] ) ) {
+			$date_value = adodb_date( 'd', $condition['value'] ) . ',' . adodb_date( 'm', $condition['value'] ) . ',' . adodb_date( 'Y',
+                            $condition['value'] );
+            $date_function = 'date';
+		}
     }
     if ( empty( $date_value ) ) {
         $date_value = '';
@@ -467,18 +500,17 @@ function wpcf_cd_admin_form_single_filter( $data, $condition, $key = null,
         '#name' => 'remove',
         '#value' => __( 'Remove condition', 'wpcf' ),
         '#attributes' => array('onclick' => 'wpcfCdRemoveCondition(jQuery(this));', 'class' => 'wpcf-add-condition'),
-        '#before' => '<br />',
-        '#after' => '</div>',
+        '#after' => '</div><br />',
     );
     return $form['cd'];
         }
 
 /**
  * Group coditional display filter.
- * 
+ *
  * @param type $filters
  * @param type $update
- * @return type 
+ * @return type
  */
 function wpcf_cd_fields_form_additional_filters( $filters, $update ) {
     $data = array();
@@ -495,8 +527,8 @@ function wpcf_cd_fields_form_additional_filters( $filters, $update ) {
 
 /**
  * Save group action hook.
- * 
- * @param type $group 
+ *
+ * @param type $group
  */
 function wpcf_cd_save_group_action( $group ) {
     if ( !empty( $group['conditional_display'] ) ) {
@@ -516,7 +548,7 @@ function wpcf_conditional_disable_add_js( $id ) {
     $js = '';
     $js .= '<script type="text/javascript">
         jQuery(document).ready(function(){wpcfDisableAddCondition(\''
-            . strtolower( $id ) . '\'); }); 
+            . strtolower( $id ) . '\'); });
     </script>
 ';
     return $js;
@@ -524,12 +556,13 @@ function wpcf_conditional_disable_add_js( $id ) {
 
 /**
  * Date select form for Group edit screen.
- * 
+ *
  * @global type $wp_locale
  * @param type $function
  * @param type $value
  * @param type $name
  * @return string
+ *
  */
 function wpcf_conditional_add_date_controls( $function, $value, $name ) {
 
@@ -537,14 +570,14 @@ function wpcf_conditional_add_date_controls( $function, $value, $name ) {
 
     if ( $function == 'date' ) {
         $date_parts = explode( ',', $value );
-        $time_adj = mktime( 0, 0, 0, $date_parts[1], $date_parts[0],
+        $time_adj = adodb_mktime( 0, 0, 0, $date_parts[1], $date_parts[0],
                 $date_parts[2] );
     } else {
         $time_adj = current_time( 'timestamp' );
     }
-    $jj = gmdate( 'd', $time_adj );
-    $mm = gmdate( 'm', $time_adj );
-    $aa = gmdate( 'Y', $time_adj );
+    $jj = adodb_gmdate( 'd', $time_adj );
+    $mm = adodb_gmdate( 'm', $time_adj );
+    $aa = adodb_gmdate( 'Y', $time_adj );
 
     $output = '<div class="wpcf-custom-field-date">' . "\n";
 

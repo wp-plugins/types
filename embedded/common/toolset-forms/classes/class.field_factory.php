@@ -110,6 +110,18 @@ abstract class FieldFactory extends FieldAbstract
         return isset( $this->_settings ) ? $this->_settings : array();
     }
 
+    public function isRepetitive()
+    {
+        return (bool)$this->_data['repetitive'];
+    }
+
+    public function getAttr() {
+        if ( array_key_exists( 'attribute', $this->_data ) ) {
+            return $this->_data['attribute'];
+        }
+        return array();
+    }
+
     public static function registerScripts() {}
     public static function registerStyles() {}
     public static function addFilters() {}

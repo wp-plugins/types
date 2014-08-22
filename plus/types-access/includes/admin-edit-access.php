@@ -895,7 +895,7 @@ function wpcf_access_reassign_role_form($role) {
                         'wpcf_access'), '<em>' . $users_txt . '</em>');
         $output .= wpcf_access_admin_roles_dropdown(get_editable_roles(),
                 'wpcf_reassign', array(),
-                __('--- chose role ---', 'wpcf_access'), true, array($role));
+                __('--- choose role ---', 'wpcf_access'), true, array($role));
     } else {
         $output .= '<input type="hidden" name="wpcf_reassign" value="ignore" />';
         $output .= __('Do you really want to remove this role?', 'wpcf_access');

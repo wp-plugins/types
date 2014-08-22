@@ -345,13 +345,9 @@ class WPCF_Repeater extends WPCF_Field
         // Set title and desc
         if ( !empty( $_main_element['#title'] ) ) {
             $this->title = $_main_element['#title'];
-        } else {
-            $this->title = '';
         }
         if ( !empty( $_main_element['#description'] ) ) {
             $this->description = $_main_element['#description'];
-        } else {
-            $this->description = '';
         }
 
         /*

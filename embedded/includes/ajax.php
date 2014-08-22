@@ -127,10 +127,17 @@ function wpcf_ajax_embedded() {
                     $output = __( 'Error getting parent post', 'wpcf' );
                 }
             }
-            echo json_encode( array(
-                'output' => $output . wpcf_form_render_js_validation( '#post',
-                        false ),
-            ) );
+            if ( !defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+                echo json_encode( array(
+                    'output' => $output . wpcf_form_render_js_validation( '#post',
+                            false ),
+                ) );
+            } else {
+                echo json_encode( array(
+                    'output' => $output,
+                    'conditionals' => array('#post' => wptoolset_form_get_conditional_data( 'post' )),
+                ) );
+            }
             break;
 
         case 'pr_save_all':
@@ -146,11 +153,20 @@ function wpcf_ajax_embedded() {
                     );
                 }
             }
-            // TODO Move to conditional
-            $output .= '<script type="text/javascript">wpcfConditionalInit();</script>';
-            echo json_encode( array(
-                'output' => $output,
-            ) );
+            if ( !defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+                // TODO Move to conditional
+                $output .= '<script type="text/javascript">wpcfConditionalInit();</script>';
+            }
+            if ( !defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+                echo json_encode( array(
+                    'output' => $output,
+                ) );
+            } else {
+                echo json_encode( array(
+                    'output' => $output,
+                    'conditionals' => array('#post' => wptoolset_form_get_conditional_data( 'post' )),
+                ) );
+            }
             break;
 
         case 'pr_save_child_post':
@@ -174,16 +190,26 @@ function wpcf_ajax_embedded() {
                             $child_id,
                             $wpcf->relationship->settings( $parent_post_type,
                                     $child_post_type ) );
+                    if ( !defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
                     // TODO Move to conditional
                     $output .= '<script type="text/javascript">wpcfConditionalInit(\'#types-child-row-'
                             . $child_id . '\');</script>';
+                    }
                 }
             }
             $errors = ob_get_clean();
-            echo json_encode( array(
-                'output' => $output,
-                'errors' => $errors
-            ) );
+            if ( !defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+                echo json_encode( array(
+                    'output' => $output,
+                    'errors' => $errors
+                ) );
+            } else {
+                echo json_encode( array(
+                    'output' => $output,
+                    'errors' => $errors,
+                    'conditionals' => array('#post' => wptoolset_form_get_conditional_data( 'post' )),
+                ) );
+            }
             break;
 
         case 'pr_delete_child_post':
@@ -206,9 +232,16 @@ function wpcf_ajax_embedded() {
                         $_POST['wpcf_pr_belongs'][$post_id] );
                 $output = is_wp_error( $updated ) ? $updated->get_error_message() : $updated;
             }
-            echo json_encode( array(
-                'output' => $output,
-            ) );
+            if ( !defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+                echo json_encode( array(
+                    'output' => $output,
+                ) );
+            } else {
+                echo json_encode( array(
+                    'output' => $output,
+                    'conditionals' => array('#post' => wptoolset_form_get_conditional_data( 'post' )),
+                ) );
+            }
             break;
 
         case 'pr_pagination':
@@ -237,9 +270,16 @@ function wpcf_ajax_embedded() {
                     );
                 }
             }
-            echo json_encode( array(
-                'output' => $output,
-            ) );
+            if ( !defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+                echo json_encode( array(
+                    'output' => $output,
+                ) );
+            } else {
+                echo json_encode( array(
+                    'output' => $output,
+                    'conditionals' => array('#post' => wptoolset_form_get_conditional_data( 'post' )),
+                ) );
+            }
             break;
 
         case 'pr_sort':
@@ -249,9 +289,16 @@ function wpcf_ajax_embedded() {
                         intval( $_GET['post_id'] ), strval( $_GET['post_type'] )
                 );
             }
-            echo json_encode( array(
-                'output' => $output,
-            ) );
+            if ( !defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+                echo json_encode( array(
+                    'output' => $output,
+                ) );
+            } else {
+                echo json_encode( array(
+                    'output' => $output,
+                    'conditionals' => array('#post' => wptoolset_form_get_conditional_data( 'post' )),
+                ) );
+            }
             break;
 
         case 'pr_sort_parent':
@@ -261,9 +308,16 @@ function wpcf_ajax_embedded() {
                         intval( $_GET['post_id'] ), strval( $_GET['post_type'] )
                 );
             }
-            echo json_encode( array(
-                'output' => $output,
-            ) );
+            if ( !defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+                echo json_encode( array(
+                    'output' => $output,
+                ) );
+            } else {
+                echo json_encode( array(
+                    'output' => $output,
+                    'conditionals' => array('#post' => wptoolset_form_get_conditional_data( 'post' )),
+                ) );
+            }
             break;
         /* Usermeta */
         case 'um_repetitive_add':

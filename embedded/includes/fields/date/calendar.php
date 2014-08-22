@@ -21,9 +21,9 @@ function wpcf_fields_date_get_calendar( $params, $initial = true, $echo = true )
     global $wpdb, $m, $wp_locale, $posts;
 
     // wpcf Set our own date
-    $monthnum = date( 'n', $params['field_value'] );
-    $year = date( 'Y', $params['field_value'] );
-    $wpcf_date = date( 'j', $params['field_value'] );
+    $monthnum = adodb_date( 'n', $params['field_value'] );
+    $year = adodb_date( 'Y', $params['field_value'] );
+    $wpcf_date = adodb_date( 'j', $params['field_value'] );
 
     $cache = array();
     $key = md5( $params['field']['slug'] . $wpcf_date );
@@ -63,12 +63,12 @@ function wpcf_fields_date_get_calendar( $params, $initial = true, $echo = true )
         else
             $thismonth = '' . zeroise( intval( substr( $m, 4, 2 ) ), 2 );
     } else {
-        $thisyear = gmdate( 'Y', current_time( 'timestamp' ) );
-        $thismonth = gmdate( 'm', current_time( 'timestamp' ) );
+        $thisyear = adodb_gmdate( 'Y', current_time( 'timestamp' ) );
+        $thismonth = adodb_gmdate( 'm', current_time( 'timestamp' ) );
     }
 
-    $unixmonth = mktime( 0, 0, 0, $thismonth, 1, $thisyear );
-    $last_day = date( 't', $unixmonth );
+    $unixmonth = adodb_mktime( 0, 0, 0, $thismonth, 1, $thisyear );
+    $last_day = adodb_date( 't', $unixmonth );
 
     $class = !empty( $params['class'] ) ? ' class="' . $params['class'] . '"' : '';
 
@@ -77,7 +77,7 @@ function wpcf_fields_date_get_calendar( $params, $initial = true, $echo = true )
     $calendar_output = '<table id="wp-calendar-' . md5( serialize( func_get_args() ) )
             . '" summary="' . esc_attr__( 'Calendar' ) . '"' . $class . '>
 	<caption>' . sprintf( $calendar_caption,
-                    $wp_locale->get_month( $thismonth ), date( 'Y', $unixmonth ) ) . '</caption>
+                    $wp_locale->get_month( $thismonth ), adodb_date( 'Y', $unixmonth ) ) . '</caption>
 	<thead>
 	<tr>';
 
@@ -108,11 +108,11 @@ function wpcf_fields_date_get_calendar( $params, $initial = true, $echo = true )
 	<tr>';
 
     // See how much we should pad in the beginning
-    $pad = calendar_week_mod( date( 'w', $unixmonth ) - $week_begins );
+    $pad = calendar_week_mod( adodb_date( 'w', $unixmonth ) - $week_begins );
     if ( 0 != $pad )
         $calendar_output .= "\n\t\t" . '<td colspan="' . esc_attr( $pad ) . '" class="pad">&nbsp;</td>';
 
-    $daysinmonth = intval( date( 't', $unixmonth ) );
+    $daysinmonth = intval( adodb_date( 't', $unixmonth ) );
     for ( $day = 1; $day <= $daysinmonth; ++$day ) {
         if ( isset( $newrow ) && $newrow )
             $calendar_output .= "\n\t</tr>\n\t<tr>\n\t\t";
@@ -134,13 +134,13 @@ function wpcf_fields_date_get_calendar( $params, $initial = true, $echo = true )
 
         $calendar_output .= '</td>';
 
-        if ( 6 == calendar_week_mod( date( 'w',
-                                mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins ) )
+        if ( 6 == calendar_week_mod( adodb_date( 'w',
+                                adodb_mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins ) )
             $newrow = true;
     }
 
-    $pad = 7 - calendar_week_mod( date( 'w',
-                            mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins );
+    $pad = 7 - calendar_week_mod( adodb_date( 'w',
+                            adodb_mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins );
     if ( $pad != 0 && $pad != 7 )
         $calendar_output .= "\n\t\t" . '<td class="pad" colspan="' . esc_attr( $pad ) . '">&nbsp;</td>';
 

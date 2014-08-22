@@ -4,14 +4,14 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields
 License: GPLv2
 Requires at least: 3.4
-Tested up to: 3.9.1
-Stable tag: 1.5.7
+Tested up to: 4.0
+Stable tag: 1.6
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
 == Description ==
 
-Types lets you customize the WordPress admin by adding content types, custom fields and taxonomy. You will be able to craft the WordPress admin and turn it into your very own content management system.
+Types let's you customize the WordPress admin by adding content types, custom fields and taxonomy. You will be able to craft the WordPress admin and turn it into your very own content management system.
 
 [vimeo http://vimeo.com/43104695]
 
@@ -150,6 +150,33 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 5. Bulk editing child content using Field Tables
 
 == Changelog ==
+
+= 1.6 =
+
+* Added ability to add extra options by filter *wpt_field_options* to fields with "options".
+* Added ability to create custom post type with the same singular and plural name.
+* Added ability to select menu icon for custom post type.
+* Added delete attached repetitive files.
+* Added filter "wpcf_pr_belongs_post_status" that allows to change post_status for parent/child posts.
+* Added sanitization for uploaded file names, to remove non-latin1 characters.
+* Added debug page to help retrieving debug information.
+* Fixed export problem if system temporary directory is not allowed to write by open_basedir restriction.
+* Fixed export problem, when temporary directory is full or not available.
+* Fixed import of slug for custom fields.
+* Fixed problems with calling static method in PHP 5.2
+* Fixed problems with embedding scripts when WordPress works on non-standard port.
+* Fixed problems with getting not existing array keys when register new post type.
+* Fixed problems with manage more than one flat taxonomy on one CRED screen.
+* Improved import button, which is disabled until user select a import file.
+* Improved custom display logic UI for conditional display in custom fields edit screen.
+* Prevent raising group chose overlay on "Custom Fields Control" screen if there is no group.
+* Remove serialize/unserialize for exported relationships to avoid object injection.
+* Removed Zebra library and created new Toolset fields library.
+* Tweak import/export screen when is something wrong with imported file
+* Fix several security issues
+* Unify code with other Toolset plugins
+* Add debug information output for improved customer support
+* Add "required" validation audio, file and video fields
 
 = 1.5.7 =
 

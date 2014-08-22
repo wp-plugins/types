@@ -1,16 +1,40 @@
-/* 
+/*
  * Validation JS
- * 
+ *
  * - Initializes validation on selector (forms)
  * - Adds/removes rules on elements contained in var wptoolsetValidationData
  * - Checks if elements are hidden by conditionals
- * 
+ *
  * @see class WPToolset_Validation
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/js/validation.js $
+ * $LastChangedDate: 2014-08-14 19:14:45 +0800 (Thu, 14 Aug 2014) $
+ * $LastChangedRevision: 25974 $
+ * $LastChangedBy: francesco $
+ *
  */
 //var wptValidationData = {};
+
 var wptValidationForms = [];
 var wptValidation = (function($) {
     function init() {
+        /**
+         * add extension to validator method
+         */
+        $.validator.addMethod("extension", function(value, element, param) {
+            param = typeof param === "string" ? param.replace(/,/g, "|") : param;
+            return this.optional(element) || value.match(new RegExp(".(" + param + ")$", "i"));
+        });
+        /**
+         * Add validation method for datepicker adodb_xxx format for date fields
+         */
+        $.validator.addMethod(
+            "dateADODB_STAMP",
+            function(a,b){
+                return this.optional(b)||/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/.test(a) &&  -12219292800 < a && a < 32535215940
+            },
+            "Please enter a valid date"
+        );
         _.each(wptValidationForms, function(formID) {
             _initValidation(formID);
             applyRules(formID);
@@ -22,7 +46,7 @@ var wptValidation = (function($) {
         $form.validate({
             // :hidden is kept because it's default value.
             // All accepted by jQuery.not() can be added.
-            ignore: 'input[type="hidden"],:not(.js-wpt-validate)',
+            ignore: 'input[type="hidden"]:not(.js-wpt-date-auxiliar),:not(.js-wpt-validate)',
             errorPlacement: function(error, element) {
                 error.insertBefore(element);
             },
@@ -53,7 +77,6 @@ var wptValidation = (function($) {
                     $("#publishing-action #ajax-loading").css("visibility", "hidden");
                 }
             },
-            // form.submit() throws error when #submit element present
 //            submitHandler: function(form) {
 //                // Remove failed conditionals
 //                $('.js-wpt-remove-on-submit', $(form)).remove();
@@ -62,22 +85,26 @@ var wptValidation = (function($) {
             errorClass: 'wpt-form-error'
         });
         $form.on('submit', function() {
-            $('.js-wpt-remove-on-submit', $(this)).remove();
+            if ( $form.valid() ) {
+                $('.js-wpt-remove-on-submit', $(this)).remove();
+            }
         });
     }
 
     function isIgnored($el) {
-        return $el.parents('.js-wpt-field').hasClass('js-wpt-validation-ignore');
+        var ignore = $el.parents('.js-wpt-field').hasClass('js-wpt-validation-ignore') ||  // Individual fields
+                        $el.parents('.js-wpt-remove-on-submit').hasClass('js-wpt-validation-ignore'); // Types group of fields
+        return ignore;
     }
 
     function applyRules(container) {
         $('[data-wpt-validate]', $(container)).each(function() {
-            _applyRules($(this).data('wpt-validate'), this);
+            _applyRules($(this).data('wpt-validate'), this, container);
         });
     }
 
-    function _applyRules(rules, selector) {
-        var element = $(selector);
+    function _applyRules(rules, selector, container) {
+        var element = $(selector, $(container));
         if (element.length > 0) {
             if (isIgnored(element)) {
                 element.rules('remove');
@@ -104,15 +131,18 @@ var wptValidation = (function($) {
 
 })(jQuery);
 
-wptCallbacks.reset.add(function() {
-    wptValidation.init();
-});
-wptCallbacks.addRepetitive.add(function(container) {
-    wptValidation.applyRules(container);
-});
-wptCallbacks.removeRepetitive.add(function(container) {
-    wptValidation.applyRules(container);
-});
-wptCallbacks.conditionalCheck.add(function(container) {
-    wptValidation.applyRules(container);
+
+jQuery(document).ready(function(){
+    wptCallbacks.reset.add(function() {
+        wptValidation.init();
+    });
+    wptCallbacks.addRepetitive.add(function(container) {
+        wptValidation.applyRules(container);
+    });
+    wptCallbacks.removeRepetitive.add(function(container) {
+        wptValidation.applyRules(container);
+    });
+    wptCallbacks.conditionalCheck.add(function(container) {
+        wptValidation.applyRules(container);
+    });
 });

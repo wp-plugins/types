@@ -1,6 +1,12 @@
 <?php
 /*
  * Fields and groups functions
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/includes/fields.php $
+ * $LastChangedDate: 2014-07-10 23:25:28 +0800 (Thu, 10 Jul 2014) $
+ * $LastChangedRevision: 24854 $
+ * $LastChangedBy: marcin $
+ *
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
 
@@ -1214,3 +1220,13 @@ function wpcf_admin_fields_checkboxes_migrate_empty( $field, $action ) {
     }
     return false;
 }
+
+function wpcf_admin_fields_form_fix_styles()
+{
+    $suffix = SCRIPT_DEBUG ? '' : '.min';
+    wp_enqueue_style(
+        'wpcf-dashicons',
+        site_url( "/wp-includes/css/dashicons$suffix.css" )
+    );
+}
+

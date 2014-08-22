@@ -11,7 +11,7 @@
 ?>
 
 <!--WRAPPER-->
-<div class="wpcf-pr-has-entries wpcf-pr-pagination-update wpcf-relationship-save-all-update">
+<div id="types-child-table-<?php echo "{$this->parent_post_type}-{$this->child_post_type}"; ?>" class="js-types-relationship-child-posts wpcf-pr-has-entries wpcf-pr-pagination-update wpcf-relationship-save-all-update">
 
     <!--TITLE-->
     <div class="wpcf-pr-has-title"><?php echo $this->child_post_type_object->label; ?></div>
@@ -42,7 +42,7 @@ echo admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_save_all'
                 . $this->child_post_type . '&_wpnonce=' . wp_create_nonce( 'pr_add_child_post' )
         );
 
-?>" style="line-height:40px;" class="wpcf-pr-ajax-link button-secondary"><?php echo $this->child_post_type_object->labels->add_new_item; ?></a>
+?>" style="line-height:40px;" class="wpcf-pr-ajax-link js-types-add-child button-secondary"><?php echo $this->child_post_type_object->labels->add_new_item; ?></a>
 
     <!--REPETITIVE WARNING-->
     <?php
@@ -96,6 +96,7 @@ echo admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_save_all'
                 </tbody>
             </table>
             <?php
+            if ( !defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
             // Trigger date
             // TODO Move to date
             if ( !empty( $this->trigger_date ) ):
@@ -110,7 +111,7 @@ echo admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_save_all'
                 </script>
                 <?php
             endif;
-
+            }
             ?>
         </div>
     </div>

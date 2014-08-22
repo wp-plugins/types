@@ -424,7 +424,10 @@ class WPToolset_Cake_Validation
      */
     function date( $check, $format = 'ymd', $regex = null ) {
         
-        // TODO Change to use date strtotime
+        if ( is_numeric( $check ) ) {
+			return WPToolset_Field_Date_Scripts::_isTimestampInRange($check);
+		}
+		// TODO Change to use date strtotime
         $valid = wptoolset_strtotime( $check );
         return $valid !== false;
 
@@ -1124,7 +1127,7 @@ class WPToolset_Cake_Validation
     
     public static function required( $value )
     {
-        return !(empty( $value ) || $value === '0');
+        return !( is_null( $value ) || $value === false || $value === '' );
     }
 
 }

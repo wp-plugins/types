@@ -31,7 +31,7 @@ class WPToolset_Field_Taxonomyhierarchical extends WPToolset_Field_Textfield
                 $this->objValues[$term->slug] = $term;
             }
         }
-
+        
         $all = $this->buildTerms(get_terms($this->getName(),array('hide_empty'=>0,'fields'=>'all')));
 
         $childs=array();
@@ -57,16 +57,121 @@ class WPToolset_Field_Taxonomyhierarchical extends WPToolset_Field_Textfield
 
     public function metaform()
     {
+        $use_bootstrap = array_key_exists( 'use_bootstrap', $this->_data ) && $this->_data['use_bootstrap'];
+        $attributes = $this->getAttr();
+		$taxname = $this->getName();
         $res = '';
         $metaform = array();
+        $build_what = '';
+        
         if ( array_key_exists( 'display', $this->_data ) && 'select' == $this->_data['display'] ) {
-            $res = $this->buildSelect();
+            $metaform = $this->buildSelect();
+            $build_what = 'select';
         } else {
             $res = $this->buildCheckboxes(0, $this->childs, $this->names, $metaform);
+            $this->set_metaform($res);
+            $build_what = 'checkboxes';
         }
-        $this->set_metaform($res);
+		
+		/**
+		* TODO
+		*
+		* Use this to get the taxonomy labels for the "Add new" event
+		*
+		* $taxobject = get_taxonomy( $taxname );
+		*/
+        
+        /**
+         * "Add new" button
+         */
+        $metaform[] = array(
+            '#type' => 'button',
+            '#title' => '',
+            '#description' => '',
+            '#name' => "btn_".$taxname,
+            '#value' => esc_attr( $attributes['add_new_text'] ),
+            '#attributes' => array(
+                'style' => 'display:none;',
+                'data-taxonomy' => $taxname,
+                'data-build_what' => $build_what,
+				'data-after-selector' => 'js-wpt-hierarchical-taxonomy-add-new-' . $taxname,
+				'data-close' => esc_attr( __( 'Cancel', 'wpv-views' ) ),// TODO adjust the button value depending on open/close action
+				'class' => $use_bootstrap? 'btn btn-default wpt-hierarchical-taxonomy-add-new-show-hide js-wpt-hierarchical-taxonomy-add-new-show-hide' : 'wpt-hierarchical-taxonomy-add-new-show-hide js-wpt-hierarchical-taxonomy-add-new-show-hide',
+            ),
 
+            '#validate' => $this->getValidationData(),
+        );
+
+        // Input for new taxonomy
+		
+		if ( $use_bootstrap ) {
+			$container = '<div style="display:none" class="form-group wpt-hierarchical-taxonomy-add-new js-wpt-hierarchical-taxonomy-add-new-' . $taxname . '" data-taxonomy="' . $taxname . '">';
+		} else {
+			$container = '<div style="display:none" class="wpt-hierarchical-taxonomy-add-new js-wpt-hierarchical-taxonomy-add-new-' . $taxname . '" data-taxonomy="' . $taxname . '">';
+		}
+		
+		/**
+		* The textfield input
+		*/
+        $metaform[] = array(
+            '#type' => 'textfield',
+            '#title' => '',
+            '#description' => '',
+            '#name' => "new_tax_text_".$taxname,
+            '#value' => '',
+            '#attributes' => array(
+                'data-taxonomy' => $taxname,
+				'data-taxtype' => 'hierarchical',
+				'class' => $use_bootstrap ? 'inline wpt-new-taxonomy-title js-wpt-new-taxonomy-title' : 'wpt-new-taxonomy-title js-wpt-new-taxonomy-title',
+            ),
+            '#validate' => $this->getValidationData(),
+            '#before' => $container,
+            
+        );
+		
+		/**
+         * The select for parent
+         */
+        $metaform[] = array(
+            '#type' => 'select',
+            '#title' => '',
+            '#options' => array(array(
+                    '#title' => $attributes['parent_text'],
+                    '#value' => -1,
+                )),
+            '#default_value' => 0,
+            '#description' => '',
+            '#name' => "new_tax_select_".$taxname,
+            '#attributes' => array(
+                'data-parent-text' => $attributes['parent_text'],
+                'data-taxonomy' => $taxname,
+                'class' => 'js-taxonomy-parent'
+            ),
+
+            '#validate' => $this->getValidationData(),
+        );
+
+        /**
+         * The add button
+         */
+        $metaform[] = array(
+            '#type' => 'button',
+            '#title' => '',
+            '#description' => '',
+            '#name' => "new_tax_button_".$taxname,
+            '#value' => esc_attr( $attributes['add_text'] ),
+            '#attributes' => array(
+                'data-taxonomy' => $taxname,
+                'data-build_what' => $build_what,
+				'class' => $use_bootstrap ? 'btn btn-default wpt-hierarchical-taxonomy-add-new js-wpt-hierarchical-taxonomy-add-new' : 'wpt-hierarchical-taxonomy-add-new js-wpt-hierarchical-taxonomy-add-new',
+            ),
+
+            '#validate' => $this->getValidationData(),
+			'#after' => '</div>',
+        );   
+        
         return $metaform;
+        
     }
 
     private function buildTerms($obj_terms)
@@ -86,65 +191,137 @@ class WPToolset_Field_Taxonomyhierarchical extends WPToolset_Field_Textfield
 
     private function buildSelect()
     {
-        echo '<select>';
-        printf('<option value="">%s</option>', __('None') );
-        echo $this->getOptions();
-        echo '</select>';
+        $attributes = $this->getAttr();
+        
+        $multiple = !isset($attributes['single_select']) || !$attributes['single_select'];
+        
+        $curr_options = $this->getOptions();
+        $values = $this->valuesId;
+        $options = array();
+        if( $curr_options )
+        {
+            foreach ($curr_options as $name=>$data) {
+                $option = array(
+                    '#value' => $name,
+                    '#title' => $data['value'],
+                    '#attributes' => array('data-parent' => $data['parent'])
+                );
+                if ($multiple && in_array($name, $values)) {
+                    $option['#attributes']['selected'] = '';
+                }
+
+                $options[] = $option;
+            }
+        }
+
+        /**
+         * default_value
+         */
+        $default_value = null;
+        if ( count( $this->valuesId) ) {
+            $default_value = $this->valuesId[0];
+        }
+        /**
+         * form settings
+         */
+        $form = array();
+        $select = array(
+            '#type' => 'select',
+            '#title' => $this->getTitle(),
+            '#description' => $this->getDescription(),
+            '#name' => $this->getName() . '[]',
+            '#options' => $options,
+            '#default_value' => isset( $data['default_value'] ) && !empty( $data['default_value'] ) ? $data['default_value'] : $default_value,
+            '#validate' => $this->getValidationData(),
+            '#class' => 'form-inline',
+            '#repetitive' => $this->isRepetitive(),
+        );
+        
+        if ($multiple) {
+            $select['#attributes'] = array('multiple' => 'multiple');
+        }
+        
+        if (count($options) == 0) {
+            if (isset($select['#attributes'])) {
+                $select['#attributes']['style'] = 'display:none';
+            } else {
+                $select['#attributes'] = array('style' => 'display:none');
+            }
+        }
+        $form[] = $select;
+
+        return $form;
     }
 
-    private function getOptions($index = 0, $level = 0)
+    private function getOptions($index = 0, $level = 0, $parent = -1)
     {
         if ( !isset($this->childs[$index]) || empty( $this->childs[$index] ) ) {
             return;
         }
-        $content = '';
+        $options = array();
+
         foreach( $this->childs[$index] as $one ) {
-            $content .= sprintf(
-                '<option value="%d">%s%s</option>',
-                $one,
-                str_repeat('&nbsp;', 2*$level ),
-                $this->names[$one]
-            );
+            $options[$one] = array('value' => sprintf('%s%s', str_repeat('&nbsp;', 2*$level ), $this->names[$one]),
+                                   'parent' => $parent);
             if ( isset($this->childs[$one]) && count($this->childs[$one])) {
-                $content .= $this->getOptions( $one, $level + 1 );
+                foreach( $this->getOptions( $one, $level + 1, $one ) as $id => $data ) {
+                    $options[$id] = $data;
+                }
             }
         }
-        return $content;
+        return $options;
     }
 
-    private function buildCheckboxes($index, &$childs, &$names, &$metaform, $ischild=false)
+    private function buildCheckboxes( $index, &$childs, &$names, &$metaform, $level = 0, $parent = -1 )
     {
-        if (isset($childs[$index])) {
-            foreach ($childs[$index] as $tid) {
-                $name = $names[$tid];
-                if (false) {
-                ?>
-                    <div style='position:relative;line-height:0.9em;margin:2px 0;<?php if ($tid!=0) echo 'margin-left:15px'; ?>' class='myzebra-taxonomy-hierarchical-checkbox'>
-                        <label class='myzebra-style-label'><input type='checkbox' name='<?php echo $name; ?>' value='<?php echo $tid; ?>' <?php if (isset($values[$tid])) echo 'checked="checked"'; ?> /><span class="myzebra-checkbox-replace"></span>
-                            <span class='myzebra-checkbox-label-span' style='position:relative;font-size:12px;display:inline-block;margin:0;padding:0;margin-left:15px'><?php echo $names[$tid]; ?></span></label>
-                        <?php
-                        if (isset($childs[$tid]))
-                            echo $this->buildCheckboxes($tid,$childs,$names,$metaform);
-                        ?>
-                    </div>
-                <?php
-                }
 
-                $metaform[] = array(
+        if (isset($childs[$index])) {
+            $level_count = count( $childs[$index] );
+			foreach ( $childs[$index] as $tkey => $tid ) {
+                $name = $names[$tid];
+                /**
+                 * check for "checked"
+                 */
+                $default_value = false;
+                if ( isset( $this->valuesId ) && is_array( $this->valuesId ) && !empty($this->valuesId)) {
+                    $default_value = in_array( $tid, $this->valuesId );
+                } else if ( is_array( $this->getValue() ) ) {
+                    $default_value = in_array( $tid, $this->getValue() );
+                }
+                $item = array(
                             '#type' => 'checkbox',
                             '#title' => $names[$tid],
                             '#description' => '',
                             '#name' => $this->getName()."[]",
                             '#value' => $tid,
-                            '#default_value' => in_array($tid, $this->valuesId),
-                            '#attributes' => array(
-                                'style' => 'float:left;'.($ischild ? 'margin-left:15px;' : '')
-                            ),
+                            '#default_value' => $default_value,
                             '#validate' => $this->getValidationData(),
+							'#before' => '<li>',
+                            '#after' => '</li>',
+                            '#attributes' => array(
+                                'data-parent' => $parent
+                            ),
+							'#pattern' => '<BEFORE><PREFIX><ELEMENT><LABEL><ERROR><SUFFIX><DESCRIPTION><AFTER>'
                         );
+						
+				if ( $tkey == 0 ) {
+					if ($level > 0) {
+						$item['#before'] = '<li><ul class="wpt-form-set-children wpt-form-set-children-level-' . $level . '" data-level="' . $level . '"><li>';
+					} else  {
+						$item['#before'] = '<ul class="wpt-form-set wpt-form-set-checkboxes wpt-form-set-checkboxes-' . $this->getName() . '" data-level="0"><li>';
+					}
+				} else if ( $tkey == ( $level_count - 1 ) ) {
+					if ($level > 0) {
+						$item['#after'] = '</li></ul></li>';
+					} else {
+						$item['#after'] = '</li></ul>';
+					}
+				}
 
-                if (isset($childs[$tid])) {
-                    $metaform = $this->buildCheckboxes($tid,$childs,$names, $metaform, true);
+                $metaform[] = $item;
+
+                if ( isset( $childs[$tid] ) ) {
+                    $metaform = $this->buildCheckboxes( $tid, $childs, $names, $metaform, $level + 1, $tid );
                 }
 
             }

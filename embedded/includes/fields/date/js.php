@@ -2,6 +2,7 @@
 
 /**
  * Renders inline JS.
+ * TODO this seems DEPRECATED and not used anymore, need to check (although I do not know where)
  */
 function wpcf_fields_date_meta_box_js_inline() {
 

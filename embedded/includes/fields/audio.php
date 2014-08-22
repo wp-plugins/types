@@ -1,4 +1,12 @@
 <?php
+/**
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/includes/fields/audio.php $
+ * $LastChangedDate: 2014-07-15 22:18:54 +0800 (Tue, 15 Jul 2014) $
+ * $LastChangedRevision: 24974 $
+ * $LastChangedBy: marcin $
+ *
+ */
 
 /**
  * Register data (called automatically).
@@ -10,9 +18,9 @@ function wpcf_fields_audio() {
         'id' => 'wpcf-audio',
         'title' => __( 'Audio', 'wpcf' ),
         'description' => __( 'Audio', 'wpcf' ),
-        'validate' => array('required', 'url'),
         'wp_version' => '3.6',
         'inherited_field_type' => 'file',
+        'validate' => array('required'),
     );
 }
 

@@ -112,7 +112,8 @@ function wpcf_fields_checkboxes_insert_form( $form_data, $parent_name = '' ) {
         . admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=add_checkboxes_option&amp;_wpnonce='
                 . wp_create_nonce( 'add_checkboxes_option' ) . '&amp;wpcf_ajax_update_add='
                 . $id . '-sortable&amp;parent_name=' . urlencode( $parent_name )
-                . '&amp;count=' . $count )
+                . '&amp;page='. $_GET['page']
+                . '&amp;count=' . $count)
         . '" onclick="wpcfFieldsFormCountOptions(jQuery(this));"'
         . ' class="button-secondary wpcf-ajax-link">'
         . __( 'Add option', 'wpcf' ) . '</a>',
@@ -176,6 +177,12 @@ function wpcf_fields_checkboxes_get_option( $parent_name = '',
         '#title' => __( 'Value to store', 'wpcf' ),
         '#name' => $parent_name . '[options][' . $id . '][set_value]',
         '#value' => isset( $form_data['set_value'] ) ? $form_data['set_value'] : 1,
+        '#attributes' => array(
+            'data-wpcf-type' => 'checkbox',
+            'data-required-message-0' => __("This value can't be zero", 'wpcf'),
+            'data-required-message' => __("Please enter a value", 'wpcf')
+        )
+
     );
     if ( isset($_GET['page']) && $_GET['page'] == 'wpcf-edit' ) {
         $form[$id]['checked'] = array(

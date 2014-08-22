@@ -1,21 +1,25 @@
-
+/**
+ *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
+ */
 var wptFile = (function($, w) {
     var $item, $parent, $preview;
     function init() {
         $('.js-wpt-field').on('click', 'a.js-wpt-file-upload', function() {
-            height = $('body').height()-20;
-            if ( 800 < height ) {
-                height = 800;
+            if ( $(this).data('attched-thickbox') ) {
+                return;
             }
-            width = $('body').width()-20;
-            if ( 670 < width ) {
-                width = 670;
-            }
-            $item = $(this).parents('.js-wpt-field-item');
-            $parent = $item.parents('.js-wpt-field');
-            $preview = $('.js-wpt-file-preview', $item);
-            tb_show(wptFileData.title, wptFileData.adminurl + 'media-upload.php?' + wptFileData.for_post + 'type=file&context=wpt-fields-media-insert&wpt[id]=' + $parent.data('wpt-id') + '&wpt[type]=' + $parent.data('wpt-type') + '&TB_iframe=true&width='+width+'&height='+height);
-            return false;
+            return wptFile.open(this, true);
+        });
+    }
+    function initRow(row) {
+        $('.js-wpt-field', row).on('click', 'a.js-wpt-file-upload', function() {
+            $(this).data('attched-thickbox', true );
+            return wptFile.open(this, true);
         });
     }
     function mediaInsert(url, type) {
@@ -31,11 +35,34 @@ var wptFile = (function($, w) {
         window.parent.wptFile.mediaInsert(guid, type);
         window.parent.jQuery('#TB_closeWindowButton').trigger('click');
     }
+    function open(el)
+    {
+        height = $('body').height()-20;
+        if ( 800 < height ) {
+            height = 800;
+        }
+        width = $('body').width()-20;
+        if ( 670 < width ) {
+            width = 670;
+        }
+        $item = $(el).parents('.js-wpt-field-item');
+        $parent = $item.parents('.js-wpt-field');
+        $preview = $('.js-wpt-file-preview', $item);
+        type = 'file';
+        if ( $(el).data('wpt-type') ) {
+            type = $(el).data('wpt-type');
+        }
+        tb_show(wptFileData.title, wptFileData.adminurl + 'media-upload.php?' + wptFileData.for_post + 'type='+type+'&context=wpt-fields-media-insert&wpt[id]=' + $parent.data('wpt-id') + '&wpt[type]=' + $parent.data('wpt-type') + '&TB_iframe=true&width='+width+'&height='+height);
+        return false;
+    }
     return {
         init: init,
+        initRow: initRow,
+        open: open,
         mediaInsert: mediaInsert,
         mediaInsertTrigger: mediaInsertTrigger
     };
 })(jQuery);
 
 jQuery(document).ready(wptFile.init);
+

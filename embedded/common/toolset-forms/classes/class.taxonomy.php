@@ -15,48 +15,34 @@ class WPToolset_Field_Taxonomy extends WPToolset_Field_Textfield
 {
     public $values = "";
     public $objValues;
-    
+
     public function init() {
         $this->objValues = array();
-                               
+
         $terms = wp_get_post_terms(CredForm::$current_postid, $this->getName(), array("fields" => "all"));
         $i = 0;
         foreach ($terms as $n => $term) {
             $this->values .= ($i==0) ? $term->slug : ",".$term->slug;
             $this->objValues[$term->slug] = $term;
             $i++;
-        }       
-        
-        wp_register_style('wptoolset-taxonomy', 
-                WPTOOLSET_FORMS_RELPATH.'/css/taxonomy.css');
-        
+        }
+
         wp_register_script( 'wptoolset-jquery-autocompleter',
                 WPTOOLSET_FORMS_RELPATH . '/js/jquery.autocomplete.js',
-                array('jquery'), WPTOOLSET_FORMS_VERSION );
-        
+                array('jquery'), WPTOOLSET_FORMS_VERSION, true );
+
         wp_register_style('wptoolset-autocompleter', WPTOOLSET_FORMS_RELPATH.'/css/autocompleter.css');
-                        
+        wp_enqueue_script('wptoolset-jquery-autocompleter');
         add_action( 'wp_footer', array($this, 'javascript_autocompleter') );
     }
-    
-    public function enqueueScripts() { 
-        wp_enqueue_script('jquery');
-        wp_enqueue_script('wptoolset-jquery-autocompleter');
-    }
 
-    public function enqueueStyles() {
-        wp_enqueue_style('wptoolset-taxonomy');
-        wp_enqueue_style('wptoolset-autocompleter');
-        wp_print_styles();
-    }
-       
-    public function javascript_autocompleter() {            
+    public function javascript_autocompleter() {
             $autosubmit = 'function onSelectItem(row)
                            {
                                 jQuery("input#'.$this->getName().'").focus();
                            }';
             $extra = '
-                    function formatItem(row) {                            
+                    function formatItem(row) {
                             return row[0];
                     }
                     function formatItem2(row) {
@@ -69,169 +55,100 @@ class WPToolset_Field_Taxonomy extends WPToolset_Field_Textfield
                     }';
             $results = 1;
             echo '<script type="text/javascript">
-                    function showHideMostPopularTaxonomy() {
-                        jQuery("#shmpt").toggle();
-                        var curr = jQuery("input[name=sh_'.$this->getName().']").val().trim();
-                        if (curr=="show popular") {
-                            jQuery("input[name=sh_'.$this->getName().']").val("hide popular");
-                        } else {
-                            jQuery("input[name=sh_'.$this->getName().']").val("show popular");
-                        }
-                    }
-                    
-                    function addTaxonomy(slug) {
-                        console.log(slug);
-                        var curr = jQuery("input[name=tmp_'.$this->getName().']").val().trim();                        
-                        if (curr=="") {
-                            jQuery("input[name=tmp_'.$this->getName().']").val(slug);
-                            setTaxonomy();
-                        } else {                                                        
-                            if (curr.indexOf( slug )==-1) {
-                                jQuery("input[name=tmp_'.$this->getName().']").val(curr+","+slug);
-                                setTaxonomy();
-                            }                            
-                        }
-                        jQuery("input[name=tmp_'.$this->getName().']").val("");
-                    }
-                    
-                    function setTaxonomy() {
-                        var tmp_tax = jQuery("input[name=tmp_'.$this->getName().']").val();
-                        if (tmp_tax.trim()=="") return;
-                        console.log(tmp_tax);
-                        var tax = jQuery("input[name='.$this->getName().']").val();
-                        console.log(tax);
-                        var arr = tax.split(",");
-                        if (jQuery.inArray(tmp_tax, arr)!==-1) return;
-                        var toadd = (tax=="") ? tmp_tax : tax+","+tmp_tax;
-                        console.log(toadd);
-                        jQuery("input[name='.$this->getName().']").val(toadd);
-                        jQuery("input[name=tmp_'.$this->getName().']").val(""); 
-                        updateTaxonomies();
-                    }
-                    
-                    function del(x) {                        
-                        var n = jQuery(x).attr("rel");                            
-                        var taxonomies = jQuery("input[name='.$this->getName().']").val();
-                        var arr = taxonomies.split(",");
-                        var newstr = "";
-                        var newstr4tax = "";
-                        var counter = 0;
-                        for (var i=0;i<arr.length;i++) {                            
-                            if (i!=n) {
-                                var sh = arr[i].trim();
-                                newstr += "<span><a class=\"ntdelbutton\" onclick=\"del(this);\" rel=\""+i+"\" id=\"post_tag-check-num-"+i+"\">X</a>&nbsp;"+sh+"</span>"; 
-                                newstr4tax += (counter==0) ? sh : ","+sh;
-                                counter++;
-                            }                                
-                        }
-                        jQuery("input[name='.$this->getName().']").val(newstr4tax);
-                        jQuery("div.tagchecklist").html("");
-                        jQuery("div.tagchecklist").html(newstr);
-                    }
-                    
-                    function updateTaxonomies() {                   
-                        var taxonomies = jQuery("input[name='.$this->getName().']").val();
-                        if (taxonomies.trim()=="") return;
-                        console.log(taxonomies);
-                        var toshow = taxonomies.split(",");
-                        console.log(toshow);
-                        var str = "";
-                        for (var i=0;i<toshow.length;i++) {
-                            var sh = toshow[i].trim();
-                            console.log(sh);
-                            str += "<span><a class=\"ntdelbutton\" onclick=\"del(this);\" rel=\""+i+"\" id=\"post_tag-check-num-"+i+"\">X</a>&nbsp;"+sh+"</span>";
-                            console.log(str);
-                        }
-                        jQuery("div.tagchecklist").html(str);
-                    }
-                    
-                    function initTaxonomies(values) {
-                        jQuery("div.tagchecklist").html(values);
-                        jQuery("input[name='.$this->getName().']").val(values);
-                        updateTaxonomies();
-                    }
-                    
                     jQuery(document).ready(function() {
-                            initTaxonomies("'. $this->values .'");
-
-                            jQuery("input[name=tmp_'.$this->getName().']").autocomplete(
-                                    "'.WPTOOLSET_FORMS_RELPATH.'/external/autocompleter.php",
-                                    {
-                                        delay:10,
-                                        minChars:2,
-                                        matchSubset:1,
-                                        matchContains:1,
-                                        cacheLength:10,
-                                        formatItem:formatItem,
-                                        onItemSelect:onSelectItem,
-                                        autoFill:true
-                                    }
-                            );
+                            initTaxonomies("'. $this->values .'", "'.$this->getName().'", "'.WPTOOLSET_FORMS_RELPATH.'", "'.$this->_nameField.'");
                     });
-
                     '.$autosubmit.'
                     '.$extra.'
             </script>';
     }
-    
-    public function metaform() {       
+
+    public function metaform()
+    {
+        $use_bootstrap = array_key_exists( 'use_bootstrap', $this->_data ) && $this->_data['use_bootstrap'];
+        $attributes = $this->getAttr();
+		$taxonomy = $this->getName();
+		
         $metaform = array();
         $metaform[] = array(
             '#type' => 'hidden',
             '#title' => '',
             '#description' => '',
-            '#name' => $this->getName(),
+            '#name' => $taxonomy,
             '#value' => $this->values,
             '#attributes' => array(
-                'style' => 'float:left'
+                
             ),
-            
-            '#validate' => $this->getValidationData()
+            '#validate' => $this->getValidationData(),
         );
         $metaform[] = array(
             '#type' => 'textfield',
             '#title' => '',
             '#description' => '',
-            '#name' => "tmp_".$this->getName(),
-            '#value' => '',
+            '#name' => "tmp_".$taxonomy,
+            '#value' => $this->getValue(),
             '#attributes' => array(
-                'style' => 'float:left'                
+				'data-taxonomy' => $taxonomy,
+				'data-taxtype' => 'flat',
+				'class' => $use_bootstrap ? 'inline wpt-new-taxonomy-title js-wpt-new-taxonomy-title' : 'wpt-new-taxonomy-title js-wpt-new-taxonomy-title',
             ),
-            '#before' => '<span style="float:left;">'.$this->getTitle().'</span>',
-            '#validate' => $this->getValidationData()
+            '#validate' => $this->getValidationData(),
+            '#before' => $use_bootstrap ? '<div class="form-group">' : '',
         );
+
+        /**
+         * add button
+         */
         $metaform[] = array(
             '#type' => 'button',
             '#title' => '',
             '#description' => '',
-            '#name' => "btn_".$this->getName(),
-            '#value' => 'add',
+            '#name' => "new_tax_button_".$taxonomy,
+            '#value' => esc_attr( $attributes['add_text'] ),
             '#attributes' => array(
-                'style' => 'float:left',
-                'onclick' => 'setTaxonomy()'
-            ),         
-            
-            '#after' => '<div style="clear:both;"></div><div class="tagchecklist"><span><a class="ntdelbutton" id="post_tag-check-num-0" onclick="del(this);">X</a>&nbsp;test</span></div><div style="clear:both;">',
-            '#validate' => $this->getValidationData()
-        );
-        
-        $metaform[] = array(
-            '#type' => 'button',
-            '#title' => '',
-            '#description' => '',
-            '#name' => "sh_".$this->getName(),
-            '#value' => 'show popular',
-            '#attributes' => array(
-                'class' => 'popular',
-                'onclick' => 'showHideMostPopularTaxonomy()',
+				'class' => $use_bootstrap ? 'btn btn-default wpt-taxonomy-add-new js-wpt-taxonomy-add-new' : 'wpt-taxonomy-add-new js-wpt-taxonomy-add-new',
+				'data-taxonomy' => $taxonomy,
             ),
-            '#after' => '<div style="clear:both;"></div>'.$this->getMostPopularTerms().'<div style="clear:both;">'            
+
+            '#validate' => $this->getValidationData(),
+            '#after' => $use_bootstrap ? '</div>' : '',
         );
-        
-        $this->set_metaform($metaform);       
+
+		$before = sprintf(
+			'<div class="tagchecklist tagchecklist-%s"></div>',
+			$this->getName()
+		);
+		$after = $this->getMostPopularTerms();
+		if ( $use_bootstrap ) {
+			$before = '<div class="form-group">'.$before;
+			$after .= '</div>';
+		}
+		$show = isset($attributes['show_popular']) && $attributes['show_popular'] == 'true';
+		/**
+		 * show popular button
+		 */
+		$metaform[] = array(
+			'#type' => 'button',
+			'#title' => '',
+			'#description' => '',
+			'#name' => "sh_".$taxonomy,
+			'#value' => esc_attr( $attributes['show_popular_text'] ),
+			'#attributes' => array(
+				'class' => $use_bootstrap ? 'btn btn-default popular wpt-taxonomy-popular-show-hide js-wpt-taxonomy-popular-show-hide' : 'popular wpt-taxonomy-popular-show-hide js-wpt-taxonomy-popular-show-hide',
+				'data-taxonomy' => $this->getName(),
+				'data-show-popular-text' => esc_attr( $attributes['show_popular_text'] ),
+				'data-hide-popular-text' => esc_attr( $attributes['hide_popular_text'] ),
+				'data-after-selector' => 'js-show-popular-after',
+				'style' => $show ? '' : 'display:none;'
+			),
+			'#before' => $before,
+			'#after' => $after,
+		);
+		
+        $this->set_metaform($metaform);
         return $metaform;
     }
-    
+
     private function buildTerms($obj_terms) {
         $tax_terms=array();
         foreach ($obj_terms as $term)
@@ -266,11 +183,13 @@ class WPToolset_Field_Taxonomy extends WPToolset_Field_Textfield
             <?php
             }
         }
-    }    
+    }
 
     public function getMostPopularTerms()
     {
-        $term_args = array(
+        $use_bootstrap = array_key_exists( 'use_bootstrap', $this->_data ) && $this->_data['use_bootstrap'];
+		
+		$term_args = array(
             'number' => 10,
             'orderby' => 'count',
             'order' => 'DESC'
@@ -290,7 +209,19 @@ class WPToolset_Field_Taxonomy extends WPToolset_Field_Textfield
             }
         }
         $add_sizes = $max > $min;
-        $content = "<div id='shmpt' style='margin:5px;float:left;width:250px;display:none;'>";
+		
+		if ( $use_bootstrap ) {
+			$content = sprintf(
+				'<div class="shmpt-%s form-group wpt-taxonomy-show-popular-list js-show-popular-after" style="display:none">',
+				$this->getName()
+			);
+		} else {
+			$content = sprintf(
+				'<div class="shmpt-%s wpt-taxonomy-show-popular-list js-show-popular-after" style="display:none">',
+				$this->getName()
+			);
+		}
+
         $style = '';
         foreach($terms as $term) {
             if ( $add_sizes ) {
@@ -298,8 +229,9 @@ class WPToolset_Field_Taxonomy extends WPToolset_Field_Textfield
                 $style = sprintf( ' style="font-size:1.%dem;"', $font_size );
             }
             $content .= sprintf(
-                '<a href="#" onclick="addTaxonomy(\'%s\');return false;" onkeypress="this.onclick" %s>%s</a> ',
+                '<a href="#" class="wpt-taxonomy-popular-add js-wpt-taxonomy-popular-add" data-slug="%s" data-taxonomy="%s"%s>%s</a> ',
                 $term->slug,
+                $this->getName(),
                 $style,
                 $term->name
             );

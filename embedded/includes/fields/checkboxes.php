@@ -343,6 +343,12 @@ function wpcf_fields_checkboxes_conditional_filter_post_meta( $null, $object_id,
         if ( is_array( $_meta ) ) {
             $null = empty( $_meta ) ? '1' : '';
         }
+        /**
+         * be sure do not return string if array is expected!
+         */
+        if ( !$single && !is_array($null) ) {
+            return array($null);
+        }
     }
     return $null;
 }

@@ -51,8 +51,7 @@ function wpcf_embedded_admin_init_hook() {
     ) {
         require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields/file.php';
         // Add types button
-        add_filter( 'attachment_fields_to_edit',
-                'wpcf_fields_file_attachment_fields_to_edit_filter', 9999, 2 );
+        add_filter( 'attachment_fields_to_edit', 'wpcf_fields_file_attachment_fields_to_edit_filter', PHP_INT_MAX, 2 );
         // Add JS
         add_action( 'admin_head', 'wpcf_fields_file_media_admin_head' );
         // Filter media TABs
@@ -324,7 +323,7 @@ function wpcf_custom_fields_to_be_copied( $copied_fields, $original_post_id ) {
  */
 function wpcf_admin_validation_messages( $method = false, $sprintf = '' ) {
     $messages = array(
-        'required' => __( 'This Field is required', 'wpcf' ),
+        'required' => __( 'This field is required', 'wpcf' ),
         'email' => __( 'Please enter a valid email address', 'wpcf' ),
         'url' => __( 'Please enter a valid URL address', 'wpcf' ),
         'date' => __( 'Please enter a valid date', 'wpcf' ),

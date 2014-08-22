@@ -1,11 +1,19 @@
 <?php
-
+/**
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/includes/fields/textarea.php $
+ * $LastChangedDate: 2014-06-20 23:24:06 +0800 (Fri, 20 Jun 2014) $
+ * $LastChangedRevision: 24053 $
+ * $LastChangedBy: marcin $
+ *
+ */
 /**
  * Register data (called automatically).
- * 
- * @return type 
+ *
+ * @return type
  */
-function wpcf_fields_textarea() {
+function wpcf_fields_textarea()
+{
     return array(
         'id' => 'wpcf-textarea',
         'title' => __('Multiple lines', 'wpcf'),
@@ -16,11 +24,12 @@ function wpcf_fields_textarea() {
 
 /**
  * Meta box form.
- * 
+ *
  * @param type $field
- * @return string 
+ * @return string
  */
-function wpcf_fields_textarea_meta_box_form($field) {
+function wpcf_fields_textarea_meta_box_form($field)
+{
     $form = array();
     $form['name'] = array(
         '#type' => 'textarea',
@@ -32,14 +41,14 @@ function wpcf_fields_textarea_meta_box_form($field) {
 /**
  * Formats display data.
  */
-function wpcf_fields_textarea_view($params) {
+function wpcf_fields_textarea_view($params)
+{
 
     $value = $params['field_value'];
 
     // see if it's already wrapped in <p> ... </p>
     $wrapped_in_p = false;
-    if (!empty($value) && strpos($value, '<p>') === 0 && strrpos($value,
-                    "</p>\n") == strlen($value) - 5) {
+    if (!empty($value) && strpos($value, '<p>') === 0 && strrpos($value, "</p>\n") == strlen($value) - 5) {
         $wrapped_in_p = true;
     }
 
@@ -48,10 +57,11 @@ function wpcf_fields_textarea_view($params) {
 
     if (!$wrapped_in_p) {
         // If it wasn't wrapped then remove the wrapping wpautop has added.
-        if (!empty($value) && strpos($value, '<p>') === 0 && strrpos($value,
-                        "</p>\n") == strlen($value) - 5) {
-            // unwrapp the <p> ..... </p>
-            $value = substr($value, 3, -5);
+        if (!empty($value) && strpos($value, '<p>') === 0 && strrpos($value, "</p>\n") == strlen($value) - 5) {
+            // unwrapp the <p> ..... </p> if is no <p> inside, to avoid remove <p> if is nessary
+            if ( !preg_match( '/<p>/', $value ) ) {
+                $value = substr($value, 3, -5);
+            }
         }
     }
 

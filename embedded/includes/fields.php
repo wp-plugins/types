@@ -469,6 +469,23 @@ function wpcf_admin_get_groups_by_template( $templates = array('default'),
 }
 
 /**
+ * Get file fullpath to include
+ *
+ * param @string $basename
+ *
+ * return @string
+ *
+ */
+function wpcf_get_fullpath_by_field_type($basename)
+{
+    return sprintf(
+        '%s/fields/%s.php',
+        dirname( __FILE__ ),
+        preg_replace('/[^\w]+/', '', $basename)
+    );
+}
+
+/**
  * Loads type configuration file and calls action.
  * 
  * @param type $type
@@ -490,7 +507,7 @@ function wpcf_fields_type_action( $type, $func = '', $args = array() ) {
         } else {
             $file = '';
         }
-        $file_embedded = WPCF_EMBEDDED_INC_ABSPATH . '/fields/' . $type . '.php';
+        $file_embedded = wpcf_get_fullpath_by_field_type($type);
         if ( file_exists( $file ) || file_exists( $file_embedded ) ) {
             if ( file_exists( $file ) ) {
                 require_once $file;

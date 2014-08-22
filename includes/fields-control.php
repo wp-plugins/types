@@ -1,6 +1,12 @@
 <?php
 /*
  * Custom Fields Control Screen
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/includes/fields-control.php $
+ * $LastChangedDate: 2014-06-26 18:57:18 +0800 (Thu, 26 Jun 2014) $
+ * $LastChangedRevision: 24376 $
+ * $LastChangedBy: marcin $
+ *
  */
 require_once ABSPATH . '/wp-admin/includes/class-wp-list-table.php';
 
@@ -40,21 +46,13 @@ class WPCF_Custom_Fields_Control_Table extends WP_List_Table
             $cf_types[$cf_id]['groups_txt'] = empty( $cf_types[$cf_id]['groups'] ) ? __( 'None', 'wpcf' ) : implode(', ', $cf_types[$cf_id]['groups'] );
         }
 
-        // Get others
-        if ( !isset( $_REQUEST['show_hidden'] ) || $_REQUEST['show_hidden'] == 'false' ) {
-            $cf_other = $wpdb->get_results( "
+        // Get others (cache this result?)
+        $cf_other = $wpdb->get_results("
 		SELECT meta_id, meta_key
 		FROM $wpdb->postmeta
 		GROUP BY meta_key
 		HAVING meta_key NOT LIKE '\_%'
-		ORDER BY meta_key" );
-        } else {
-            $cf_other = $wpdb->get_results( "
-		SELECT meta_id, meta_key
-		FROM $wpdb->postmeta
-		GROUP BY meta_key
-		ORDER BY meta_key" );
-        }
+		ORDER BY meta_key");
 
         // Clean from ours
         foreach ($cf_other as $type_id => $type_data) {
@@ -246,12 +244,7 @@ class WPCF_Custom_Fields_Control_Table extends WP_List_Table
     }
 
     function view_switcher($current_mode = '') {
-        echo '<div style="clear:both; margin: 20px 0 10px 0; float: right;"><label><input type="checkbox" name="types_show_hidden" value="1"';
-        if ( isset( $_REQUEST['show_hidden'] ) && $_REQUEST['show_hidden'] == 'true' ) {
-            echo ' checked="checked"';
-        }
-        echo ' />&nbsp;'
-        . __( 'Show hidden fields', 'wpcf' ) . '</label>&nbsp;&nbsp;<a class="button button-secondary" href="';
+        echo '<div style="clear:both; margin: 20px 0 10px 0; float: right;"><a class="button button-secondary" href="';
         if (empty($_GET['display_all'])) {
             echo esc_url($_SERVER['REQUEST_URI']) . '&amp;display_all=1">' . __('Display all items',
                     'wpcf');
@@ -267,25 +260,24 @@ class WPCF_Custom_Fields_Control_Table extends WP_List_Table
 /**
  * JS.
  */
-function wpcf_admin_custom_fields_control_js() {
-
-    ?>
+function wpcf_admin_custom_fields_control_js()
+{ ?>
     <script type="text/javascript">
-        jQuery(document).ready(function($){
-            $('[name="types_show_hidden"]').on('click', function(){
-                var show = $(this).is(':checked') ? 'true' : 'false';
-                window.location.href = window.location.href.replace(/(&show_hidden=[^\s?!&]*)/, '')+'&show_hidden='+show;
-            });
+    jQuery(document).ready(function(){
+<?php if ( 1 > count(wpcf_admin_fields_get_groups())) { ?>
+        jQuery('#wpcf-custom-fields-control-form .actions select option').each(function(){
+            switch(jQuery(this).val()) {
+            case 'wpcf-remove-from-group-bulk':
+            case 'wpcf-add-to-group-bulk':
+                jQuery(jQuery(this)).attr('disabled','disabled');
+            }
         });
-        jQuery(document).ready(function(){
-            jQuery('#wpcf-custom-fields-control-form .actions select').change(function(){
-                return wpcfAdminCustomFieldsControlSubmit(jQuery(this));
-            });
+<?php } ?>
             jQuery('#wpcf-custom-fields-control-form #doaction, #wpcf-custom-fields-control-form #doaction2').click(function(){
                 return wpcfAdminCustomFieldsControlSubmit(jQuery(this).prev());
             });
         });
-                                                                                                                
+
         function wpcfAdminCustomFieldsControlSubmit(action_field) {
             var action = action_field.val();
             var open_popup = false;

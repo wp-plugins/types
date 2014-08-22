@@ -478,6 +478,27 @@ class WPCF_Relationship_Child_Form
      * @return array
      */
     function field_form() {
+        if ( defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+            $field = $this->cf->cf;
+            $meta = get_post_meta( $this->child->ID, $field['meta_key'] );
+            $field['suffix'] = "-{$this->child->ID}";
+            $config = wptoolset_form_filter_types_field( $field, $this->child->ID );
+            // Do not allow repetitive
+            $config['repetitive'] = false;
+            $config['name'] = $this->cf->alter_form_name( 'wpcf_post_relationship['
+                    . $this->parent->ID . ']', $config['name'] );
+            if ( !empty( $config['options'] ) ) {
+                foreach ( $config['options'] as &$v ) {
+                    if ( isset( $v['name'] ) ) {
+                        $v['name'] = $this->alter_form_name( $v['name'] );
+                    }
+                }
+            }
+            if ( $config['type'] == 'wysiwyg' ) {
+                $config['type'] = 'textarea';
+            }
+            return wptoolset_form_field( 'post', $config, $meta );
+        }
         /*
          * 
          * Get meta form for field

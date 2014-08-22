@@ -1,0 +1,73 @@
+/*
+** Styles to be used in common by all plugins in admin
+**
+*/
+/* ADMIN MENU ICONS */
+li#toplevel_page_dd_layouts div.wp-menu-image:before {
+  font-family: "onthegosystems-icons"!important;
+  content: '\f104';
+  font-size: 23px!important;
+  width: 30px;
+  padding-top: 5px; }
+
+li#toplevel_page_views div.wp-menu-image:before {
+  font-family: "onthegosystems-icons"!important;
+  content: '\f10a';
+  font-size: 30px!important;
+  width: 30px;
+  padding-top: 3px; }
+
+li#toplevel_page_ModuleManager_Modules div.wp-menu-image:before {
+  font-family: "onthegosystems-icons"!important;
+  content: '\f106';
+  font-size: 26px!important;
+  width: 30px;
+  padding-top: 3px; }
+
+li#toplevel_page_CRED_Forms div.wp-menu-image:before {
+  font-family: "onthegosystems-icons"!important;
+  content: '\f102';
+  font-size: 30px!important;
+  width: 30px;
+  padding-top: 3px; }
+
+li#toplevel_page_wpcf div.wp-menu-image:before {
+  font-family: "onthegosystems-icons"!important;
+  content: '\f108';
+  font-size: 26px!important;
+  width: 30px;
+  padding-top: 4px; }
+
+li#toplevel_page_types_access div.wp-menu-image:before {
+  font-family: "onthegosystems-icons"!important;
+  content: '\f100';
+  font-size: 26px!important;
+  width: 30px;
+  padding-top: 3px; }
+
+li#toplevel_page_CRED_Commerce div.wp-menu-image:before {
+    font-family: "onthegosystems-icons"!important;
+    content: '\f102';
+    font-size: 30px!important;
+    width: 30px;
+    padding-top: 3px; }
+
+/* POST EDIT PAGE SHORT TAGS BUTTONS ICONS */
+#wp-content-editor-tools [class^="icon-"] {
+  color: #888;
+  margin-top: -5px; }
+  
+#wp-content-editor-tools .icon-views {
+  margin-top: -1px; }
+  
+
+/* VIEWS SPECIFIC */
+i.icon-views.ont-icon-19 {
+  margin: 0 8px 0 0; }
+
+/* MODULE MANAGER */
+.module-title h4 [class^="icon-"] {
+  position: relative;
+  top: 3px;
+  left: 2px;
+  padding-right: 4px; }

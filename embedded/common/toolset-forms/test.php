@@ -27,10 +27,10 @@ function _wptoolset_forms_test_form() {
 
 function _wptoolset_forms_test_fields_render() {
     global $_html_test; //debug($_html_test);
-    echo '<h2>Test group of elements</h2>' . $_html_test;
+    echo '<h2>'.__('Test group of elements', 'wpv-views').'</h2>' . $_html_test;
 }
 
 function _wptoolset_forms_test_form_render() {
     global $_html_test_2;
-    echo '<h2>Test form</h2>' . $_html_test_2;
+    echo '<h2>'.__('Test form', 'wpv-views').'</h2>' . $_html_test_2;
 }

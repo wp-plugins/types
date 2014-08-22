@@ -86,11 +86,7 @@ jQuery(document).ready(function(){
 
         } else {
             // Hide all
-            jQuery('.editor_addon_dropdown').css({
-                'visibility': 'hidden'
-                //'display' : 'inline'
-            });
-
+			icl_editor_hide_popup();
         }
 
 
@@ -101,21 +97,15 @@ jQuery(document).ready(function(){
          * SRDJAN I do not understand this one...
          */
         jQuery('#content_ifr').contents().bind('click', function(e) {
-            jQuery('.editor_addon_dropdown').css({
-                'visibility': 'hidden'
-                //'display' : 'inline'
-            });
-        });
+			icl_editor_hide_popup();
+		});
 
 
         // Bind Escape
         jQuery(document).bind('keyup', function(e) {
             if (e.keyCode == 27) {
-                jQuery('.editor_addon_dropdown').css({
-                    'visibility': 'hidden'
-                    //'display' : 'inline'
-                });
-                jQuery(this).unbind(e);
+				icl_editor_hide_popup();
+				jQuery(this).unbind(e);
             }
         });
 
@@ -161,7 +151,7 @@ jQuery(document).ready(function(){
 				var window_height = jQuery(window).height();
 				
 				if (dialog_bottom > window_height) {
-					var new_top = jQuery(drop_down).offset().top - (dialog_bottom - window_height + 70);
+					var new_top = window_height - jQuery(drop_down).height() - 80;
 					if (new_top < 0) {
 						new_top = 0;
 					}
@@ -177,20 +167,14 @@ jQuery(document).ready(function(){
          * SRDJAN I do not understand this one...
          */
         jQuery('#content_ifr').contents().bind('click', function(e) {
-            jQuery('.editor_addon_dropdown').css({
-                'visibility': 'hidden'
-                //'display' : 'inline'
-            });
+			icl_editor_hide_popup();
         });
 
 
         // Bind Escape
         jQuery(document).bind('keyup', function(e) {
             if (e.keyCode == 27) {
-                jQuery('.editor_addon_dropdown').css({
-                    'visibility': 'hidden'
-                    //'display' : 'inline'
-                });
+				icl_editor_hide_popup();
                 jQuery(this).unbind(e);
             }
         });
@@ -223,20 +207,14 @@ jQuery(document).ready(function(){
          * SRDJAN I do not understand this one...
          */
         jQuery('#content_ifr').contents().bind('click', function(e) {
-            jQuery('.editor_addon_dropdown').css({
-                'visibility': 'hidden'
-                //'display' : 'inline'
-            });
+			icl_editor_hide_popup();
         });
 
 
         // Bind Escape
         jQuery(document).bind('keyup', function(e) {
             if (e.keyCode == 27) {
-                jQuery('.editor_addon_dropdown').css({
-                    'visibility': 'hidden'
-                    //'display' : 'inline'
-                });
+				icl_editor_hide_popup();
                 jQuery(this).unbind(e);
             }
         });
@@ -270,20 +248,14 @@ jQuery(document).ready(function(){
          * SRDJAN I do not understand this one...
          */
         jQuery('#content_ifr').contents().bind('click', function(e) {
-            jQuery('.editor_addon_dropdown').css({
-                'visibility': 'hidden'
-                //'display' : 'inline'
-            });
+			icl_editor_hide_popup();
         });
 
 
         // Bind Escape
         jQuery(document).bind('keyup', function(e) {
             if (e.keyCode == 27) {
-                jQuery('.editor_addon_dropdown').css({
-                    'visibility': 'hidden'
-                    //'display' : 'inline'
-                });
+				icl_editor_hide_popup();
                 jQuery(this).unbind(e);
             }
         });
@@ -298,10 +270,7 @@ jQuery(document).ready(function(){
      * Trigger close action
      */
     jQuery(document).on('click', '.editor_addon_dropdown .item, .editor_addon_dropdown .close', function(e){
-        jQuery('.editor_addon_dropdown').css({
-            'visibility': 'hidden'
-            //'display' : 'inline'
-        });
+		icl_editor_hide_popup();
     });
 
     /*
@@ -636,6 +605,13 @@ function wpv_search_clear(el) {
     wpv_on_search_filter(searchbox[0]);
 }
 
+function icl_editor_hide_popup () {
+	jQuery('.editor_addon_dropdown').css({
+		'visibility': 'hidden'
+	});
+	jQuery(document).off('click.icl_editor');
+}
+
 /**
  * Bind window click to auto-hide
  *
@@ -647,19 +623,20 @@ function icl_editor_bind_auto_close() {
      * jQuery executes 'bind' immediatelly on click
      */
 
-    jQuery(document).on('click',function(e){
+    jQuery(document).on('click.icl_editor',function(e){
 
         var dropdownAddField = jQuery('#add_field_popup .editor_addon_dropdown');
 
         // Exception for 'Add field' button
         var $target = jQuery(e.target);
 
-        // if we click anything but V icon
-        if ( !( $target.hasClass('wpv_add_fields_button') || $target.hasClass('js-code-editor-toolbar-button-v-icon') || 
-        $target.parent().hasClass('js-code-editor-toolbar-button-v-icon') 
-         || $target.hasClass('js-wpv-shortcode-post-icon-wpv-views')
-          || $target.hasClass('js-wpv-shortcode-post-icon-types') 
-          || $target.hasClass('js-wpcf-access-editor-button') ) ) {
+        // if we click anything but Toolset buttons
+        if ( ( $target.closest('.wpv_add_fields_button,' +
+								'.js-code-editor-toolbar-button-v-icon,' +
+								'.js-code-editor-toolbar-button-v-icon,' +
+								'.js-wpv-shortcode-post-icon-wpv-views,' +
+								'.js-wpv-shortcode-post-icon-types,' +
+								'.js-wpcf-access-editor-button').length === 0) ) {
 
             // if we click outside the popup
             if ( $target.parents('.editor_addon_dropdown').length === 0 ) {

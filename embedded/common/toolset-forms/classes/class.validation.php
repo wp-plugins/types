@@ -39,7 +39,7 @@ class WPToolset_Forms_Validation
                 WPTOOLSET_FORMS_VERSION, true );
         wp_register_script( 'wptoolset-form-validation',
                 WPTOOLSET_FORMS_RELPATH . '/js/validation.js',
-                array('wptoolset-form-jquery-validation-additional'),
+                array('wptoolset-form-jquery-validation-additional', 'underscore'),
                 WPTOOLSET_FORMS_VERSION, true );
 
         // Filter JS validation data
@@ -56,7 +56,6 @@ class WPToolset_Forms_Validation
         add_action( 'wp_footer', array($this, 'renderJsonData'), 30 );
 
         wp_enqueue_script( 'wptoolset-form-validation' );
-        wp_enqueue_script( 'underscore' );
     }
 
     /**
@@ -133,7 +132,7 @@ class WPToolset_Forms_Validation
      * @return \WP_Error|boolean
      * @throws Exception
      */
-    public function validateField( $field ) {
+    public function validateField( $field ) {        
         $value = apply_filters( 'wptoolset_validation_value_' . $field->getType(),
                 $field->getValue() );
         $rules = $this->_parseRules( $field->getValidationData(), $value );
@@ -143,10 +142,10 @@ class WPToolset_Forms_Validation
             return true;
         }
         try {
-            $errors = array();
+            $errors = array();            
             foreach ( $rules as $rule => $args ) {
                 if ( !$this->validate( $rule, $args['args'] ) ) {
-                    $errors[] = $field->getTitle() .  ' ' . $args['message'];
+                    $errors[] = $field->getTitle() .  ' ' . $args['message'];                    
                 }
             }
             if ( !empty( $errors ) ) {

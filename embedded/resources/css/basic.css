@@ -162,7 +162,6 @@ input.wpcf-form-error {
 .wpcf-form-fields-delete,
 .wpcf-fields-form-move-field {
     float: left;
-    margin-top: 10px;
     margin-top: 3px;
     margin-right: 5px;
 }
@@ -255,6 +254,9 @@ input.wpcf-form-error {
 }
 #wpcf-types-form-name-table input {
     width: 100%;
+}
+#wpcf-types-form-name-table input[type="checkbox"] {
+    width: auto;
 }
 #wpcf-types-form-name-table label {
     font-weight: normal;

@@ -1,4 +1,12 @@
 <?php
+/**
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.textfield.php $
+ * $LastChangedDate: 2014-07-09 16:26:51 +0800 (Wed, 09 Jul 2014) $
+ * $LastChangedRevision: 24777 $
+ * $LastChangedBy: juan $
+ *
+ */
 require_once "class.field_factory.php";
 /*
  * To change this template, choose Tools | Templates
@@ -12,8 +20,10 @@ require_once "class.field_factory.php";
  */
 class WPToolset_Field_Textfield extends FieldFactory
 {
+    public function metaform()
+    {
+        $attributes =  $this->getAttr();
 
-    public function metaform() {
         $metaform = array();
         $metaform[] = array(
             '#type' => 'textfield',
@@ -22,6 +32,8 @@ class WPToolset_Field_Textfield extends FieldFactory
             '#name' => $this->getName(),
             '#value' => $this->getValue(),
             '#validate' => $this->getValidationData(),
+            '#repetitive' => $this->isRepetitive(),
+            '#attributes' => $attributes,
         );
         return $metaform;
     }

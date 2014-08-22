@@ -1,6 +1,8 @@
 <?php
 require_once 'class.field_factory.php';
-require_once WPTOOLSET_FORMS_ABSPATH . '/lib/adodb-time.inc.php';
+if (!function_exists('adodb_mktime')) {
+	require_once WPTOOLSET_FORMS_ABSPATH . '/lib/adodb-time.inc.php';
+}
 
 /**
  * Description of class
@@ -15,7 +17,7 @@ class WPToolset_Field_Date extends FieldFactory
 
     public function init()
     {
-    }
+	}
 
     public static function registerScripts()
     {
@@ -55,34 +57,132 @@ class WPToolset_Field_Date extends FieldFactory
     }
 
     public function metaform() {
-        $timestamp = $this->getValue();
+        $time_value = $this->getValue();
         $datepicker = $hour = $minute = null;
-        if ( !empty( $timestamp ) && $timestamp != '0' ) {
-            if ( !is_numeric( $timestamp ) ) {
-                $timestamp = self::strtotime( $timestamp );
-            } else {
-                $timestamp = intval( $timestamp );
-            }
-            if ( $timestamp !== false && self::_isTimestampInRange( $timestamp ) ) {
-                $datepicker = self::timetodate( $timestamp );
-                $hour = self::timetodate( $timestamp, 'H' );
-                $minute = self::timetodate( $timestamp, 'i' );
-            }
-        }
+		$timestamp = false;
+		$readonly = false;
+		if ( is_admin() ) {
+			// In this case, getValue returns the timestamp stored as postmeta value on the database
+			// So we compose $timestamp, $datepicker, $hour and $minute based on that value
+			if ( !empty( $time_value ) && $time_value != '0' ) {
+				if ( !is_numeric( $time_value ) ) {
+					$timestamp = self::strtotime( $time_value );
+				} else {
+					$timestamp = $time_value;
+				}
+				if ( $timestamp !== false && self::_isTimestampInRange( $timestamp ) ) {
+					$datepicker = self::timetodate( $timestamp );
+					$hour = self::timetodate( $timestamp, 'H' );
+					$minute = self::timetodate( $timestamp, 'i' );
+				}
+			}
+		} else {
+			// We are on a CRED form, on frontend, so getVAlue returns nothing or a string or an array of the kind array( 'datepicker' =>, 'hour' =>, 'minute' => )
+			// Note that even if the array is passed, 'hour' and 'minute' will only be passed if there are any
+			if ( !empty( $time_value ) ) {
+				if ( is_array( $time_value ) ) {
+					if ( isset ( $time_value['timestamp'] ) && is_numeric( $time_value['timestamp'] ) && self::_isTimestampInRange( $time_value['timestamp'] ) ) {
+						$timestamp = $time_value['timestamp'];
+						$datepicker = self::timetodate( $timestamp );
+					} else if ( isset( $time_value['datepicker'] ) && $time_value['datepicker'] !== false && is_numeric( $time_value['datepicker'] ) && self::_isTimestampInRange( $time_value['datepicker'] ) ) {
+						$timestamp = $time_value['datepicker'];
+						$datepicker = self::timetodate( $timestamp );
+					}
+					if ( isset( $time_value['hour'] ) && is_numeric( $time_value['hour'] ) ) {
+						$hour = $time_value['hour'];
+					}
+					if ( isset( $time_value['minute'] ) && is_numeric( $time_value['minute'] ) ) {
+						$minute = $time_value['minute'];
+					}
+				} else {
+					if ( is_numeric( $time_value ) && self::_isTimestampInRange( $time_value ) ) {
+						$timestamp = $time_value;
+						$datepicker = self::timetodate( $timestamp );
+					} else {
+						$timestamp = self::strtotime( $time_value );
+						$datepicker = $time_value;
+					}
+				}
+			}
+		}
         $data = $this->getData();
+		if ( !$timestamp ) {
+			// If there is no timestamp, we need to make it an empty string
+			// A false value would render the hidden field with a value of 1
+			$timestamp = '';
+			$datepicker = null;
+		}
+        
+        $def_class = 'js-wpt-date';
+		
+		$def_class_aux = 'js-wpt-date-auxiliar';
+		
+		if ( isset( $data['attribute'] ) && isset( $data['attribute']['readonly'] ) && $data['attribute']['readonly'] == 'readonly' ) {
+			$def_class .= ' js-wpv-date-readonly';
+			$def_class_aux .= ' js-wpt-date-readonly';
+			$readonly = true;
+		}
         
         $form = array();
-        $form[] = array(
+		
+		$validate = $this->getValidationData();
+		$title = $this->getTitle();
+
+		if ( isset( $validate['required'] ) && !empty( $title ) ) {
+			// Asterisk
+			$title .= '&#42;';
+		}
+		
+		$attr_visible = array('class' => $def_class, 'style' => 'display:inline;width:150px;position:relative;z-index:20;', 'readonly' => 'readonly');
+		$attr_hidden = array('class' => $def_class_aux, 'data-ts' => $timestamp, 'data-wpt-type' => 'date' );
+		
+		if ( isset( $data['attribute'] ) && isset( $data['attribute']['placeholder'] ) ) {
+			$attr_visible['placeholder'] = $data['attribute']['placeholder'];
+		}
+		
+		$form[] = array(
+            '#type' => 'textfield',
+            '#title' => $title,
+			'#description' => $this->getDescription(),
+            '#attributes' => $attr_visible,
+            '#name' => '',
+            '#value' => $datepicker,
+        );
+		$form[] = array(
+            '#type' => 'hidden',
+            '#title' => $title,
+            '#attributes' => $attr_hidden,
+            '#name' => $this->getName() . '[datepicker]',
+            '#value' => $timestamp,
+			'#validate' => $validate,
+            '#repetitive' => $this->isRepetitive(),
+        );
+		
+		/*
+		// This was the old implementaton
+		// We have implemented the above one because we need a hidden field to hold the timestamp
+		// And the visible text input field to display the date string to the user
+		$form[] = array(
             '#type' => 'textfield',
             '#title' => $this->getTitle(),
-            '#attributes' => array('class' => 'js-wpt-date', 'style' => 'width:150px;'),
+            '#attributes' => array('class' => $def_class, 'style' => 'width:150px;'),
             '#name' => $this->getName() . '[datepicker]',
-            '#value' => $datepicker,
-            '#validate' => $this->getValidationData(),
+            '#value' => $timestamp,
+			'#validate' => $this->getValidationData(),
+            '#repetitive' => $this->isRepetitive(),
         );
-
+		*/
         if ( !empty( $data['add_time'] ) ) {
-            // Hour
+            // Shared attributes
+			$attributes_hour_minute = array();
+			if ( $readonly ) {
+				$attributes_hour_minute['disabled'] = 'disabled' ;
+			}
+			if ( array_key_exists( 'use_bootstrap', $this->_data ) && $this->_data['use_bootstrap'] ) {
+                $attributes_hour_minute['style'] = 'display:inline;width:auto;' ;
+            }
+			
+			// Hour
             $hours = 24;
             $options = array();
             for ( $index = 0; $index < $hours; $index++ ) {
@@ -94,15 +194,15 @@ class WPToolset_Field_Date extends FieldFactory
             }
             $hour_element = array(
                 '#type' => 'select',
-                '#title' => __( 'Hour' ),
+                '#title' => __( 'Hour', 'wpv-views' ),
                 '#options' => $options,
                 '#default_value' => $hour,
                 '#name' => $this->getName() . '[hour]',
                 '#inline' => true,
             );
-            if ( array_key_exists( 'use_bootstrap', $this->_data ) && $this->_data['use_bootstrap'] ) {
-                $hour_element['#before'] = '<div class="clearfix"><br />';
-            }
+			if ( !empty( $attributes_hour_minute ) ) {
+				$hour_element['#attributes'] = $attributes_hour_minute;
+			}
             $form[] = $hour_element;
             // Minutes
             $minutes = 60;
@@ -116,15 +216,15 @@ class WPToolset_Field_Date extends FieldFactory
             }
                 $minute_element = array(
                 '#type' => 'select',
-                '#title' => __( 'Minute' ),
+                '#title' => __( 'Minute', 'wpv-views' ),
                 '#options' => $options,
                 '#default_value' => $minute,
                 '#name' => $this->getName() . '[minute]',
                 '#inline' => true,
             );
-            if ( array_key_exists( 'use_bootstrap', $this->_data ) && $this->_data['use_bootstrap'] ) {
-                $minute_element['#after'] = '</div>';
-            }
+			if ( !empty( $attributes_hour_minute ) ) {
+				$minute_element['#attributes'] = $attributes_hour_minute;
+			}
             $form[] = $minute_element;
         }
 
@@ -165,11 +265,12 @@ class WPToolset_Field_Date extends FieldFactory
         return $value;
     }
 
-    public static function filterValidationRuleJS( $rule ) {
-        if ( $rule == 'date' && self::getDateFormat() == 'd/m/Y' ) {
-            return 'dateITA';
-        }
-        return $rule;
+    public static function filterValidationRuleJs( $rule ) {
+		if ( $rule == 'date' ) {
+			return 'dateADODB_STAMP';
+		} else {
+			return $rule;
+		}
     }
 
     public static function filterValidationArgsPhp( $args, $rule ) {
@@ -183,10 +284,9 @@ class WPToolset_Field_Date extends FieldFactory
         if ( $type == 'date' ) {
             foreach ( $args as &$arg ) {
                 if ( !is_numeric( $arg ) ) {
+					// Well it should be a numeric timestamp indeed
                     $arg = self::strtotime( $arg );
                 }
-                // Use date formated with JS
-                $arg = self::timetodate( $arg );
             }
         }
         return $args;
@@ -204,15 +304,24 @@ class WPToolset_Field_Date extends FieldFactory
     public static function filterConditionalValuePhp( $value, $type ) {
         if ( $type == 'date' ) {
             if ( !is_numeric( $value ) ) {
+				// Well it should be a numeric timestamp indeed
                 $value = self::strtotime( $value );
             }
             // Use timestamp with PHP
             // Convert back/forward to have rounded timestamp (no H and i)
-            $value = self::strtotime( self::timetodate( $value ) );
+			// TODO review this because we should not play with timestamps generated on adodb_xxx functions
+            //$value = self::strtotime( self::timetodate( $value ) );
         }
         return $value;
     }
 
+	// We need to keep this for backwards compatibility
+	// Note that this function will only convert dates coming on a string:
+	// - in english
+	// - inside the valid PHP date range
+	// We are only using this when the value being checked is not a timestamp
+	// And we have tried to avoid that situation from happening
+	// But for old implementation, this happens for date conditions on conditional fields
     public static function strtotime( $value, $format = null )
     {
         if ( is_null( $format ) ) {
@@ -245,6 +354,7 @@ class WPToolset_Field_Date extends FieldFactory
         return self::_isTimestampInRange( $timestamp ) ? $timestamp : false;
     }
 
+	// TODO review this because we should not play with timestamps generated on adodb_xxx functions
     public static function timetodate( $timestamp, $format = null )
     {
         return WPToolset_Field_Date_Scripts::timetodate( $timestamp, $format );
@@ -256,10 +366,9 @@ class WPToolset_Field_Date extends FieldFactory
     }
 
     /**
-     * Checks if timestamp is numeric and within range.
-     * 
-     * @param type $timestamp
-     * @return type
+     * DEPRECATED
+	 *
+	 * This is not used anymore
      */
     public static function timeIsValid( $time ) {
         /*
@@ -286,9 +395,9 @@ class WPToolset_Field_Date extends FieldFactory
     }
 
     /**
-     * Checks if timestamp supports negative values.
-     * 
-     * @return type
+     * DEPRECATED
+	 *
+	 * This is not used anymore
      */
     public static function timeNegativeSupported() {
         return strtotime( 'Fri, 13 Dec 1950 20:45:54 UTC' ) === -601010046;

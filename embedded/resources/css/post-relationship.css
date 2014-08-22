@@ -87,6 +87,8 @@
 	padding: 0 0.9em;
 	border-style: solid;
 	border-width: 1px;
+    border-color: #dfdfdf;
+    min-width: 120px;
 }
 
 .types-child-categorydiv ul.categorychecklist ul {
@@ -97,3 +99,16 @@
 	border-width: 3px;
 	border-style: solid;
 }
+
+#wpcf-post-relationship td label,
+#wpcf-post-relationship td .description {
+    display: none;
+}
+#wpcf-post-relationship td .form-item-checkboxes label
+,#wpcf-post-relationship td .form-item-checkbox label
+,#wpcf-post-relationship td .form-item-radio label
+,#wpcf-post-relationship td .tabs-panel label
+{
+    display: inline;
+}
+

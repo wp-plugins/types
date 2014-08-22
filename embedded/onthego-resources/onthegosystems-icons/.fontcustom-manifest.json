@@ -1,0 +1,96 @@
+{
+  "checksum": {
+    "previous": "6467b5cc604861e9053e8c49cb0dd46b09157eb0150f491baf0c42de2ee747f0",
+    "current": "6467b5cc604861e9053e8c49cb0dd46b09157eb0150f491baf0c42de2ee747f0"
+  },
+  "fonts": [
+    "fonts/onthegosystems-icons_6467b5cc604861e9053e8c49cb0dd46b.ttf",
+    "fonts/onthegosystems-icons_6467b5cc604861e9053e8c49cb0dd46b.svg",
+    "fonts/onthegosystems-icons_6467b5cc604861e9053e8c49cb0dd46b.woff",
+    "fonts/onthegosystems-icons_6467b5cc604861e9053e8c49cb0dd46b.eot"
+  ],
+  "glyphs": {
+    "access": {
+      "codepoint": 61696,
+      "source": "vectors/access.svg"
+    },
+    "access-logo": {
+      "codepoint": 61697,
+      "source": "vectors/access-logo.svg"
+    },
+    "cred": {
+      "codepoint": 61698,
+      "source": "vectors/cred.svg"
+    },
+    "cred-logo": {
+      "codepoint": 61699,
+      "source": "vectors/cred-logo.svg"
+    },
+    "layouts": {
+      "codepoint": 61700,
+      "source": "vectors/layouts.svg"
+    },
+    "layouts-logo": {
+      "codepoint": 61701,
+      "source": "vectors/layouts-logo.svg"
+    },
+    "module": {
+      "codepoint": 61702,
+      "source": "vectors/module.svg"
+    },
+    "module-logo": {
+      "codepoint": 61703,
+      "source": "vectors/module-logo.svg"
+    },
+    "types": {
+      "codepoint": 61704,
+      "source": "vectors/types.svg"
+    },
+    "types-logo": {
+      "codepoint": 61705,
+      "source": "vectors/types-logo.svg"
+    },
+    "views": {
+      "codepoint": 61706,
+      "source": "vectors/views.svg"
+    },
+    "views-logo": {
+      "codepoint": 61707,
+      "source": "vectors/views-logo.svg"
+    }
+  },
+  "options": {
+    "autowidth": false,
+    "config": "fontcustom.yml",
+    "css_selector": ".icon-{{glyph}}",
+    "debug": false,
+    "file_hash": false,
+    "font_name": "onthegosystems-icons",
+    "force": true,
+    "input": {
+      "templates": "vectors",
+      "vectors": "vectors"
+    },
+    "no_hash": false,
+    "output": {
+      "css": "css",
+      "fonts": "fonts",
+      "preview": "fonts"
+    },
+    "preprocessor_path": null,
+    "project_root": {
+      "pwd": null
+    },
+    "quiet": false,
+    "templates": [
+      "css",
+      "scss",
+      "preview"
+    ]
+  },
+  "templates": [
+    "css/onthegosystems-icons.css",
+    "css/_onthegosystems-icons.scss",
+    "fonts/onthegosystems-icons-preview.html"
+  ]
+}

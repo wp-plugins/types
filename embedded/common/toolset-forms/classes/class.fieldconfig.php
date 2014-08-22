@@ -27,6 +27,7 @@ if (!class_exists("FieldConfig")) {
         private $options = array();
         private $default_value = '';
         private $validation = array();
+        private $attr;
 
         private $add_time = false;
 
@@ -44,38 +45,61 @@ if (!class_exists("FieldConfig")) {
         public function set_add_time($addtime) {
             $this->add_time = $addtime;
         }
+        
+        public function setAttr($attr) {
+            $this->attr = $attr;
+        }
+        
+        public function getAttr() {
+            return $this->attr;
+        }
 
         public function setDefaultValue($type,$field_arr)
         {
             switch ($type) {
-            case 'date':
-                $this->add_time = 'and_time' == $field_arr['data']['date_and_time'];
+                case 'date':
+                    $this->add_time = false;
+					if ( isset( $field_arr['data']['date_and_time'] ) && 'and_time' == $field_arr['data']['date_and_time'] ) {
+						$this->add_time = true;
+					}
                     break;
-            case 'checkboxes':
-                $this->default_value = @$field_arr['attr']['default'][0];
-                break;
+                case 'checkboxes':
+                    if ( is_array( $field_arr['attr']['default'] ) && count( $field_arr['attr']['default'] ) ) {
+                        $this->default_value = $field_arr['attr']['default'][0];
+                    }
+                    break;
 
-            case 'select':
-                $this->default_value = isset( $field_arr['attr']['actual_value'][0] )? $field_arr['attr']['actual_value'][0] : null;
-                break;
+                case 'select':
+                    $this->default_value = isset( $field_arr['attr']['actual_value'][0] )? $field_arr['attr']['actual_value'][0] : null;
+                    break;
 
-            case 'radios':
-                $this->default_value = $field_arr['attr']['default'];
-                break;
+                case 'radios':
+                    $this->default_value = $field_arr['attr']['default'];
+                    break;
 
-            default:
-                $this->default_value = "";
-                break;
+                case 'checkbox':
+                    $this->default_value = isset($field_arr['data']['checked'])?$field_arr['data']['checked']:0;
+                    break;
+                
+                default:
+                    $this->default_value = "";
+                    break;
             }
         }
 
         public function setOptions($name,$type,$values,$attrs) {
             $arr = array();
             switch ($type) {
+                case 'checkbox':
+                    $arr=$attrs;
+                    break;
                 case 'checkboxes':
                     foreach ($attrs['actual_titles'] as $refvalue=>$title) {
                         $value = $attrs['actual_values'][$refvalue];
-                        $arr[$refvalue] = array('value'=>$refvalue,'title'=>$title,'checked'=>(bool)$values[$refvalue],'name'=>$name);
+                        $arr[$refvalue] = array('value'=>$refvalue,'title'=>$title,'name'=>$name);
+                        if ( in_array($refvalue, $attrs['default']) ) {
+                            $arr[$refvalue]['checked'] = true;
+                        }
                     }
                     break;
                 case 'select':
@@ -113,7 +137,7 @@ if (!class_exists("FieldConfig")) {
                 'type' => $this->getType(),
                 'title' => $this->getTitle(),
                 'options' => $this->getOptions(),
-                'defualt_value' => $this->getDefaultValue(),
+                'default_value' => $this->getDefaultValue(),
                 'description' => $this->getDescription(),
                 'repetitive' => $this->isRepetitive(),
                 /*'name' => $base_name."[".$this->getType()."]",*/
@@ -122,6 +146,7 @@ if (!class_exists("FieldConfig")) {
                 'add_time' => $this->getAddTime(),
                 'validation' => array(),
                 'display' => $this->getDisplay(),
+                'attribute' => $this->getAttr()                
             );
             return $this->config;
         }

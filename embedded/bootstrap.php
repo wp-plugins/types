@@ -1,28 +1,35 @@
 <?php
 /*
  * Bootstrap code.
- * 
+ *
  * Types plugin or embedded code is initialized here.
  * Here is determined if code is used as plugin or embedded code.
- * 
+ *
  * @since Types 1.2
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/bootstrap.php $
+ * $LastChangedDate: 2014-08-20 09:26:19 +0800 (Wed, 20 Aug 2014) $
+ * $LastChangedRevision: 26150 $
+ * $LastChangedBy: bruce $
+ *
  */
 
 // Main functions
 require_once dirname( __FILE__ ) . '/functions.php';
 
 /*
- * 
- * 
+ *
+ *
  * If WPCF_VERSION is not defined - we're running embedded code
  */
 if ( !defined( 'WPCF_VERSION' ) ) {
     // Mark that!
     define( 'WPCF_RUNNING_EMBEDDED', true );
+    require_once dirname( __FILE__ ) . '/classes/loader.php';
 }
 
 /*
- * 
+ *
  * Forced priority
  */
 if ( !defined( 'TYPES_INIT_PRIORITY' ) ) {
@@ -31,14 +38,14 @@ if ( !defined( 'TYPES_INIT_PRIORITY' ) ) {
 }
 
 /*
- * 
+ *
  * Init
  */
 add_action( 'init', 'wpcf_embedded_init', TYPES_INIT_PRIORITY );
 
 /*
- * 
- * 
+ *
+ *
  * Define necessary constants
  */
 define( 'WPCF_EMBEDDED_ABSPATH', dirname( __FILE__ ) );
@@ -46,8 +53,8 @@ define( 'WPCF_EMBEDDED_INC_ABSPATH', WPCF_EMBEDDED_ABSPATH . '/includes' );
 define( 'WPCF_EMBEDDED_RES_ABSPATH', WPCF_EMBEDDED_ABSPATH . '/resources' );
 
 /*
- * 
- * Always se DEBUG as false 
+ *
+ * Always set DEBUG as false
  */
 if ( !defined( 'WPCF_DEBUG' ) ) {
     define( 'WPCF_DEBUG', false );
@@ -57,32 +64,51 @@ if ( !defined( 'TYPES_DEBUG' ) ) {
 }
 
 /*
- * 
+*
+* Load common and local localization
+*/
+if ( !defined( 'WPT_LOCALIZATION' ) ) {
+	require_once( WPCF_EMBEDDED_ABSPATH . '/common/localization/wpt-localization.php' );
+}
+new WPToolset_Localization( 'wpcf', WPCF_EMBEDDED_ABSPATH . '/locale', 'types-%s' );
+
+/*
+ *
  * Include common code.
  */
 if ( !defined( 'ICL_COMMON_FUNCTIONS' ) ) {
     require_once WPCF_EMBEDDED_ABSPATH . '/common/functions.php';
+    if ( !defined( 'WPTOOLSET_COMMON_PATH' ) ) {
+        define( 'WPTOOLSET_COMMON_PATH', WPCF_EMBEDDED_ABSPATH . '/common' );
+    }
+} else if ( !defined( 'WPTOOLSET_COMMON_PATH' ) ) {
+    //$__types_common_reflection = new ReflectionFunction( 'wpv_condition' );
+    //define( 'WPTOOLSET_COMMON_PATH', dirname( $__types_common_reflection->getFileName() ) );
+	define( 'WPTOOLSET_COMMON_PATH', WPCF_EMBEDDED_ABSPATH . '/common' );
+}
+if ( !defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
+    require_once WPTOOLSET_COMMON_PATH . '/toolset-forms/bootstrap.php';
 }
 
 /*
- * 
+ *
  * Register theme options
  */
 wpcf_embedded_after_setup_theme_hook();
 
 /*
- * 
- * 
+ *
+ *
  * Set $wpcf global var as generic class
  */
 $GLOBALS['wpcf'] = new stdClass();
 
 /**
  * Main init hook.
- * 
+ *
  * All rest of init processes are continued here.
  * Sets locale, constants, includes...
- * 
+ *
  * @todo Make sure plugin AND embedded code are calling this function on 'init'
  * @todo Test priorities
  */
@@ -95,37 +121,24 @@ function wpcf_embedded_init() {
     $types_instances['init_queued'] = '#' . did_action( 'init' );
     $types_instances['init_priority'] = TYPES_INIT_PRIORITY;
     $types_instances['forced_embedded'] = defined( 'TYPES_LOAD_EMBEDDED' ) && TYPES_LOAD_EMBEDDED;
-    
+
     // Loader
     require_once WPCF_EMBEDDED_ABSPATH . '/classes/loader.php';
 
     do_action( 'wpcf_before_init' );
     do_action( 'types_before_init' );
 
-    // Set locale
-    $locale = get_locale();
-    load_textdomain( 'wpcf',
-            WPCF_EMBEDDED_ABSPATH . '/locale/types-' . $locale . '.mo' );
-    if ( !defined( 'WPV_VERSION' ) ) {
-        load_textdomain( 'wpv-views',
-                WPCF_EMBEDDED_ABSPATH . '/locale/locale-views/views-' . $locale . '.mo' );
-    }
-
     // Define necessary constants if plugin is not present
     // This ones are skipped if used as embedded code!
     if ( !defined( 'WPCF_VERSION' ) ) {
-        define( 'WPCF_VERSION', '1.5.5' );
+        define( 'WPCF_VERSION', '1.6' );
         define( 'WPCF_META_PREFIX', 'wpcf-' );
     }
 
     // If forced embedded mode use path to __FILE__
     if ( ( defined( 'TYPES_LOAD_EMBEDDED' ) && TYPES_LOAD_EMBEDDED )
         || !defined('WPCF_RELPATH') ) {
-        if ( defined( 'TYPES_EMBEDDED_URL' ) ) {
-            define( 'WPCF_EMBEDDED_RELPATH', untrailingslashit( TYPES_EMBEDDED_URL ) );
-        } else {
-            define( 'WPCF_EMBEDDED_RELPATH', wpcf_get_file_url( __FILE__, false ) );
-        }
+        define( 'WPCF_EMBEDDED_RELPATH', wpcf_get_file_url( __FILE__, false ) );
     } else {
         define( 'WPCF_EMBEDDED_RELPATH', WPCF_RELPATH . '/embedded' );
     }
@@ -135,18 +148,18 @@ function wpcf_embedded_init() {
     define( 'WPCF_EMBEDDED_RES_RELPATH', WPCF_EMBEDDED_RELPATH . '/resources' );
 
     // TODO INCLUDES!
-    // 
+    //
     // Please add all required includes here
     // Since Types 1.2 we can consider existing code as core.
     // All new functionalities should be added as includes HERE
     // and marked with @since Types $version.
-    // 
+    //
     // Thanks!
     //
-    
+
     // Basic
     /*
-     * 
+     *
      * Mind class extensions queue
      */
     require_once WPCF_EMBEDDED_ABSPATH . '/classes/fields.php';
@@ -189,19 +202,19 @@ function wpcf_embedded_init() {
     }
 
     /*
-     * 
-     * 
+     *
+     *
      * TODO This is a must for now.
      * See if any fields need to be loaded.
-     * 
+     *
      * 1. Checkboxes - may be missing when submitted
      */
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields/checkbox.php';
 
 
     /*
-     * 
-     * 
+     *
+     *
      * Use this call to load basic scripts and styles if necesary
      * wpcf_enqueue_scripts();
      */
@@ -213,7 +226,7 @@ function wpcf_embedded_init() {
 
         /*
          * TODO Check if called twice
-         * 
+         *
          * Watch this! This is actually called twice everytime
          * in both modes (plugin or embedded)
          */
@@ -228,7 +241,7 @@ function wpcf_embedded_init() {
     /*
      * Consider code already there as core.
      * Use hooks to add new functionalities
-     * 
+     *
      * Introduced new global object $wpcf
      * Holds useful objects like:
      * $wpcf->field - Field object (base item object)
@@ -243,8 +256,8 @@ function wpcf_embedded_init() {
     }
     $wpcf->debug = new stdClass();
     require WPCF_EMBEDDED_INC_ABSPATH . '/debug.php';
-    add_action( 'wp_footer', 'wpcf_debug', 99999999999999999999999999999999 );
-    add_action( 'admin_footer', 'wpcf_debug', 99999999999999999999999999999 );
+    add_action( 'wp_footer', 'wpcf_debug', PHP_INT_MAX);
+    add_action( 'admin_footer', 'wpcf_debug', PHP_INT_MAX);
 
     // Set field object
     $wpcf->field = new WPCF_Field();
@@ -285,7 +298,7 @@ function wpcf_embedded_init() {
         'view', 'view-template', 'cred-form'
     );
     // 'attachment' = Media
-    // 
+    //
     $wpcf->excluded_post_types = array(
         'revision', 'view', 'view-template', 'cred-form', 'nav_menu_item', 'mediapage',
     );
@@ -299,7 +312,7 @@ function wpcf_embedded_init() {
 
     /*
      * TODO Check why we enabled this
-     * 
+     *
      * I think because of CRED or Views using Types admin functions on frontend
      * Does this need review?
      */

@@ -33,9 +33,9 @@ function wptoolset_form_add_conditional( $form_id, $config ){
     return $wptoolset_forms->addConditional( $form_id, $config );
 }
 
-function wptoolset_form_filter_types_field( $field, $post_id = null ){
+function wptoolset_form_filter_types_field( $field, $post_id = null, $_post_wpcf = array() ){
     global $wptoolset_forms;
-    return $wptoolset_forms->filterTypesField( $field, $post_id );
+    return $wptoolset_forms->filterTypesField( $field, $post_id, $_post_wpcf );
 }
 
 function wptoolset_form_field_add_filters( $type ){

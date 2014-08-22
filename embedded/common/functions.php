@@ -120,14 +120,17 @@ function wpv_condition( $atts, $post_to_check = null ) {
     if ( empty($post->ID) ) {
         global $post;
     }
+	$has_post = true;
     if ( empty($post->ID) ) {
-        // Will trigger errors if $post->ID is empty
-        return false;
+        // Will not execute any condition that involves custom fields
+        $has_post = false;
     }
 
     global $wplogger;
     
-    do_action( 'wpv_condition', $post );
+	if ( $has_post ) {
+		do_action( 'wpv_condition', $post );
+	}
 
     $logging_string = "Original expression: " . $evaluate;
 
@@ -135,46 +138,49 @@ function wpv_condition( $atts, $post_to_check = null ) {
     $evaluate = apply_filters( 'wpv-extra-condition-filters', $evaluate );
 
     // evaluate empty() statements for variables
-    $empties = preg_match_all( "/empty\(\s*\\$(\w+)\s*\)/", $evaluate, $matches );
+	if ( $has_post ) {
+		$empties = preg_match_all( "/empty\(\s*\\$(\w+)\s*\)/", $evaluate, $matches );
+		if ( $empties && $empties > 0 ) {
+			for ( $i = 0; $i < $empties; $i++ ) {
+				$match_var = get_post_meta( $post->ID, $atts[$matches[1][$i]], true );
+				$is_empty = '1=0';
 
-    if ( $empties && $empties > 0 ) {
-        for ( $i = 0; $i < $empties; $i++ ) {
-            $match_var = get_post_meta( $post->ID, $atts[$matches[1][$i]], true );
-            $is_empty = '1=0';
+				// mark as empty only nulls and ""  
+	//            if ( is_null( $match_var ) || strlen( $match_var ) == 0 ) {
+				if ( is_null( $match_var )
+						|| ( is_string( $match_var ) && strlen( $match_var ) == 0 )
+						|| ( is_array( $match_var ) && empty( $match_var ) ) ) {
+					$is_empty = '1=1';
+				}
 
-            // mark as empty only nulls and ""  
-//            if ( is_null( $match_var ) || strlen( $match_var ) == 0 ) {
-            if ( is_null( $match_var )
-                    || ( is_string( $match_var ) && strlen( $match_var ) == 0 )
-                    || ( is_array( $match_var ) && empty( $match_var ) ) ) {
-                $is_empty = '1=1';
-            }
-
-            $evaluate = str_replace( $matches[0][$i], $is_empty, $evaluate );
-        }
-    }
+				$evaluate = str_replace( $matches[0][$i], $is_empty, $evaluate );
+			}
+		}
+	}
     
     // find variables that are to be used as strings.
     // eg '$f1'
     // will replace $f1 with the actual field value
-    $strings_count = preg_match_all( '/(\'[\$\w^\']*\')/', $evaluate, $matches );
-    if ( $strings_count && $strings_count > 0 ) {
-        for ( $i = 0; $i < $strings_count; $i++ ) {
-            $string = $matches[1][$i];
-            // remove single quotes from string literals to get value only
-            $string = (strpos( $string, '\'' ) === 0) ? substr( $string, 1,
-                            strlen( $string ) - 2 ) : $string;
-            if ( strpos( $string, '$' ) === 0 ) {
-                $variable_name = substr( $string, 1 ); // omit dollar sign
-                if ( isset( $atts[$variable_name] ) ) {
-                    $string = get_post_meta( $post->ID, $atts[$variable_name],
-                            true );
-                    $evaluate = str_replace( $matches[1][$i],
-                            "'" . $string . "'", $evaluate );
-                }
-            }
-        }
-    }
+	if ( $has_post ) {
+		$strings_count = preg_match_all( '/(\'[\$\w^\']*\')/', $evaluate, $matches );
+		if ( $strings_count && $strings_count > 0 ) {
+			for ( $i = 0; $i < $strings_count; $i++ ) {
+				$string = $matches[1][$i];
+				// remove single quotes from string literals to get value only
+				$string = (strpos( $string, '\'' ) === 0) ? substr( $string, 1,
+								strlen( $string ) - 2 ) : $string;
+				if ( strpos( $string, '$' ) === 0 ) {
+					$variable_name = substr( $string, 1 ); // omit dollar sign
+					if ( isset( $atts[$variable_name] ) ) {
+						$string = get_post_meta( $post->ID, $atts[$variable_name],
+								true );
+						$evaluate = str_replace( $matches[1][$i],
+								"'" . $string . "'", $evaluate );
+					}
+				}
+			}
+		}
+	}
 
     // find string variables and evaluate
     $strings_count = preg_match_all( '/((\$\w+)|(\'[^\']*\'))\s*([\!<>\=]+)\s*((\$\w+)|(\'[^\']*\'))/',
@@ -196,7 +202,7 @@ function wpv_condition( $atts, $post_to_check = null ) {
                             1, strlen( $second_string ) - 2 ) : $second_string;
 
             // replace variables with text representation
-            if ( strpos( $first_string, '$' ) === 0 ) {
+            if ( strpos( $first_string, '$' ) === 0 && $has_post ) {
                 $variable_name = substr( $first_string, 1 ); // omit dollar sign
                 if ( isset( $atts[$variable_name] ) ) {
                     $first_string = get_post_meta( $post->ID,
@@ -205,7 +211,7 @@ function wpv_condition( $atts, $post_to_check = null ) {
                     $first_string = '';
                 }
             }
-            if ( strpos( $second_string, '$' ) === 0 ) {
+            if ( strpos( $second_string, '$' ) === 0 && $has_post ) {
                 $variable_name = substr( $second_string, 1 );
                 if ( isset( $atts[$variable_name] ) ) {
                     $second_string = get_post_meta( $post->ID,
@@ -252,28 +258,30 @@ function wpv_condition( $atts, $post_to_check = null ) {
 
 
     // find all variable placeholders in expression
-    $count = preg_match_all( '/\$(\w+)/', $evaluate, $matches );
+	if ( $has_post ) {
+		$count = preg_match_all( '/\$(\w+)/', $evaluate, $matches );
 
-    $logging_string .= "; Variable placeholders: " . var_export( $matches[1],
-                    true );
+		$logging_string .= "; Variable placeholders: " . var_export( $matches[1],
+						true );
 
-    // replace all variables with their values listed as shortcode parameters
-    if ( $count && $count > 0 ) {
-        // sort array by length desc, fix str_replace incorrect replacement
-        $matches[1] = wpv_sort_matches_by_length( $matches[1] );
+		// replace all variables with their values listed as shortcode parameters
+		if ( $count && $count > 0 ) {
+			// sort array by length desc, fix str_replace incorrect replacement
+			$matches[1] = wpv_sort_matches_by_length( $matches[1] );
 
-        foreach ( $matches[1] as $match ) {
-            if ( isset( $atts[$match] ) ) {
-                $meta = get_post_meta( $post->ID, $atts[$match], true );
-                if ( empty( $meta ) ) {
-                    $meta = "0";
-                }
-            } else {
-                $meta = "0";
-            }
-            $evaluate = str_replace( '$' . $match, $meta, $evaluate );
-        }
-    }
+			foreach ( $matches[1] as $match ) {
+				if ( isset( $atts[$match] ) ) {
+					$meta = get_post_meta( $post->ID, $atts[$match], true );
+					if ( empty( $meta ) ) {
+						$meta = "0";
+					}
+				} else {
+					$meta = "0";
+				}
+				$evaluate = str_replace( '$' . $match, $meta, $evaluate );
+			}
+		}
+	}
 
     $logging_string .= "; End evaluated expression: " . $evaluate;
 
@@ -281,7 +289,9 @@ function wpv_condition( $atts, $post_to_check = null ) {
     // evaluate the prepared expression using the custom eval script
     $result = wpv_evaluate_expression( $evaluate );
     
-    do_action( 'wpv_condition_end', $post );
+	if ( $has_post ) {
+		do_action( 'wpv_condition_end', $post );
+	}
 
     // return true, false or error string to the conditional caller
     return $result;

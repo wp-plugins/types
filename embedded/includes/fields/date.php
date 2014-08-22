@@ -92,32 +92,37 @@ add_action( 'wpv_condition', 'wpcf_fields_custom_conditional_statement_hook' );
  * @return type 
  */
 function wpcf_fields_date() {
-
-    // Allow localized Datepicker if date format does not need translating
-    $localized_date_formats = array(
-        'Y/m/d', // 2011/12/23
-        'm/d/Y', // 12/23/2011
-        'd/m/Y' // 23/22/2011
-    );
-    $date_format = wpcf_get_date_format();
-    $localized_js = array();
-
-    if ( in_array( $date_format, $localized_date_formats ) ) {
-        $locale = str_replace( '_', '-', strtolower( get_locale() ) );
-        $localized_js = array(
-            'src' => file_exists( WPCF_EMBEDDED_RES_ABSPATH . '/js/i18n/jquery.ui.datepicker-'
-                    . $locale . '.js' ) ? WPCF_EMBEDDED_RES_RELPATH . '/js/i18n/jquery.ui.datepicker-'
-                    . $locale . '.js' : '',
-            'deps' => array('jquery-ui-core'),
-        );
-    }
-
-    return array(
+    $settings = array(
         'id' => 'wpcf-date',
         'title' => __( 'Date', 'wpcf' ),
         'description' => __( 'Date', 'wpcf' ),
         'validate' => array('required', 'date'),
-        'meta_box_js' => array(
+        'meta_key_type' => 'TIME',
+        'version' => '1.2',
+    );
+
+    if ( !defined( 'WPTOOLSET_FORMS_ABSPATH' ) ) {
+        // Allow localized Datepicker if date format does not need translating
+        $localized_date_formats = array(
+            'Y/m/d', // 2011/12/23
+            'm/d/Y', // 12/23/2011
+            'd/m/Y', // 23/22/2011
+            'd/m/y', // 23/22/11
+        );
+
+        $date_format = wpcf_get_date_format();
+        $localized_js = array();
+
+        if ( in_array( $date_format, $localized_date_formats ) ) {
+            $locale = str_replace( '_', '-', strtolower( get_locale() ) );
+            $localized_js = array(
+                'src' => file_exists( WPCF_EMBEDDED_RES_ABSPATH . '/js/i18n/jquery.ui.datepicker-'
+                        . $locale . '.js' ) ? WPCF_EMBEDDED_RES_RELPATH . '/js/i18n/jquery.ui.datepicker-'
+                        . $locale . '.js' : '',
+                'deps' => array('jquery-ui-core'),
+            );
+        }
+        $settings['meta_box_js'] = array(
             'wpcf-jquery-fields-date' => array(
                 'src' => WPCF_EMBEDDED_RES_RELPATH . '/js/jquery.ui.datepicker.min.js',
                 'deps' => array('jquery-ui-core'),
@@ -126,16 +131,15 @@ function wpcf_fields_date() {
                 'inline' => 'wpcf_fields_date_meta_box_js_inline',
             ),
             'wpcf-jquery-fields-date-localization' => $localized_js,
-        ),
-        'meta_box_css' => array(
+        );
+        $settings['meta_box_css'] = array(
             'wpcf-jquery-ui' => array(
                 'src' => WPCF_EMBEDDED_RES_RELPATH
                 . '/css/jquery-ui/jquery-ui-1.9.2.custom.min.css',
             ),
-        ),
-        'meta_key_type' => 'TIME',
-        'version' => '1.2',
-    );
+        );
+    }
+    return $settings;
 }
 
 /**
@@ -317,10 +321,10 @@ function wpcf_fields_date_value_get_filter( $value, $field, $return = 'array',
         $value = wpcf_fields_date_value_check( $value );
     } else {
         $value = array(
-            'timestamp' => intval( $value ),
-            'hour' => date( 'H', intval( $value ) ),
-            'minute' => date( 'i', intval( $value ) ),
-            'datepicker' => date( $date_format, intval( $value ) ),
+            'timestamp' => $value,
+            'hour' => adodb_date( 'H', $value ),
+            'minute' => adodb_date( 'i', $value ),
+            'datepicker' => adodb_date( $date_format, $value ),
         );
         $value = wpcf_fields_date_value_check( $value );
     }
@@ -368,7 +372,7 @@ function wpcf_fields_date_view( $params ) {
     if ( is_null( $__timestamp ) ) {
         return '';
     } else {
-        $params['field_value'] = intval( $__timestamp );
+        $params['field_value'] = $__timestamp;
     }
 
     switch ( $params['style'] ) {
@@ -383,28 +387,28 @@ function wpcf_fields_date_view( $params ) {
             // Extract the Full month and Short month from the format.
             // We'll replace with the translated months if possible.
             $format = $params['format'];
-            $format = str_replace( 'F', '#111111#', $format );
-            $format = str_replace( 'M', '#222222#', $format );
+            //$format = str_replace( 'F', '#111111#', $format );
+            //$format = str_replace( 'M', '#222222#', $format );
 
             // Same for the Days
-            $format = str_replace( 'D', '#333333#', $format );
-            $format = str_replace( 'l', '#444444#', $format );
+            //$format = str_replace( 'D', '#333333#', $format );
+            //$format = str_replace( 'l', '#444444#', $format );
 
-            $date_out = date( $format, intval( $params['field_value'] ) );
+            $date_out = adodb_date( $format, $params['field_value'] );
 
-            $month = date( 'm', intval( $params['field_value'] ) );
-            $month_full = $wp_locale->get_month( $month );
-            $date_out = str_replace( '#111111#', $month_full, $date_out );
-            $month_short = $wp_locale->get_month_abbrev( $month_full );
-            $date_out = str_replace( '#222222#', $month_short, $date_out );
+            //$month = adodb_date( 'm', $params['field_value'] );
+            //$month_full = $wp_locale->get_month( $month );
+            //$date_out = str_replace( '#111111#', $month_full, $date_out );
+            //$month_short = $wp_locale->get_month_abbrev( $month_full );
+            //$date_out = str_replace( '#222222#', $month_short, $date_out );
 
-            $day = date( 'w', intval( $params['field_value'] ) );
-            $day_full = $wp_locale->get_weekday( $day );
-            $date_out = str_replace( '#444444#', $day_full, $date_out );
-            $day_short = $wp_locale->get_weekday_abbrev( $day_full );
-            $date_out = str_replace( '#333333#', $day_short, $date_out );
+            //$day = adodb_date( 'w', $params['field_value'] );
+            //$day_full = $wp_locale->get_weekday( $day );
+            //$date_out = str_replace( '#444444#', $day_full, $date_out );
+            //$day_short = $wp_locale->get_weekday_abbrev( $day_full );
+            //$date_out = str_replace( '#333333#', $day_short, $date_out );
 
-            $output = $date_out;
+            $output .= $date_out;
             break;
     }
 
@@ -420,12 +424,13 @@ function wpcf_fields_date_editor_callback( $field, $settings ) {
         'date_formats' => array(),
     );
     $date_formats = apply_filters( 'date_formats',
-            array(
-        __( 'F j, Y' ),
-        'Y/m/d',
-        'm/d/Y',
-        'd/m/Y',
-            )
+        array(
+            __( 'F j, Y' ),
+            'Y/m/d',
+            'm/d/Y',
+            'd/m/Y',
+            'd/m/y',
+        )
     );
 
     // Custom format

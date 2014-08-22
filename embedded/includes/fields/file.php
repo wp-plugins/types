@@ -1,28 +1,35 @@
 <?php
-
+/*
+ *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
+ */
 /**
  * Register data (called automatically).
- * 
- * @return type 
+ *
+ * @return type
  */
 function wpcf_fields_file() {
     return array(
         'id' => 'wpcf-file',
         'title' => __( 'File', 'wpcf' ),
         'description' => __( 'File', 'wpcf' ),
-        'validate' => array('required'),
         'meta_box_js' => array(
             'wpcf-jquery-fields-file' => array(
                 'inline' => 'wpcf_fields_file_meta_box_js_inline',
             )
         ),
+        'validate' => array('required'),
     );
 }
 
 /**
  * Form data for post edit page.
- * 
- * @param type $field 
+ *
+ * @param type $field
  */
 function wpcf_fields_file_meta_box_form( $field ) {
     add_thickbox();
@@ -163,10 +170,10 @@ function wpcf_fields_file_media_admin_head() {
 
 /**
  * Adds 'Types' column to media item table.
- * 
+ *
  * @param type $form_fields
  * @param type $post
- * @return type 
+ * @return type
  */
 function wpcf_fields_file_attachment_fields_to_edit_filter( $form_fields, $post ) {
     // Reset form
@@ -197,8 +204,8 @@ function wpcf_fields_file_attachment_fields_to_edit_filter( $form_fields, $post 
 
 /**
  * View function.
- * 
- * @param type $params 
+ *
+ * @param type $params
  */
 function wpcf_fields_file_view( $params ) {
     $output = '';
@@ -290,9 +297,9 @@ function wpcf_fields_file_editor_submit( $data, $field, $context ) {
 
 /**
  * Filters media TABs.
- * 
+ *
  * @param type $tabs
- * @return type 
+ * @return type
  */
 function wpcf_fields_file_media_upload_tabs_filter( $tabs ) {
     unset( $tabs['type_url'] );

@@ -846,10 +846,14 @@ class Enlimbo_Forms_Wpcf
     public function hidden( $element )
     {
         $element['#type'] = 'hidden';
-        $output = '<input type="hidden" id="' . $element['#id'] . '"  name="'
-                . $element['#name'] . '" value="';
-        $output .= isset( $element['#value'] ) ? $element['#value'] : 1;
-        $output .= '" />';
+        $element = $this->_setRender( $element );
+        $output = '<input type="hidden" ';
+        foreach( array('id', 'name' ) as $key ) {
+            $output .= sprintf( '%s="%s" ', $key, $element['#'.$key] );
+        }
+        $output .= sprintf( 'value="%s" ', isset( $element['#value'] ) ? $element['#value'] : 1 );
+        $output .= $element['_attributes_string'];
+        $output .= ' />';
         return $output;
     }
 

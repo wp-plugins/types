@@ -16,7 +16,7 @@
  */
 
 add_action( 'wpcf_after_init', 'wpcf_wpml_init' );
-add_action( 'init', 'wpcf_wpml_warnings_init', 999999 );
+add_action( 'init', 'wpcf_wpml_warnings_init', PHP_INT_MAX );
 
 // Only when WPML active
 if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
@@ -53,9 +53,6 @@ if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
     add_action( 'wpcf_taxonomy_renamed', 'wpcf_wpml_taxonomy_renamed', 10, 2 );
 
     // Relationship save child language
-    /*
-     * TODO Andrea suggested to switch to 'wpcf_relationship_add_child'
-     */
     add_action( 'wpcf_relationship_save_child',
             'wpcf_wpml_relationship_save_child', 10, 2 );
 
@@ -160,10 +157,10 @@ function wpcf_wpml_init() {
  * @return type 
  */
 function wpcf_translate( $name, $string, $context = 'plugin Types' ) {
-    if ( !function_exists( 'icl_t' ) ) {
+    if ( !function_exists( 'icl_t' ) || !is_string($string) || empty($string) ) {
         return $string;
     }
-    return icl_t( $context, $name, stripslashes( $string ) );
+    return icl_t( $context, $name, esc_attr( $string ) );
 }
 
 /**
@@ -518,12 +515,18 @@ function wpcf_wpml_relationship_meta_belongs_filter( $value, $object_id,
                     $meta_translated_id = icl_object_id( $meta_post->ID,
                             $meta_post->post_type, false, $ulanguage );
                     if ( !empty( $meta_translated_id ) ) {
-                        $value = $meta_translated_id;
+                        if ($single) {
+                            $value = $meta_translated_id;
+                        } else {
+                            $value = array($meta_translated_id);
+                        }
+                        
                     }
                 }
             }
         }
     }
+
     return $value;
 }
 
@@ -926,16 +929,6 @@ function wpcf_wpml_post_type_renamed( $new_slug, $old_slug ) {
             'context' => 'URL slugs - wpcf',
                 )
         );
-        // Suggested by Andrea
-        // https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/180468169/comments#270683248
-        $wpdb->update( $wpdb->prefix . 'icl_translations',
-                array(
-            'element_type' => "post_{$new_slug}",
-                ),
-                array(
-            'element_type' => "post_{$old_slug}"
-                )
-        );
     }
 }
 
@@ -977,12 +970,8 @@ function wpcf_wpml_relationship_save_child( $child, $parent ) {
     $lang_details = $sitepress->get_element_language_details( $parent->ID,
             'post_' . $parent->post_type );
     if ( $lang_details ) {
-        $trid = $sitepress->get_element_trid( $child->ID, "post_{$child->post_type}" );
-        if ( !is_null( $trid ) ) {
-            $sitepress->set_element_language_details( $child->ID,
-                    'post_' . $child->post_type, $trid,
-                    $lang_details->language_code );
-        }
+        $sitepress->set_element_language_details( $child->ID,
+                'post_' . $child->post_type, null, $lang_details->language_code );
     }
 }
 
@@ -1199,7 +1188,7 @@ function wpcf_wpml_sync_postmeta_hook_add( $post, $field ) {
 
 function wpcf_wpml_warnings_init()
 {
-	if(!defined('WPML_ST_PATH') || !class_exists( 'ICL_AdminNotifier' )) return;
+    if(!defined('WPML_ST_PATH') || !class_exists( 'ICL_AdminNotifier' )) return;
 
     /**
      * check is configuration done?!
@@ -1276,7 +1265,7 @@ function wp_types_st_language_warning()
 			$st_language_code = $sitepress_settings[ 'st' ][ 'strings_language' ];
 			$st_language = $sitepress->get_display_language_name($st_language_code, $sitepress->get_admin_language());
 
-			$st_page_url = admin_url('admin.php?page=wpml-string-translation/menu/string-translation.php');
+			$st_page_url = admin_url('admin.php?page='.WPML_ST_FOLDER.'/menu/string-translation.php');
 
 			$message = 'The strings language in your site is set to %s instead of English. ';
 			$message .= 'This means that all English texts that are hard-coded in PHP will appear when displaying content in %s.';

@@ -1,6 +1,13 @@
 <?php
-/*
+/**
+ *
  * Custom Post Types embedded code.
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/includes/custom-types.php $
+ * $LastChangedDate: 2014-05-08 21:13:42 +0800 (Thu, 08 May 2014) $
+ * $LastChangedRevision: 22156 $
+ * $LastChangedBy: marcin $
+ *
  */
 add_action( 'wpcf_type', 'wpcf_filter_type', 10, 2 );
 
@@ -157,6 +164,9 @@ function wpcf_custom_types_register( $post_type, $data ) {
     if ( !empty( $data['show_in_menu_page'] ) ) {
         $data['show_in_menu'] = $data['show_in_menu_page'];
     }
+    /**
+     * menu_icon
+     */
     if ( empty( $data['menu_icon'] ) ) {
         unset( $data['menu_icon'] );
     } else {
@@ -166,6 +176,12 @@ function wpcf_custom_types_register( $post_type, $data ) {
                     get_stylesheet_directory_uri(), $data['menu_icon'] );
         }
     }
+    if ( empty($data['menu_icon'] ) && !empty( $data['icon'] ) ) {
+        $data['menu_icon'] = sprintf( 'dashicons-%s', $data['icon'] );
+    }
+    /**
+     * rewrite
+     */
     if ( !empty( $data['rewrite']['enabled'] ) ) {
         $data['rewrite']['with_front'] = !empty( $data['rewrite']['with_front'] );
         $data['rewrite']['feeds'] = !empty( $data['rewrite']['feeds'] );

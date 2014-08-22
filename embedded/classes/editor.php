@@ -299,6 +299,11 @@ class WPCF_Editor
             }
 
             if ( !empty( $shortcode ) ) {
+                /**
+                 * remove <script> tag from all data
+                 * remove not allowed tags from shortcode using wp_kses_post
+                 */
+                $shortcode = preg_replace( '@</?script[^>]*>@im', '', wp_kses_post($shortcode) );
                 // Add additional parameters if required
                 $shortcode = $this->_add_parameters_to_shortcode( $shortcode,
                         $_POST );
@@ -327,11 +332,11 @@ class WPCF_Editor
         if ( !$raw_mode ) {
             if ( isset( $data['class'] ) && $data['class'] != '' ) {
                 $shortcode = preg_replace( '/\[types([^\]]*)/',
-                        '$0 class="' . $data['class'] . '"', $shortcode );
+                        '$0 class="' . esc_attr(strip_tags($data['class'])) . '"', $shortcode );
             }
             if ( $this->supports( 'style' ) && isset( $data['style'] ) && $data['style'] != '' ) {
                 $shortcode = preg_replace( '/\[types([^\]]*)/',
-                        '$0 style="' . $data['style'] . '"', $shortcode );
+                        '$0 style="' . esc_attr(strip_tags($data['style'])) . '"', $shortcode );
             }
             if ( isset( $data['output'] ) && $data['output'] == 'html' ) {
                 $shortcode = preg_replace( '/\[types([^\]]*)/',
@@ -340,7 +345,7 @@ class WPCF_Editor
         }
         if ( !empty( $data['separator'] ) ) {
             if ( $data['separator'] == 'custom' ) {
-                $data['separator'] = isset( $data['separator_custom'] ) ? $data['separator_custom'] : '';
+                $data['separator'] = isset( $data['separator_custom'] ) ? wp_kses_post($data['separator_custom']) : '';
             }
             $shortcode = preg_replace( '/\[types([^\]]*)/',
                     '$0 separator="'
@@ -357,20 +362,17 @@ class WPCF_Editor
         if ( isset( $data['post_id'] ) && $data['post_id'] != 'current' ) {
             $post_id = 'id=';
             if ( $data['post_id'] == 'post_id' ) {
-                $post_id .= '"' . trim( strval( $data['specific_post_id'] ) ) . '"';
-//            } else if ( $data['post_id'] == 'current' ) {
-//                $post_id .= '""';
+                $post_id .= '"' . preg_replace( '/[^\d]+/', '', $data['specific_post_id'] ) . '"';
             } else if ( $data['post_id'] == 'parent' ) {
                 $post_id .= '"$parent"';
             } else if ( $data['post_id'] == 'related' ) {
-                $post_id .= '"$' . trim( strval( $data['related_post'] ) ) . '"';
+                $post_id .= '"$' . esc_attr(trim( strval( $data['related_post'] ) )) . '"';
             } else {
-                $post_id .= '"' . strval( $data['post_id'] ) . '"';
+                $post_id .= '"' . preg_replace( '/[^\d]+/', '', $data['post_id'] ) . '"';
             }
             $shortcode = preg_replace( '/\[types([^\]]*)/', '$0 ' . $post_id,
                     $shortcode );
         }
-
         return $shortcode;
     }
 

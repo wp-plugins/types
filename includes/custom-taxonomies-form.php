@@ -1,6 +1,13 @@
 <?php
-/*
+/**
+ *
  * Custom taxonomies form
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/includes/custom-taxonomies-form.php $
+ * $LastChangedDate: 2014-05-08 21:13:42 +0800 (Thu, 08 May 2014) $
+ * $LastChangedRevision: 22156 $
+ * $LastChangedBy: marcin $
+ *
  */
 
 /**

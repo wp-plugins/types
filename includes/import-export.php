@@ -1,55 +1,71 @@
 <?php
 /*
  * Import/export data.
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/includes/import-export.php $
+ * $LastChangedDate: 2014-08-01 12:46:07 +0800 (Fri, 01 Aug 2014) $
+ * $LastChangedRevision: 25533 $
+ * $LastChangedBy: bruce $
+ *
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/import-export.php';
 
 /**
  * Import/Export form data.
- * 
- * @return type 
+ *
+ * @return type
  */
-function wpcf_admin_import_export_form() {
+function wpcf_admin_import_export_form()
+{
     $form = array();
     $form['wpnonce'] = array(
         '#type' => 'hidden',
         '#name' => '_wpnonce',
         '#value' => wp_create_nonce( 'wpcf_import' ),
     );
-    if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'],
-                    'wpcf_import' ) ) {
+    $form_base = $form;
+    $show_first_screen = true;
+    if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'], 'wpcf_import' ) ) {
+        $show_first_screen = false;
         if ( isset( $_POST['import-final'] ) ) {
-            if ( $_POST['mode'] == 'file' && !empty( $_POST['file'] )
-                    && file_exists( urldecode( $_POST['file'] ) ) ) {
-                $info = pathinfo( urldecode( $_POST['file'] ) );
-                $is_zip = $info['extension'] == 'zip' ? true : false;
-                if ( $is_zip ) {
-                    $zip = zip_open( urldecode( $_POST['file'] ) );
-                    if ( is_resource( $zip ) ) {
-                        while ( ($zip_entry = zip_read( $zip )) !== false ) {
-                            if ( zip_entry_name( $zip_entry ) == 'settings.xml' ) {
-                                $data = @zip_entry_read( $zip_entry,
-                                                zip_entry_filesize( $zip_entry ) );
+            if ( $_POST['mode'] == 'file' && !empty( $_POST['file'] ) ) {
+                $file = get_transient( $_POST['file'] );
+                if ( file_exists($file) ) {
+                    $info = pathinfo($file);
+                    $is_zip = $info['extension'] == 'zip' ? true : false;
+                    if ( $is_zip ) {
+                        $zip = zip_open($file);
+                        if ( is_resource( $zip ) ) {
+                            while ( ($zip_entry = zip_read( $zip )) !== false ) {
+                                if ( zip_entry_name( $zip_entry ) == 'settings.xml' ) {
+                                    $data = @zip_entry_read( $zip_entry,
+                                        zip_entry_filesize( $zip_entry ) );
+                                }
                             }
+                        } else {
+                            echo '<div class="message error"><p>'
+                                . __( 'Unable to open zip file', 'wpcf' )
+                                . '</p></div>';
+                            return array();
                         }
                     } else {
+                        $data = @file_get_contents( $file );
+                    }
+
+                    @unlink($file);
+
+                    if ( $data ) {
+                        wpcf_admin_import_data( $data );
+                    } else {
                         echo '<div class="message error"><p>'
-                        . __( 'Unable to open zip file', 'wpcf' )
-                        . '</p></div>';
+                            . __( 'Unable to process file', 'wpcf' )
+                            . '</p></div>';
                         return array();
                     }
                 } else {
-                    $data = @file_get_contents( urldecode( $_POST['file'] ) );
-                }
-                
-                @unlink(urldecode( $_POST['file'] ));
-                
-                if ( $data ) {
-                    wpcf_admin_import_data( $data );
-                } else {
                     echo '<div class="message error"><p>'
-                    . __( 'Unable to process file', 'wpcf' )
-                    . '</p></div>';
+                        . __( 'Unable to process file', 'wpcf' )
+                        . '</p></div>';
                     return array();
                 }
             }
@@ -58,22 +74,15 @@ function wpcf_admin_import_export_form() {
                 wpcf_admin_import_data( stripslashes( html_entity_decode( $_POST['text'],
                                         ENT_QUOTES, $charset ) ) );
             }
-        } else if ( isset( $_POST['step'] ) ) {
+        } elseif ( isset( $_POST['step'] ) ) {
             $mode = 'none';
             $data = '';
             if ( !empty( $_POST['import-file'] ) && !empty( $_FILES['file']['tmp_name'] ) ) {
                 if ( $_FILES['file']['type'] == 'text/xml' ) {
                     $_FILES['file']['name'] .= '.txt';
                 }
-//                $_POST['action'] = 'wp_handle_upload';
-//                $uploaded_file = wp_handle_upload( $_FILES['file'],
-//                        array(
-//                    'test_form' => false,
-//                    'upload_error_handler' => 'wpcf_admin_import_export_file_upload_error',
-//                        )
-//                );
                 /*
-                 * 
+                 *
                  * We need to move uploaded file manually
                  */
                 if ( !empty( $_FILES['file']['error'] ) ) {
@@ -88,7 +97,7 @@ function wpcf_admin_import_export_form() {
                         $new_file );
                 if ( !$move ) {
                     echo '<div class="message error"><p>'
-                    . __( 'Error moving upladed file', 'wpcf' )
+                    . __( 'Error moving uploaded file', 'wpcf' )
                     . '</p></div>';
                     return array();
                 }
@@ -96,15 +105,6 @@ function wpcf_admin_import_export_form() {
                 $uploaded_file = array(
                     'file' => $new_file
                 );
-//                if ( !empty( $uploaded_file['error'] ) ) {
-//                    return array();
-//                }
-//                if ( empty( $uploaded_file['file'] ) ) {
-//                    echo '<div class="message error"><p>'
-//                    . __( 'Error uploading file', 'wpcf' )
-//                    . '</p></div>';
-//                    return array();
-//                }
                 $info = pathinfo( $uploaded_file['file'] );
                 $is_zip = $info['extension'] == 'zip' ? true : false;
                 if ( $is_zip ) {
@@ -125,13 +125,19 @@ function wpcf_admin_import_export_form() {
                 } else {
                     $data = @file_get_contents( $uploaded_file['file'] );
                 }
+                /**
+                 * use Transients API to store file fullpath
+                 */
+                $current_user = wp_get_current_user();
+                $cache_key = md5($current_user->user_email.$uploaded_file['file']);
+                set_transient( $cache_key, $uploaded_file['file'], 60*60 );
                 $form['file'] = array(
                     '#type' => 'hidden',
                     '#name' => 'file',
-                    '#value' => urlencode( $uploaded_file['file'] ),
+                    '#value' => $cache_key,
                 );
                 $mode = 'file';
-            } else if ( !empty( $_POST['import-text'] ) && !empty( $_POST['text'] ) ) {
+            } elseif ( !empty( $_POST['import-text'] ) && !empty( $_POST['text'] ) ) {
                 $data = stripslashes( $_POST['text'] );
                 if ( preg_match( '/encoding=("[^"]*"|\'[^\']*\')/s', $data,
                                 $match ) ) {
@@ -156,34 +162,38 @@ function wpcf_admin_import_export_form() {
                 echo '<div class="message error"><p>'
                 . __( 'Data not valid', 'wpcf' )
                 . '</p></div>';
-                return array();
+                $show_first_screen = true;
+            } else {
+                $data = wpcf_admin_import_export_settings( $data );
+                if ( empty( $data ) ) {
+                    echo '<div class="message error"><p>'
+                        . __( 'Data not valid', 'wpcf' )
+                        . '</p></div>';
+                    $show_first_screen = true;
+                } else {
+                    $form = array_merge( $form, $data );
+                    $form['mode'] = array(
+                        '#type' => 'hidden',
+                        '#name' => 'mode',
+                        '#value' => $mode,
+                    );
+                    $form['import-final'] = array(
+                        '#type' => 'hidden',
+                        '#name' => 'import-final',
+                        '#value' => 1,
+                    );
+                    $form['submit'] = array(
+                        '#type' => 'submit',
+                        '#name' => 'import',
+                        '#value' => __( 'Import', 'wpcf' ),
+                        '#attributes' => array('class' => 'button-primary'),
+                    );
+                }
             }
-            $data = wpcf_admin_import_export_settings( $data );
-            if ( empty( $data ) ) {
-                echo '<div class="message error"><p>'
-                . __( 'Data not valid', 'wpcf' )
-                . '</p></div>';
-                return array();
-            }
-            $form = array_merge( $form, $data );
-            $form['mode'] = array(
-                '#type' => 'hidden',
-                '#name' => 'mode',
-                '#value' => $mode,
-            );
-            $form['import-final'] = array(
-                '#type' => 'hidden',
-                '#name' => 'import-final',
-                '#value' => 1,
-            );
-            $form['submit'] = array(
-                '#type' => 'submit',
-                '#name' => 'import',
-                '#value' => __( 'Import', 'wpcf' ),
-                '#attributes' => array('class' => 'button-primary'),
-            );
         }
-    } else {
+    }
+    if ( $show_first_screen ) {
+        $form = $form_base;
         $form['embedded-settings'] = array(
             '#type' => 'radios',
             '#name' => 'embedded-settings',
@@ -195,8 +205,8 @@ function wpcf_admin_import_export_form() {
             '#inline' => true,
             '#before' => '<h2>' . __( 'Export Types data', 'wpcf' ) . '</h2>'
             . __( 'Download all custom fields, custom post types and taxonomies created by Types plugin.',
-                    'wpcf' ) . '<br /><br />',
-        );
+                'wpcf' ) . '<br /><br />',
+            );
         $form['submit'] = array(
             '#type' => 'submit',
             '#name' => 'export',
@@ -204,6 +214,20 @@ function wpcf_admin_import_export_form() {
             '#attributes' => array('class' => 'button-primary'),
             '#after' => '<br /><br />',
         );
+        /**
+         * check is temp folder available?
+         */
+        $temp = wpcf_get_temporary_directory();
+        if ( empty($temp) ) {
+            unset($form['submit']);
+            $form['embedded-settings']['#disable'] = true;
+            $form['embedded-settings']['#after'] = sprintf(
+                '<p class="error-message"><b>%s</b> %s</p>',
+                __( 'Temporary directory is not found or there is not enough disk space.', 'wpcf' ),
+                __('Please check server settings or contact your server administrator.', 'wpcf' )
+            );
+
+        }
         if ( extension_loaded( 'simplexml' ) ) {
             $attributes = !wpcf_admin_import_dir() ? array('disabled' => 'disabled') : array();
             $form['file'] = array(
@@ -218,8 +242,13 @@ function wpcf_admin_import_export_form() {
                 '#type' => 'submit',
                 '#name' => 'import-file',
                 '#value' => __( 'Import file', 'wpcf' ),
-                '#attributes' => array_merge( $attributes,
-                        array('class' => 'button-primary') ),
+                '#attributes' => array_merge(
+                    $attributes,
+                    array(
+                        'class' => 'button-primary',
+                        'disabled' => 'disabled',
+                    )
+                ),
                 '#prefix' => '<br />',
                 '#suffix' => '<br /><br />',
             );
@@ -262,22 +291,24 @@ function wpcf_admin_import_export_form() {
 
 /**
  * File upload error handler.
- * 
+ *
  * @param type $file
- * @param type $error_msg 
+ * @param type $error_msg
  */
-function wpcf_admin_import_export_file_upload_error( $file, $error_msg ) {
+function wpcf_admin_import_export_file_upload_error($file, $error_msg)
+{
     echo '<div class="message error"><p>' . $error_msg . '</p></div>';
 }
 
 /**
  * Import settings.
- * 
+ *
  * @global type $wpdb
  * @param SimpleXMLElement $data
- * @return string 
+ * @return string
  */
-function wpcf_admin_import_export_settings( $data ) {
+function wpcf_admin_import_export_settings($data)
+{
     global $wpdb;
     $form = array();
     $form['title'] = array(
@@ -352,7 +383,7 @@ function wpcf_admin_import_export_settings( $data ) {
                 '#default_value' => true,
                 '#title' => '<strong>' . esc_html( $group['post_title'] ) . '</strong>',
                 '#inline' => true,
-                '#after' => '<br /><br />',
+                '#after' => '<br />',
             );
             $post = $wpdb->get_var( $wpdb->prepare(
                             "SELECT ID FROM $wpdb->posts
@@ -442,9 +473,8 @@ function wpcf_admin_import_export_settings( $data ) {
             );
         }
     }
-	
-	
-	// Check user groups
+
+    // Check user groups
     if ( !empty( $data->user_groups ) ) {
         $form['title-users'] = array(
             '#type' => 'markup',
@@ -549,7 +579,6 @@ function wpcf_admin_import_export_settings( $data ) {
             );
         }
     }
-	
 
     // Check types
     if ( !empty( $data->types ) ) {
@@ -653,210 +682,33 @@ function wpcf_admin_import_export_settings( $data ) {
         );
     }
 
-    // Conditional
-    // Not needed
-//    if ( !empty( $data->conditional ) ) {
-//        $form['title-conditional'] = array(
-//            '#type' => 'markup',
-//            '#markup' => '<h2>' . __( 'Conditional Rules', 'wpcf' ) . '</h2>',
-//        );
-//        $form['conditional-add'] = array(
-//            '#type' => 'checkbox',
-//            '#name' => 'conditional',
-//            '#default_value' => true,
-//            '#title' => '<strong>' . __( 'Create Rules', 'wpcf' ) . '</strong>',
-//            '#inline' => true,
-//            '#after' => '<br />',
-//        );
-//    }
-
     return $form;
 }
 
 /**
  * Exports data to XML.
  */
-function wpcf_admin_export_data( $download = true ) {
-    /*
-     * 
-     * 
+function wpcf_admin_export_data($download = true)
+{
+    /**
+     *
      * Since Types 1.2
      * Merged function with Module Manager
      * /embedded/includes/module-manager.php
      * wpcf_admin_export_selected_data( array $items, $_type = 'all', $return = 'download' )
+     *
      */
     $return = $download ? 'download' : 'xml';
     return wpcf_admin_export_selected_data( array(), 'all', $return );
-
-    /*
-     * 
-     * TODO Types 1.2.1 Merged so remove from here 
-     */
-
-    require_once WPCF_EMBEDDED_ABSPATH . '/common/array2xml.php';
-    $xml = new ICL_Array2XML();
-    $data = array();
-
-    // Get groups
-    $groups = get_posts( 'post_type=wp-types-group&post_status=null&numberposts=-1' );
-    if ( !empty( $groups ) ) {
-        $data['groups'] = array('__key' => 'group');
-        foreach ( $groups as $key => $post ) {
-            $post = (array) $post;
-            $post_data = array();
-            $copy_data = array('ID', 'post_content', 'post_title',
-                'post_excerpt', 'post_type', 'post_status');
-            foreach ( $copy_data as $copy ) {
-                if ( isset( $post[$copy] ) ) {
-                    $post_data[$copy] = $post[$copy];
-                }
-            }
-            $_data = $post_data;
-            $meta = get_post_custom( $post['ID'] );
-            if ( !empty( $meta ) ) {
-                $_meta = array();
-                foreach ( $meta as $meta_key => $meta_value ) {
-                    if ( in_array( $meta_key,
-                                    array(
-                                '_wp_types_group_terms',
-                                '_wp_types_group_post_types',
-                                '_wp_types_group_fields',
-                                '_wp_types_group_templates',
-                                '_wpcf_conditional_display',
-                                    )
-                            )
-                    ) {
-                        $_meta[$meta_key] = $meta_value[0];
-                    }
-                }
-                if ( !empty( $_meta ) ) {
-                    $_data['meta'] = $_meta;
-                }
-            }
-            $_data['checksum'] = md5( serialize( $_data ) );
-            $data['groups']['group-' . $post['ID']] = $_data;
-        }
-        if ( $specific == 'groups' ) {
-            return $data['groups'];
-        }
-    }
-
-    // Get fields
-    $fields = wpcf_admin_fields_get_fields();
-    if ( !empty( $fields ) ) {
-
-        // Add checksums before WPML
-        foreach ( $fields as $field_id => $field ) {
-            // TODO WPML and others should use hook
-            $fields[$field_id] = apply_filters( 'wpcf_export_field',
-                    $fields[$field_id] );
-            $fields[$field_id]['checksum'] = md5( $field_id . serialize( $field ) );
-        }
-
-        // WPML
-        global $iclTranslationManagement;
-        if ( !empty( $iclTranslationManagement ) ) {
-            foreach ( $fields as $field_id => $field ) {
-                // TODO Check this for all fields
-                if ( isset( $iclTranslationManagement->settings['custom_fields_translation'][wpcf_types_get_meta_prefix( $field ) . $field_id] ) ) {
-                    $fields[$field_id]['wpml_action'] = $iclTranslationManagement->settings['custom_fields_translation'][wpcf_types_get_meta_prefix( $field ) . $field_id];
-                }
-            }
-        }
-
-        $data['fields'] = $fields;
-        $data['fields']['__key'] = 'field';
-    }
-
-    // Get custom types
-    $custom_types = get_option( 'wpcf-custom-types', array() );
-    if ( !empty( $custom_types ) ) {
-        foreach ( $custom_types as $key => $type ) {
-            $custom_types[$key]['id'] = $key;
-            $custom_types[$key] = apply_filters( 'wpcf_export_custom_post_type',
-                    $custom_types[$key] );
-            $custom_types[$key]['checksum'] = md5( $key . serialize( $custom_types[$key] ) );
-        }
-        $data['types'] = $custom_types;
-        $data['types']['__key'] = 'type';
-    }
-
-    // Get custom tax
-    $custom_taxonomies = get_option( 'wpcf-custom-taxonomies', array() );
-    if ( !empty( $custom_taxonomies ) ) {
-        foreach ( $custom_taxonomies as $key => $tax ) {
-            $custom_taxonomies[$key]['id'] = $key;
-            $custom_taxonomies[$key] = apply_filters( 'wpcf_export_custom_post_type',
-                    $custom_taxonomies[$key] );
-            $custom_taxonomies[$key]['checksum'] = md5( $key . serialize( $custom_taxonomies[$key] ) );
-        }
-        $data['taxonomies'] = $custom_taxonomies;
-        $data['taxonomies']['__key'] = 'taxonomy';
-    }
-
-    // Get post relationships
-    $relationships = get_option( 'wpcf_post_relationship', array() );
-    if ( !empty( $relationships ) ) {
-        $data['post_relationships']['data'] = serialize( $relationships );
-        $data['post_relationships']['__key'] = 'post_relationship';
-    }
-
-    // Offer for download
-    $data = $xml->array2xml( $data, 'types' );
-
-    $sitename = sanitize_title( get_bloginfo( 'name' ) );
-    if ( !empty( $sitename ) ) {
-        $sitename .= '.';
-    }
-    $filename = $sitename . 'types.' . date( 'Y-m-d' ) . '.xml';
-    $code = "<?php\r\n";
-    $code .= '$timestamp = ' . time() . ';' . "\r\n";
-    $code .= '$auto_import = ';
-    $code .= (isset( $_POST['embedded-settings'] ) && $_POST['embedded-settings'] == 'ask') ? 0 : 1;
-    $code .= ';' . "\r\n";
-    $code .= "\r\n?>";
-
-    if ( !$download ) {
-        return $data;
-    }
-
-    if ( class_exists( 'ZipArchive' ) ) {
-        $zipname = $sitename . 'types.' . date( 'Y-m-d' ) . '.zip';
-        $temp_dir = sys_get_temp_dir();
-        $file = tempnam( $temp_dir, "zip" );
-        $zip = new ZipArchive();
-        $zip->open( $file, ZipArchive::OVERWRITE );
-
-        $zip->addFromString( 'settings.xml', $data );
-        $zip->addFromString( 'settings.php', $code );
-        $zip->close();
-        $data = file_get_contents( $file );
-        header( "Content-Description: File Transfer" );
-        header( "Content-Disposition: attachment; filename=" . $zipname );
-        header( "Content-Type: application/zip" );
-        header( "Content-length: " . strlen( $data ) . "\n\n" );
-        header( "Content-Transfer-Encoding: binary" );
-        echo $data;
-        unlink( $file );
-        die();
-    } else {
-        // download the xml.
-
-        header( "Content-Description: File Transfer" );
-        header( "Content-Disposition: attachment; filename=" . $filename );
-        header( "Content-Type: application/xml" );
-        header( "Content-length: " . strlen( $data ) . "\n\n" );
-        echo $data;
-        die();
-    }
 }
 
 /**
  * Check upload dir.
- * 
- * @return type 
+ *
+ * @return type
  */
-function wpcf_admin_import_dir() {
+function wpcf_admin_import_dir()
+{
     $dir = get_temp_dir();
     return is_writable( $dir );
 }

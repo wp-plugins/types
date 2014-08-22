@@ -1,4 +1,12 @@
 <?php
+/**
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/includes/fields/skype.php $
+ * $LastChangedDate: 2014-08-06 18:57:47 +0800 (Wed, 06 Aug 2014) $
+ * $LastChangedRevision: 25691 $
+ * $LastChangedBy: bruce $
+ *
+ */
 
 /**
  * Register data (called automatically).
@@ -200,7 +208,7 @@ function wpcf_fields_skype_meta_box_ajax() {
 
     ?></h2>
         <p> 
-            <input id="btn-skypename" name="skypename" value="<?php echo $_GET['skypename']; ?>" type="text" /> 
+            <input id="btn-skypename" name="skypename" value="<?php esc_attr_e($_GET['skypename']); ?>" type="text" /> 
         </p>
         <?php
         echo WPCF_Loader::template( 'skype-select-button', $_GET );
@@ -340,30 +348,36 @@ function wpcf_fields_skype_get_button_image( $skypename = '', $template = '' ) {
 }
 
 /**
+ *
  * View function.
- * 
- * @param type $params 
+ *
+ * @param type $params
+ *
+ * @return string
+ *
  */
-function wpcf_fields_skype_view( $params ) {
+function wpcf_fields_skype_view( $params )
+{
     if ( empty( $params['field_value']['skypename'] ) ) {
         return '__wpcf_skip_empty';
     }
     // Button style
     $button_style = 'default';
     // First check if passed by parameter
-    if ( !empty( $params['button_style'] ) ) {
+    if ( array_key_exists( 'button_style', $params ) && $params['button_style'] ) {
         $button_style = $params['button_style'];
         // Otherwise use saved value
-    } else if ( !empty( $params['field_value']['style'] ) ) {
+    } else if ( array_key_exists( 'style', $params['field_value'] ) && $params['field_value']['style'] ) {
         $button_style = $params['field_value']['style'];
+    } else if ( array_key_exists( 'button_style', $params['field_value'] ) && $params['field_value']['button_style'] ) {
+        $button_style = $params['field_value']['button_style'];
     }
     // Style can be overrided by params (shortcode)
     if ( !isset( $params['field_value']['style'] ) ) {
         $params['field_value']['style'] = '';
     }
     $class = empty( $params['class'] ) ? false : $params['class'];
-    $content = wpcf_fields_skype_get_button( $params['field_value']['skypename'],
-            $button_style, $class );
+    $content = wpcf_fields_skype_get_button( $params['field_value']['skypename'], $button_style, $class );
     return $content;
 }
 
@@ -463,6 +477,12 @@ function wpcf_fields_skype_conditional_filter_post_meta( $null, $object_id,
                         $single ) );
         if ( is_array( $_meta ) ) {
             $null = isset( $_meta['skypename'] ) ? $_meta['skypename'] : '';
+        }
+        /**
+         * be sure do not return string if array is expected!
+         */
+        if ( !$single && !is_array($null) ) {
+            return array($null);
         }
     }
     return $null;
