@@ -2,10 +2,10 @@
 /*
  * Frontend functions.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/frontend.php $
- * $LastChangedDate: 2014-07-16 17:38:37 +0800 (Wed, 16 Jul 2014) $
- * $LastChangedRevision: 24999 $
- * $LastChangedBy: emerson $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/frontend.php $
+ * $LastChangedDate: 2014-08-27 10:22:08 +0800 (Wed, 27 Aug 2014) $
+ * $LastChangedRevision: 26468 $
+ * $LastChangedBy: bruce $
  *
  */
 
@@ -246,7 +246,11 @@ function types_render_field_single( $field, $params, $content = null, $code = ''
         $params['field_value'], $params, $post->ID, $field['id'], $meta_id );
     // To make sure
     if ( is_string( $params['field_value'] ) ) {
-        $params['field_value'] = esc_attr($params['field_value'] );
+        if( $field && $field['type'] == 'textarea' ) {
+            $params['field_value'] = esc_attr($params['field_value'] );
+        } else {
+            $params['field_value'] = addslashes( stripslashes( strval( $params['field_value'] ) ) );
+        }
     }
 
     // Set values
@@ -254,21 +258,21 @@ function types_render_field_single( $field, $params, $content = null, $code = ''
         foreach ( $params['field_value'] as $f_key => $f_value ) {
             if ((isset($field['data']['repetitive'])) && ($field['data']['repetitive'])) {
                 //Repetitive fields, used meta ID for proper string translation unique identification
-                $params['field_value'] = wpcf_translate( 'field ' . $field['id'] . ' value '.$meta_id, $params['field_value'] );
+                $params['field_value'] = addslashes( wpcf_translate( 'field ' . $field['id'] . ' value '.$meta_id, $params['field_value'] ) );
             } else {
                 //Non-repetitive fields, use post ID
-                $params['field_value'] = wpcf_translate( 'field ' . $field['id'] . ' value '.$post->ID, $params['field_value'] );
+                $params['field_value'] = addslashes( wpcf_translate( 'field ' . $field['id'] . ' value '.$post->ID, $params['field_value'] ) );
             }
         }
     } else {
         if ((isset($field['data']['repetitive'])) && ($field['data']['repetitive'])) {
     		    		
     		//Repetitive fields, used meta ID for proper string translation unique identification
-    		$params['field_value'] = wpcf_translate( 'field ' . $field['id'] . ' value '.$meta_id, $params['field_value'] );
+    		$params['field_value'] = addslashes( wpcf_translate( 'field ' . $field['id'] . ' value '.$meta_id, $params['field_value'] ) );
     		
     	} else {
     		//Non-repetitive fields, use post ID
-    		$params['field_value'] = wpcf_translate( 'field ' . $field['id'] . ' value '.$post->ID, $params['field_value'] );
+    		$params['field_value'] = addslashes( wpcf_translate( 'field ' . $field['id'] . ' value '.$post->ID, $params['field_value'] ) );
     	}
     }
 
@@ -320,6 +324,7 @@ function types_render_field_single( $field, $params, $content = null, $code = ''
                     }
             }
         }
+
     // Apply filters
     $output = strval( apply_filters( 'types_view', $output,
         $params['field_value'], $field['type'], $field['slug'],

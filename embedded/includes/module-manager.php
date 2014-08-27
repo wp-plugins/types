@@ -4,7 +4,7 @@
  *
  * Since Types 1.2
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/includes/module-manager.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/includes/module-manager.php $
  * $LastChangedDate: 2014-08-20 16:58:50 +0800 (Wed, 20 Aug 2014) $
  * $LastChangedRevision: 26208 $
  * $LastChangedBy: bruce $

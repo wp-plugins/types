@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.skype.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.3-CRED-1.3.1-Types-1.6.1/toolset-forms/classes/class.skype.php $
  * $LastChangedDate: 2014-08-06 00:18:16 +0800 (Wed, 06 Aug 2014) $
  * $LastChangedRevision: 25657 $
  * $LastChangedBy: juan $

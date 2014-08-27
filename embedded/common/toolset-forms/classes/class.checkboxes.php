@@ -4,10 +4,10 @@
  *
  * @author Srdjan
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.checkboxes.php $
- * $LastChangedDate: 2014-08-06 00:42:25 +0800 (Wed, 06 Aug 2014) $
- * $LastChangedRevision: 25659 $
- * $LastChangedBy: juan $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.3-CRED-1.3.1-Types-1.6.1/toolset-forms/classes/class.checkboxes.php $
+ * $LastChangedDate: 2014-08-27 10:51:19 +0800 (Wed, 27 Aug 2014) $
+ * $LastChangedRevision: 26470 $
+ * $LastChangedBy: bruce $
  *
  */
 
@@ -20,7 +20,7 @@ class WPToolset_Field_Checkboxes extends FieldFactory
         global $post;
         $value = $this->getValue();
         $data = $this->getData();
-		$name = $this->getName();
+        $name = $this->getName();
         $form = array();
         $_options = array();
         if (isset($data['options'])) {
@@ -37,7 +37,7 @@ class WPToolset_Field_Checkboxes extends FieldFactory
                 //if (!$checked&&isset($value)&&!empty($value)&&is_array($value)&&in_array($option['value'],$value)) {
                 //    $checked=true;
                 //}
-                
+
                 $_options[$option_key] = array(
                     '#value' => $option['value'],
                     '#title' => $option['title'],
@@ -46,6 +46,11 @@ class WPToolset_Field_Checkboxes extends FieldFactory
                     '#name' => $option['name']."[]",
                     //'#inline' => true,
                 );
+                
+                if ( isset( $option['data-value'] ) ) {
+                    //Fixing https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188528502/comments
+                    $_options[$option_key]['#attributes'] = array('data-value' => $option['data-value']);
+                }
 				
 				if ( !is_admin() ) {// TODO maybe add a doing_ajax() check too, what if we want to load a form using AJAX?
 					$_options[$option_key]['#before'] = '<li class="wpt-form-item wpt-form-item-checkbox">';

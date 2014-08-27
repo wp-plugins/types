@@ -2,7 +2,7 @@
 /*
  * Fields and groups form functions.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/includes/usermeta-form.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/includes/usermeta-form.php $
  * $LastChangedDate: 2014-08-14 10:10:16 +0800 (Thu, 14 Aug 2014) $
  * $LastChangedRevision: 25956 $
  * $LastChangedBy: bruce $

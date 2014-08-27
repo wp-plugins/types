@@ -3,7 +3,7 @@
  *
  * Custom Post Types embedded code.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/includes/custom-types.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/includes/custom-types.php $
  * $LastChangedDate: 2014-05-08 21:13:42 +0800 (Thu, 08 May 2014) $
  * $LastChangedRevision: 22156 $
  * $LastChangedBy: marcin $

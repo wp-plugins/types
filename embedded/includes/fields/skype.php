@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/includes/fields/skype.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/includes/fields/skype.php $
  * $LastChangedDate: 2014-08-06 18:57:47 +0800 (Wed, 06 Aug 2014) $
  * $LastChangedRevision: 25691 $
  * $LastChangedBy: bruce $

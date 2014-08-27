@@ -4,7 +4,7 @@
  * For now full and embedded version use this script.
  * Before moving full-version-only code - make sure it's not needed here.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/resources/js/basic.js $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/resources/js/basic.js $
  * $LastChangedDate: 2014-07-25 21:32:06 +0800 (Fri, 25 Jul 2014) $
  * $LastChangedRevision: 25296 $
  * $LastChangedBy: marcin $

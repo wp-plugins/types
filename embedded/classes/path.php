@@ -2,7 +2,7 @@
 /**
  * WPCF_Path
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/classes/path.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/classes/path.php $
  * $LastChangedDate: 2014-05-12 22:47:19 +0800 (Mon, 12 May 2014) $
  * $LastChangedRevision: 22250 $
  * $LastChangedBy: marcin $

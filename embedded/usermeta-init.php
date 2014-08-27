@@ -10,7 +10,7 @@ $fields_access = new Post_Fields_Access;
  * @author Gen gen.i@icanlocalize.com
  * @since Types 1.3
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/usermeta-init.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/usermeta-init.php $
  * $LastChangedDate: 2014-08-13 15:33:58 +0800 (Wed, 13 Aug 2014) $
  * $LastChangedRevision: 25902 $
  * $LastChangedBy: marcin $

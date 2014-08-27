@@ -1,10 +1,10 @@
 /**
  * @see WPToolset_Forms_Conditional (classes/conditional.php)
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/js/conditional.js $
- * $LastChangedDate: 2014-08-11 18:56:29 +0800 (Mon, 11 Aug 2014) $
- * $LastChangedRevision: 25838 $
- * $LastChangedBy: juan $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.3-CRED-1.3.1-Types-1.6.1/toolset-forms/js/conditional.js $
+ * $LastChangedDate: 2014-08-26 20:11:43 +0800 (Tue, 26 Aug 2014) $
+ * $LastChangedRevision: 26450 $
+ * $LastChangedBy: francesco $
  *
  */
 var wptCondTriggers = {}
@@ -160,20 +160,23 @@ var wptCond = (function($) {
             case 'checkbox':
                 var $trigger_checked = $trigger.filter(':checked');
 				// If no checkbox was checked, the value should be empty
-				val = '';
-				if ( $trigger_checked.length == 1 ) {
-                    val = $trigger_checked.val();
+                val = '';
+                //added data-value checking in order to fix
+                //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188528502/comments
+                if ( $trigger_checked.length == 1 ) {                    
+                    val = ($trigger_checked.attr('data-value'))?$trigger_checked.attr('data-value'):$trigger_checked.val();
                 } else if ( $trigger_checked.length > 1 ) {
-					val = [];
-					$trigger_checked.each(function() {
-						val.push($(this).val());
-					});
-				}
+                        val = [];
+                        $trigger_checked.each(function() {                                            
+                                val.push(($(this).attr('data-value'))?$(this).attr('data-value'):$(this).val());
+                        });
+                }
+                //#########################################################################################
                 break;
-			case 'file':
-				var $trigger_checked = $trigger.filter(':not([disabled])');
-				val = $trigger_checked.val();
-				break;
+            case 'file':
+                    var $trigger_checked = $trigger.filter(':not([disabled])');
+                    val = $trigger_checked.val();
+                    break;
             default:
                 val = $trigger.val();
         }

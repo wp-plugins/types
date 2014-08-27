@@ -3,7 +3,7 @@
 /**
  * produce debug information
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/debug/debug-information.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.3-CRED-1.3.1-Types-1.6.1/debug/debug-information.php $
  * $LastChangedDate: 2014-08-13 09:38:06 +0800 (Wed, 13 Aug 2014) $
  * $LastChangedRevision: 25892 $
  * $LastChangedBy: bruce $

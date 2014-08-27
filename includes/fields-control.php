@@ -2,7 +2,7 @@
 /*
  * Custom Fields Control Screen
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/includes/fields-control.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/includes/fields-control.php $
  * $LastChangedDate: 2014-06-26 18:57:18 +0800 (Thu, 26 Jun 2014) $
  * $LastChangedRevision: 24376 $
  * $LastChangedBy: marcin $

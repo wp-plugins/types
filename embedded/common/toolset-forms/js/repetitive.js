@@ -1,7 +1,7 @@
 /*
  * Repetitive JS.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/js/repetitive.js $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.3-CRED-1.3.1-Types-1.6.1/toolset-forms/js/repetitive.js $
  * $LastChangedDate: 2014-08-06 22:48:27 +0800 (Wed, 06 Aug 2014) $
  * $LastChangedRevision: 25705 $
  * $LastChangedBy: juan $

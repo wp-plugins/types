@@ -202,7 +202,7 @@ function wpcf_fields_checkboxes_view( $params ) {
             }
         }
         $output = implode( array_values( $params['field_value'] ), $separator );
-        return empty( $output ) ? '__wpcf_skip_empty' : $output;
+        return empty( $output ) ? '__wpcf_skip_empty' : stripslashes($output);
     }
 
     /*
@@ -231,7 +231,7 @@ function wpcf_fields_checkboxes_view( $params ) {
         $content = !empty( $params['#content'] ) ? htmlspecialchars_decode( $params['#content'] ) : '__wpcf_skip_empty';
         if ( $params['state'] == 'checked'
                 && $option['value'] != '__wpcf_unchecked' ) {
-            return $content;
+            return srtipslashes($content);
         } else if ( $params['state'] == 'unchecked'
                 && $option['value'] == '__wpcf_unchecked' ) {
             return $content;
@@ -249,8 +249,10 @@ function wpcf_fields_checkboxes_view( $params ) {
      * 
      * Only set if it matches settings.
      * Otherwise leave empty and '__wpcf_skip_empty' will be returned.
+     *
      */
-    if ( $option['data']['display'] == 'db' ) {
+
+    if ( isset($option['data']) && $option['data']['display'] == 'db' ) {
         /*
          * 
          * Only if NOT unchecked!
@@ -261,7 +263,7 @@ function wpcf_fields_checkboxes_view( $params ) {
             $output = wpcf_translate( 'field ' . $params['field']['id']
                     . ' option ' . $option['key'] . ' value', $output );
         }
-    } else if ( $option['data']['display'] == 'value' ) {
+    } else if ( isset($option['data']) && $option['data']['display'] == 'value' ) {
         /*
          * 
          * Checked

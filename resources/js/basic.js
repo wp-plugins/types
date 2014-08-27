@@ -3,7 +3,7 @@
  * Use this file only for scripts needed in full version.
  * Before moving from embedded JS - make sure it's needed only here.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/resources/js/basic.js $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/resources/js/basic.js $
  * $LastChangedDate: 2014-07-04 18:19:40 +0800 (Fri, 04 Jul 2014) $
  * $LastChangedRevision: 24633 $
  * $LastChangedBy: marcin $

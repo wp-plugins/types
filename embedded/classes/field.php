@@ -716,11 +716,11 @@ class WPCF_Field
         if ( isset( $params['raw'] ) && $params['raw'] == 'true' ) {
             return $html;
         } else {
-            $html = esc_attr( $html );
+            $html = htmlspecialchars( $html );
         }
         // Process shortcodes too
 //        $shortcode = do_shortcode( $html );
-        $html = do_shortcode( htmlspecialchars_decode( $html ) );
+        $html = do_shortcode( htmlspecialchars_decode( stripslashes( $html ) ) );
 
         return $html;
     }

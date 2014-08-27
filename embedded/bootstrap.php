@@ -7,9 +7,9 @@
  *
  * @since Types 1.2
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/bootstrap.php $
- * $LastChangedDate: 2014-08-20 09:26:19 +0800 (Wed, 20 Aug 2014) $
- * $LastChangedRevision: 26150 $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/bootstrap.php $
+ * $LastChangedDate: 2014-08-26 20:46:08 +0800 (Tue, 26 Aug 2014) $
+ * $LastChangedRevision: 26453 $
  * $LastChangedBy: bruce $
  *
  */
@@ -131,7 +131,7 @@ function wpcf_embedded_init() {
     // Define necessary constants if plugin is not present
     // This ones are skipped if used as embedded code!
     if ( !defined( 'WPCF_VERSION' ) ) {
-        define( 'WPCF_VERSION', '1.6' );
+        define( 'WPCF_VERSION', '1.6.1' );
         define( 'WPCF_META_PREFIX', 'wpcf-' );
     }
 

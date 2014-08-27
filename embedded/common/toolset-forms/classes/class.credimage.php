@@ -1,14 +1,15 @@
 <?php
 require_once 'class.credfile.php';
+require_once 'class.image.php';
 
 /**
  * Description of class
  *
  * @author Srdjan
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.credimage.php $
- * $LastChangedDate: 2014-08-14 21:05:33 +0800 (Thu, 14 Aug 2014) $
- * $LastChangedRevision: 25980 $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.3-CRED-1.3.1-Types-1.6.1/toolset-forms/classes/class.credimage.php $
+ * $LastChangedDate: 2014-08-22 18:23:29 +0800 (Fri, 22 Aug 2014) $
+ * $LastChangedRevision: 26350 $
  * $LastChangedBy: francesco $
  *
  */
@@ -18,13 +19,7 @@ class WPToolset_Field_Credimage extends WPToolset_Field_Credfile
     {
         //TODO: check if this getValidationData does not break PHP Validation _cakePHP required file.
         $validation = $this->getValidationData();
-        $validation['extension'] = array(
-                'args' => array(
-                    'extension',
-                    'jpg|jpeg|gif|png|bmp|webp',
-                ),
-                'message' => __( 'You can add only images.', 'wpv-views' ),
-            );
+        $validation = WPToolset_Field_Image::addTypeValidation($validation);
         $this->setValidationData($validation);
         return parent::metaform();        
     }

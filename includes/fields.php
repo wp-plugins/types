@@ -2,7 +2,7 @@
 /*
  * Fields and groups functions
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/includes/fields.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/includes/fields.php $
  * $LastChangedDate: 2014-07-10 23:25:28 +0800 (Thu, 10 Jul 2014) $
  * $LastChangedRevision: 24854 $
  * $LastChangedBy: marcin $
