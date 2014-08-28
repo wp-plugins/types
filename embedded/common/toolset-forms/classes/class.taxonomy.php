@@ -228,9 +228,11 @@ class WPToolset_Field_Taxonomy extends WPToolset_Field_Textfield
                 $font_size = ( ( $term->count - $min ) * 10 ) / ( $max - $min ) + 5;
                 $style = sprintf( ' style="font-size:1.%dem;"', $font_size );
             }
+            _pre($term);
             $content .= sprintf(
-                '<a href="#" class="wpt-taxonomy-popular-add js-wpt-taxonomy-popular-add" data-slug="%s" data-taxonomy="%s"%s>%s</a> ',
+                '<a href="#" class="wpt-taxonomy-popular-add js-wpt-taxonomy-popular-add" data-slug="%s" data-name="%s" data-taxonomy="%s"%s>%s</a> ',
                 $term->slug,
+                $term->name,
                 $this->getName(),
                 $style,
                 $term->name

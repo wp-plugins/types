@@ -231,7 +231,7 @@ function wpcf_fields_checkboxes_view( $params ) {
         $content = !empty( $params['#content'] ) ? htmlspecialchars_decode( $params['#content'] ) : '__wpcf_skip_empty';
         if ( $params['state'] == 'checked'
                 && $option['value'] != '__wpcf_unchecked' ) {
-            return srtipslashes($content);
+            return $content;
         } else if ( $params['state'] == 'unchecked'
                 && $option['value'] == '__wpcf_unchecked' ) {
             return $content;

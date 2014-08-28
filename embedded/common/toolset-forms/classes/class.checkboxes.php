@@ -4,7 +4,7 @@
  *
  * @author Srdjan
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.3-CRED-1.3.1-Types-1.6.1/toolset-forms/classes/class.checkboxes.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.checkboxes.php $
  * $LastChangedDate: 2014-08-27 10:51:19 +0800 (Wed, 27 Aug 2014) $
  * $LastChangedRevision: 26470 $
  * $LastChangedBy: bruce $

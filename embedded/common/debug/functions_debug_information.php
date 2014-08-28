@@ -2,7 +2,7 @@
 /**
   * produce debug information
   *
-  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.3-CRED-1.3.1-Types-1.6.1/debug/functions_debug_information.php $
+  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/debug/functions_debug_information.php $
   * $LastChangedDate: 2014-08-12 23:40:07 +0800 (Tue, 12 Aug 2014) $
   * $LastChangedRevision: 25886 $
   * $LastChangedBy: marcin $

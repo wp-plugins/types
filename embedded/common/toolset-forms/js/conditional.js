@@ -1,10 +1,10 @@
 /**
  * @see WPToolset_Forms_Conditional (classes/conditional.php)
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.3-CRED-1.3.1-Types-1.6.1/toolset-forms/js/conditional.js $
- * $LastChangedDate: 2014-08-26 20:11:43 +0800 (Tue, 26 Aug 2014) $
- * $LastChangedRevision: 26450 $
- * $LastChangedBy: francesco $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/js/conditional.js $
+ * $LastChangedDate: 2014-08-27 23:35:29 +0800 (Wed, 27 Aug 2014) $
+ * $LastChangedRevision: 26501 $ 
+ * $LastChangedBy: riccardo $ Riccardo
  *
  */
 var wptCondTriggers = {}
@@ -494,6 +494,8 @@ var wptCond = (function($) {
                 var $trigger = _getTrigger(t),
                     value = _getTriggerValue($trigger),
                     is_array = $trigger.length > 1 ? true : false;
+
+                console.log(":::: AND THE VALUE??????", value, " for t: ", t, $trigger );
 
 				if (typeof value != 'undefined') {
 
