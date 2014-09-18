@@ -7,9 +7,9 @@
  *
  * @see class WPToolset_Validation
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/js/validation.js $
- * $LastChangedDate: 2014-08-26 20:34:10 +0800 (Tue, 26 Aug 2014) $
- * $LastChangedRevision: 26451 $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/js/validation.js $
+ * $LastChangedDate: 2014-09-12 17:57:24 +0800 (Fri, 12 Sep 2014) $
+ * $LastChangedRevision: 27017 $
  * $LastChangedBy: francesco $
  *
  */
@@ -24,7 +24,37 @@ var wptValidation = (function($) {
         $.validator.addMethod("extension", function(value, element, param) {
             param = typeof param === "string" ? param.replace(/,/g, "|") : param;
             return this.optional(element) || value.match(new RegExp(".(" + param + ")$", "i"));
+        });      
+        
+        /**
+         * add extension to validator method require
+         */
+        $.validator.addMethod("required", function(value, element, param) {                                     
+                // check if dependency is met
+                if ( !this.depend(param, element) )
+                        return "dependency-mismatch";
+                switch( element.nodeName.toLowerCase() ) {
+                case 'select':                        
+                        var val = $(element).val();                      
+                        //Fix https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/189231348/comments
+                        // we have data-types-value that in select contains the exactly value
+                        $(element).find('option').each(function(index, option){
+                            if ($(option).val()==value) {
+	                        //if $(option).data('typesValue') is undefined i am in backend side
+                                val = ($(option).data('typesValue')!=undefined)?$(option).data('typesValue'):val;
+                                return;
+                            }
+                        });
+                        //#########################################################################
+                        return val && $.trim(val).length > 0;
+                case 'input':
+                        if ( this.checkable(element) )
+                                return this.getLength(value, element) > 0;
+                default:
+                        return $.trim(value).length > 0;
+                }
         });
+        
         /**
          * Add validation method for datepicker adodb_xxx format for date fields
          */

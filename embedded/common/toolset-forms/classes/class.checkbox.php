@@ -52,6 +52,7 @@ class WPToolset_Field_Checkbox extends FieldFactory
             '#value' => $value,
             '#default_value' => array_key_exists( 'default_value', $data )? $data['default_value']:null,
             '#name' => $this->getName(),
+            '#description' => $this->getDescription(),
             '#title' => $this->getTitle(),
             '#validate' => $this->getValidationData(),
             '#after' => '<input type="hidden" name="_wptoolset_checkbox[' . $this->getId() . ']" value="1" />',

@@ -584,10 +584,13 @@ class WPToolset_Cake_Validation
      * @access public
      */
     function extension( $check, $extensions = array('gif', 'jpeg', 'png', 'jpg') ) {
+        //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188215131/comments
+        if (!isset($check)||empty($check)) return false;
+        //##########################################################################################
         if ( is_array( $check ) ) {
             return WPToolset_Cake_Validation::extension( array_shift( $check ),
                             $extensions );
-        }
+        }        
         $extension = strtolower( array_pop( explode( '.', $check ) ) );
         foreach ( $extensions as $value ) {
             if ( $extension == strtolower( $value ) ) {

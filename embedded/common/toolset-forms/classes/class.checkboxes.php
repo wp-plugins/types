@@ -4,10 +4,10 @@
  *
  * @author Srdjan
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.checkboxes.php $
- * $LastChangedDate: 2014-08-27 10:51:19 +0800 (Wed, 27 Aug 2014) $
- * $LastChangedRevision: 26470 $
- * $LastChangedBy: bruce $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/classes/class.checkboxes.php $
+ * $LastChangedDate: 2014-09-05 22:22:07 +0800 (Fri, 05 Sep 2014) $
+ * $LastChangedRevision: 26766 $
+ * $LastChangedBy: marcin $
  *
  */
 
@@ -62,6 +62,7 @@ class WPToolset_Field_Checkboxes extends FieldFactory
         $metaform = array(
             '#type' => 'checkboxes',
             '#options' => $_options,
+            '#description' => $this->getDescription(),
         );
         if ( is_admin() ) {
             $metaform['#title'] = $this->getTitle();

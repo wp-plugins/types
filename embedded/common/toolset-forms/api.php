@@ -1,5 +1,14 @@
 <?php
 
+/**
+ *
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/api.php $
+ * $LastChangedDate: 2014-09-08 16:45:25 +0800 (Mon, 08 Sep 2014) $
+ * $LastChangedRevision: 26812 $
+ * $LastChangedBy: marcin $
+ *
+ */
+
 function wptoolset_form( $form_id, $config = array() ){
     global $wptoolset_forms;
     $html = $wptoolset_forms->form( $form_id, $config );
@@ -8,7 +17,7 @@ function wptoolset_form( $form_id, $config = array() ){
 
 function wptoolset_form_field( $form_id, $config, $value = array() ){
     global $wptoolset_forms;
-    $html = $wptoolset_forms->field( $form_id, $config, $value );    
+    $html = $wptoolset_forms->field( $form_id, $config, $value );
     return apply_filters( 'wptoolset_fieldform', $html, $config, $form_id );
 }
 
@@ -57,3 +66,30 @@ function wptoolset_timetodate( $timestamp, $format = null ){
     global $wptoolset_forms;
     return $wptoolset_forms->timetodate( $timestamp, $format );
 }
+/**
+* wptoolset_esc_like
+*
+* In WordPress 4.0, like_escape() was deprecated, due to incorrect
+* documentation and improper sanitization leading to a history of misuse
+* To maintain compatibility with versions of WP before 4.0, we duplicate the
+* logic of the replacement, wpdb::esc_like()
+*
+* @see wpdb::esc_like() for more details on proper use.
+*
+* @param string $text The raw text to be escaped.
+* @return string Text in the form of a LIKE phrase. Not SQL safe. Run through
+*                wpdb::prepare() before use.
+*/
+
+function wptoolset_esc_like( $like )
+{
+    global $wpdb;
+    if ( method_exists( $wpdb, 'esc_like' ) ) {
+        return $wpdb->esc_like( $like );
+    }
+    if ( version_compare( get_bloginfo('version'), '4' ) < 0 ) {
+        return like_escape( $like );
+    }
+    return addcslashes( $like, '_%\\' );
+}
+

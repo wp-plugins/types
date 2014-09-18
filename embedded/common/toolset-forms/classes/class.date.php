@@ -61,6 +61,7 @@ class WPToolset_Field_Date extends FieldFactory
         $datepicker = $hour = $minute = null;
 		$timestamp = false;
 		$readonly = false;
+		$clear_date_showhide = '';
 		if ( is_admin() ) {
 			// In this case, getValue returns the timestamp stored as postmeta value on the database
 			// So we compose $timestamp, $datepicker, $hour and $minute based on that value
@@ -111,6 +112,7 @@ class WPToolset_Field_Date extends FieldFactory
 			// A false value would render the hidden field with a value of 1
 			$timestamp = '';
 			$datepicker = null;
+			$clear_date_showhide = ' style="display:none"';
 		}
         
         $def_class = 'js-wpt-date';
@@ -133,7 +135,12 @@ class WPToolset_Field_Date extends FieldFactory
 			$title .= '&#42;';
 		}
 		
-		$attr_visible = array('class' => $def_class, 'style' => 'display:inline;width:150px;position:relative;z-index:20;', 'readonly' => 'readonly');
+		$attr_visible = array(
+			'class' => $def_class,
+			'style' => 'display:inline;width:150px;position:relative;z-index:20;',
+			'readonly' => 'readonly',
+			'title' => esc_attr( __( 'Select date', 'wpv-views' ) )
+		);
 		$attr_hidden = array('class' => $def_class_aux, 'data-ts' => $timestamp, 'data-wpt-type' => 'date' );
 		
 		if ( isset( $data['attribute'] ) && isset( $data['attribute']['placeholder'] ) ) {
@@ -147,6 +154,7 @@ class WPToolset_Field_Date extends FieldFactory
             '#attributes' => $attr_visible,
             '#name' => '',
             '#value' => $datepicker,
+			'#inline' => true,
         );
 		$form[] = array(
             '#type' => 'hidden',
@@ -194,11 +202,12 @@ class WPToolset_Field_Date extends FieldFactory
             }
             $hour_element = array(
                 '#type' => 'select',
-                '#title' => __( 'Hour', 'wpv-views' ),
+                '#before' => '<span class="wpt-form-label">' . __( 'Hour', 'wpv-views' ) . '</span>',
                 '#options' => $options,
                 '#default_value' => $hour,
                 '#name' => $this->getName() . '[hour]',
                 '#inline' => true,
+				'#attributes' => array( 'title' => esc_attr( __( 'Select hour', 'wpv-views' ) ) ),
             );
 			if ( !empty( $attributes_hour_minute ) ) {
 				$hour_element['#attributes'] = $attributes_hour_minute;
@@ -216,17 +225,24 @@ class WPToolset_Field_Date extends FieldFactory
             }
                 $minute_element = array(
                 '#type' => 'select',
-                '#title' => __( 'Minute', 'wpv-views' ),
+                '#before' => '<span class="wpt-form-label">' . __( 'Minute', 'wpv-views' ) . '</span>',
                 '#options' => $options,
                 '#default_value' => $minute,
                 '#name' => $this->getName() . '[minute]',
                 '#inline' => true,
+				'#attributes' => array( 'title' => esc_attr( __( 'Select minute', 'wpv-views' ) ) ),
             );
 			if ( !empty( $attributes_hour_minute ) ) {
 				$minute_element['#attributes'] = $attributes_hour_minute;
 			}
             $form[] = $minute_element;
         }
+		
+		$form[] = array(
+                '#type' => 'markup',
+				'#inline' => true,
+                '#markup' => '<input type="button"' . $clear_date_showhide . ' class="button button-secondary js-wpt-date-clear wpt-date-clear" value="' . esc_attr( __( 'Clear date', 'wpv-views' ) ) . '" />',
+        );
 
         return $form;
     }

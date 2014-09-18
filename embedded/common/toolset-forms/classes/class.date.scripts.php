@@ -36,8 +36,10 @@ class WPToolset_Field_Date_Scripts
 		( ( isset($_GET['page']) && ($_GET['page'] == 'wpcf-edit-usermeta' || $_GET['page'] == 'wpcf-edit') ) ||
 		//for edit pages including profile pages
 		($pagenow == 'profile.php' || $pagenow == 'post-new.php' || $pagenow == 'user-edit.php' || $pagenow == 'user-new.php' || $pagenow == 'post.php' || $pagenow == 'admin-ajax.php') && is_admin() )  ){	
-        add_action( 'admin_enqueue_scripts', array( $this,'date_enqueue_scripts' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'date_enqueue_scripts' ) );
+	        add_action( 'admin_enqueue_scripts', array( $this,'date_enqueue_scripts' ) );
+			if ( defined('CRED_FE_VERSION')) {
+				add_action( 'wp_enqueue_scripts', array( $this, 'date_enqueue_scripts' ) );
+			}
 		}
 		$this->localization_slug = false;
     }
@@ -120,7 +122,7 @@ class WPToolset_Field_Date_Scripts
             'yearMax' => self::timetodate( self::$_maxtimestamp, 'Y' ),
 			'ajaxurl' => admin_url('admin-ajax.php', null),
 			'readonly' => esc_js( __( 'This is a readonly date input', 'wpv-views' ) ),
-			'readonly_image' => $calendar_image_readonly
+            'readonly_image' => $calendar_image_readonly,
         );
         wp_localize_script( 'wptoolset-field-date', 'wptDateData', $js_data );
 		if ( $this->localization_slug && !wp_script_is( 'jquery-ui-datepicker-local-' . $this->localization_slug ) ) {

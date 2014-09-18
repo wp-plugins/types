@@ -75,3 +75,14 @@ function types_marketing_message_usermeta_saved($message, $title, $update) {
     ob_end_clean();
     return $message;
 }
+
+/**
+ * Ask Types users for feedback on their work
+ * https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188885189/comments
+ */
+include_once dirname(__FILE__).'/marketing/types_marketing_message_survey_2014_09.php';
+function types_marketing_message_survey_2014_09_helper()
+{
+    new types_marketing_message_survey_2014_09();
+}
+

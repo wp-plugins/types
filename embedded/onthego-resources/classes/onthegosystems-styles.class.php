@@ -14,7 +14,9 @@ class OnTheGoSystemsStyles_Class{
         // load wp-admin
         add_action( 'admin_enqueue_scripts', array(&$this, 'register_and_enqueue_styles') );
         // load front-end
-       // add_action( 'wp_enqueue_scripts', array(&$this, 'register_and_enqueue_styles') );
+        if (!is_admin()) {
+            add_action( 'admin_bar_init', array(&$this, 'register_and_enqueue_styles') );
+        }
     }
 
     public function register_and_enqueue_styles()

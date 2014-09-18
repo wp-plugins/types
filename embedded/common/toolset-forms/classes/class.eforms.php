@@ -393,14 +393,14 @@ class Enlimbo_Forms
                     // Asterisk
                     $element['#title'] .= '&#42;';
                 }
-                $element['#attributes']['data-wpt-validate'] = esc_js( self::json_encode( apply_filters( 'wptoolset_forms_field_js_validation_data_' . $this->_id,
+                $element['#attributes']['data-wpt-validate'] = esc_html( self::json_encode( apply_filters( 'wptoolset_forms_field_js_validation_data_' . $this->_id,
                                         $element['#validate'] ) ) );
 				$element['#attributes']['data-wpt-field-title'] = esc_js( $custom_field_title );
             }
             if ( $element['#type'] == 'radios' && !empty( $element['#options'] ) ) {
                 foreach ( $element['#options'] as &$option ) {
                     if ( !empty( $option['#validate'] ) ) {
-                        $option['#attributes']['data-wpt-validate'] = esc_js( self::json_encode( apply_filters( 'wptoolset_forms_field_js_validation_data_' . $this->_id,
+                        $option['#attributes']['data-wpt-validate'] = esc_html( self::json_encode( apply_filters( 'wptoolset_forms_field_js_validation_data_' . $this->_id,
                                                 $option['#validate'] ) ) );
 						$option['#attributes']['data-wpt-field-title'] = esc_js( $custom_field_title );
                     }

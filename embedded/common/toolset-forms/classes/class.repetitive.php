@@ -2,7 +2,7 @@
 /*
  * Repetitive controller
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.repetitive.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/classes/class.repetitive.php $
  * $LastChangedDate: 2014-07-03 15:27:50 +0800 (Thu, 03 Jul 2014) $
  * $LastChangedRevision: 24580 $
  * $LastChangedBy: juan $

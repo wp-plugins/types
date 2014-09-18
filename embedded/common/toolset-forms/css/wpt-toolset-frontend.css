@@ -182,7 +182,7 @@ img.ui-datepicker-trigger, img.ui-datepicker-readonly
 ,.wpt-credfile-undo {
     margin: 0 5px 0 0;
 }
-.wpt-repdelete {
+.wpt-repdelete, .wpt-date-clear {
 	margin: 0 0 0 5px;
 }
 .wpt-repadd {

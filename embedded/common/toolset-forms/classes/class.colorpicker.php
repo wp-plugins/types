@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.colorpicker.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/classes/class.colorpicker.php $
  * $LastChangedDate: 2014-07-12 16:38:18 +0800 (Sat, 12 Jul 2014) $
  * $LastChangedRevision: 24908 $
  * $LastChangedBy: gen $

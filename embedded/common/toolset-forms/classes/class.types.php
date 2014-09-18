@@ -194,7 +194,7 @@ class WPToolset_Types
                     $validation[$rule] = array(
                         'args' => isset( $settings['args'] ) ? array_unshift( $value,
                                         $settings['args'] ) : array($value, true),
-                        'message' => self::translate('field ' . $id . ' validation message ' . $rule, $settings['message'])
+                        'message' => self::translate('field ' . $id . ' validation message ' . $rule, stripslashes( $settings['message']))
                     );
                 }
             }

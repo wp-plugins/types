@@ -4,10 +4,10 @@
  *
  * Since Types 1.2
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/includes/module-manager.php $
- * $LastChangedDate: 2014-08-20 16:58:50 +0800 (Wed, 20 Aug 2014) $
- * $LastChangedRevision: 26208 $
- * $LastChangedBy: bruce $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.3/embedded/includes/module-manager.php $
+ * $LastChangedDate: 2014-09-02 22:15:40 +0800 (Tue, 02 Sep 2014) $
+ * $LastChangedRevision: 26638 $
+ * $LastChangedBy: riccardo $
  *
  */
 
@@ -158,12 +158,12 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
         $sections[_TYPES_MODULE_MANAGER_KEY_] = array(
             'title' => __( 'Post Types', 'wpcf' ),
             'icon' => WPCF_EMBEDDED_RES_RELPATH . '/images/types-icon-color_12X12.png',
-            'icon_css' => 'icon-types ont-icon-20 ont-color-orange'
+            'icon_css' => 'icon-types-logo ont-icon-16 ont-color-orange'
         );
         $sections[_GROUPS_MODULE_MANAGER_KEY_] = array(
             'title' => __( 'Field Groups', 'wpcf' ),
             'icon' => WPCF_EMBEDDED_RES_RELPATH . '/images/types-icon-color_12X12.png',
-            'icon_css' => 'icon-types ont-icon-20 ont-color-orange'
+            'icon_css' => 'icon-types-logo ont-icon-16 ont-color-orange'
         );
         // no individual fields are exported
         /* $sections[_FIELDS_MODULE_MANAGER_KEY_]=array(
@@ -173,7 +173,7 @@ if ( defined( 'MODMAN_PLUGIN_NAME' ) ) {
         $sections[_TAX_MODULE_MANAGER_KEY_] = array(
             'title' => __( 'Taxonomies', 'wpcf' ),
             'icon' => WPCF_EMBEDDED_RES_RELPATH . '/images/types-icon-color_12X12.png',
-            'icon_css' => 'icon-types ont-icon-20 ont-color-orange'
+            'icon_css' => 'icon-types-logo ont-icon-16 ont-color-orange'
         );
 
         return $sections;

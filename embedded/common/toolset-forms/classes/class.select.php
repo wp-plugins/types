@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.select.php $
- * $LastChangedDate: 2014-07-29 22:50:22 +0800 (Tue, 29 Jul 2014) $
- * $LastChangedRevision: 25428 $
- * $LastChangedBy: marcin $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/classes/class.select.php $
+ * $LastChangedDate: 2014-09-09 18:13:56 +0800 (Tue, 09 Sep 2014) $
+ * $LastChangedRevision: 26869 $
+ * $LastChangedBy: francesco $
  *
  */
 require_once 'class.field_factory.php';
@@ -28,7 +28,7 @@ class WPToolset_Field_Select extends FieldFactory
             foreach ( $data['options'] as $option ) {
                 $one_option_data = array(
                     '#value' => $option['value'],
-                    '#title' => $option['title'],
+                    '#title' => stripslashes($option['title']),
                 );
                 /**
                  * add default value if needed
@@ -50,6 +50,16 @@ class WPToolset_Field_Select extends FieldFactory
         if ( !empty( $value ) || $value == '0' ) {
             $data['default_value'] = $value;
         }
+        
+        $is_multiselect = array_key_exists('multiple', $attributes) && 'multiple' == $attributes['multiple'];
+        $default_value = isset( $data['default_value'] ) ? $data['default_value'] : null;
+        //Fix https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/189219391/comments
+        if ($is_multiselect) {
+            $default_value = new RecursiveIteratorIterator(new RecursiveArrayIterator($default_value));
+            $default_value = iterator_to_array($default_value,false);
+        }
+        //##############################################################################################
+
         /**
          * metaform
          */
@@ -59,8 +69,8 @@ class WPToolset_Field_Select extends FieldFactory
             '#description' => $this->getDescription(),
             '#name' => $this->getName(),
             '#options' => $options,
-            '#default_value' => isset( $data['default_value'] ) ? $data['default_value'] : null,
-            '#multiple' => array_key_exists('multiple', $attributes) && 'multiple' == $attributes['multiple'],
+            '#default_value' => $default_value,
+            '#multiple' => $is_multiselect,
             '#validate' => $this->getValidationData(),
             '#class' => 'form-inline',
             '#repetitive' => $this->isRepetitive(),

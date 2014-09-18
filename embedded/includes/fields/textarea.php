@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/includes/fields/textarea.php $
- * $LastChangedDate: 2014-06-20 23:24:06 +0800 (Fri, 20 Jun 2014) $
- * $LastChangedRevision: 24053 $
- * $LastChangedBy: marcin $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.3/embedded/includes/fields/textarea.php $
+ * $LastChangedDate: 2014-09-04 09:55:20 +0800 (Thu, 04 Sep 2014) $
+ * $LastChangedRevision: 26690 $
+ * $LastChangedBy: bruce $
  *
  */
 /**
@@ -59,7 +59,7 @@ function wpcf_fields_textarea_view($params)
         // If it wasn't wrapped then remove the wrapping wpautop has added.
         if (!empty($value) && strpos($value, '<p>') === 0 && strrpos($value, "</p>\n") == strlen($value) - 5) {
             // unwrapp the <p> ..... </p> if is no <p> inside, to avoid remove <p> if is nessary
-            if ( !preg_match( '/<p>/', $value ) ) {
+            if ( strpos($value, '<p>', 1 ) === false ) {
                 $value = substr($value, 3, -5);
             }
         }

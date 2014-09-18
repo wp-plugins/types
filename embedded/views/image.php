@@ -560,25 +560,17 @@ class Types_Image_Utils
 
     /**
      * Normalize attachment URL.
-     * 
+     *
      * @param type $file
      * @return string
      */
-    public static function normalizeAttachmentUrl( $file ) {
+    public static function normalizeAttachmentUrl( $file )
+    {
         $upload_info = self::uploadInfo();
         if ( $upload_info ) {
-            $file = ltrim( str_replace( $upload_info['basedir'], '',
-                            self::realpath( $file ) ), '/\\' );
-            $matches = null;
-
-            if ( preg_match( '~(\d{4}/\d{2}/)?[^/]+$~', $file, $matches ) ) {
-                $file = $matches[0];
-            }
-
-            $file = $upload_info['baseurl'] . '/' . str_replace( '\\', '/',
-                            $file );
+            $file = ltrim( str_replace( $upload_info['basedir'], '', self::realpath( $file ) ), '/\\' );
+            $file = $upload_info['baseurl'] . '/' . str_replace( '\\', '/', $file );
         }
-
         return $file;
     }
 

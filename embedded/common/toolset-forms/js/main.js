@@ -315,49 +315,48 @@ toolsetForms.CRED_taxonomy = function () {
 	});
 	
     self.add_new_show_hide = function ( taxonomy, button ) {
-        jQuery('.js-wpt-hierarchical-taxonomy-add-new-' + taxonomy).toggle();
+    jQuery('.js-wpt-hierarchical-taxonomy-add-new-' + taxonomy).toggle();
         self.hide_parent_button_if_no_terms( taxonomy, button );
-	}
-    
-	jQuery(document).on('click', '.js-wpt-hierarchical-taxonomy-add-new', function() {
-		var thiz = jQuery(this),
-		taxonomy = thiz.data( 'taxonomy' );
+    }
 
-		self.add_taxonomy( taxonomy, this );
-	});
-	/*
-	jQuery(document).on('keypress', '.js-wpt-new-taxonomy-title', function(e) {
-		if( 13 === e.keyCode ) {
-			e.preventDefault();
-			var thiz = jQuery(this),
-			taxonomy = thiz.data( 'taxonomy' );
-			self.add_taxonomy( taxonomy, this );
-		}
-	});
-	*/
+    jQuery(document).on('click', '.js-wpt-hierarchical-taxonomy-add-new', function() {
+            var thiz = jQuery(this),
+            taxonomy = thiz.data( 'taxonomy' );
+            self.add_taxonomy( taxonomy, this );
+    });
+    /*
+    jQuery(document).on('keypress', '.js-wpt-new-taxonomy-title', function(e) {
+            if( 13 === e.keyCode ) {
+                    e.preventDefault();
+                    var thiz = jQuery(this),
+                    taxonomy = thiz.data( 'taxonomy' );
+                    self.add_taxonomy( taxonomy, this );
+            }
+    });
+    */
 
     self.terms_exist = function( taxonomy, button )
     {
         var build_what = jQuery(button).data('build_what'), parent = jQuery('[name="new_tax_select_' + taxonomy + '"]').val();
-
         if ( build_what === 'checkboxes' ){
             var first_checkbox = jQuery('input[name="' + taxonomy + '\[\]"][data-parent="' + parent + '"]:first');
-
             return first_checkbox.length > 0;
         }
         else
         {
             var first_option = jQuery('select[name="' + taxonomy + '\[\]"]').find('option[data-parent="' + parent + '"]:first');
-
             return first_option.length > 0;
         }
 
         return false;
     };
 
+    self._add_new_flag = false;
     self.hide_parent_button_if_no_terms = function( taxonomy, button )
     {
-        if( self.terms_exist(taxonomy, button) === false ){
+        self._add_new_flag=!self._add_new_flag;
+        //if( self.terms_exist(taxonomy, button) === false ) {
+        if( self._add_new_flag === false ) {          
             jQuery('[name="new_tax_select_' + taxonomy + '"]').hide();
         }
         else
@@ -368,9 +367,11 @@ toolsetForms.CRED_taxonomy = function () {
 
 
     self.add_taxonomy = function ( taxonomy, button ) {
+
         var new_taxonomy = jQuery('[name="new_tax_text_' + taxonomy + '"]').val()
             , build_what = jQuery(button).data('build_what');
-        new_taxonomy = new_taxonomy.trim()
+        new_taxonomy = new_taxonomy.trim();
+
         if (new_taxonomy == '') {
             return;
         }
@@ -380,14 +381,14 @@ toolsetForms.CRED_taxonomy = function () {
         jQuery('input[name="' + taxonomy + '\[\]"]').each (function () {
             var id = jQuery(this).attr('id');
             var label = jQuery('label[for="' + id + '"]');
-            
+
             if (new_taxonomy == label.text()) {
                 exists = true
                 self._flash_it(label);
             }
         });
 
-        jQuery('select[name="' + taxonomy + '\[\]"]').find('option').each (function () {
+        jQuery('select[name="' + taxonomy + '\[\]"]').find('option').each (function () {            
             if (new_taxonomy == jQuery(this).text()) {
                 exists = true;
                 self._flash_it(jQuery(this));
@@ -403,9 +404,18 @@ toolsetForms.CRED_taxonomy = function () {
             add_position = null,
             add_before = true,
             div_fields_wrap = jQuery('div[data-item_name="taxonomyhierarchical-'+taxonomy+'"]'),
-		    level = 0;
+            level = 0;             
 
         if ( build_what === 'checkboxes' ){
+            //Fix add new leaf
+            //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188589136/comments
+            jQuery('div[data-item_name="taxonomyhierarchical-'+taxonomy+'"] li input[type=checkbox]').each(function() {
+               if (this.value==parent || this.value==new_taxonomy) {
+                   div_fields_wrap = jQuery(this).parent();
+               }
+            });
+            //#########################################################################################
+            
             var new_checkbox = '<li><input data-parent="' + parent + '" class="wpt-form-checkbox form-checkbox checkbox" type="checkbox" name="' + taxonomy + '[]" checked="checked" value="' + new_taxonomy + '"></input><label>' + new_taxonomy + '</label></li>';
 			// find the first checkbox sharing parent
             var first_checkbox = jQuery('input[name="' + taxonomy + '\[\]"][data-parent="' + parent + '"]:first');
@@ -513,4 +523,23 @@ toolsetForms.CRED_taxonomy = function () {
 }
 
 toolsetForms.cred_tax = new toolsetForms.CRED_taxonomy();
+
+//Fix https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188725294/comments
+//removed return key press
+jQuery(function(){
+ var keyStop = {
+   8: ":not(input:text, textarea, input:file, input:password)", // stop backspace = back
+   13: "input:text, input:password", // stop enter = submit 
+
+   end: null
+ };
+ jQuery(document).bind("keydown", function(event){
+  var selector = keyStop[event.which];
+
+  if(selector !== undefined && jQuery(event.target).is(selector)) {
+      event.preventDefault(); //stop event
+  }
+  return true;
+ });
+});
 

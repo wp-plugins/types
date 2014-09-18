@@ -101,12 +101,23 @@ function wpcf_admin_userprofile_init($user_id){
                         $output .= '
 <div class="wpcf-profile-field-line">
 	<div class="wpcf-profile-line-left">
-        ' . $config['title'] . $config['description'] . '
+        ' . $config['title'] . '
     </div>
 	<div class="wpcf-profile-line-right">
-        ';
+    ';
+                        $description = false;
+                        if ( !empty($config['description'])) {
+                            $description = sprintf(
+                                '<span class="description">%s</span>',
+                                $config['description']
+                            );
+                        }
                         $config['title'] = $config['description'] = '';
-                        $output .= wptoolset_form_field( 'your-profile', $config, $meta ) . '
+                        $output .= wptoolset_form_field( 'your-profile', $config, $meta );
+                        if ( $description ) {
+                            $output .= $description;
+                        }
+                        $output .= '
     </div>
 </div>';
                     }
@@ -317,6 +328,40 @@ function wpcf_admin_userprofilesave_init($user_id){
 
         global $wpcf;
         $errors = false;
+
+        /**
+         * check checkbox type fields to delete or save empty if needed
+         */
+        $groups = wpcf_admin_usermeta_get_groups_fields();
+        foreach ( $groups as $group ) {
+            if ( !array_key_exists( 'fields', $group ) || empty( $group['fields'] ) ) {
+                continue;
+            }
+            foreach( $group['fields'] as $field ) {
+                switch ( $field['type'] ) {
+                case 'checkboxes':
+                    if (
+                        !array_key_exists('wpcf', $_POST)
+                        || !array_key_exists( $field['slug'], $_POST['wpcf'] )
+                    ) {
+                        delete_user_meta($user_id, $field['meta_key']);
+                    }
+                    break;
+                case 'checkbox':
+                    if (
+                        !array_key_exists('wpcf', $_POST)
+                        || !array_key_exists( $field['slug'], $_POST['wpcf'] )
+                    ) {
+                        if ( 'yes' == $field['data']['save_empty'] ) {
+                            $_POST['wpcf'][$field['slug']] = 0;
+                        } else {
+                            delete_user_meta($user_id, $field['meta_key']);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
 
         // Save meta fields
         if ( !empty( $_POST['wpcf'] ) ) {

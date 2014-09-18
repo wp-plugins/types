@@ -5,7 +5,7 @@ Tags: CMS, custom field, custom fields, custom post type, custom post types, pos
 License: GPLv2
 Requires at least: 3.4
 Tested up to: 4.0
-Stable tag: 1.6.2
+Stable tag: 1.6.3
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -151,7 +151,26 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
+= 1.6.3 =
+
+* Added the message to ask users to answer a short survey for feedback on their work using the Types plugin.
+
+* Fixed a problem where the custom field group’s description was missing from the post/page editing page. http://wp-types.com/forums/topic/custom-field-group-descriptions-no-longer-visible-in-cpt-add-newedit-screen/
+
+* Fixed a problem where the field descriptions weren’t displayed on the user profile editing page. http://wp-types.com/forums/topic/checkbox-description-fields-no-longer-display-in-types-1-6-2/
+
+* Fixed a problem where users weren’t able to untick the single and multiple checkbox fields on the user profile editing page.
+
+* Fixed a problem where the value of date field couldn’t be cleared and added new button which clears the date field value. http://wp-types.com/forums/topic/problem-2-after-update/
+
+* Replaced the deprecated like_escape function with the wpdb::esc_like function.
+
+* Fixed a problem where the parent-child relations between custom post types persisted after deleting and re-creating a custom post type.
+
+* Fixed a problem where date picker scripts were being enqueued in the front end. https://wordpress.org/support/topic/datepicker-css-enqueued-on-public
+
 = 1.6.2 =
+
 * Fix addslashes warning
 * Fix display problems with Types shortcodes
 * Fix PHP error for checkboxes

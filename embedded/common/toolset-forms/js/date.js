@@ -10,6 +10,35 @@ var wptDate = (function($) {
                 }
             });
         }
+		
+		$(document).on( 'click', '.js-wpt-date-clear', function() {
+			var thiz = $(this), thiz_close, el, el_aux, el_select;
+			if ( thiz.closest('.js-wpt-field-item').length > 0 ) {
+				thiz_close = thiz.closest('.js-wpt-field-item');
+				el_aux = thiz_close.find('.js-wpt-date-auxiliar');
+				el = thiz_close.find('.js-wpt-date');
+				el_select = thiz_close.find('select');
+			} else if ( thiz.closest('.wpt-repctl').length > 0 ) {
+				thiz_close = thiz.closest('.wpt-repctl');
+				el_aux = thiz_close.find('.js-wpt-date-auxiliar');
+				el = thiz_close.find('.js-wpt-date');
+				el_select = thiz_close.find('select');
+			} else if ( thiz.closest('.js-wpt-field-items').length > 0 ) {
+				thiz_close = thiz.closest('.js-wpt-field-items');
+				el_aux = thiz_close.find('.js-wpt-date-auxiliar');
+				el = thiz_close.find('.js-wpt-date');
+				el_select = thiz_close.find('select');
+			} else {
+				// This should be an empty object, but as we use the variable later we need to set it
+				el_aux = thiz.closest('.js-wpt-field-items');
+				el = thiz.closest('.js-wpt-date');
+				el_select = thiz.closest('select');
+			}
+			el_aux.val( '' ).trigger( 'change' );
+			el.val( '' );
+			el_select.val('0');
+			thiz.hide();
+		});
     }
 
     function add(el)
@@ -29,17 +58,24 @@ var wptDate = (function($) {
 		return el.datepicker({
             onSelect: function( dateText, inst ) {
 				//	The el_aux element depends on the scenario: backend or frontend
-				var el_aux;
+				var el_close, el_aux, el_clear;
 				el.val('');
 				if ( el.closest('.js-wpt-field-item').length > 0 ) {
-					el_aux = el.closest('.js-wpt-field-item').find('.js-wpt-date-auxiliar');
+					el_close = el.closest('.js-wpt-field-item');
+					el_aux = el_close.find('.js-wpt-date-auxiliar');
+					el_clear = el_close.find('.js-wpt-date-clear');
 				} else if ( el.closest('.wpt-repctl').length > 0 ) {
-					el_aux = el.closest('.wpt-repctl').find('.js-wpt-date-auxiliar');
+					el_close = el.closest('.wpt-repctl');
+					el_aux = el_close.find('.js-wpt-date-auxiliar');
+					el_clear = el_close.find('.js-wpt-date-clear');
 				} else if ( el.closest('.js-wpt-field-items').length > 0 ) {
-					el_aux = el.closest('.js-wpt-field-items').find('.js-wpt-date-auxiliar');
+					el_close = el.closest('.js-wpt-field-items');
+					el_aux = el_close.find('.js-wpt-date-auxiliar');
+					el_clear = el_close.find('.js-wpt-date-clear');
 				} else {
 					// This should be an empty object, but as we use the variable later we need to set it
 					el_aux = el.closest('.js-wpt-field-items');
+					el_clear = el.closest('.js-wpt-date-clear');
 				}
 				var data = 'date=' + dateText;
 				data += '&date-format=' + wptDateData.dateFormatPhp;
@@ -50,6 +86,7 @@ var wptDate = (function($) {
 						el_aux.val( response['timestamp'] ).trigger('wptDateSelect');
 					}
 					el.val( response['display'] );
+					el_clear.show();
 				});
 				//el.trigger('wptDateSelect');
 			},

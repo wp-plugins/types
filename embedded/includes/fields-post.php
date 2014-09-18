@@ -205,7 +205,6 @@ function wpcf_add_meta_boxes( $post_type, $post ) {
 
         // Check if hidden
         if ( !isset( $group['__show_meta_box'] ) || $group['__show_meta_box'] != false ) {
-
             // Add meta boxes
             if ( empty( $only_preview ) ) {
                 add_meta_box( "wpcf-group-{$group['slug']}",
@@ -399,6 +398,14 @@ function wpcf_admin_post_meta_box( $post, $group, $echo = '', $open_style_editor
         && defined( 'WPTOOLSET_FORMS_VERSION' ) 
     ) {
         if ( isset( $group['args']['html'] ) ) {
+            /**
+             * show group description
+             */
+            if ( array_key_exists('description', $group['args'] ) && !empty($group['args']['description'])) {
+                echo '<div class="wpcf-meta-box-description">';
+                echo wpautop( wpcf_translate( 'group ' . $group['args']['id'] . ' description', $group['args']['description'] ) );
+                echo '</div>';
+            }
             foreach ( $group['args']['html'] as $field ) {
                 echo is_array( $field ) ? wptoolset_form_field( 'post',
                     $field['config'], $field['meta'] ) : $field;
@@ -1698,7 +1705,7 @@ function wpcf_admin_post_add_to_editor_js() {
     $editor_addon = new Editor_addon( 'types',
             __( 'Insert Types Shortcode', 'wpcf' ),
             WPCF_EMBEDDED_RES_RELPATH . '/js/types_editor_plugin.js',
-            '', true, 'icon-types ont-icon-22' );
+            '', true, 'icon-types-logo ont-icon-18 ont-color-gray' );
 
     foreach ( $groups as $group ) {
         if ( empty( $group['fields'] ) ) {

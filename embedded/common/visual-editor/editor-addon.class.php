@@ -120,7 +120,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             // Codemirror (new layout) button
             if ( $codemirror_button ){
                  $addon_button = '<button class="js-code-editor-toolbar-button js-code-editor-toolbar-button-v-icon button-secondary">'.
-                        '<i class="icon-views ont-icon-25"></i><span class="button-label">'. __('Fields', 'wpv-views') .'</span></button>';
+                        '<i class="icon-views-logo ont-icon-18"></i><span class="button-label">'. __('Fields', 'wpv-views') .'</span></button>';
             }
             // add search box
             $searchbar = $this->get_search_bar();
@@ -332,7 +332,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             // Codemirrir (new layout) button
             if ( $codemirror_button ){
                  $addon_button = '<button class="js-code-editor-toolbar-button js-code-editor-toolbar-button-v-icon button-secondary">'.
-                        '<i class="icon-views ont-icon-25"></i><span class="button-label">'. __('Fields', 'wpv-views') .'</span></button>';
+                        '<i class="icon-views-logo ont-icon-18"></i><span class="button-label">'. __('Fields', 'wpv-views') .'</span></button>';
             }
             // add search box
             $searchbar = $this->get_search_bar();

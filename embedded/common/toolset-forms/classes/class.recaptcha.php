@@ -40,20 +40,21 @@ class WPToolset_Field_Recaptcha extends WPToolset_Field_Textfield
     public function metaform() {        
         $form = array();
 		
-		$capture = '';
+	$capture = '';
         if ($this->pubkey || !is_admin()) {
             try {
                 $capture = recaptcha_get_html($this->pubkey);
             } catch(Exception $e ) {
+                //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188424989/comments
                 if ( current_user_can( 'manage_options' ) ) {
-                    echo '<div class="message error">';
-                    echo 'Caught exception: ',  $e->getMessage(), "\n";
-                    echo '</div>';
+                    $id_field = $this->getId();
+                    $text = 'Caught exception: '.  $e->getMessage();
+                    $capture = "<label id=\"lbl_$id_field\" class=\"wpt-form-error\">$text</label><div style=\"clear:both;\"></div>";                    
                 }
+                //###########################################################################################
             }
         }
 
-		
         $form[] = array(
             '#type' => 'textfield',
             '#title' => '',

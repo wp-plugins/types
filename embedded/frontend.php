@@ -2,9 +2,9 @@
 /*
  * Frontend functions.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.2/embedded/frontend.php $
- * $LastChangedDate: 2014-08-28 16:48:41 +0800 (Thu, 28 Aug 2014) $
- * $LastChangedRevision: 26511 $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.3/embedded/frontend.php $
+ * $LastChangedDate: 2014-09-09 12:34:09 +0800 (Tue, 09 Sep 2014) $
+ * $LastChangedRevision: 26853 $
  * $LastChangedBy: bruce $
  *
  */
@@ -331,7 +331,7 @@ function types_render_field_single( $field, $params, $content = null, $code = ''
     $output = strval( apply_filters( 'types_view', $output,
         $params['field_value'], $field['type'], $field['slug'],
         $field['name'], $params ) );
-    return $output;
+    return htmlspecialchars_decode( stripslashes( strval( $output ) ) );
 }
 
 function wpcf_frontend_compat_html_output( $output, $field, $content, $params ) {

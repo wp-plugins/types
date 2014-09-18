@@ -3,10 +3,10 @@
  *
  * Admin functions
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/admin.php $
- * $LastChangedDate: 2014-08-12 10:19:36 +0800 (Tue, 12 Aug 2014) $
- * $LastChangedRevision: 25849 $
- * $LastChangedBy: bruce $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.3/admin.php $
+ * $LastChangedDate: 2014-09-04 19:20:30 +0800 (Thu, 04 Sep 2014) $
+ * $LastChangedRevision: 26710 $
+ * $LastChangedBy: marcin $
  *
  */
 require_once WPCF_ABSPATH . '/marketing.php';
@@ -36,6 +36,7 @@ function wpcf_admin_init_hook() {
     /* wp_enqueue_style('wpcf-promo-tabs',
         WPCF_RES_RELPATH . '/css/tabs.css', array(), WPCF_VERSION); */
     wp_enqueue_style('toolset-dashicons');
+    types_marketing_message_survey_2014_09_helper();
 }
 
 /**

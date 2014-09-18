@@ -1,61 +1,73 @@
 {
   "checksum": {
-    "previous": "6467b5cc604861e9053e8c49cb0dd46b09157eb0150f491baf0c42de2ee747f0",
-    "current": "6467b5cc604861e9053e8c49cb0dd46b09157eb0150f491baf0c42de2ee747f0"
+    "previous": "8d9a6c3bf95bd4630d40a722f192ec47a6dc6367d95e40bb3ee60174fffdfe63",
+    "current": "8d9a6c3bf95bd4630d40a722f192ec47a6dc6367d95e40bb3ee60174fffdfe63"
   },
   "fonts": [
-    "fonts/onthegosystems-icons_6467b5cc604861e9053e8c49cb0dd46b.ttf",
-    "fonts/onthegosystems-icons_6467b5cc604861e9053e8c49cb0dd46b.svg",
-    "fonts/onthegosystems-icons_6467b5cc604861e9053e8c49cb0dd46b.woff",
-    "fonts/onthegosystems-icons_6467b5cc604861e9053e8c49cb0dd46b.eot"
+    "fonts/onthegosystems-icons_8d9a6c3bf95bd4630d40a722f192ec47.ttf",
+    "fonts/onthegosystems-icons_8d9a6c3bf95bd4630d40a722f192ec47.svg",
+    "fonts/onthegosystems-icons_8d9a6c3bf95bd4630d40a722f192ec47.woff",
+    "fonts/onthegosystems-icons_8d9a6c3bf95bd4630d40a722f192ec47.eot"
   ],
   "glyphs": {
     "access": {
-      "codepoint": 61696,
+      "codepoint": 61712,
       "source": "vectors/access.svg"
     },
     "access-logo": {
-      "codepoint": 61697,
+      "codepoint": 61713,
       "source": "vectors/access-logo.svg"
     },
+    "bootstrap": {
+      "codepoint": 61714,
+      "source": "vectors/bootstrap.svg"
+    },
+    "bootstrap-logo": {
+      "codepoint": 61715,
+      "source": "vectors/bootstrap-logo.svg"
+    },
     "cred": {
-      "codepoint": 61698,
+      "codepoint": 61716,
       "source": "vectors/cred.svg"
     },
     "cred-logo": {
-      "codepoint": 61699,
+      "codepoint": 61717,
       "source": "vectors/cred-logo.svg"
     },
     "layouts": {
-      "codepoint": 61700,
+      "codepoint": 61718,
       "source": "vectors/layouts.svg"
     },
     "layouts-logo": {
-      "codepoint": 61701,
+      "codepoint": 61719,
       "source": "vectors/layouts-logo.svg"
     },
     "module": {
-      "codepoint": 61702,
+      "codepoint": 61720,
       "source": "vectors/module.svg"
     },
     "module-logo": {
-      "codepoint": 61703,
+      "codepoint": 61721,
       "source": "vectors/module-logo.svg"
     },
+    "toolset-logo": {
+      "codepoint": 61722,
+      "source": "vectors/toolset-logo.svg"
+    },
     "types": {
-      "codepoint": 61704,
+      "codepoint": 61723,
       "source": "vectors/types.svg"
     },
     "types-logo": {
-      "codepoint": 61705,
+      "codepoint": 61724,
       "source": "vectors/types-logo.svg"
     },
     "views": {
-      "codepoint": 61706,
+      "codepoint": 61725,
       "source": "vectors/views.svg"
     },
     "views-logo": {
-      "codepoint": 61707,
+      "codepoint": 61726,
       "source": "vectors/views-logo.svg"
     }
   },
@@ -63,10 +75,10 @@
     "autowidth": false,
     "config": "fontcustom.yml",
     "css_selector": ".icon-{{glyph}}",
-    "debug": false,
+    "debug": true,
     "file_hash": false,
     "font_name": "onthegosystems-icons",
-    "force": true,
+    "force": false,
     "input": {
       "templates": "vectors",
       "vectors": "vectors"

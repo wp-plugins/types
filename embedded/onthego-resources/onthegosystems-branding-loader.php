@@ -34,7 +34,7 @@ if( !function_exists('on_the_go_systems_branding_init') )
         }
     }
     // make sure we load styles after font awesome
-    add_action( 'init', 'on_the_go_systems_branding_init', 99 );
+    add_action( 'init', 'on_the_go_systems_branding_init', 110 );
 }
 
 

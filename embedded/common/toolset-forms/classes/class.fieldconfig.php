@@ -68,11 +68,21 @@ if (!class_exists("FieldConfig")) {
                         $this->default_value = $field_arr['attr']['default'][0];
                     }
                     break;
-
+                    
                 case 'select':
-                    $this->default_value = isset( $field_arr['attr']['actual_value'][0] )? $field_arr['attr']['actual_value'][0] : null;
-                    break;
-
+                    if (isset($field_arr['attr']['multiple'])) {
+                        //Multiselect
+                        if (isset($field_arr['value']))
+                        foreach ($field_arr['value'] as $value) {
+                            if (isset($value[0])) {
+                                $this->default_value = $value;
+                                break;
+                            }
+                        }                        
+                    } else
+                        $this->default_value = isset( $field_arr['attr']['actual_value'][0] )? $field_arr['attr']['actual_value'][0] : null;                    
+                    break;                    
+                
                 case 'radios':
                     $this->default_value = $field_arr['attr']['default'];
                     break;

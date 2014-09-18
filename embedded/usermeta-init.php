@@ -10,10 +10,10 @@ $fields_access = new Post_Fields_Access;
  * @author Gen gen.i@icanlocalize.com
  * @since Types 1.3
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/usermeta-init.php $
- * $LastChangedDate: 2014-08-13 15:33:58 +0800 (Wed, 13 Aug 2014) $
- * $LastChangedRevision: 25902 $
- * $LastChangedBy: marcin $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.3/embedded/usermeta-init.php $
+ * $LastChangedDate: 2014-09-09 18:46:42 +0800 (Tue, 09 Sep 2014) $
+ * $LastChangedRevision: 26873 $
+ * $LastChangedBy: gen $
  *
  */
 function wpcf_admin_menu_edit_user_fields_hook() {
@@ -792,7 +792,7 @@ class Usermeta_Access
      */
     public function __construct() {
         // setup custom capabilities
-        self::$user_groups = wpcf_admin_fields_get_groups();
+        self::$user_groups = wpcf_admin_fields_get_groups('wp-types-user-group');
         //If access plugin installed
         if ( function_exists( 'wpcf_access_register_caps' ) ) { // integrate with Types Access
             if ( !empty( self::$user_groups ) ) {
@@ -1004,25 +1004,15 @@ add_action( 'wp_ajax_wpcf_types_suggest_user',
 /**
  * Suggest user AJAX.
  */
-function wpcf_access_wpcf_types_suggest_user_ajax() {
+function wpcf_access_wpcf_types_suggest_user_ajax()
+{
     global $wpdb;
-    /* $users = array();
-      $q = $wpdb->escape(trim($_POST['q']));
-      $q = like_escape($q);
-      $found = $wpdb->get_results("SELECT ID, display_name, user_login FROM $wpdb->users WHERE user_nicename LIKE '%%$q%%' OR user_login LIKE '%%$q%%' OR display_name LIKE '%%$q%%' OR user_email LIKE '%%$q%%' LIMIT 10");
-      if (!empty($found)) {
-      foreach ($found as $user) {
-      $users[$user->user_login] = $user->display_name . ' (' . $user->user_login . ')';
-      }
-      } */
     $users = '';
-    $q = esc_sql( trim( $_GET['q'] ) );
-    $q = like_escape( $q );
+    $q = wptoolset_esc_like(esc_sql( trim( $_GET['q'] ) ));
     $found = $wpdb->get_results( "SELECT ID, display_name, user_login FROM $wpdb->users WHERE user_nicename LIKE '%%$q%%' OR user_login LIKE '%%$q%%' OR display_name LIKE '%%$q%%' OR user_email LIKE '%%$q%%' LIMIT 10" );
 
     if ( !empty( $found ) ) {
         foreach ( $found as $user ) {
-            //$users[$user->user_login] = $user->display_name . ' (' . $user->user_login . ')';
             $users .= '<li>' . $user->user_login . '</li>';
         }
     }
