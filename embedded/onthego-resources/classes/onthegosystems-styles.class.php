@@ -21,8 +21,10 @@ class OnTheGoSystemsStyles_Class{
 
     public function register_and_enqueue_styles()
     {
-        wp_register_style('onthego-admin-styles', ON_THE_GO_SYSTEMS_BRANDING_REL_PATH .'onthego-styles/onthego-styles.css');
-        wp_enqueue_style( 'onthego-admin-styles' );
+        if ( is_admin() ) {
+            wp_register_style('onthego-admin-styles', ON_THE_GO_SYSTEMS_BRANDING_REL_PATH .'onthego-styles/onthego-styles.css');
+            wp_enqueue_style( 'onthego-admin-styles' );
+        }
     }
 
     public static function getInstance( )

@@ -3,9 +3,9 @@
  *
  * Custom taxonomies form
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/includes/custom-taxonomies-form.php $
- * $LastChangedDate: 2014-05-08 21:13:42 +0800 (Thu, 08 May 2014) $
- * $LastChangedRevision: 22156 $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/includes/custom-taxonomies-form.php $
+ * $LastChangedDate: 2014-09-19 17:36:25 +0200 (Fri, 19 Sep 2014) $
+ * $LastChangedRevision: 27322 $
  * $LastChangedBy: marcin $
  *
  */
@@ -234,7 +234,7 @@ function wpcf_admin_custom_taxonomies_form() {
         'separate_items_with_commas' => array('title' => __( 'Separate %s with commas',
                     'wpcf' ), 'description' => __( "The separate item with commas text used in the taxonomy meta box. This string isn't used on hierarchical taxonomies. Default is __( 'Separate tags with commas' ), or null.",
                     'wpcf' )),
-        'add_or_remove_items' => array('title' => __( 'Add or remove %s', 'wpcf' ), 'description' => __( "the add or remove items text and used in the meta box when JavaScript is disabled. This string isn't used on hierarchical taxonomies. Default is __( 'Add or remove tags' ) or null.",
+        'add_or_remove_items' => array('title' => __( 'Add or remove %s', 'wpcf' ), 'description' => __( "the add or remove items text used in the meta box when JavaScript is disabled. This string isn't used on hierarchical taxonomies. Default is __( 'Add or remove tags' ) or null.",
                     'wpcf' )),
         'choose_from_most_used' => array('title' => __( 'Choose from the most used %s',
                     'wpcf' ), 'description' => __( "The choose from most used text used in the taxonomy meta box. This string isn't used on hierarchical taxonomies. Default is __( 'Choose from the most used tags' ) or null.",

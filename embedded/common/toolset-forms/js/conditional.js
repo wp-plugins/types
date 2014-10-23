@@ -1,9 +1,9 @@
 /**
  * @see WPToolset_Forms_Conditional (classes/conditional.php)
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/js/conditional.js $
- * $LastChangedDate: 2014-08-27 23:35:29 +0800 (Wed, 27 Aug 2014) $
- * $LastChangedRevision: 26501 $ 
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/js/conditional.js $
+ * $LastChangedDate: 2014-10-02 16:35:00 +0200 (Thu, 02 Oct 2014) $
+ * $LastChangedRevision: 27651 $ 
  * $LastChangedBy: riccardo $ Riccardo
  *
  */
@@ -131,6 +131,9 @@ var wptCond = (function($) {
                     val = radio.val();
                 } else {
                     val = radio.data('types-value');
+                }
+                if ( wptCondDebug ) {
+                    console.log( 'radio', radio );
                 }
                 break;
             case 'select':
@@ -463,7 +466,10 @@ var wptCond = (function($) {
                 break;
             case 'radio':
             case 'radios':
-                $('[name="' + $trigger.attr('name') + '"]').on('click', func);
+                /**
+                 * when selecting again, do not forget about formID
+                 */
+                $('[name="' + $trigger.attr('name') + '"]', formID).on('click', func);
                 break;
             case 'select':
                 $trigger.on('change', func);
@@ -485,17 +491,26 @@ var wptCond = (function($) {
 
     function _custom(formID, fields)
     {
+        /**
+         * debug
+         */
+        if ( wptCondDebug ) {
+            console.log('_custom');
+            console.log('formID', formID);
+            console.log('fields', fields);
+        }
         _.each(fields, function(field) {
             var c = wptCondCustomFields[formID][field];
 			var expression = c.custom;
 
 			// Get the values and update the expression.
             _.each(c.triggers, function(t) {
-                var $trigger = _getTrigger(t),
-                    value = _getTriggerValue($trigger),
+                var $trigger = _getTrigger(t, formID),
+                    value = _getTriggerValue($trigger, formID),
                     is_array = $trigger.length > 1 ? true : false;
-
-                console.log(":::: AND THE VALUE??????", value, " for t: ", t, $trigger );
+            if ( wptCondDebug ) {
+                console.log("The value is ", value, " for element: ", t, $trigger );
+            }
 
 				if (typeof value != 'undefined') {
 
@@ -507,12 +522,13 @@ var wptCond = (function($) {
 					// then convert value to ARRAY(...)
 					
 
-                    if( is_array === true )
-                    {
+                    if( is_array === true ) {
 
-						var val_array = '';
+                        var val_array = '';
 
-                        console.log();
+                        if ( wptCondDebug ) {
+                            console.log();
+                        }
 
 						if (value instanceof Array) {
 							for(var i = 0; i < value.length; i++) {

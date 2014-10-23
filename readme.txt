@@ -151,6 +151,22 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
+= 1.6.4 =
+
+* Fixed dependency between custom taxonomy and custom posts when importing data from "Custom Post Type UI" plugin.
+* Fixed saving "0" for checkboxes when editing Custom Post which have checkbox witch option "save 0 to the database". http://wp-types.com/forums/topic/checkbox-custom-field-doesnt-save-value-since-upgrade-to-version-1-6-2/ http://wp-types.com/forums/topic/types-checkbox-field-not-saving-after-save-0-to-the-database/
+* Fixed notices when we use relative urls to images.
+http://wp-types.com/forums/topic/php-notice-undefined-index-host-in-image-php/
+* Fixed example witch extend fields with google map and allow user to enter coordinate to display a map.
+* Added filter "wpcf_delete_relation_meta" which allow to delete all post relationships when deleting custom post type.
+* Fixed changing the file name when upload the file https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/189560556/comments http://wp-types.com/forums/topic/types-1-6-update-breaks-layout-that-worked-in-types-1-5-7/
+* Fixed a problem with duplicate slugs on "Edit Group" screen.  https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/187118123/comments http://wp-types.com/forums/topic/cant-add-more-custom-fields/
+* Fixed problem with non disappears default descriptions for non English placeholders. https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/189787190/comments
+* Fixed a problem with post metaboxes for CT which do not disappears after removing CPT from CPT.
+* Fixed embeding admin area css from OTGS. https://wordpress.org/support/topic/four-stylesheets-being-loaded-at-frontend
+* Fixed a problem with forms witch checkbox https://wp-types.com/forums/topic/checkbox-value-not-saved/
+* Added "private" post status to select parent http://wp-types.com/forums/topic/cred-child-form-not-working-with-private-ctp/
+
 = 1.6.3 =
 
 * Added the message to ask users to answer a short survey for feedback on their work using the Types plugin.
@@ -168,6 +184,7 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 * Fixed a problem where the parent-child relations between custom post types persisted after deleting and re-creating a custom post type.
 
 * Fixed a problem where date picker scripts were being enqueued in the front end. https://wordpress.org/support/topic/datepicker-css-enqueued-on-public
+
 
 = 1.6.2 =
 

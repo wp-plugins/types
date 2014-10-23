@@ -55,6 +55,26 @@ function wpcf_admin_custom_types_form() {
             '#value' => $id,
             '#name' => 'ct[wpcf-post-type]',
         );
+        /**
+         * update taxonomy too
+         */
+        $custom_taxonomies = get_option( 'wpcf-custom-taxonomies', array() );
+        foreach( $custom_taxonomies as $slug => $data ) {
+            if ( !array_key_exists('supports', $data)) {
+                continue;
+            }
+            if ( !array_key_exists($id, $data['supports']) ) {
+                continue;
+            }
+            if (
+                array_key_exists('taxonomies', $ct)
+                && array_key_exists($slug, $ct['taxonomies'])
+            ) {
+                continue;
+            }
+            unset($custom_taxonomies[$slug]['supports'][$id]);
+        }
+        update_option( 'wpcf-custom-taxonomies', $custom_taxonomies);
     }
 
     $form['table-1-open'] = array(

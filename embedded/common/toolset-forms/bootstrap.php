@@ -44,10 +44,10 @@ class WPToolset_Forms_Bootstrap
         // Date conditinal AJAX check
         add_action( 'wp_ajax_wptoolset_conditional',
                 array($this, 'ajaxConditional') );
-		
-		// Date extended localization AJAX callback
-		add_action( 'wp_ajax_wpt_localize_extended_date', array( $this, 'wpt_localize_extended_date' ) );
-		add_action( 'wp_ajax_nopriv_wpt_localize_extended_date', array( $this, 'wpt_localize_extended_date' ) );
+
+        // Date extended localization AJAX callback
+        add_action( 'wp_ajax_wpt_localize_extended_date', array( $this, 'wpt_localize_extended_date' ) );
+        add_action( 'wp_ajax_nopriv_wpt_localize_extended_date', array( $this, 'wpt_localize_extended_date' ) );
 
         // File media popup
         if ( (isset( $_GET['context'] ) && $_GET['context'] == 'wpt-fields-media-insert') || (isset( $_SERVER['HTTP_REFERER'] ) && strpos( $_SERVER['HTTP_REFERER'],
@@ -57,13 +57,15 @@ class WPToolset_Forms_Bootstrap
             add_action( 'init', array('WPToolset_Field_File', 'mediaPopup') );
         }
         add_filter('sanitize_file_name', array( $this, 'sanitize_file_name' ) );
-		
-		add_filter( 'wptoolset_filter_wptoolset_repdrag_image', array( $this, 'set_default_repdrag_image' ), 10, 1 );
+
+        add_filter( 'wptoolset_filter_wptoolset_repdrag_image', array( $this, 'set_default_repdrag_image' ), 10, 1 );
         /**
          * common class for calendar
          */
         require_once WPTOOLSET_FORMS_ABSPATH.'/classes/class.date.scripts.php';
         new WPToolset_Field_Date_Scripts();
+
+        add_action('pre_get_posts', array($this,'pre_get_posts'));
     }
 
     // returns HTML
@@ -124,19 +126,19 @@ class WPToolset_Forms_Bootstrap
         echo $this->checkConditional( array('conditional' => $data) );
         die();
     }
-	
-	public function wpt_localize_extended_date()
-	{
-		$date_format = $_POST['date-format'];
-		if ($date_format == '') {
-			$date_format = get_option('date_format');
-		}
-		$date = $_POST['date'];		
-		$date = adodb_mktime(0, 0, 0, substr($date, 2, 2), substr($date, 0, 2), substr($date, 4, 4));
-		$date_format = str_replace('\\\\', '\\', $date_format);		
-		echo json_encode(array('display' => adodb_date($date_format, $date),'timestamp' => $date));
-		die();
-	}
+
+    public function wpt_localize_extended_date()
+    {
+        $date_format = $_POST['date-format'];
+        if ($date_format == '') {
+            $date_format = get_option('date_format');
+        }
+        $date = $_POST['date'];
+        $date = adodb_mktime(0, 0, 0, substr($date, 2, 2), substr($date, 0, 2), substr($date, 4, 4));
+        $date_format = str_replace('\\\\', '\\', $date_format);
+        echo json_encode(array('display' => adodb_date($date_format, $date),'timestamp' => $date));
+        die();
+    }
 
     public function filterTypesField($field, $post_id = null, $_post_wpcf = array())
     {
@@ -169,7 +171,7 @@ class WPToolset_Forms_Bootstrap
         return WPToolset_Field_Date::timetodate( $timestamp, $format );
     }
 
-    public function sanitize_file_name( $filename )
+    public function sanitize_file_name($filename)
     {
         /**
          * replace german special characters
@@ -186,15 +188,80 @@ class WPToolset_Forms_Bootstrap
         /**
          * remove special characters
          */
-        $filename = preg_replace( '/[^A-Za-z0-9\._]/', '-', $filename);
-        $filename = preg_replace( '/[_ ]+/', '-', $filename);
+        $filename = preg_replace( '/[^A-Za-z0-9\._@]/', '-', $filename);
         $filename = preg_replace( '/%20/', '-', $filename);
         return $filename;
     }
-	
-	public function set_default_repdrag_image( $image ) {
-		return WPTOOLSET_FORMS_RELPATH . '/images/move.png';
-	}
+
+    public function set_default_repdrag_image($image)
+    {
+        return WPTOOLSET_FORMS_RELPATH . '/images/move.png';
+    }
+
+    /**
+     * add custom post type to query when they use category or tags taxonomy.
+     */
+    public function pre_get_posts($query)
+    {
+        if ( is_admin() ) {
+            return;
+        }
+        /**
+         * do that only for main query
+         */
+        if (!$query->is_main_query()) {
+            return;
+        }
+
+        $types_cpt = get_option( 'wpcf-custom-types');
+        if (!is_array($types_cpt) || empty($types_cpt)) {
+            return;
+        }
+        $cpt_to_add = array();
+        /**
+         * check category
+         */
+        if ( is_category() ) {
+            foreach($types_cpt as $cpt_slug => $cpt) {
+                if (array_key_exists('taxonomies', $cpt) && is_array($cpt['taxonomies'])) {
+                    foreach($cpt['taxonomies'] as $tax_slug => $value) {
+                        if ('category' == $tax_slug && $value) {
+                            $cpt_to_add[] = $cpt_slug;
+                        }
+                    }
+                }
+            }
+        }
+        /**
+         * check tags
+         */
+        if ( is_tag() ) {
+            foreach($types_cpt as $cpt_slug => $cpt) {
+                if (array_key_exists('taxonomies', $cpt) && is_array($cpt['taxonomies'])) {
+                    foreach($cpt['taxonomies'] as $tax_slug => $value) {
+                        if ('post_tag' == $tax_slug && $value) {
+                            $cpt_to_add[] = $cpt_slug;
+                        }
+                    }
+                }
+            }
+        }
+        /**
+         * change query if some CPT use this
+         */
+        if (!empty($cpt_to_add)) {
+            /**
+             * remeber if is empty, then is post
+             */
+            $current_types = $query->get('post_type');
+            if(empty($current_types)) {
+                $cpt_to_add[] = 'post';
+            } else {
+                $cpt_to_add = array_merge($current_types, $cpt_to_add);
+            }
+            $query->set('post_type', $cpt_to_add);
+        }
+    }
 }
 
 $GLOBALS['wptoolset_forms'] = new WPToolset_Forms_Bootstrap();

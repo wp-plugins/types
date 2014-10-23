@@ -1,8 +1,8 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/templates/metaform-item.php $
- * $LastChangedDate: 2014-08-06 00:49:11 +0800 (Wed, 06 Aug 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/templates/metaform-item.php $
+ * $LastChangedDate: 2014-08-05 18:49:11 +0200 (Tue, 05 Aug 2014) $
  * $LastChangedRevision: 25660 $
  * $LastChangedBy: juan $
  *

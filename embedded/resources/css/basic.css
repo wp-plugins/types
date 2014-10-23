@@ -424,7 +424,11 @@ input.wpcf-form-error {
     display: none;
 }
 .ac_results{
-	width:200px !important;
+	/**
+	* Commented out because it breaks autocomplete suggestions in, well, everywhere, if any result is longer.
+	* Adjust to specific place if needed, using the resultsClass option.
+	*/
+	/*width:200px !important;*/
 }
 
 /* temp */

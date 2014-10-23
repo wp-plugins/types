@@ -319,7 +319,8 @@ function wpcf_admin_fields_form() {
                         . '&amp;page=wpcf-edit'
                         . '&amp;field=' . $field['id'] ) . '&amp;_wpnonce='
                 . wp_create_nonce( 'fields_insert_existing' ) . '" '
-                . 'class="wpcf-fields-add-ajax-link button-secondary" onclick="jQuery(this).parent().fadeOut();">'
+                . 'class="wpcf-fields-add-ajax-link button-secondary" onclick="jQuery(this).parent().fadeOut();" '
+                . ' data-slug="' . $field['id'] . '">'
                 . htmlspecialchars( stripslashes( $field['name'] ) ) . '</a>'
                 . '<a href="' . admin_url( 'admin-ajax.php'
                         . '?action=wpcf_ajax'
@@ -768,8 +769,7 @@ function wpcf_admin_fields_form() {
     wpcf_admin_add_js_settings( 'wpcf_filters_association_all_templates',
             '\'' . __( 'any', 'wpcf' ) . '\'' );
 
-    $additional_filters = apply_filters( 'wpcf_fields_form_additional_filters',
-            array(), $update );
+    $additional_filters = apply_filters( 'wpcf_fields_form_additional_filters', array(), $update );
     $form = $form + $additional_filters;
 
     $form['supports-table-close'] = array(

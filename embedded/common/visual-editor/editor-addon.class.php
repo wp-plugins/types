@@ -120,7 +120,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             // Codemirror (new layout) button
             if ( $codemirror_button ){
                  $addon_button = '<button class="js-code-editor-toolbar-button js-code-editor-toolbar-button-v-icon button-secondary">'.
-                        '<i class="icon-views-logo ont-icon-18"></i><span class="button-label">'. __('Fields', 'wpv-views') .'</span></button>';
+                        '<i class="icon-views-logo ont-icon-18"></i><span class="button-label">'. __('Fields and Views', 'wpv-views') .'</span></button>';
             }
             // add search box
             $searchbar = $this->get_search_bar();
@@ -192,8 +192,9 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
                 );
             
             if ( isset( $sitepress ) && function_exists( 'wpml_string_shortcode' ) ) {
-		$this->items[] = array(__('Translatable string', 'wpv-views'), 'wpml-string',__('Basic', 'wpv-views'),'wpv_insert_translatable_string_popup()');
-	    }
+				$nonce = wp_create_nonce('wpv_editor_callback');
+				$this->items[] = array(__('Translatable string', 'wpv-views'), 'wpml-string',__('Basic', 'wpv-views'),'WPViews.shortcodes_gui.wpv_insert_translatable_string_popup(\'' . $nonce . '\')');
+			}
 	    
             
 
@@ -332,7 +333,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             // Codemirrir (new layout) button
             if ( $codemirror_button ){
                  $addon_button = '<button class="js-code-editor-toolbar-button js-code-editor-toolbar-button-v-icon button-secondary">'.
-                        '<i class="icon-views-logo ont-icon-18"></i><span class="button-label">'. __('Fields', 'wpv-views') .'</span></button>';
+                        '<i class="icon-views-logo ont-icon-18"></i><span class="button-label">'. __('Fields and Views', 'wpv-views') .'</span></button>';
             }
             // add search box
             $searchbar = $this->get_search_bar();
@@ -672,13 +673,13 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
                             '_wpv_settings', true );
                     $title = $vtemplate->post_title . ' - ' . __( 'Post View',
                                     'wpv-views' );
-                    if ( isset( $view_settings['query_type'][0] ) && $view_settings['query_type'][0] == 'taxonomy' ) {
+                    if ( isset( $view_settings['query_type'] ) && isset( $view_settings['query_type'][0] ) && $view_settings['query_type'][0] == 'taxonomy' ) {
                         $title = $vtemplate->post_title . ' - ' . __( 'Taxonomy View',
                                         'wpv-views' );
                         if ( $post_name == __( 'Post View', 'wpv-views' ) || $post_name == __( 'User View', 'wpv-views' ) ) {
                             continue;
                         }
-                    } elseif ( isset( $view_settings['query_type'][0] ) && $view_settings['query_type'][0] == 'users' ) {
+                    } elseif ( isset( $view_settings['query_type'] ) && isset( $view_settings['query_type'][0] ) && $view_settings['query_type'][0] == 'users' ) {
                         $title = $vtemplate->post_title . ' - ' . __( 'User View',
                                         'wpv-views' );
                         if ( $post_name == __( 'Post View', 'wpv-views' ) || $post_name == __( 'Taxonomy View', 'wpv-views' ) ) {

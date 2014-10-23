@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/classes/class.radios.php $
- * $LastChangedDate: 2014-08-14 15:35:38 +0800 (Thu, 14 Aug 2014) $
- * $LastChangedRevision: 25961 $
- * $LastChangedBy: francesco $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.radios.php $
+ * $LastChangedDate: 2014-10-13 19:15:17 +0200 (Mon, 13 Oct 2014) $
+ * $LastChangedRevision: 28043 $
+ * $LastChangedBy: marcin $
  *
  */
 require_once 'class.field_factory.php';
@@ -30,11 +30,28 @@ class WPToolset_Field_Radios extends FieldFactory
                 '#title' => $option['title'],
                 '#validate' => $this->getValidationData()
             );
-			if ( !is_admin() ) {// TODO maybe add a doing_ajax() check too, what if we want to load a form using AJAX?
-				$one_option_data['#before'] = '<li class="wpt-form-item wpt-form-item-radio">';
-				$one_option_data['#after'] = '</li>';
-				$one_option_data['#pattern'] = '<BEFORE><PREFIX><ELEMENT><LABEL><ERROR><SUFFIX><DESCRIPTION><AFTER>';
-			}
+            if ( !is_admin() ) {// TODO maybe add a doing_ajax() check too, what if we want to load a form using AJAX?
+                $clases = array(
+                    'wpt-form-item',
+                    'wpt-form-item-radio',
+                    'radio-'.sanitize_title($option['title'])
+                );
+                /**
+                 * filter: cred_checkboxes_class
+                 * @param array $clases current array of classes
+                 * @parem array $option current option
+                 * @param string field type
+                 *
+                 * @return array
+                 */
+                $clases = apply_filters( 'cred_item_li_class', $clases, $option, 'radio' );
+                $one_option_data['#before'] = sprintf(
+                    '<li class="%s">',
+                    implode(' ', $clases)
+                );
+                $one_option_data['#after'] = '</li>';
+                $one_option_data['#pattern'] = '<BEFORE><PREFIX><ELEMENT><LABEL><ERROR><SUFFIX><DESCRIPTION><AFTER>';
+            }
             /**
              * add default value if needed
              * issue: frontend, multiforms CRED
@@ -67,12 +84,12 @@ class WPToolset_Field_Radios extends FieldFactory
             '#repetitive' => $this->isRepetitive(),
             '#validate' => $this->getValidationData(),
         );
-		
+
         if ( !is_admin() ) {// TODO maybe add a doing_ajax() check too, what if we want to load a form using AJAX?
                 $form_attr['#before'] = '<ul class="wpt-form-set wpt-form-set-radios wpt-form-set-radios-' . $name . '">';
                 $form_attr['#after'] = '</ul>';
         }
-		
+
         $form[] = $form_attr;
 
         return $form;

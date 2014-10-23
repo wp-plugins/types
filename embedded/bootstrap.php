@@ -7,8 +7,8 @@
  *
  * @since Types 1.2
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.3/embedded/bootstrap.php $
- * $LastChangedDate: 2014-09-12 20:22:46 +0800 (Fri, 12 Sep 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/bootstrap.php $
+ * $LastChangedDate: 2014-09-12 14:22:46 +0200 (Fri, 12 Sep 2014) $
  * $LastChangedRevision: 27032 $
  * $LastChangedBy: marcin $
  *

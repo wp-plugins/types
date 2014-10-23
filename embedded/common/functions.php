@@ -4,6 +4,15 @@
  */
 define( 'ICL_COMMON_FUNCTIONS', true );
 
+// for retro compatibility with WP < 3.5
+if( !function_exists('wp_normalize_path') ){
+    function wp_normalize_path( $path ) {
+        $path = str_replace( '\\', '/', $path );
+        $path = preg_replace( '|/+|','/', $path );
+        return $path;
+    }
+}
+
 /**
  * Calculates relative path for given file.
  * 
@@ -11,24 +20,28 @@ define( 'ICL_COMMON_FUNCTIONS', true );
  * @return string Relative path
  */
 function icl_get_file_relpath( $file ) {
-    $is_https = isset( $_SERVER['HTTPS'] ) && strtolower( $_SERVER['HTTPS'] ) == 'on';
-    $http_protocol = $is_https ? 'https' : 'http';
-    $base_root = $http_protocol . '://' . $_SERVER['HTTP_HOST'];
-    $base_url = $base_root;
-    $dir = rtrim( dirname( $file ), '\/' );
-    if ( $dir ) {
-        $base_path = $dir;
-        $base_url .= $base_path;
-        $base_path .= '/';
-    } else {
-        $base_path = '/';
-    }
-    $relpath = $base_root
-            . str_replace(
-                    str_replace( '\\', '/',
-                            realpath( $_SERVER['DOCUMENT_ROOT'] ) )
-                    , '', str_replace( '\\', '/', dirname( $file ) )
-    );
+    // website url form DB
+    $url = get_option('siteurl');
+    // fix the protocol
+    $base_root = set_url_scheme( $url );
+
+    // normalise windows paths
+    $path_to_file = wp_normalize_path($file);
+    // get file directory
+    $file_dir = wp_normalize_path( dirname( $path_to_file ) );
+    // get the path to 'wp-content'
+    $from_content_dir = wp_normalize_path( realpath( WP_CONTENT_DIR ) );
+    // get wp-content dirname
+    $content_dir = wp_normalize_path( basename(WP_CONTENT_DIR) );
+
+    // remove absolute path part until 'wp-content' folder
+    $path = str_replace( $from_content_dir, '', $file_dir);
+    // add wp-content dir to path
+    $path = wp_normalize_path( $content_dir.$path );
+
+    // build url
+    $relpath = $base_root . '/' . $path;
+
     return $relpath;
 }
 

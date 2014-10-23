@@ -4,9 +4,9 @@
  *
  * @author Srdjan
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/classes/class.checkboxes.php $
- * $LastChangedDate: 2014-09-05 22:22:07 +0800 (Fri, 05 Sep 2014) $
- * $LastChangedRevision: 26766 $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.checkboxes.php $
+ * $LastChangedDate: 2014-10-13 19:15:17 +0200 (Mon, 13 Oct 2014) $
+ * $LastChangedRevision: 28043 $
  * $LastChangedBy: marcin $
  *
  */
@@ -25,13 +25,13 @@ class WPToolset_Field_Checkboxes extends FieldFactory
         $_options = array();
         if (isset($data['options'])) {
             foreach ( $data['options'] as $option_key => $option ) {
-                
+
                 $checked = isset( $option['checked'] ) ? $option['checked'] : !empty( $value[$option_key] );
-                
+
                 if (isset($post) && 'auto-draft' == $post->post_status && array_key_exists( 'checked', $option ) && $option['checked']) {
                     $checked = true;
                 }
-                
+
                 // Comment out broken code. This tries to set the previous state after validation fails
                 //$_values=$this->getValue();
                 //if (!$checked&&isset($value)&&!empty($value)&&is_array($value)&&in_array($option['value'],$value)) {
@@ -46,14 +46,31 @@ class WPToolset_Field_Checkboxes extends FieldFactory
                     '#name' => $option['name']."[]",
                     //'#inline' => true,
                 );
-                
+
                 if ( isset( $option['data-value'] ) ) {
                     //Fixing https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188528502/comments
                     $_options[$option_key]['#attributes'] = array('data-value' => $option['data-value']);
                 }
-				
-				if ( !is_admin() ) {// TODO maybe add a doing_ajax() check too, what if we want to load a form using AJAX?
-					$_options[$option_key]['#before'] = '<li class="wpt-form-item wpt-form-item-checkbox">';
+
+                if ( !is_admin() ) {// TODO maybe add a doing_ajax() check too, what if we want to load a form using AJAX?
+                    $clases = array(
+                        'wpt-form-item',
+                        'wpt-form-item-checkbox',
+                        'checkbox-'.sanitize_title($option['title'])
+                    );
+                    /**
+                     * filter: cred_checkboxes_class
+                     * @param array $clases current array of classes
+                     * @parem array $option current option
+                     * @param string field type
+                     *
+                     * @return array
+                     */
+                    $clases = apply_filters( 'cred_item_li_class', $clases, $option, 'checkboxes' );
+                    $_options[$option_key]['#before'] = sprintf(
+                        '<li class="%s">',
+                        implode(' ', $clases)
+                    );
 					$_options[$option_key]['#after'] = '</li>';
 					$_options[$option_key]['#pattern'] = '<BEFORE><PREFIX><ELEMENT><LABEL><ERROR><SUFFIX><DESCRIPTION><AFTER>';
 				}

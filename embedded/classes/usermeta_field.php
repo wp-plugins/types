@@ -179,10 +179,8 @@ class WPCF_Usermeta_Field extends WPCF_Field
          * TODO Make this only place where field meta value is filtered
          */
         $meta = apply_filters( 'wpcf_fields_value_get', $meta, $this );
-        $meta = apply_filters( 'wpcf_fields_slug_' . $this->cf['slug']
-                . '_value_get', $meta, $this );
-        $meta = apply_filters( 'wpcf_fields_type_' . $this->cf['type']
-                . '_value_get', $meta, $this );
+        $meta = apply_filters( 'wpcf_fields_slug_' . $this->cf['slug'] . '_value_get', $meta, $this );
+        $meta = apply_filters( 'wpcf_fields_type_' . $this->cf['type'] . '_value_get', $meta, $this );
         return $meta;
     }
 

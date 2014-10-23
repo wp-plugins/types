@@ -222,14 +222,18 @@ class WPToolset_Field_Taxonomy extends WPToolset_Field_Textfield
 			);
 		}
 
-        $style = '';
         foreach($terms as $term) {
+            $style = '';
             if ( $add_sizes ) {
-                $font_size = ( ( $term->count - $min ) * 10 ) / ( $max - $min ) + 5;
-                $style = sprintf( ' style="font-size:1.%dem;"', $font_size );
+                $font_size = ( ( $term->count - $min ) * 10 ) / ( $max - $min ) + 8;
+                $style = sprintf( ' style="font-size:%fem;"', $font_size/10 );
             }
+            $clases = array('wpt-taxonomy-popular-add', 'js-wpt-taxonomy-popular-add');
+            $clases[] = 'tax-'.$term->slug;
+            $clases[] = 'taxonomy-'.$this->getName().'-'.$term->term_id;
             $content .= sprintf(
-                '<a href="#" class="wpt-taxonomy-popular-add js-wpt-taxonomy-popular-add" data-slug="%s" data-name="%s" data-taxonomy="%s"%s>%s</a> ',
+                '<a href="#" class="%s" data-slug="%s" data-name="%s" data-taxonomy="%s"%s>%s</a> ',
+                implode(' ', $clases ),
                 $term->slug,
                 $term->name,
                 $this->getName(),

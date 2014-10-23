@@ -3,8 +3,8 @@
  *
  * Loader class
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/classes/loader.php $
- * $LastChangedDate: 2014-06-27 01:13:20 +0800 (Fri, 27 Jun 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/classes/loader.php $
+ * $LastChangedDate: 2014-06-26 19:13:20 +0200 (Thu, 26 Jun 2014) $
  * $LastChangedRevision: 24403 $
  * $LastChangedBy: juan $
  *

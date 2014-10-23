@@ -211,7 +211,6 @@ function wpcf_fields_checkbox_view( $params ) {
 function wpcf_fields_checkbox_save_check( $post_id ) {
 
     $meta_to_unset = array();
-    $cf = new WPCF_Field();
 
     /*
      *
@@ -223,6 +222,7 @@ function wpcf_fields_checkbox_save_check( $post_id ) {
 
     $mode = 'save_main';
     if ( defined( 'DOING_AJAX' ) ) {
+        $mode = 'save_main_ajax';
         if ( isset( $_GET['wpcf_action'] )
                 && $_GET['wpcf_action'] == 'pr_save_all' ) {
             $mode = 'save_all';
@@ -232,7 +232,65 @@ function wpcf_fields_checkbox_save_check( $post_id ) {
         }
     }
 
+    /**
+     * update edited post chechboxes
+     */
+    switch( $mode ) {
+    case 'save_main_ajax':
+        if( isset($_POST['_wptoolset_checkbox']) ){
+            foreach ( array_keys( $_POST['_wptoolset_checkbox'] ) as $slug ) {
+                wpcf_fields_checkbox_update_one( $post_id, $slug, $_POST['wpcf'] );
+            }
+        }
+        return;
+    case 'save_child':
+    case 'save_all':
+        if ( !array_key_exists('_wptoolset_checkbox', $_POST) ) {
+            break;
+        }
+        foreach(array_keys($_POST['wpcf_post_relationship']) as $post_id) {
+            /**
+             * sanitize and check variable
+             */
+            $post_id = intval($post_id);
+            if (0==$post_id) {
+                continue;
+            }
+            /**
+             * stop if do not exist arary key
+             */
+            if ( !array_key_exists($post_id, $_POST['wpcf_post_relationship']) ) {
+                continue;
+            }
+            /**
+             * stop if array is empty
+             */
+            if (!count($_POST['wpcf_post_relationship'][$post_id])) {
+                continue;
+            }
+            /**
+             * prepare children id
+             */
+            $children = array();
+            foreach(array_keys($_POST['wpcf_post_relationship'][$post_id]) as $child_id) {
+                $children[] = $child_id;
+            }
+            $re = sprintf('/\-(%s)$/', implode('|', $children));
+            $checkboxes = array();
+            foreach(array_keys($_POST['_wptoolset_checkbox']) as $key) {
+                $checkboxes[] = preg_replace($re, '', $key);
+            }
+            foreach( $children as $child_id ) {
+                foreach( array_unique($checkboxes) as $slug ) {
+                    wpcf_fields_checkbox_update_one($child_id, $slug, $_POST['wpcf_post_relationship'][$post_id][$child_id]);
+                }
+            }
+        }
+        break;
+    }
+
     // See if any marked for checking
+    $cf = new WPCF_Field();
     if ( isset( $_POST['_wpcf_check_checkbox'] ) ) {
 
         // Loop and search in $_POST
@@ -288,5 +346,23 @@ function wpcf_fields_checkbox_save_check( $post_id ) {
                 delete_post_meta( $child_id, $slug );
             }
         }
+    }
+}
+
+function wpcf_fields_checkbox_update_one( $post_id, $slug, $array_to_check)
+{
+    $cf = new WPCF_Field();
+    if (
+        isset( $array_to_check[$cf->__get_slug_no_prefix( $slug )] )
+        || isset( $array_to_check[$slug] )
+    ) {
+        update_post_meta( $post_id, $slug, 1 );
+        return;
+    }
+    $cf->set( $post_id, $cf->__get_slug_no_prefix( $slug ) );
+    if ( $cf->cf['data']['save_empty'] != 'no' ) {
+        update_post_meta( $post_id, $cf->slug, 0 );
+    } else {
+        delete_post_meta( $post_id, $cf->slug );
     }
 }

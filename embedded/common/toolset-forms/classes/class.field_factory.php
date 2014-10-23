@@ -72,7 +72,14 @@ abstract class FieldFactory extends FieldAbstract
 
     public function getValue()
     {
-        return $this->_value;
+        global $post;
+        $value = $this->_value;
+        $value = apply_filters( 'wpcf_fields_value_get', $value, $post );
+        if ( array_key_exists('slug', $this->_data ) ) {
+            $value = apply_filters( 'wpcf_fields_slug_' . $this->_data['slug'] . '_value_get', $value, $post );
+        }
+        $value = apply_filters( 'wpcf_fields_type_' . $this->_data['type'] . '_value_get', $value, $post );
+        return $value;
     }
 
     public function getTitle()
@@ -120,6 +127,14 @@ abstract class FieldFactory extends FieldAbstract
             return $this->_data['attribute'];
         }
         return array();
+    }
+
+    public function getWPMLAction()
+    {
+        if ( array_key_exists( 'wpml_action', $this->_data ) ) {
+            return $this->_data['wpml_action'];
+        }
+        return 0;
     }
 
     public static function registerScripts() {}

@@ -10,10 +10,10 @@ $fields_access = new Post_Fields_Access;
  * @author Gen gen.i@icanlocalize.com
  * @since Types 1.3
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.3/embedded/usermeta-init.php $
- * $LastChangedDate: 2014-09-09 18:46:42 +0800 (Tue, 09 Sep 2014) $
- * $LastChangedRevision: 26873 $
- * $LastChangedBy: gen $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/usermeta-init.php $
+ * $LastChangedDate: 2014-09-17 16:47:53 +0200 (Wed, 17 Sep 2014) $
+ * $LastChangedRevision: 27239 $
+ * $LastChangedBy: marcin $
  *
  */
 function wpcf_admin_menu_edit_user_fields_hook() {
@@ -64,7 +64,7 @@ function wpcf_admin_menu_edit_user_fields_hook() {
             WPCF_RELPATH . '/resources/js/jquery_ui/jquery.ui.theme.min.css' );
     wp_enqueue_style( 'wpcf-usermeta',
             WPCF_EMBEDDED_RES_RELPATH . '/css/usermeta.css' );
-    
+
     // MAIN
     wp_enqueue_script( 'wpcf-fields-form',
             WPCF_EMBEDDED_RES_RELPATH
@@ -282,7 +282,7 @@ if ( !isset( $_GET['post_type'] ) && isset( $_GET['post'] ) ) {
 }
 
 /*
- * 
+ *
  * This is not needed for Views 1.3
  * Kept for compatibility with older versions
  */
@@ -353,12 +353,12 @@ function wpcf_admin_post_add_usermeta_to_editor_js( $items, $views_callback = fa
 
                     $callback = 'wpcfFieldsEditorCallback(\'' . $field['id']
                             . '\', \'usermeta\', ' . $post->ID . ')';
-                            
+
                     // Added for Views:users filter Vicon popup
                     if ( $views_callback ){
                         $callback = 'wpcfFieldsEditorCallback(\'' . $field['id']
                             . '\', \'views-usermeta\', ' . $post->ID . ')';
-                    }        
+                    }
 
                     $add[$group['name']][stripslashes( $field['name'] )] = array(stripslashes( $field['name'] ), trim( wpcf_usermeta_get_shortcode( $field ),
                                 '[]' ), $group['name'], $callback);
@@ -392,10 +392,8 @@ function wpcf_usermeta_get_shortcode( $field, $add = '', $content = '' ) {
     $shortcode .= 'types usermeta="' . $field['slug'] . '"' . $add;
     $shortcode .= ']' . $content . '[/types]';
     $shortcode = apply_filters( 'wpcf_fields_shortcode', $shortcode, $field );
-    $shortcode = apply_filters( 'wpcf_fields_shortcode_type_' . $field['type'],
-            $shortcode, $field );
-    $shortcode = apply_filters( 'wpcf_fields_shortcode_slug_' . $field['slug'],
-            $shortcode, $field );
+    $shortcode = apply_filters( 'wpcf_fields_shortcode_type_' . $field['type'], $shortcode, $field );
+    $shortcode = apply_filters( 'wpcf_fields_shortcode_slug_' . $field['slug'], $shortcode, $field );
     return $shortcode;
 }
 
@@ -409,7 +407,7 @@ function wpcf_usermeta_get_shortcode( $field, $add = '', $content = '' ) {
 function types_render_usermeta( $field_id, $params, $content = null, $code = '' ) {
 
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
-    
+
     global $wpcf, $post, $wpdb, $WP_Views;
     // HTML var holds actual output
     $html = '';
@@ -425,7 +423,7 @@ function types_render_usermeta( $field_id, $params, $content = null, $code = '' 
     if ( isset( $params['post_id'] ) && !empty( $params['post_id'] ) ) {
         $post_id = $params['post_id'];
     }
-    
+
     //Get User id from views loop
     if ( isset($WP_Views->users_data['term']->ID) && !empty($WP_Views->users_data['term']->ID) ){
         $params['user_id'] = $WP_Views->users_data['term']->ID;
@@ -455,7 +453,7 @@ function types_render_usermeta( $field_id, $params, $content = null, $code = '' 
     // Get field
     $field = wpcf_fields_get_field_by_slug( $field_id, 'wpcf-usermeta' );
 
-    
+
     // If field not found return empty string
     if ( empty( $field ) ) {
 
@@ -786,7 +784,7 @@ class Usermeta_Access
 {
 
     public static $user_groups = '';
-    
+
     /**
      * Initialize plugin enviroment
      */
@@ -902,7 +900,7 @@ class Post_Fields_Access
      * Initialize plugin enviroment
      */
     public static $fields_groups = '';
-	
+
     public function __construct() {
     	//Get list of groups
     	self::$fields_groups = wpcf_admin_fields_get_groups();
@@ -918,12 +916,12 @@ class Post_Fields_Access
                 add_filter( 'types-access-group',
                         array('Post_Fields_Access', 'register_access_fields_groups'),
                         10, 2 );
-                
+
                 //Add Fields caps to groups
                 add_filter( 'types-access-cap',
                         array('Post_Fields_Access', 'register_access_fields_caps'),
                         10, 3 );
-				//}		
+				//}
             }
         }
     }
@@ -972,7 +970,7 @@ class Post_Fields_Access
     {
         $FIELDS_ACCESS_AREA_NAME = __( 'Post Fields Frontend Access', 'wpcf' );
         $FIELDS_ACCESS_AREA_ID = '__FIELDS';
-		
+
         if ( $id == $FIELDS_ACCESS_AREA_ID ) {
             if ( !empty( self::$fields_groups ) ) {
                 foreach ( self::$fields_groups as $group ) {

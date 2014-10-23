@@ -254,6 +254,7 @@ class WPCF_Relationship
             $post_title = $save_fields['_wp_title'];
         }
 
+
         $post_data['post_title'] = $post_title;
         $post_data['post_content'] = isset( $save_fields['_wp_body'] ) ? $save_fields['_wp_body'] : $child->post_content;
         $post_data['post_type'] = $child->post_type;
@@ -274,6 +275,19 @@ class WPCF_Relationship
          *
          * UPDATE POST
          */
+
+        $cf = new WPCF_Field;
+        if (
+            isset( $_POST['wpcf_post_relationship'][$parent_id])
+            && isset( $_POST['wpcf_post_relationship'][$parent_id][$child_id] )
+        ) {
+            $_POST['wpcf'] = array();
+            foreach( $_POST['wpcf_post_relationship'][$parent_id][$child_id] as $slug => $value ) {
+                $_POST['wpcf'][$cf->__get_slug_no_prefix( $slug )] = $value;
+                $_POST['wpcf'][$slug] = $value;
+            }
+        }
+        unset($cf);
 
         $updated_id = wp_update_post( $post_data );
         if ( empty( $updated_id ) ) {

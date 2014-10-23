@@ -314,7 +314,7 @@ class WPToolset_Types
 
         // Get [values]
         $cond_values = self::getConditionalValues($post_id, $field['meta_type']);
-        
+
 		if ( function_exists('wpcf_fields_get_field_by_slug') ){
             // Update the conditional values according to what's being saved.
             foreach ( $_post_wpcf as $field_slug => $field_value ) {
@@ -323,11 +323,10 @@ class WPToolset_Types
                 if ( empty( $field ) ) {
                     continue;
                 }
-                
-                $field_value = apply_filters( 'wpcf_fields_type_' . $field['type']
-                        . '_value_save', $field_value, $field, null );
-                
-                $cond_values[$field['meta_key']] = $field_value;                
+
+                $field_value = apply_filters( 'wpcf_fields_type_' . $field['type'] . '_value_save', $field_value, $field, null );
+
+                $cond_values[$field['meta_key']] = $field_value;
             }
         }
 
@@ -382,7 +381,7 @@ class WPToolset_Types
         unset( $cond_values, $c_values, $c_field );
         return $cache[$cache_key] = $cond;
     }
-    
+
     public static function getConditionalValues($post_id, $meta_type = 'postmeta') {
         $cond_values = array();
         if ( !empty( $post_id ) ) {
@@ -396,10 +395,10 @@ class WPToolset_Types
                 $v = self::getStringFromArray($v);
             }
         }
-        
+
         return $cond_values;
     }
-    
+
     public static function getCustomConditional($custom, $suffix = '', $cond_values = array()) {
         $c_fields = WPToolset_Forms_Conditional::extractFields( $custom );
         $c_values = array();
@@ -439,7 +438,7 @@ class WPToolset_Types
             'custom' => $custom,
             'values' => $c_values,
         );
-        
+
         return $cond;
     }
 

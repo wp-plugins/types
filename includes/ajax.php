@@ -243,6 +243,19 @@ function wpcf_ajax() {
             }
             $custom_types = get_option('wpcf-custom-types', array());
             $custom_type = strval($_GET['wpcf-post-type']);
+
+            /**
+             * delete relataion?
+             */
+            if ( apply_filters('wpcf_delete_relation_meta', false) ) {
+                global $wpdb;
+                $wpdb->delete(
+                    $wpdb->postmeta,
+                    array( 'meta_key' => sprintf( '_wpcf_belongs_%s_id', $custom_type ) ),
+                    array( '%s' )
+                );
+            }
+
             unset($custom_types[$custom_type]);
             /**
              * remove post relation

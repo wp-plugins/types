@@ -2,12 +2,12 @@
 
 /**
  * Gets all groups.
- * 
+ *
  * @global type $wpdb
  * @param string $post_type
  * @param boolean|string $only_active
  * @param boolean|string $add_fields - 'field_active', 'field_all', false (to omitt fields)
- * @return type 
+ * @return type
  */
 function wpcf_admin_fields_get_groups( $post_type = 'wp-types-group',
         $only_active = false, $add_fields = false ) {
@@ -35,12 +35,12 @@ function wpcf_admin_fields_get_groups( $post_type = 'wp-types-group',
 
 /**
  * Gets group by ID.
- * 
+ *
  * Since 1.2 we enabled fetching by post title.
- * 
+ *
  * @global type $wpdb
  * @param type $group_id
- * @return type 
+ * @return type
  */
 function wpcf_admin_fields_get_group( $group_id, $post_type = 'wp-types-group',
         $add_fields = false ) {
@@ -59,9 +59,9 @@ function wpcf_admin_fields_get_group( $group_id, $post_type = 'wp-types-group',
 
 /**
  * Converts post data.
- * 
+ *
  * @param type $post
- * @return type 
+ * @return type
  */
 function wpcf_admin_fields_adjust_group( $post, $add_fields = false ) {
     if ( empty( $post ) ) {
@@ -90,10 +90,10 @@ function wpcf_admin_fields_adjust_group( $post, $add_fields = false ) {
 
 /**
  * Gets Fields Admin Styles supported by specific group.
- * 
+ *
  * @global type $wpdb
  * @param type $group_id
- * @return type 
+ * @return type
  */
 function wpcf_admin_get_groups_admin_styles_by_group( $group_id ) {
     $admin_styles = get_post_meta( $group_id, '_wp_types_group_admin_styles',
@@ -103,10 +103,10 @@ function wpcf_admin_get_groups_admin_styles_by_group( $group_id ) {
 
 /**
  * Saves group's admin styles
- * 
+ *
  * @global type $wpdb
  * @param type $group_id
- * @param type $padmin_styles 
+ * @param type $padmin_styles
  */
 function wpcf_admin_fields_save_group_admin_styles( $group_id, $admin_styles ) {
     update_post_meta( $group_id, '_wp_types_group_admin_styles', $admin_styles );
@@ -114,10 +114,10 @@ function wpcf_admin_fields_save_group_admin_styles( $group_id, $admin_styles ) {
 
 /**
  * Gets all fields.
- * 
+ *
  * @todo Move to WPCF_Fields
  * @global type $wpdb
- * @return type 
+ * @return type
  * added param $use_cache by Gen (used when adding new fields to group)
  */
 function wpcf_admin_fields_get_fields( $only_active = false,
@@ -180,7 +180,7 @@ function wpcf_admin_fields_get_fields( $only_active = false,
         }
         $v['id'] = $k;
         $v['meta_key'] = wpcf_types_get_meta_prefix( $v ) . $k;
-        $v['meta_type'] = $option_name == 'wpcf-fields' ? 'postmeta' : 'usermeta'; 
+        $v['meta_type'] = $option_name == 'wpcf-fields' ? 'postmeta' : 'usermeta';
         $fields[$k] = wpcf_sanitize_field( $v );
     }
     $cache[$cache_key] = apply_filters( 'types_fields', $fields );
@@ -190,11 +190,11 @@ function wpcf_admin_fields_get_fields( $only_active = false,
 /**
  * Gets field by ID.
  * Modified by Gen, 13.02.2013
- * 
+ *
  * @global type $wpdb
  * @param type $field_id
  * @param type $only_active
- * @return type 
+ * @return type
  */
 function wpcf_admin_fields_get_field( $field_id, $only_active = false,
         $disabled_by_type = false, $strictly_active = false,
@@ -211,10 +211,10 @@ function wpcf_admin_fields_get_field( $field_id, $only_active = false,
 /**
  * Gets field by slug.
  * Modified by Gen, 13.02.2013
- * 
+ *
  * @global type $wpdb
  * @param type $slug
- * @return type 
+ * @return type
  */
 function wpcf_fields_get_field_by_slug( $slug, $meta_name = 'wpcf-fields' ) {
     return wpcf_admin_fields_get_field( $slug, false, false, false, $meta_name );
@@ -222,7 +222,7 @@ function wpcf_fields_get_field_by_slug( $slug, $meta_name = 'wpcf-fields' ) {
 
 /**
  * Gets all fields that belong to specific group.
- * 
+ *
  * @global type $wpdb
  * @param type $group_id
  * @param type $key
@@ -230,7 +230,7 @@ function wpcf_fields_get_field_by_slug( $slug, $meta_name = 'wpcf-fields' ) {
  * @param type $post_type
  * @param type $meta_name
  * @param type $use_cache
- * @return type 
+ * @return type
  */
 function wpcf_admin_fields_get_fields_by_group( $group_id, $key = 'slug',
         $only_active = false, $disabled_by_type = false,
@@ -263,12 +263,12 @@ function wpcf_admin_fields_get_fields_by_group( $group_id, $key = 'slug',
 
 /**
  * Gets groups that have specific term.
- * 
+ *
  * @global type $wpdb
  * @param type $term_id
  * @param type $fetch_empty
  * @param type $only_active
- * @return type 
+ * @return type
  */
 function wpcf_admin_fields_get_groups_by_term( $term_id = false,
         $fetch_empty = true, $post_type = false, $only_active = true ) {
@@ -321,12 +321,12 @@ function wpcf_admin_fields_get_groups_by_term( $term_id = false,
 
 /**
  * Gets groups that have specific post_type.
- * 
+ *
  * @global type $wpdb
  * @param type $post_type
  * @param type $fetch_empty
  * @param type $only_active
- * @return type 
+ * @return type
  */
 function wpcf_admin_get_groups_by_post_type( $post_type, $fetch_empty = true,
         $terms = null, $only_active = true ) {
@@ -414,12 +414,12 @@ function wpcf_admin_get_groups_by_post_type( $post_type, $fetch_empty = true,
 
 /**
  * Gets groups that have specific template.
- * 
+ *
  * @global type $wpdb
  * @param type $post_type
  * @param type $fetch_empty
  * @param type $only_active
- * @return type 
+ * @return type
  */
 function wpcf_admin_get_groups_by_template( $templates = array('default'),
         $fetch_empty = true, $only_active = true ) {
@@ -487,10 +487,10 @@ function wpcf_get_fullpath_by_field_type($basename)
 
 /**
  * Loads type configuration file and calls action.
- * 
+ *
  * @param type $type
  * @param type $action
- * @param type $args 
+ * @param type $args
  */
 function wpcf_fields_type_action( $type, $func = '', $args = array() ) {
     static $actions = array();
@@ -535,20 +535,19 @@ function wpcf_fields_type_action( $type, $func = '', $args = array() ) {
 
 /**
  * Returns shortcode for specified field.
- * 
+ *
  * @param type $field
  * @param type $add Additional attributes
  * @param string $content
  */
-function wpcf_fields_get_shortcode( $field, $add = '', $content = '' ) {
+function wpcf_fields_get_shortcode( $field, $add = '', $content = '' )
+{
     $shortcode = '[';
     $shortcode .= 'types field="' . $field['slug'] . '"' . $add;
     $shortcode .= ']' . $content . '[/types]';
     $shortcode = apply_filters( 'wpcf_fields_shortcode', $shortcode, $field );
-    $shortcode = apply_filters( 'wpcf_fields_shortcode_type_' . $field['type'],
-            $shortcode, $field );
-    $shortcode = apply_filters( 'wpcf_fields_shortcode_slug_' . $field['slug'],
-            $shortcode, $field );
+    $shortcode = apply_filters( 'wpcf_fields_shortcode_type_' . $field['type'], $shortcode, $field );
+    $shortcode = apply_filters( 'wpcf_fields_shortcode_slug_' . $field['slug'], $shortcode, $field );
     return $shortcode;
 }
 
@@ -561,7 +560,7 @@ function wpcf_admin_fields_get_available_types() {
 
 /**
  * Sanitizes field.
- * 
+ *
  * @param type $field
  */
 function wpcf_sanitize_field( $field ) {
@@ -581,9 +580,9 @@ function wpcf_sanitize_field( $field ) {
 
 /**
  * Gets all groups that contain specified field.
- * 
+ *
  * @static $cache
- * @param type $field_id 
+ * @param type $field_id
  */
 function wpcf_admin_fields_get_groups_by_field( $field_id,
         $post_type = 'wp-types-group' ) {
@@ -608,9 +607,9 @@ function wpcf_admin_fields_get_groups_by_field( $field_id,
 
 /**
  * Saves last field settings when inserting from toolbar.
- * 
+ *
  * @param type $field_id
- * @param type $settings 
+ * @param type $settings
  * @param type $append
  */
 function wpcf_admin_fields_save_field_last_settings( $field_id, $settings,
@@ -627,7 +626,7 @@ function wpcf_admin_fields_save_field_last_settings( $field_id, $settings,
 
 /**
  * Gets last field settings when inserting from toolbar.
- * 
+ *
  * @param type $field_id
  */
 function wpcf_admin_fields_get_field_last_settings( $field_id ) {

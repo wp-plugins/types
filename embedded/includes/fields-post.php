@@ -20,11 +20,11 @@ require_once WPCF_EMBEDDED_ABSPATH . '/includes/conditional-display.php';
 
 /**
  * Init functions for post edit pages.
- * 
+ *
  * Core function. Works and stable. Do not move or change.
  * If required, add hooks only.
- * 
- * @param type $post 
+ *
+ * @param type $post
  */
 function wpcf_admin_post_init( $post ) {
     add_action( 'admin_footer', 'wpcf_admin_fields_postfields_styles' );
@@ -37,7 +37,7 @@ function wpcf_admin_post_init( $post ) {
     $post_type = wpcf_admin_get_edited_post_type( $post );
 
     /*
-     * 
+     *
      * This is left to maintain compatibility with older versions
      * TODO Remove
      */
@@ -121,9 +121,9 @@ function wpcf_admin_post_init( $post ) {
      * TODO Review
      * This is forced because of various Child cases
      * and when field are rendered via AJAX but not registered yet.
-     * 
+     *
      * Basically all fields that require additional JS should be added here.
-     * 
+     *
      * This is a must for now.
      * These fields need init JS in various cases.
      */
@@ -138,7 +138,7 @@ function wpcf_admin_post_init( $post ) {
 
 /**
  * Add meta boxes.
- * 
+ *
  * @param type $post_type
  * @param type $post
  * @return boolean
@@ -224,11 +224,11 @@ function wpcf_add_meta_boxes( $post_type, $post ) {
 
 /**
  * Renders meta box content (preview).
- * 
- * 
- * 
+ *
+ *
+ *
  * @param type $post
- * @param type $group 
+ * @param type $group
  */
 function wpcf_admin_post_meta_box_preview( $post, $group, $echo = '' ){
 
@@ -282,7 +282,7 @@ function wpcf_admin_post_meta_box_preview( $post, $group, $echo = '' ){
                 $meta_id = key( $meta );
                 $_temp = array_shift( $meta );
                 if (!is_array($_temp) && strval( $_temp ) == '' ) {
-                    
+
                 } else {
                     $params['field_value'] = $_temp;
                     if ( !empty( $params['field_value'] ) ) {
@@ -379,14 +379,14 @@ function wpcf_admin_post_meta_box_preview( $post, $group, $echo = '' ){
 
 /**
  * Renders meta box content.
- * 
+ *
  * Core function. Works and stable.
  * If required, add hooks only.
- * 
+ *
  * @todo Revise this 1.1.5
- * 
+ *
  * @param type $post
- * @param type $group 
+ * @param type $group
  * @param type $echo
  * @param type boolean $open_style_editor if true use code for open style editor when edit group
  */
@@ -395,7 +395,7 @@ function wpcf_admin_post_meta_box( $post, $group, $echo = '', $open_style_editor
 
     if (
         false === $open_style_editor
-        && defined( 'WPTOOLSET_FORMS_VERSION' ) 
+        && defined( 'WPTOOLSET_FORMS_VERSION' )
     ) {
         if ( isset( $group['args']['html'] ) ) {
             /**
@@ -452,7 +452,7 @@ function wpcf_admin_post_meta_box( $post, $group, $echo = '', $open_style_editor
     $group_output .= "\n\n" . '<div id="wpcf-group-metabox-id-' . $group['args']['slug'] . '">' . "\n";
     /*
      * TODO Move to Conditional code
-     * 
+     *
      * This is already checked. Use hook to add wrapper DIVS and apply CSS.
      */
     if ( !empty( $group['args']['_conditional_display'] ) ) {
@@ -495,7 +495,7 @@ function wpcf_admin_post_meta_box( $post, $group, $echo = '', $open_style_editor
                 wpcf_compare_wp_version()
                 && array_key_exists( '#type', $field )
                 && 'wysiwyg' == $field['#type']
-                && !isset( $field['#attributes']['disabled'] ) 
+                && !isset( $field['#attributes']['disabled'] )
             ) {
                 //                if ( isset( $field['#attributes']['disabled'] ) ) {
                 //                    $field['#editor_settings']['tinymce'] = false;
@@ -536,15 +536,14 @@ function wpcf_admin_post_meta_box( $post, $group, $echo = '', $open_style_editor
             }
             do_action( 'wpcf_fields_' . $field_slug . '_meta_box_form', $field );
             if ( isset( $field['wpcf-type'] ) ) { // May be ignored
-                do_action( 'wpcf_fields_' . $field['wpcf-type'] . '_meta_box_form',
-                    $field );
+                do_action( 'wpcf_fields_' . $field['wpcf-type'] . '_meta_box_form', $field );
             }
         }
     }
 
     /*
      * TODO Move to Conditional code
-     * 
+     *
      * This is already checked. Use hook to add wrapper DIVS and apply CSS.
      */
     if ( !empty( $group['args']['_conditional_display'] ) ) {
@@ -563,13 +562,13 @@ function wpcf_admin_post_meta_box( $post, $group, $echo = '', $open_style_editor
 
 /**
  * Important save_post hook.
- * 
+ *
  * Core function. Works and stable. Do not move or change.
  * If required, add hooks only.
- * 
+ *
  * @internal breakpoint
  * @param type $post_ID
- * @param type $post 
+ * @param type $post
  */
 function wpcf_admin_post_save_post_hook( $post_ID, $post )
 {
@@ -715,11 +714,11 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post )
         do_action( 'wpcf_post_saved', $post_ID );
         return;
     }
-    
-    
-    
+
+
+
     // OLD
-    
+
     global $wpcf;
 
     // Basic cheks
@@ -744,8 +743,8 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post )
     }
 
     /*
-     * 
-     * 
+     *
+     *
      * Get all groups connected to this $post
      */
     $groups = wpcf_admin_post_get_post_groups_fields( $post );
@@ -757,10 +756,10 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post )
     $_error = false;
 
     /*
-     * 
-     * 
+     *
+     *
      * Loop over each group
-     * 
+     *
      * TODO Document this
      * Connect 'wpcf-invalid-fields' with all fields
      */
@@ -801,15 +800,13 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post )
     }
 
     /*
-     * 
+     *
      * Allow interaction here.
      * Conditional will set $error to false if field is conditional
      * and not submitted.
      */
-    $error = apply_filters( 'wpcf_post_form_error', $_error, $_not_valid,
-            $all_fields );
-    $not_valid = apply_filters( 'wpcf_post_form_not_valid', $_not_valid,
-            $_error, $all_fields );
+    $error = apply_filters( 'wpcf_post_form_error', $_error, $_not_valid, $all_fields );
+    $not_valid = apply_filters( 'wpcf_post_form_not_valid', $_not_valid, $_error, $all_fields );
 
     // Notify user about error
     if ( $error ) {
@@ -825,10 +822,10 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post )
     }
 
     /*
-     * 
-     * 
-     * 
-     * 
+     *
+     *
+     *
+     *
      * Save meta fields
      */
     if ( !empty( $_POST['wpcf'] ) ) {
@@ -857,18 +854,18 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post )
 
 
             /*
-             * 
-             * 
+             *
+             *
              * Saving fields
              * @since 1.2
-             * 
+             *
              * We changed way repetitive fields are saved.
              * On each save fields are rewritten and order is saved in
              * '_$slug-sort-order' meta field.
              */
 
             /*
-             * 
+             *
              * We marked fields as repetitive in POST['__wpcf_repetitive']
              * Without this check we won't save any.
              * @see WPCF_Repeater::get_fields_form()
@@ -894,7 +891,7 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post )
 
     /*
      * Process checkboxes
-     * 
+     *
      * TODO Revise and remove
      * Since Types 1.1.5 we moved this check to embedded/includes/checkbox.php
      * checkbox.php added permanently to bootstrap.
@@ -945,7 +942,7 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post )
  *
  * @internal breakpoint
  * @param type $post_ID
- * @param type $post 
+ * @param type $post
  */
 function wpcf_admin_post_add_attachment_hook( $post_ID, $post )
 {
@@ -1053,13 +1050,13 @@ function wpcf_admin_post_js_validation() {
 
 /**
  * Creates form elements.
- * 
+ *
  * Core function. Works and stable. Do not move or change.
  * If required, add hooks only.
- * 
+ *
  * @param type $post
  * @param type $fields
- * @return type 
+ * @return type
  */
 function wpcf_admin_post_process_fields( $post = false, $fields = array(),
         $use_cache = true, $add_to_editor = true, $context = 'group' ) {
@@ -1087,7 +1084,7 @@ function wpcf_admin_post_process_fields( $post = false, $fields = array(),
         delete_post_meta( $post->ID, 'wpcf-invalid-fields' );
 
         /*
-         * 
+         *
          * Add it to global $wpcf
          * From now on take it there.
          */
@@ -1112,7 +1109,7 @@ function wpcf_admin_post_process_fields( $post = false, $fields = array(),
             /*
              * TODO All WPML specific code needs moving to
              * /embedded/includes/wpml.php
-             * 
+             *
              * @since Types 1.2
              */
             // TODO WPML move
@@ -1127,17 +1124,17 @@ function wpcf_admin_post_process_fields( $post = false, $fields = array(),
             } else {
                 // Set repeater
                 /*
-                 * 
-                 * 
+                 *
+                 *
                  * @since Types 1.2
                  * Now we're using repeater class to handle repetitive forms.
                  * Main change is - use form from $field_meta_box_form() without
                  * re-processing form elements.
-                 * 
+                 *
                  * Field should pass form as array:
                  * 'my_checkbox' => array('#type' => 'checkbox' ...),
                  * 'my_textfield' => array('#type' => 'textfield' ...),
-                 * 
+                 *
                  * In form it should set values to be stored.
                  * Use hooks to adjust saved data.
                  */
@@ -1145,21 +1142,21 @@ function wpcf_admin_post_process_fields( $post = false, $fields = array(),
                 $fields_processed = $fields_processed + $wpcf->repeater->get_fields_form();
             }
             /*
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
+             *
+             *
+             *
+             *
+             *
+             *
+             *
+             *
+             *
+             *
+             *
+             *
+             *
+             *
+             *
              * Non-repetitive fields
              */
         } else {
@@ -1168,14 +1165,14 @@ function wpcf_admin_post_process_fields( $post = false, $fields = array(),
              * meta_form will be treated as normal form.
              * See if any obstacles prevent us from using completed
              * form from config files.
-             * 
+             *
              * Main change is - use form from $field_meta_box_form() without
              * re-processing form elements.
-             * 
+             *
              * Field should pass form as array:
              * 'my_checkbox' => array('#type' => 'checkbox' ...),
              * 'my_textfield' => array('#type' => 'textfield' ...),
-             * 
+             *
              * In form it should set values to be stored.
              * Use hooks to adjust saved data.
              */
@@ -1206,16 +1203,16 @@ function wpcf_admin_post_process_fields( $post = false, $fields = array(),
 
 /**
  * Processes single field.
- * 
+ *
  * Since Types 1.2 this function changed. It handles single form element.
  * Form element is already fetched, also meta values using class WPCF_Field.
- * 
+ *
  * Core function. Works and stable. Do not move or change.
  * If required, add hooks only.
- * 
+ *
  * @todo gradually remove usage of inherited fields
  * @todo Cleanup
- * 
+ *
  * @staticvar array $repetitive_started
  * @param type $field_object
  * @return mixed boolean|array
@@ -1241,9 +1238,9 @@ function wpcf_admin_post_process_field( $field_object ) {
 
         /*
          * Get inherited field
-         * 
+         *
          * TODO Deprecated
-         * 
+         *
          * Since Types 1.2 we encourage developers to completely define fields.
          */
         $inherited_field_data = false;
@@ -1267,27 +1264,27 @@ function wpcf_admin_post_process_field( $field_object ) {
         /*
          * CHECKPOINT
          * APPLY FILTERS
-         * 
-         * 
+         *
+         *
          * Moved to WPCF_Field
          * Field value should be already filtered
-         * 
+         *
          * Explanation:
          * When WPCF_Field::set() is called, all these properties are set.
          * WPCF_Field::$cf['value']
          * WPCF_Field::$__meta (single value from DB)
          * WPCF_Field::$meta (single or multiple values if single/repetitive)
-         * 
+         *
          * TODO Make sure value is already filtered and not overwritten
          */
 
         /*
          * Set generic values
-         * 
+         *
          * FUTURE BREAKPOINT
          * Since Types 1.2 we do not encourage relying on generic field data.
          * Only core fields should use this.
-         * 
+         *
          * TODO Open 3rd party fields dir
          */
         $_element = array(
@@ -1303,9 +1300,9 @@ function wpcf_admin_post_process_field( $field_object ) {
 
         /*
          * TODO Add explanation about creating duplicated fields
-         * 
+         *
          * NOT USED YET
-         * 
+         *
          * Explain users that fields are added if slug is changed
          */
         wpcf_admin_add_js_settings( 'wpcfFieldNewInstanceWarning',
@@ -1313,7 +1310,7 @@ function wpcf_admin_post_process_field( $field_object ) {
 
         /*
          * Merge with default element
-         * 
+         *
          * Deprecated from Types 1.2
          * Only core fields use this.
          */
@@ -1321,21 +1318,21 @@ function wpcf_admin_post_process_field( $field_object ) {
 
 
         /*
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
          * TODO From this point code should be simplified.
          */
 
@@ -1362,8 +1359,8 @@ function wpcf_admin_post_process_field( $field_object ) {
         // Set validation element
         if ( isset( $field['data']['validate'] ) ) {
             /*
-             * 
-             * 
+             *
+             *
              * TODO First two check are not needed anymore
              */
             // If array has more than one field - see which one is marked
@@ -1429,12 +1426,12 @@ function wpcf_admin_post_process_field( $field_object ) {
                 $element['#attributes']['class'] = isset( $element['#attributes']['class'] ) ? $element['#attributes']['class'] . ' wpcf-repetitive' : 'wpcf-repetitive';
             }
             /*
-             * 
-             * 
+             *
+             *
              * Since Types 1.2 we allow same field values
-             * 
+             *
              * TODO Remove
-             * 
+             *
              * wpcf_admin_add_js_settings('wpcfFormRepetitiveUniqueValuesCheckText',
               '\'' . __('Warning: same values set', 'wpcf') . '\'');
              */
@@ -1513,20 +1510,20 @@ function wpcf_admin_post_process_field( $field_object ) {
 
 /**
  * Gets all groups and fields for post.
- * 
+ *
  * Core function. Works and stable. Do not move or change.
  * If required, add hooks only.
- * 
+ *
  * @param type $post_ID
- * @return type 
+ * @return type
  */
 function wpcf_admin_post_get_post_groups_fields( $post = false,
         $context = 'group' ) {
 
     // Get post_type
     /*
-     * 
-     * 
+     *
+     *
      * Since WP 3.5 | Types 1.2
      * Looks like $post is altered with get_post_type()
      * We do not want that if post is already set
@@ -1585,8 +1582,7 @@ function wpcf_admin_post_get_post_groups_fields( $post = false,
 
     // Filter groups
     $groups = array();
-    $groups_all = apply_filters( 'wpcf_post_groups_all',
-            wpcf_admin_fields_get_groups(), $post, $context );
+    $groups_all = apply_filters( 'wpcf_post_groups_all', wpcf_admin_fields_get_groups(), $post, $context );
     foreach ( $groups_all as $temp_key => $temp_group ) {
         if ( empty( $temp_group['is_active'] ) ) {
             unset( $groups_all[$temp_key] );
@@ -1607,8 +1603,7 @@ function wpcf_admin_post_get_post_groups_fields( $post = false,
         $taxonomy_filter = $groups_all[$temp_key]['_wp_types_group_terms'][0] == 'all' ? -1 : 0;
         $template_filter = $groups_all[$temp_key]['_wp_types_group_templates'][0] == 'all' ? -1 : 0;
 
-        $groups_all[$temp_key] = apply_filters( 'wpcf_post_group_filter_settings',
-                $groups_all[$temp_key], $post, $context, $post->_wpcf_post_terms );
+        $groups_all[$temp_key] = apply_filters( 'wpcf_post_group_filter_settings', $groups_all[$temp_key], $post, $context, $post->_wpcf_post_terms );
 
         // See if post type matches
         if ( $post_type_filter == 0 && in_array( $post_type,
@@ -1662,13 +1657,13 @@ function wpcf_admin_post_get_post_groups_fields( $post = false,
 
 /**
  * Stores fields for editor menu.
- * 
+ *
  * Core function. Works and stable. Do not move or change.
  * If required, add hooks only.
- * 
+ *
  * @staticvar array $fields
  * @param type $field
- * @return array 
+ * @return array
  */
 function wpcf_admin_post_add_to_editor( $field ) {
     static $fields = array();
@@ -1683,11 +1678,11 @@ function wpcf_admin_post_add_to_editor( $field ) {
 
 /**
  * Renders JS for editor menu.
- * 
+ *
  * Core function. Works and stable. Do not move or change.
  * If required, add hooks only.
- * 
- * @return type 
+ *
+ * @return type
  */
 function wpcf_admin_post_add_to_editor_js() {
 
@@ -1728,14 +1723,14 @@ function wpcf_admin_post_add_to_editor_js() {
 
 /**
  * Adds items to view dropdown.
- * 
+ *
  * Core function. Works and stable. Do not move or change.
  * If required, add hooks only.
- * 
+ *
  * @todo Remove (to WPCF_WPViews)
- * 
+ *
  * @param type $items
- * @return type 
+ * @return type
  */
 function wpcf_admin_post_editor_addon_menus_filter( $items ) {
 
@@ -1838,7 +1833,7 @@ function wpcf_admin_post_editor_addon_menus_filter( $items ) {
 
 /**
  * Marketing meta-box
- * 
+ *
  * Core function. Works and stable. Do not move or change.
  * If required, add hooks only.
  */
@@ -1888,7 +1883,7 @@ function wpcf_post_preview_warning() {
                     array('auto-draft', 'draft') ) && !in_array( $post->post_type,
                     array('cred', 'view', 'view-template') ) ) {
 //        require_once WPCF_EMBEDDED_ABSPATH . '/common/wp-pointer.php';
-//        
+//
 //        $pointer = new WPV_wp_pointer('types-post-preview-warning');
 //        $pointer->add_pointer(__('Preview warning'),
 //                sprintf(__('Custom field changes cannot be previewed until %s is updated'), $post->post_type),

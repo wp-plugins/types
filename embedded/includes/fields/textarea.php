@@ -1,8 +1,8 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.3/embedded/includes/fields/textarea.php $
- * $LastChangedDate: 2014-09-04 09:55:20 +0800 (Thu, 04 Sep 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/includes/fields/textarea.php $
+ * $LastChangedDate: 2014-09-04 03:55:20 +0200 (Thu, 04 Sep 2014) $
  * $LastChangedRevision: 26690 $
  * $LastChangedBy: bruce $
  *

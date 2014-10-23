@@ -6,10 +6,10 @@ require_once 'class.file.php';
  *
  * @author Srdjan
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/classes/class.video.php $
- * $LastChangedDate: 2014-08-22 18:23:29 +0800 (Fri, 22 Aug 2014) $
- * $LastChangedRevision: 26350 $
- * $LastChangedBy: francesco $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.video.php $
+ * $LastChangedDate: 2014-09-29 18:01:46 +0200 (Mon, 29 Sep 2014) $
+ * $LastChangedRevision: 27533 $
+ * $LastChangedBy: marcin $
  *
  */
 class WPToolset_Field_Video extends WPToolset_Field_File
@@ -23,15 +23,51 @@ class WPToolset_Field_Video extends WPToolset_Field_File
         $this->setValidationData($validation);
         return parent::metaform();
     }
-    
-    public static function addTypeValidation($validation) {
+
+    public static function addTypeValidation($validation)
+    {
+        $valid_extensions = array(
+            '3gp',
+            'aaf',
+            'asf',
+            'avchd',
+            'avi',
+            'cam',
+            'dat',
+            'dsh',
+            'fla',
+            'flr',
+            'flv',
+            'm1v',
+            'm2v',
+            'm4v',
+            'mng',
+            'mp4',
+            'mxf',
+            'nsv',
+            'ogg',
+            'rm',
+            'roq',
+            'smi',
+            'sol',
+            'svi',
+            'swf',
+            'wmv',
+            'wrap',
+            'mkv',
+            'mov',
+            'mpe',
+            'mpeg',
+            'mpg',
+        );
+        $valid_extensions = apply_filters( 'toolset_valid_video_extentions', $valid_extensions);
         $validation['extension'] = array(
             'args' => array(
                 'extension',
-                '3gp|aaf|asf|avchd|avi|cam|dat|dsh|fla|flr|flv|m1v|m2v|m4v|mng|mp4|mxf|nsv|ogg|rm|roq|smi|sol|svi|swf|wmv|wrap|mkv|mov|mpe|mpeg|mpg',
+                implode('|', $valid_extensions),
             ),
             'message' => __( 'You can add only video.', 'wpv-views' ),
         );
         return $validation;
-    }    
+    }
 }

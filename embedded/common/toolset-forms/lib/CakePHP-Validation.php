@@ -591,7 +591,11 @@ class WPToolset_Cake_Validation
             return WPToolset_Cake_Validation::extension( array_shift( $check ),
                             $extensions );
         }        
-        $extension = strtolower( array_pop( explode( '.', $check ) ) );
+        if (!is_array($extensions)) {
+            $extensions = explode('|',$extensions);
+        }
+        $check = strtolower( $check );
+        $extension = pathinfo($check, PATHINFO_EXTENSION);        
         foreach ( $extensions as $value ) {
             if ( $extension == strtolower( $value ) ) {
                 return true;

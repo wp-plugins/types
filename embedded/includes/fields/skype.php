@@ -1,17 +1,17 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.1/embedded/includes/fields/skype.php $
- * $LastChangedDate: 2014-08-06 18:57:47 +0800 (Wed, 06 Aug 2014) $
- * $LastChangedRevision: 25691 $
- * $LastChangedBy: bruce $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/includes/fields/skype.php $
+ * $LastChangedDate: 2014-09-17 16:47:53 +0200 (Wed, 17 Sep 2014) $
+ * $LastChangedRevision: 27239 $
+ * $LastChangedBy: marcin $
  *
  */
 
 /**
  * Register data (called automatically).
- * 
- * @return type 
+ *
+ * @return type
  */
 function wpcf_fields_skype() {
     return array(
@@ -32,8 +32,8 @@ add_filter( 'wpv_condition_end', 'wpcf_fields_skype_wpv_conditional_trigger_end'
 
 /**
  * Form data for post edit page.
- * 
- * @param type $field 
+ *
+ * @param type $field
  */
 function wpcf_fields_skype_meta_box_form( $field ) {
     add_thickbox();
@@ -41,8 +41,7 @@ function wpcf_fields_skype_meta_box_form( $field ) {
         $field['value'] = maybe_unserialize( $field['value'] );
     }
     $form = array();
-    add_filter( 'wpcf_fields_shortcode_slug_' . $field['slug'],
-            'wpcf_fields_skype_shortcode_filter', 10, 2 );
+    add_filter( 'wpcf_fields_shortcode_slug_' . $field['slug'], 'wpcf_fields_skype_shortcode_filter', 10, 2 );
     $rand = wpcf_unique_id( serialize( $field ) );
     $form['skypename'] = array(
         '#type' => 'textfield',
@@ -155,10 +154,10 @@ function wpcf_fields_skype_editor_submit( $data, $field, $context ) {
 
 /**
  * Shortcode filter.
- * 
+ *
  * @param type $shortcode
  * @param type $field
- * @return type 
+ * @return type
  */
 function wpcf_fields_skype_shortcode_filter( $shortcode, $field ) {
     return $shortcode;
@@ -207,8 +206,8 @@ function wpcf_fields_skype_meta_box_ajax() {
     _e( 'Enter your Skype Name', 'wpcf' );
 
     ?></h2>
-        <p> 
-            <input id="btn-skypename" name="skypename" value="<?php esc_attr_e($_GET['skypename']); ?>" type="text" /> 
+        <p>
+            <input id="btn-skypename" name="skypename" value="<?php esc_attr_e($_GET['skypename']); ?>" type="text" />
         </p>
         <?php
         echo WPCF_Loader::template( 'skype-select-button', $_GET );
@@ -241,11 +240,11 @@ function wpcf_fields_skype_meta_box_ajax() {
 
 /**
  * Returns HTML formatted skype button.
- * 
+ *
  * @param type $skypename
  * @param type $template
  * @param type $class
- * @return type 
+ * @return type
  */
 function wpcf_fields_skype_get_button( $skypename, $template = '',
         $class = false ) {
@@ -300,10 +299,10 @@ function wpcf_fields_skype_get_button( $skypename, $template = '',
 
 /**
  * Returns HTML formatted skype button image.
- * 
+ *
  * @param type $skypename
  * @param type $template
- * @return type 
+ * @return type
  */
 function wpcf_fields_skype_get_button_image( $skypename = '', $template = '' ) {
 
@@ -383,11 +382,11 @@ function wpcf_fields_skype_view( $params )
 
 /**
  * Filters post relationship save data.
- * 
+ *
  * @param type $data
  * @param type $meta_key
  * @param type $post_id
- * @return type 
+ * @return type
  */
 function wpcf_pr_fields_type_skype_value_save_filter( $data, $meta_key = null,
         $post_id = null ) {
@@ -399,16 +398,16 @@ function wpcf_pr_fields_type_skype_value_save_filter( $data, $meta_key = null,
 
 /**
  * Processes repetitive Skype fields.
- * 
+ *
  * Each form element is sent separately.
  * Determine which is which and process it.
- * 
+ *
  * @staticvar array $repetitive_started
  * @staticvar array $repetitive_index
  * @param type $post
  * @param string $field
  * @param type $skype_element
- * @return string 
+ * @return string
  */
 function wpcf_field_skype_repetitive( $element, $post, $field, $array_key ) {
 
@@ -429,7 +428,7 @@ function wpcf_field_skype_repetitive( $element, $post, $field, $array_key ) {
             }
 
             /*
-             * 
+             *
              * If added via AJAX set value
              */
             if ( defined( 'DOING_AJAX' ) ) {
@@ -448,7 +447,7 @@ function wpcf_field_skype_repetitive( $element, $post, $field, $array_key ) {
 
 /**
  * Triggers post_meta filter.
- * 
+ *
  * @param type $post
  * @return type
  */
@@ -459,7 +458,7 @@ function wpcf_fields_skype_wpv_conditional_trigger( $post ) {
 
 /**
  * Returns 'skypename' if available.
- * 
+ *
  * @global type $wpcf
  * @param type $null
  * @param type $object_id
@@ -490,7 +489,7 @@ function wpcf_fields_skype_conditional_filter_post_meta( $null, $object_id,
 
 /**
  * Removes trigger post_meta filter.
- * 
+ *
  * @param type $evaluate
  * @return type
  */

@@ -175,7 +175,7 @@ function wpcf_promote_types_admin() {
 
     <?php
     if ( sizeof( $custom_types ) > 0 ) {
-        echo '<p>' . __( 'Types creates Custom Post Types. These are user-defined WordPress content types. On  your theme the following Types are defined:',
+        echo '<p>' . __( 'Types creates Custom Post Types. These are user-defined WordPress content types. On your theme the following types are defined:',
                 'wpcf' ) . "</p>\n";
         echo "<ul style='margin-left:20px;'>\n";
         foreach ( $custom_types as $type ) {

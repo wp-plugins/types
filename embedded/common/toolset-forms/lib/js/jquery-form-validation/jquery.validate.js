@@ -676,10 +676,14 @@ $.extend($.validator, {
 					// actually showing the wrapped element is handled elsewhere
 					label = label.hide().show().wrap("<" + this.settings.wrapper + "/>").parent();
 				}
-				if ( !this.labelContainer.append(label).length )
+				if ( !this.labelContainer.append(label).length ) {
+                    if ( 'date' == $(element).data('wpt-type') ) {
+                        element = $('input[type=text]', $(element).parent());
+                    }
 					this.settings.errorPlacement
 						? this.settings.errorPlacement(label, $(element) )
 						: label.insertAfter(element);
+                }
 			}
 			if ( !message && this.settings.success ) {
 				label.text("");

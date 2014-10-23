@@ -2,10 +2,10 @@
 /*
  * Frontend functions.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.3/embedded/frontend.php $
- * $LastChangedDate: 2014-09-09 12:34:09 +0800 (Tue, 09 Sep 2014) $
- * $LastChangedRevision: 26853 $
- * $LastChangedBy: bruce $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/frontend.php $
+ * $LastChangedDate: 2014-09-17 18:03:32 +0200 (Wed, 17 Sep 2014) $
+ * $LastChangedRevision: 27245 $
+ * $LastChangedBy: marcin $
  *
  */
 
@@ -236,14 +236,11 @@ function types_render_field_single( $field, $params, $content = null, $code = ''
     $params = apply_filters( 'types_field_shortcode_parameters', $params,
         $field, $post, $meta_id );
 
-    $params['field_value'] = apply_filters( 'wpcf_fields_value_display',
-        $params['field_value'], $params, $post->ID, $field['id'], $meta_id );
+    $params['field_value'] = apply_filters( 'wpcf_fields_value_display', $params['field_value'], $params, $post->ID, $field['id'], $meta_id );
 
-    $params['field_value'] = apply_filters( 'wpcf_fields_slug_' . $field['slug'] . '_value_display',
-        $params['field_value'], $params, $post->ID, $field['id'], $meta_id );
+    $params['field_value'] = apply_filters( 'wpcf_fields_slug_' . $field['slug'] . '_value_display', $params['field_value'], $params, $post->ID, $field['id'], $meta_id );
 
-    $params['field_value'] = apply_filters( 'wpcf_fields_type_' . $field['type'] . '_value_display',
-        $params['field_value'], $params, $post->ID, $field['id'], $meta_id );
+    $params['field_value'] = apply_filters( 'wpcf_fields_type_' . $field['type'] . '_value_display', $params['field_value'], $params, $post->ID, $field['id'], $meta_id );
     // To make sure
     if ( is_string( $params['field_value'] ) ) {
         $params['field_value'] = addslashes( stripslashes( strval( $params['field_value'] ) ) );

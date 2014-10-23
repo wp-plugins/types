@@ -35,10 +35,16 @@ class WPToolset_Field_Checkbox extends FieldFactory
         if ( isset($data['options']) && array_key_exists( 'checked', $data['options'] ) ) {
             $checked = $data['options']['checked'];
         }
-        if ( array_key_exists('default_value', $data) && $value == $data['default_value'] ) {
+        /**
+         * if is a default value, there value is 1 or default_value
+         */
+        if (
+            array_key_exists('default_value', $data)
+            && ( '1' === $value || $value == $data['default_value'] )
+        ) {
             $checked = true;
         }
-        
+
         // Comment out broken code. This tries to set the previous state after validation fails
         //if (!$checked&&$this->getValue()==1) {
         //    $checked=true;

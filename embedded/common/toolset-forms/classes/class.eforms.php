@@ -406,6 +406,18 @@ class Enlimbo_Forms
                     }
                 }
             }
+            /**
+             * WPML - lock CF is has option "copy from original".
+             */
+            if ( is_admin() && function_exists('wpcf_wpml_field_is_copied') && wpcf_wpml_field_is_copied($element) ) {
+                $element['#title'] .= sprintf(
+                    '<img src="%s/images/locked.png" alt="%s" title="%s" style="position:relative;left:2px;top:2px;" />',
+                    WPCF_EMBEDDED_RES_RELPATH,
+                    __( 'This field is locked for editing because WPML will copy its value from the original language.', 'wpcf' ),
+                    __( 'This field is locked for editing because WPML will copy its value from the original language.', 'wpcf' )
+                );
+                $element['#attributes']['readonly'] = true;
+            }
             return $this->{$method}($element);
         }
     }
@@ -465,7 +477,7 @@ class Enlimbo_Forms
 			}
 			// Set return string
 			$attributes .= ' ' . $attribute . '="' . $value . '"';
-		}
+        }
 
         return $attributes;
     }
@@ -517,7 +529,6 @@ class Enlimbo_Forms
             $element['_render']['label'] .= stripslashes($element['#title']);
             $element['_render']['label'] .= '</label>';
         }
-
         return $element;
     }
 

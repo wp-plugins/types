@@ -52,10 +52,22 @@ class FormFactory extends FormAbstract
             $cred_cred_settings = get_option( 'cred_cred_settings' );
             /**
              * load or not cred.css
+             * and check use bootstrap
              */
             $load_cred_css = true;
-            if ( is_array($cred_cred_settings) && array_key_exists('dont_load_cred_css', $cred_cred_settings ) && $cred_cred_settings['dont_load_cred_css'] ) {
-                $load_cred_css = false;
+            if ( is_array($cred_cred_settings) ) {
+                if (
+                    array_key_exists('dont_load_cred_css', $cred_cred_settings )
+                    && $cred_cred_settings['dont_load_cred_css']
+                ) {
+                    $load_cred_css = false;
+                }
+                if (
+                    array_key_exists( 'use_bootstrap', $cred_cred_settings )
+                    && $cred_cred_settings['use_bootstrap']
+                ) {
+                    $this->_use_bootstrap = true;
+                }
             }
             /**
              * register
@@ -68,10 +80,6 @@ class FormFactory extends FormAbstract
                     WPTOOLSET_FORMS_VERSION
                 );
                 wp_enqueue_style( 'wptoolset-forms-cred' );
-            }
-
-            if ( array_key_exists( 'use_bootstrap', $cred_cred_settings ) && $cred_cred_settings['use_bootstrap'] ) {
-                $this->_use_bootstrap = true;
             }
         }
     }
@@ -170,6 +178,11 @@ class FormFactory extends FormAbstract
          */
         $config['use_bootstrap'] = $this->theForm->form_settings['use_bootstrap'];
         $config['has_media_button'] = $this->theForm->form_settings['has_media_button'];
+        /**
+         * WMPL configuration
+         */
+        $config['wpml_action'] = $this->get_wpml_action($config['id']);
+
         $htmlArray = array();
         $_gnf = $global_name_field;
         $_cfg = $config;
@@ -214,7 +227,19 @@ class FormFactory extends FormAbstract
                 $htmlArray[] = $this->theForm->renderElements( $form );
                 if ( empty( $config['repetitive'] ) ) break;
                 $count++;
-            } else echo "error";
+            } else {
+                if ( current_user_can('manage_options') ) {
+                    $htmlArray[] = sprintf(
+                        '<div id="message" class="error"><p>%s</p><p>%s</p></div>',
+                        sprintf(
+                            __('There is a problem with render <strong>%s (%s)</strong> field.', 'wpv-views'),
+                            $_cfg['title'],
+                            $_cfg['type']
+                        ),
+                        $field->get_error_message()
+                    );
+                }
+            }
         }
         if ( !empty( $htmlArray ) && isset($config['repetitive']) && $config['repetitive'] ) {
             $_gnf = $_cfg['name'] = "{$global_name_field}[%%{$count}%%]";
@@ -224,6 +249,7 @@ class FormFactory extends FormAbstract
                 $this->_repetitive()->add( $config, $tpl );
             }
         }
+
         return !empty( $htmlArray ) ? $this->_tpl( $config, $htmlArray ) : '';
     }
 
@@ -380,6 +406,15 @@ class FormFactory extends FormAbstract
     public function loadFieldClass( $type ) {
         $type = strtolower( $type );
         $class = $this->getClassFromType( $type );
+
+        /**
+         * try to load custom class
+         */
+        $loader = $class.'_loader';
+        if ( function_exists($loader) ) {
+            $loader();
+        }
+
         if ( !class_exists( $class ) ) {
             $file = WPTOOLSET_FORMS_ABSPATH . "/classes/class.{$type}.php";
             if ( file_exists( $file ) ) {
@@ -398,4 +433,16 @@ class FormFactory extends FormAbstract
         return class_exists( $class ) ? $class : false;
     }
 
+    private function get_wpml_action($id)
+    {
+        global $iclTranslationManagement;
+        if (
+            is_object($iclTranslationManagement)
+            && 'TranslationManagement' == get_class($iclTranslationManagement)
+            && isset($iclTranslationManagement->settings['custom_fields_translation'][$id])
+        ) {
+            return $iclTranslationManagement->settings['custom_fields_translation'][$id];
+        }
+        return 0;
+    }
 }

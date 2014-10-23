@@ -82,7 +82,7 @@ class WPToolset_Forms_Conditional
         wp_localize_script( 'wptoolset-form-conditional', 'wptConditional', $js_data );
 
 		wp_register_script( 'wptoolset-parser',
-                icl_get_file_relpath(__FILE__) . '/../../expression-parser/js/parser.js', array('jquery'),
+            icl_get_file_relpath( dirname( dirname(__FILE__) ) ) . '/expression-parser/js/parser.js', array('jquery'),
                 WPTOOLSET_FORMS_VERSION, true );
         wp_enqueue_script( 'wptoolset-parser' );
         $js_data = array(
@@ -190,7 +190,7 @@ class WPToolset_Forms_Conditional
          * check conditions
          */
         if ( !array_key_exists( 'conditions', $config ) ) {
-            return false;
+            return true;
         }
 
         $passedOne = false;

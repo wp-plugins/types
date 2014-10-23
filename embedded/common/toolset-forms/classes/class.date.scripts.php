@@ -36,10 +36,10 @@ class WPToolset_Field_Date_Scripts
 		( ( isset($_GET['page']) && ($_GET['page'] == 'wpcf-edit-usermeta' || $_GET['page'] == 'wpcf-edit') ) ||
 		//for edit pages including profile pages
 		($pagenow == 'profile.php' || $pagenow == 'post-new.php' || $pagenow == 'user-edit.php' || $pagenow == 'user-new.php' || $pagenow == 'post.php' || $pagenow == 'admin-ajax.php') && is_admin() )  ){	
-	        add_action( 'admin_enqueue_scripts', array( $this,'date_enqueue_scripts' ) );
-			if ( defined('CRED_FE_VERSION')) {
-				add_action( 'wp_enqueue_scripts', array( $this, 'date_enqueue_scripts' ) );
-			}
+        add_action( 'admin_enqueue_scripts', array( $this,'date_enqueue_scripts' ) );
+            if ( defined('CRED_FE_VERSION')) {
+                add_action( 'wp_enqueue_scripts', array( $this, 'date_enqueue_scripts' ) );
+            }
 		}
 		$this->localization_slug = false;
     }

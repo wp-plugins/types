@@ -284,7 +284,7 @@ function wpcf_pr_admin_post_meta_box_belongs_form( $post, $type, $belongs )
         'numberposts' => -1,
         'orderby' => 'title',
         'order' => 'ASC',
-        'post_status' => apply_filters( 'wpcf_pr_belongs_post_status', array( 'publish' ) ),
+        'post_status' => apply_filters( 'wpcf_pr_belongs_post_status', array( 'publish', 'private' ) ),
         'post_type' => $type,
         'suppress_filters' => 0,
     );
@@ -339,17 +339,23 @@ function wpcf_pr_admin_update_belongs( $post_id, $data ) {
     $errors = array();
     $post = get_post( intval( $post_id ) );
     if ( empty( $post->ID ) ) {
-        return new WP_Error( 'wpcf_update_belongs',
-                sprintf( __( 'Missing child post ID %d', 'wpcf' ),
-                        intval( $post_id ) ) );
+        return new WP_Error(
+            'wpcf_update_belongs',
+            sprintf(
+                __( 'Missing child post ID %d', 'wpcf' ),
+                intval( $post_id )
+            )
+        );
     }
 
     foreach ( $data as $post_type => $post_owner_id ) {
         // Check if relationship exists
         if ( !wpcf_relationship_is_parent( $post_type, $post->post_type ) ) {
-            $errors[] = sprintf( __( 'Relationship do not exist %s -> %s',
-                            'wpcf' ), strval( $post_type ),
-                    strval( $post->post_type ) );
+            $errors[] = sprintf(
+                __( 'Relationship do not exist %s -> %s', 'wpcf' ),
+                strval( $post_type ),
+                strval( $post->post_type )
+            );
             continue;
         }
         if ( $post_owner_id == '0' ) {
@@ -359,15 +365,16 @@ function wpcf_pr_admin_update_belongs( $post_id, $data ) {
         $post_owner = get_post( intval( $post_owner_id ) );
         // Check if owner post exists
         if ( empty( $post_owner->ID ) ) {
-            $errors[] = sprintf( __( 'Missing parent post ID %d', 'wpcf' ),
-                    intval( $post_owner_id ) );
+            $errors[] = sprintf( __( 'Missing parent post ID %d', 'wpcf' ), intval( $post_owner_id ) );
             continue;
         }
         // Check if owner post type matches required
         if ( $post_owner->post_type != $post_type ) {
-            $errors[] = sprintf( __( 'Parent post ID %d is not type of %s',
-                            'wpcf' ), intval( $post_owner_id ),
-                    strval( $post_type ) );
+            $errors[] = sprintf(
+                __( 'Parent post ID %d is not type of %s', 'wpcf' ),
+                intval( $post_owner_id ),
+                strval( $post_type )
+            );
             continue;
         }
         update_post_meta( $post_id, "_wpcf_belongs_{$post_type}_id", $post_owner->ID );

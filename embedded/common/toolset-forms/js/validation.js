@@ -7,8 +7,8 @@
  *
  * @see class WPToolset_Validation
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Views-1.6.4-CRED-1.3.2-Types-1.6.4-Acces-1.2.3/toolset-forms/js/validation.js $
- * $LastChangedDate: 2014-09-12 17:57:24 +0800 (Fri, 12 Sep 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/js/validation.js $
+ * $LastChangedDate: 2014-09-12 11:57:24 +0200 (Fri, 12 Sep 2014) $
  * $LastChangedRevision: 27017 $
  * $LastChangedBy: francesco $
  *
