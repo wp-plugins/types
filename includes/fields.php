@@ -3,8 +3,8 @@
  * Fields and groups functions
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/includes/fields.php $
- * $LastChangedDate: 2014-10-09 14:13:57 +0200 (Thu, 09 Oct 2014) $
- * $LastChangedRevision: 27913 $
+ * $LastChangedDate: 2014-10-23 17:38:01 +0200 (Thu, 23 Oct 2014) $
+ * $LastChangedRevision: 28224 $
  * $LastChangedBy: marcin $
  *
  */
@@ -248,8 +248,7 @@ function wpcf_admin_fields_save_group( $group, $post_type = 'wp-types-group' ) {
     }
 
     if ( !empty( $group['filters_association'] ) ) {
-        update_post_meta( $group_id, '_wp_types_group_filters_association',
-                $group['filters_association'] );
+        update_post_meta( $group_id, '_wp_types_group_filters_association', $group['filters_association'] );
     } else {
         delete_post_meta( $group_id, '_wp_types_group_filters_association' );
     }

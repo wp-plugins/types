@@ -449,7 +449,9 @@ class Enlimbo_Forms
                 $classes[] = 'form-control';
             }
         } else {
-            $classes[] = $element['#type'];
+            if ( 'hidden' != $element['#type'] ) {
+                $classes[] = $element['#type'];
+            }
         }
 
         if ( isset( $element['#attributes'] )
@@ -464,7 +466,8 @@ class Enlimbo_Forms
 			$element['#attributes'] = array(
 				'class' => implode( ' ', $classes )
 			);
-		}
+        }
+
 			
 		foreach ($element['#attributes'] as $attribute => $value) {
 			// Prevent undesired elements

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<repositories>
+    <repository>
+        <id>toolset</id>
+        <apiurl>http://wptypesqa.host/api/</apiurl>
+        <products>https://wptypes.s3.amazonaws.com/toolset-products.sandbox.json</products>
+    </repository>
+	<repository>
+        <id>wpml</id>
+        <apiurl>http://api.wpml.org/</apiurl>
+        <products>https://wpmlorg.s3.amazonaws.com/wpml-products.json</products>
+    </repository>
+</repositories>

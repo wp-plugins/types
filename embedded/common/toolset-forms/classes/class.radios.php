@@ -2,7 +2,7 @@
 /**
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.radios.php $
- * $LastChangedDate: 2014-10-13 19:15:17 +0200 (Mon, 13 Oct 2014) $
+ * $LastChangedDate: 2014-10-13 19:15:17 +0200 (pon) $
  * $LastChangedRevision: 28043 $
  * $LastChangedBy: marcin $
  *

@@ -5,7 +5,7 @@
   Description: Define custom post types, custom taxonomy and custom fields.
   Author: OnTheGoSystems
   Author URI: http://www.onthegosystems.com
-  Version: trunk
+  Version: 1.6.3
  */
 /**
  *
@@ -20,7 +20,7 @@ if ( !defined( 'WPCF_VERSION' ) ) {
     /**
      * make sure that WPCF_VERSION in embedded/bootstrap.php is the same!
      */
-    define( 'WPCF_VERSION', 'trunk' );
+    define( 'WPCF_VERSION', '1.6.3' );
 }
 
 define( 'WPCF_REPOSITORY', 'http://api.wp-types.com/' );
@@ -32,6 +32,14 @@ define( 'WPCF_INC_RELPATH', WPCF_RELPATH . '/includes' );
 define( 'WPCF_RES_ABSPATH', WPCF_ABSPATH . '/resources' );
 define( 'WPCF_RES_RELPATH', WPCF_RELPATH . '/resources' );
 
+//Add installer
+include dirname( __FILE__ ) . '/embedded/common/installer/loader.php';
+WP_Installer_Setup($wp_installer_instance,  
+array(
+    'plugins_install_tab' => '1',
+    'repositories_include' => array('toolset', 'wpml')	
+));
+		
 require_once WPCF_INC_ABSPATH . '/constants.php';
 /*
  * Since Types 1.2 we load all embedded code without conflicts
@@ -77,8 +85,19 @@ function wpcf_init()
     }
 
     if ( is_admin() ) {
+	
         require_once WPCF_ABSPATH . '/admin.php';
     }
+	
+    
+}
+
+//Render Installer packages
+function installer_content(){			
+	echo '<div class="wrap">';
+	$config['repository'] = array(); // required
+	WP_Installer_Show_Products($config);			
+	echo "</div>";			
 }
 
 /**
@@ -87,8 +106,14 @@ function wpcf_init()
 function wpcf_wp_init()
 {
     if ( is_admin() ) {
-        require_once WPCF_ABSPATH . '/admin.php';
-    }
+	
+		require_once WPCF_ABSPATH . '/admin.php';
+		add_action('admin_menu', 'setup_installer');
+		//Add submenu Installer to Types
+		function setup_installer(){
+			add_submenu_page('wpcf', 'Installer', 'Installer', 'manage_options', 'installer', 'installer_content');
+		}
+	}
 }
 
 /**

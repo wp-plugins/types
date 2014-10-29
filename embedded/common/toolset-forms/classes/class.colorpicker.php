@@ -2,7 +2,7 @@
 /**
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.colorpicker.php $
- * $LastChangedDate: 2014-07-12 10:38:18 +0200 (Sat, 12 Jul 2014) $
+ * $LastChangedDate: 2014-07-12 10:38:18 +0200 (sob) $
  * $LastChangedRevision: 24908 $
  * $LastChangedBy: gen $
  *

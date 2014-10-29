@@ -124,7 +124,7 @@ if (!function_exists('wpv_filter_parse_date')) {
                 $date = Toolset_DateParser::parseDate( $date_string, $format );
                 if( is_object($date) && method_exists( $date, 'getTimestamp' ) )
                 {
-                    $timestamp = $date->getTimestamp();
+                    $timestamp = $date->getTimestamp();// NOTE this timestamp construction should be compatible with the adodb_xxx functions
                     return $timestamp;
                 }
 

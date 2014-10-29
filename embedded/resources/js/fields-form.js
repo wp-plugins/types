@@ -10,7 +10,7 @@
  * @autor srdjan
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/resources/js/fields-form.js $
- * $LastChangedDate: 2014-07-11 06:20:46 +0200 (Fri, 11 Jul 2014) $
+ * $LastChangedDate: 2014-07-11 06:20:46 +0200 (pią) $
  * $LastChangedRevision: 24859 $
  * $LastChangedBy: bruce $
  *

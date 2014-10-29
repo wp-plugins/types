@@ -926,9 +926,7 @@ function wpcf_admin_post_save_post_hook( $post_ID, $post )
                         $update_data[$option_id] = $_POST['wpcf'][$field['wpcf-slug']][$option_id];
                     }
                 }
-                update_post_meta( $post_ID,
-                        wpcf_types_get_meta_prefix( $field ) . $field['wpcf-slug'],
-                        $update_data );
+                update_post_meta( $post_ID, wpcf_types_get_meta_prefix( $field ) . $field['wpcf-slug'], $update_data );
             }
         }
     }

@@ -2,7 +2,7 @@
  * @see WPToolset_Forms_Conditional (classes/conditional.php)
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/js/conditional.js $
- * $LastChangedDate: 2014-10-02 16:35:00 +0200 (Thu, 02 Oct 2014) $
+ * $LastChangedDate: 2014-10-02 16:35:00 +0200 (czw) $
  * $LastChangedRevision: 27651 $ 
  * $LastChangedBy: riccardo $ Riccardo
  *

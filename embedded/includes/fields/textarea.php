@@ -2,7 +2,7 @@
 /**
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/includes/fields/textarea.php $
- * $LastChangedDate: 2014-09-04 03:55:20 +0200 (Thu, 04 Sep 2014) $
+ * $LastChangedDate: 2014-09-04 03:55:20 +0200 (czw) $
  * $LastChangedRevision: 26690 $
  * $LastChangedBy: bruce $
  *

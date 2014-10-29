@@ -8,7 +8,7 @@
  * @see class WPToolset_Validation
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/js/validation.js $
- * $LastChangedDate: 2014-09-12 11:57:24 +0200 (Fri, 12 Sep 2014) $
+ * $LastChangedDate: 2014-09-12 11:57:24 +0200 (pią) $
  * $LastChangedRevision: 27017 $
  * $LastChangedBy: francesco $
  *

@@ -8,7 +8,7 @@ require_once 'class.video.php';
  * @author Srdjan
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.credvideo.php $
- * $LastChangedDate: 2014-08-22 12:23:29 +0200 (Fri, 22 Aug 2014) $
+ * $LastChangedDate: 2014-08-22 12:23:29 +0200 (pią) $
  * $LastChangedRevision: 26350 $
  * $LastChangedBy: francesco $
  *

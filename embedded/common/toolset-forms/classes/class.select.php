@@ -2,7 +2,7 @@
 /**
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.select.php $
- * $LastChangedDate: 2014-09-09 12:13:56 +0200 (Tue, 09 Sep 2014) $
+ * $LastChangedDate: 2014-09-09 12:13:56 +0200 (wto) $
  * $LastChangedRevision: 26869 $
  * $LastChangedBy: francesco $
  *

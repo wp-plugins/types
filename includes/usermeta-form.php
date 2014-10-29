@@ -3,7 +3,7 @@
  * Fields and groups form functions.
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/includes/usermeta-form.php $
- * $LastChangedDate: 2014-08-14 04:10:16 +0200 (Thu, 14 Aug 2014) $
+ * $LastChangedDate: 2014-08-14 04:10:16 +0200 (czw) $
  * $LastChangedRevision: 25956 $
  * $LastChangedBy: bruce $
  *

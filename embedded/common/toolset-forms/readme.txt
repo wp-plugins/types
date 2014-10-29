@@ -40,6 +40,10 @@ function my_toolset_valid_image_extentions($valid_extensions)
   frontend.
   https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/190833102/comments
 
+- Fixed a problem with WYSIWYG field description.
+  https://wp-types.com/forums/topic/add-a-link-in-the-custom-field-description/
+  https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/191030746/comments
+
 2014-10-21
 - Fixed issue on checkbox after submit - there was wrong condition to
   display checked checkbox.

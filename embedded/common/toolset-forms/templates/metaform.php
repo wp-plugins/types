@@ -2,7 +2,7 @@
 /**
  *
  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/templates/metaform.php $
- * $LastChangedDate: 2014-08-18 17:18:52 +0200 (Mon, 18 Aug 2014) $
+ * $LastChangedDate: 2014-08-18 17:18:52 +0200 (pon) $
  * $LastChangedRevision: 26059 $
  * $LastChangedBy: riccardo $
  *

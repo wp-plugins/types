@@ -53,9 +53,8 @@ class WPToolset_Field_Date extends FieldFactory
     {
         $time_value = $this->getValue();
         $datepicker = $hour = $minute = null;
-        $timestamp = time();
+        $timestamp = null;
         $readonly = false;
-        $clear_date_showhide = '';
         if (is_admin()) {
             if (is_array($time_value) && array_key_exists('timestamp', $time_value) && $time_value ) {
                 $timestamp = $time_value['timestamp'];
@@ -93,12 +92,12 @@ class WPToolset_Field_Date extends FieldFactory
             }
         }
         $data = $this->getData();
+
         if (!$timestamp) {
             // If there is no timestamp, we need to make it an empty string
             // A false value would render the hidden field with a value of 1
             $timestamp = '';
             $datepicker = null;
-            $clear_date_showhide = ' style="display:none"';
         }
 
         $def_class = 'js-wpt-date';
@@ -227,7 +226,15 @@ class WPToolset_Field_Date extends FieldFactory
         $form[] = array(
             '#type' => 'markup',
             '#inline' => true,
-            '#markup' => '<input type="button"' . $clear_date_showhide . ' class="button button-secondary js-wpt-date-clear wpt-date-clear" value="' . esc_attr(__('Clear date', 'wpv-views')) . '" />',
+            '#markup' => sprintf(
+                '<input type="button" class="button button-secondary js-wpt-date-clear wpt-date-clear" value="%s" %s/>',
+                esc_attr(__('Clear date', 'wpv-views')),
+                /**
+                 * show button if array is empty or timestamp in array is
+                 * empty
+                 */
+                empty($time_value) || ( array_key_exists('timestamp', $time_value) && empty($time_value['timestamp']))? 'style="display:none" ':''
+            ),
         );
         return $form;
     }
