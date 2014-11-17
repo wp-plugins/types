@@ -13,7 +13,7 @@ The complete and reliable plugin for managing custom post types, custom taxonomy
 
 Types let's you customize the WordPress admin by adding content types, custom fields and taxonomy. You will be able to craft the WordPress admin and turn it into your very own content management system.
 
-[vimeo http://vimeo.com/43104695]
+[vimeo http://vimeo.com/112053938]
 
 = POWERFUL PHP API, SIMPLE GUI FOR NON-CODERS =
 If you're an experienced PHP developer, you'll appreciate Types comprehensive [PHP API](http://wp-types.com/documentation/functions/) and [documentation](http://wp-types.com/documentation/user-guides/).
@@ -85,7 +85,7 @@ Types is the only custom fields and post types plugin that's built multilingual-
 
 = BUILT FOR STABILITY =
 
-Types is part of a family of plugins, including WPML and Toolset, developed and maintained by [OnTheGoSystems](http://www.onthegosystems.com). Our plugins power over 100,000 commercial sites, using WordPress as a complete CMS. While we love features, we know that stability, performance, usability and security are critical. All our plugins go through comprehensive testing, QA and security analysis before every release.
+Types is part of a family of plugins, including WPML and Toolset, developed and maintained by [OnTheGoSystems](http://www.onthegosystems.com). Our plugins power over 500,000 commercial sites, using WordPress as a complete CMS. While we love features, we know that stability, performance, usability and security are critical. All our plugins go through comprehensive testing, QA and security analysis before every release.
 
 == Installation ==
 
