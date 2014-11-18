@@ -1,10 +1,10 @@
 /*
  * Repetitive JS.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/js/repetitive.js $
- * $LastChangedDate: 2014-08-06 16:48:27 +0200 (Wed, 06 Aug 2014) $
- * $LastChangedRevision: 25705 $
- * $LastChangedBy: juan $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 var wptRep = (function($) {

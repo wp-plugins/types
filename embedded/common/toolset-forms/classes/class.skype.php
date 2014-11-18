@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.skype.php $
- * $LastChangedDate: 2014-08-05 18:18:16 +0200 (Tue, 05 Aug 2014) $
- * $LastChangedRevision: 25657 $
- * $LastChangedBy: juan $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 require_once 'class.textfield.php';

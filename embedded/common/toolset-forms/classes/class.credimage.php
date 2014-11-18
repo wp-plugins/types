@@ -7,10 +7,10 @@ require_once 'class.image.php';
  *
  * @author Srdjan
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.credimage.php $
- * $LastChangedDate: 2014-08-22 12:23:29 +0200 (pią) $
- * $LastChangedRevision: 26350 $
- * $LastChangedBy: francesco $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 class WPToolset_Field_Credimage extends WPToolset_Field_Credfile

@@ -635,8 +635,7 @@ function wpcf_admin_custom_types_form() {
     );
     $form['table-6-open'] = array(
         '#type' => 'markup',
-        '#markup' => '<table id="wpcf-types-form-supports-table" class="wpcf-types-form-table widefat"><thead><tr><th>' . __( 'Advanced',
-                'wpcf' ) . '</th></tr></thead><tbody><tr><td>',
+        '#markup' => '<table id="wpcf-types-form-supports-table" class="wpcf-types-form-table widefat"><thead><tr><th>' . __( 'Options', 'wpcf' ) . '</th></tr></thead><tbody><tr><td>',
     );
     $form['rewrite-enabled'] = array(
         '#type' => 'checkbox',

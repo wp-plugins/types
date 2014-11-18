@@ -323,7 +323,7 @@ if (!class_exists('Enlimbo_Forms_Wpcf')) {
                         continue;
                     }
                     // Don't set disabled for checkbox
-                    if ($attribute == 'disabled' && $element['#type'] == 'checkbox') {
+                    if ( ( 'disabled' == $attribute || '#disabled' == $attribute )  && $element['#type'] == 'checkbox') {
                         continue;
                     }
                     // Append class values
@@ -583,7 +583,7 @@ if (!class_exists('Enlimbo_Forms_Wpcf')) {
                 $element['_render']['element'] .= ' onclick="javascript:return false; if(this.checked == 1){this.checked=1; return true;}else{this.checked=0; return false;}"';
             }
             if (!empty($element['#attributes']['#disabled'])) {
-                $element['_render']['element'] .= ' disabled="disabled""';
+                $element['_render']['element'] .= ' disabled="disabled"';
             }
 			
             $element['_render']['element'] .= ' />';

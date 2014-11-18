@@ -93,14 +93,14 @@ class WPToolset_Field_Taxonomyhierarchical extends WPToolset_Field_Textfield
             '#title' => '',
             '#description' => '',
             '#name' => "btn_".$taxname,
-            '#value' => esc_attr( $attributes['add_new_text'] ),
+            '#value' => apply_filters('toolset_button_add_new_text', esc_attr( $attributes['add_new_text'] )),
             '#attributes' => array(
                 'style' => 'display:none;',
                 'data-taxonomy' => $taxname,
                 'data-build_what' => $build_what,
                 'data-after-selector' => 'js-wpt-hierarchical-taxonomy-add-new-' . $taxname,
-                'data-open' => esc_attr( $attributes['add_new_text'] ),
-				'data-close' => esc_attr( __( 'Cancel', 'wpv-views' ) ),// TODO adjust the button value depending on open/close action
+                'data-open' => apply_filters('toolset_button_add_new_text', esc_attr( $attributes['add_new_text'] )),
+				'data-close' => apply_filters('toolset_button_cancel_text', esc_attr( __( 'Cancel', 'wpv-views' ) )),// TODO adjust the button value depending on open/close action
 				'class' => $use_bootstrap? 'btn btn-default wpt-hierarchical-taxonomy-add-new-show-hide js-wpt-hierarchical-taxonomy-add-new-show-hide' : 'wpt-hierarchical-taxonomy-add-new-show-hide js-wpt-hierarchical-taxonomy-add-new-show-hide',
             ),
 
@@ -164,7 +164,7 @@ class WPToolset_Field_Taxonomyhierarchical extends WPToolset_Field_Textfield
             '#title' => '',
             '#description' => '',
             '#name' => "new_tax_button_".$taxname,
-            '#value' => esc_attr( $attributes['add_text'] ),
+            '#value' => apply_filters('toolset_button_add_text', esc_attr( $attributes['add_text'] )),
             '#attributes' => array(
                 'data-taxonomy' => $taxname,
                 'data-build_what' => $build_what,

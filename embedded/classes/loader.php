@@ -3,10 +3,10 @@
  *
  * Loader class
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/classes/loader.php $
- * $LastChangedDate: 2014-06-26 19:13:20 +0200 (Thu, 26 Jun 2014) $
- * $LastChangedRevision: 24403 $
- * $LastChangedBy: juan $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 

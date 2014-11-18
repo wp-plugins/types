@@ -4,10 +4,10 @@
  * Ask Types users for feedback on their work
  * https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188885189/comments
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/marketing/types_marketing_message_survey_2014_09.php $
- * $LastChangedDate: 2014-09-05 11:16:11 +0200 (Fri, 05 Sep 2014) $
- * $LastChangedRevision: 26748 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 

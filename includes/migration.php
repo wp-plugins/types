@@ -2,10 +2,10 @@
 /*
  * Migration functions
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/includes/migration.php $
- * $LastChangedDate: 2014-09-15 17:15:16 +0200 (Mon, 15 Sep 2014) $
- * $LastChangedRevision: 27102 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 

@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.select.php $
- * $LastChangedDate: 2014-09-09 12:13:56 +0200 (wto) $
- * $LastChangedRevision: 26869 $
- * $LastChangedBy: francesco $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 require_once 'class.field_factory.php';

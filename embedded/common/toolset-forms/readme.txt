@@ -30,6 +30,33 @@ function my_toolset_valid_image_extentions($valid_extensions)
 
 = Changelog =
 
+2014-11-13
+
+- Fixed a problem with missing taxonomies after form fail:
+  https://wp-types.com/forums/topic/cred-featured-image-and-tag-selector-empty-after-validation-refresh/
+
+2014-11-10
+
+- Fixed a problem with datepicker witch do not working inside a modal
+  dialog
+  https://wp-types.com/forums/topic/cred-forms-not-displaying-on-tabletmobile-browsers/
+
+2014-11-03
+
+- add filters to change taxonomies buttons text:
+  - toolset_button_show_popular_text
+  - toolset_button_hide_popular_text
+  - toolset_button_add_new_text
+  - toolset_button_cancel_text
+  - toolset_button_add_text
+
+- add filters to change repetitive buttons text:
+  - toolset_button_delete_repetition_text
+  - toolset_button_add_repetition_text
+  https://wp-types.com/forums/topic/format-form-field-as-list/#post-255070
+  https://wp-types.com/forums/topic/hi/
+  https://wp-types.com/forums/topic/how-to-change-wpt-repdelete-button-value/
+
 2014-10-23
 - Fixed issue with missing previously saved data.
   https://wp-types.com/forums/topic/date-not-recorded-in-a-postype

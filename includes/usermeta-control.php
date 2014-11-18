@@ -2,10 +2,10 @@
 /*
  * Custom Fields Control Screen
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/includes/usermeta-control.php $
- * $LastChangedDate: 2014-06-26 12:57:18 +0200 (Thu, 26 Jun 2014) $
- * $LastChangedRevision: 24376 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 /**

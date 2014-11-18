@@ -240,8 +240,13 @@ function wpcf_pr_admin_post_meta_box_output( $post, $args )
             );
         }
         if ( !empty( $output_temp ) ) {
-            $output .= '<div style="margin: 20px 0 10px 0">' . sprintf( __( 'This %s belongs to:',
-                                    'wpcf' ), $current_post_type ) . '</div>' . $output_temp;
+            $types_existing = get_option( 'wpcf-custom-types', array() );
+            $output .= '<div style="margin: 20px 0 10px 0">';
+            $output .= sprintf(
+                __( 'This <i>%s</i> belongs to:', 'wpcf' ),
+                $types_existing[$current_post_type]['labels']['singular_name']
+            );
+            $output .= '</div>' . $output_temp;
         }
     }
     return $output;
@@ -310,12 +315,13 @@ function wpcf_pr_admin_post_meta_box_belongs_form( $post, $type, $belongs )
         );
     }
 
+
     $form[$type] = array(
         '#type' => 'select',
         '#name' => 'wpcf_pr_belongs[' . $post->ID . '][' . $type . ']',
         '#default_value' => isset( $belongs['belongs'][$type] ) ? $belongs['belongs'][$type] : 0,
         '#options' => $options,
-        '#prefix' => $temp_type->label . '&nbsp;',
+        '#prefix' => $temp_type->labels->singular_name . '&nbsp;',
         '#suffix' => '&nbsp;<a href="'
         . admin_url( 'admin-ajax.php?action=wpcf_ajax'
                 . '&amp;wpcf_action=pr-update-belongs&amp;_wpnonce='
@@ -413,45 +419,59 @@ function wpcf_pr_admin_has_pagination( $post, $post_type, $page, $prev, $next,
     if ( isset( $_GET['post_type_sort_parent'] ) ) {
         $add .= '&post_type_sort_parent=' . $_GET['post_type_sort_parent'];
     }
+
+    /**
+     * default for next
+     */
+    $url_params = array(
+        'action' => 'wpcf_ajax',
+        'wpcf_action' => 'pr_pagination',
+        'page' => $page + 1,
+        'dir' => 'next',
+        'post_id' => $post->ID,
+        'post_type' => $post_type,
+        $wpcf->relationship->items_per_page_option_name => $wpcf->relationship->items_per_page,
+        '_wpnonce' => wp_create_nonce( 'pr_pagination' ) . $add,
+    );
+    $url = admin_url('admin-ajax.php');
+
+
     if ( $prev ) {
-        $link .= '<a class="button-secondary wpcf-pr-pagination-link wpcf-pr-prev" href="'
-                . admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_pagination&amp;page='
-                        . ($page - 1) . '&amp;dir=prev&amp;post_id=' . $post->ID . '&amp;post_type='
-                        . $post_type
-                        . '&amp;' . $wpcf->relationship->items_per_page_option_name
-                        . '=' . $wpcf->relationship->items_per_page
-                        . '&amp;_wpnonce='
-                        . wp_create_nonce( 'pr_pagination' ) . $add ) . '">'
-                . __( 'Prev', 'wpcf' ) . '</a>&nbsp;&nbsp;';
+        $url_params['page'] = $page - 1;
+        $url_params['dir'] = 'prev';
+        $link .= sprintf(
+            '<a class="button-secondary wpcf-pr-pagination-link wpcf-pr-prev" href="%s" data-pagination-name="%s">',
+            add_query_arg( $url_params, $url),
+            esc_attr($wpcf->relationship->items_per_page_option_name)
+        );
+        $link .= __( 'Prev', 'wpcf' ) . '</a>&nbsp;&nbsp;';
     }
     if ( $per_page < $count ) {
         $total_pages = ceil( $count / $per_page );
-        $link .= '<select class="wpcf-pr-pagination-select" name="wpcf-pr-pagination-select">';
+        $link .= sprintf(
+            '<select class="wpcf-pr-pagination-select" name="wpcf-pr-pagination-select" data-pagination-name="%s">',
+            esc_attr($wpcf->relationship->items_per_page_option_name)
+        );
         for ( $index = 1; $index <= $total_pages; $index++ ) {
             $link .= '<option';
             if ( ($index) == $page ) {
                 $link .= ' selected="selected"';
             }
-            $link .= ' value="' . admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_pagination&amp;page='
-                            . $index . '&amp;dir=next&amp;post_id=' . $post->ID . '&amp;post_type='
-                            . $post_type
-                            . '&amp;' . $wpcf->relationship->items_per_page_option_name
-                            . '=' . $wpcf->relationship->items_per_page
-                            . '&amp;_wpnonce='
-                            . wp_create_nonce( 'pr_pagination' ) . $add ) . '">' . $index . '</option>';
+            $url_params['page'] = $index;
+
+            $link .= sprintf( ' value="%s"', add_query_arg( $url_params, $url));
+            $link .= '">' . $index . '</option>';
         }
         $link .= '</select>';
     }
     if ( $next ) {
-        $link .= '<a class="button-secondary wpcf-pr-pagination-link wpcf-pr-next" href="'
-                . admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_pagination&amp;page='
-                        . ($page + 1) . '&amp;dir=next&amp;post_id=' . $post->ID . '&amp;post_type='
-                        . $post_type
-                        . '&amp;' . $wpcf->relationship->items_per_page_option_name
-                        . '=' . $wpcf->relationship->items_per_page
-                        . '&amp;_wpnonce='
-                        . wp_create_nonce( 'pr_pagination' ) . $add ) . '">'
-                . __( 'Next', 'wpcf' ) . '</a>';
+        $url_params['page'] = $page + 1;
+        $link .= sprintf(
+            '<a class="button-secondary wpcf-pr-pagination-link wpcf-pr-next" href="%s" data-pagination-name="%s">',
+            add_query_arg( $url_params, $url),
+            esc_attr($wpcf->relationship->items_per_page_option_name)
+        );
+        $link .= __( 'Next', 'wpcf' ) . '</a>';
     }
     return !empty( $link ) ? '<div class="wpcf-pagination-top">' . $link . '</div>' : '';
 }

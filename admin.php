@@ -3,10 +3,10 @@
  *
  * Admin functions
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/admin.php $
- * $LastChangedDate: 2014-10-03 14:45:51 +0200 (Fri, 03 Oct 2014) $
- * $LastChangedRevision: 27719 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 require_once WPCF_ABSPATH . '/marketing.php';

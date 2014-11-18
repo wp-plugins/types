@@ -19,6 +19,13 @@ jQuery(document).ready(function() {
     } else {
         wptCallbacks.validationInit.fire();
     }
+    /**
+     * check taxonmies on submitted forms
+     */
+    jQuery('.cred-taxonomy', jQuery('form.is_submitted')).each(function(){
+        parent = jQuery(this);
+        setTimeout( function(){jQuery('input.wpt-taxonomy-add-new', parent).click();}, 50);
+    });
 });
 
 

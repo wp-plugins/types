@@ -3,10 +3,10 @@
  *
  * Custom Post Types embedded code.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/includes/custom-types.php $
- * $LastChangedDate: 2014-05-08 15:13:42 +0200 (Thu, 08 May 2014) $
- * $LastChangedRevision: 22156 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 add_action( 'wpcf_type', 'wpcf_filter_type', 10, 2 );
@@ -163,6 +163,7 @@ function wpcf_custom_types_register( $post_type, $data ) {
     }
     if ( !empty( $data['show_in_menu_page'] ) ) {
         $data['show_in_menu'] = $data['show_in_menu_page'];
+        $data['labels']['all_items'] = $data['labels']['name'];
     }
     /**
      * menu_icon

@@ -2,10 +2,10 @@
 
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/api.php $
- * $LastChangedDate: 2014-09-08 10:45:25 +0200 (Mon, 08 Sep 2014) $
- * $LastChangedRevision: 26812 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 

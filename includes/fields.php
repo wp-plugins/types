@@ -2,10 +2,10 @@
 /*
  * Fields and groups functions
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/includes/fields.php $
- * $LastChangedDate: 2014-10-23 17:38:01 +0200 (Thu, 23 Oct 2014) $
- * $LastChangedRevision: 28224 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';

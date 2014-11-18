@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/includes/fields/video.php $
- * $LastChangedDate: 2014-07-15 16:18:54 +0200 (Tue, 15 Jul 2014) $
- * $LastChangedRevision: 24974 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 

@@ -2,10 +2,10 @@
 /**
   * produce debug information
   *
-  * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/debug/functions_debug_information.php $
-  * $LastChangedDate: 2014-09-26 14:15:05 +0200 (Fri, 26 Sep 2014) $
-  * $LastChangedRevision: 27495 $
-  * $LastChangedBy: marcin $
+  * $HeadURL$
+  * $LastChangedDate$
+  * $LastChangedRevision$
+  * $LastChangedBy$
   *
   */
 

@@ -3,10 +3,10 @@
  *
  * Post Types Class
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/classes/class.wpcf-post-types.php $
- * $LastChangedDate: 2014-05-13 12:49:25 +0200 (Tue, 13 May 2014) $
- * $LastChangedRevision: 22267 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 

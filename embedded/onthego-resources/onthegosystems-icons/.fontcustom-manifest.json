@@ -1,13 +1,13 @@
 {
   "checksum": {
-    "previous": "8d9a6c3bf95bd4630d40a722f192ec47a6dc6367d95e40bb3ee60174fffdfe63",
-    "current": "8d9a6c3bf95bd4630d40a722f192ec47a6dc6367d95e40bb3ee60174fffdfe63"
+    "previous": "33da83f67be9c5797490c4baa29104c1311787053a2711571308c2562fc16af7",
+    "current": "33da83f67be9c5797490c4baa29104c1311787053a2711571308c2562fc16af7"
   },
   "fonts": [
-    "fonts/onthegosystems-icons_8d9a6c3bf95bd4630d40a722f192ec47.ttf",
-    "fonts/onthegosystems-icons_8d9a6c3bf95bd4630d40a722f192ec47.svg",
-    "fonts/onthegosystems-icons_8d9a6c3bf95bd4630d40a722f192ec47.woff",
-    "fonts/onthegosystems-icons_8d9a6c3bf95bd4630d40a722f192ec47.eot"
+    "fonts/onthegosystems-icons_33da83f67be9c5797490c4baa29104c1.ttf",
+    "fonts/onthegosystems-icons_33da83f67be9c5797490c4baa29104c1.svg",
+    "fonts/onthegosystems-icons_33da83f67be9c5797490c4baa29104c1.woff",
+    "fonts/onthegosystems-icons_33da83f67be9c5797490c4baa29104c1.eot"
   ],
   "glyphs": {
     "access": {
@@ -69,36 +69,40 @@
     "views-logo": {
       "codepoint": 61726,
       "source": "vectors/views-logo.svg"
+    },
+    "wpml-logo": {
+      "codepoint": 61727,
+      "source": "vectors/wpml logo.svg"
     }
   },
   "options": {
-    "autowidth": false,
-    "config": "fontcustom.yml",
-    "css_selector": ".icon-{{glyph}}",
-    "debug": true,
-    "file_hash": false,
-    "font_name": "onthegosystems-icons",
-    "force": false,
     "input": {
-      "templates": "vectors",
-      "vectors": "vectors"
+      "vectors": "vectors",
+      "templates": "vectors"
     },
-    "no_hash": false,
     "output": {
-      "css": "css",
       "fonts": "fonts",
+      "css": "css",
       "preview": "fonts"
     },
-    "preprocessor_path": null,
-    "project_root": {
-      "pwd": null
-    },
-    "quiet": false,
+    "config": "fontcustom.yml",
     "templates": [
       "css",
       "scss",
       "preview"
-    ]
+    ],
+    "font_name": "onthegosystems-icons",
+    "css_selector": ".icon-{{glyph}}",
+    "preprocessor_path": null,
+    "autowidth": false,
+    "no_hash": false,
+    "debug": false,
+    "force": false,
+    "quiet": false,
+    "project_root": {
+      "pwd": null
+    },
+    "file_hash": false
   },
   "templates": [
     "css/onthegosystems-icons.css",

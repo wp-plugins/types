@@ -94,6 +94,10 @@ NO DUPLICATES
 .wpcf-form-label {
     white-space: nowrap;
 }
+.wpcf-form-fieldset .wpcf-form-label
+{
+    white-space: normal;
+}
 .wpcf-form-textfield-label {
     font-size: 1em;
     font-weight: bold;

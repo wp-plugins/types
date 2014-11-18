@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.colorpicker.php $
- * $LastChangedDate: 2014-07-12 10:38:18 +0200 (sob) $
- * $LastChangedRevision: 24908 $
- * $LastChangedBy: gen $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 require_once 'class.field_factory.php';

@@ -2,10 +2,10 @@
 /**
  * WPCF_Path
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/classes/path.php $
- * $LastChangedDate: 2014-05-12 16:47:19 +0200 (Mon, 12 May 2014) $
- * $LastChangedRevision: 22250 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 final class WPCF_Path

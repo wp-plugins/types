@@ -10,10 +10,10 @@ $fields_access = new Post_Fields_Access;
  * @author Gen gen.i@icanlocalize.com
  * @since Types 1.3
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/usermeta-init.php $
- * $LastChangedDate: 2014-09-17 16:47:53 +0200 (Wed, 17 Sep 2014) $
- * $LastChangedRevision: 27239 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 function wpcf_admin_menu_edit_user_fields_hook() {

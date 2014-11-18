@@ -1,14 +1,14 @@
 <?php
 /*
  * Relationship form class.
- * 
+ *
  * Used to render child forms
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
 
 /**
  * Relationship form class.
- * 
+ *
  * Used on post edit page to show children rows
  */
 class WPCF_Relationship_Child_Form
@@ -16,29 +16,29 @@ class WPCF_Relationship_Child_Form
 
     /**
      * Current post.
-     * 
+     *
      * @var type object
      */
     var $post;
 
     /**
      * Field object.
-     * 
+     *
      * @var type array
      */
     var $cf = array();
 
     /**
      * Saved data.
-     * 
+     *
      * @var type array
      */
     var $data = array();
 
     /**
      * Child post object.
-     * 
-     * @var type 
+     *
+     * @var type
      */
     var $child_post_type_object;
     var $parent;
@@ -51,6 +51,23 @@ class WPCF_Relationship_Child_Form
     private $__params = array('page', '_wpcf_relationship_items_per_page', 'sort',
             'field');
     private $__urlParams = array();
+
+    /**
+     * post type configuration
+     */
+    private $child_supports = array(
+        'title' => false,
+        'editor' => false,
+        'comments' => false,
+        'trackbacks' => false,
+        'revisions' => false,
+        'author' => false,
+        'excerpt' => false,
+        'thumbnail' => false,
+        'custom-fields' => false,
+        'page-attributes' => false,
+        'post-formats' => false,
+    );
 
     /**
      * Construct function.
@@ -67,8 +84,13 @@ class WPCF_Relationship_Child_Form
         }
         $this->cf = new WPCF_Field();
         $this->cf->context = 'relationship';
-        $this->children = WPCF_Relationship_Model::getChildrenByPostType( $this->parent,
-                        $this->child_post_type, $this->data, $_GET );
+        $this->children = WPCF_Relationship_Model::getChildrenByPostType(
+            $this->parent,
+            $this->child_post_type,
+            $this->data,
+            $_GET
+        );
+
         // If no children - use dummy post
         if ( empty( $this->children ) ) {
             $_dummy_post = get_default_post_to_edit( $this->child_post_type,
@@ -77,15 +99,25 @@ class WPCF_Relationship_Child_Form
             $this->_dummy_post = true;
         }
         $this->child_post_type_object = get_post_type_object( $this->child_post_type );
-        
+
         // Collect params from request
         foreach ( $this->__params as $__param ) {
             if ( isset( $_GET[$__param] ) ) {
                 $this->__urlParams[$__param] = $_GET[$__param];
             }
         }
+        $post_types = get_option( 'wpcf-custom-types', array() );
+        if (
+            array_key_exists($child_post_type, $post_types )
+            && array_key_exists('supports', $post_types[$child_post_type] )
+        ) {
+            foreach(  $post_types[$child_post_type]['supports'] as $key => $value ) {
+                $this->child_supports[$key] = (boolean)$value;
+            }
+        }
+        unset($post_types);
     }
-    
+
     function getParamsQuery() {
         return count( $this->__urlParams ) ? '&amp;' . http_build_query( $this->__urlParams,
                         '', '&amp;' ) : '';
@@ -93,7 +125,7 @@ class WPCF_Relationship_Child_Form
 
     /**
      * Sets form.
-     * 
+     *
      * @param type $o
      */
     function _set( $child ) {
@@ -102,11 +134,11 @@ class WPCF_Relationship_Child_Form
 
     /**
      * Returns HTML formatted form.
-     * 
+     *
      * Renders children per row.
-     * 
+     *
      * @todo move all here
-     * 
+     *
      * @return type string (HTML formatted)
      */
     function render() {
@@ -156,8 +188,8 @@ class WPCF_Relationship_Child_Form
                 $this->child_post_type, $page, $prev, $next, $per_page,
                 $total_items );
         /*
-         * 
-         * 
+         *
+         *
          * Add pagination bottom
          */
         $options = array(__( 'All', 'wpcf' ) => 'all', 5 => 5, 10 => 10, 15 => 15);
@@ -189,7 +221,7 @@ class WPCF_Relationship_Child_Form
 
     /**
      * Returns rows.
-     * 
+     *
      * @return type
      */
     function rows() {
@@ -203,9 +235,9 @@ class WPCF_Relationship_Child_Form
 
     /**
      * Returns HTML formatted row
-     * 
+     *
      * While generating rows we collect headers too.
-     * 
+     *
      * @return type
      */
     function row() {
@@ -287,10 +319,10 @@ class WPCF_Relationship_Child_Form
                 }
             }
             /*
-             * 
-             * 
-             * 
-             * 
+             *
+             *
+             *
+             *
              * DEFAULT SETTINGS
              */
         } else {
@@ -345,7 +377,6 @@ class WPCF_Relationship_Child_Form
                 }
             }
         }
-
         return $row;
     }
 
@@ -370,29 +401,45 @@ class WPCF_Relationship_Child_Form
 
     /**
      * Returns HTML formatted title field.
-     * 
+     *
      * @param type $post
      * @return type
      */
-    function title() {
-        return wpcf_form_simple(
-                        array('field' => array(
-                                '#type' => 'textfield',
-                                '#id' => 'wpcf_post_relationship_'
-                                . $this->child->ID . '_wp_title',
-                                '#name' => 'wpcf_post_relationship['
-                                . $this->parent->ID . ']['
-                                . $this->child->ID . '][_wp_title]',
-                                '#value' => trim( $this->child->post_title ),
-                                '#inline' => true,
-                            )
-                        )
+    function title()
+    {
+        $title = '';
+        $type = 'textfield';
+        if ( !$this->child_supports['title']) {
+            $type = 'hidden';
+            $title .= wpcf_form_simple(
+                array(
+                    'field' => array(
+                        '#type' => 'markup',
+                        '#markup' => sprintf('%s id: %d', $this->child_post_type_object->labels->singular_name, $this->child->ID),
+                    ),
+                )
+            );
+        }
+        $title .= wpcf_form_simple(
+            array(
+                'field' => array(
+                    '#type' =>  $type,
+                    '#id' => 'wpcf_post_relationship_'
+                    . $this->child->ID . '_wp_title',
+                    '#name' => 'wpcf_post_relationship['
+                    . $this->parent->ID . ']['
+                    . $this->child->ID . '][_wp_title]',
+                    '#value' => trim( $this->child->post_title ),
+                    '#inline' => true,
+                ),
+            )
         );
+        return $title;
     }
 
     /**
      * Returns HTML formatted body field.
-     * 
+     *
      * @return type
      */
     function body() {
@@ -411,10 +458,10 @@ class WPCF_Relationship_Child_Form
                         )
         );
     }
-    
+
     /**
      * Returns HTML formatted taxonomy form.
-     * 
+     *
      * @param type $taxonomy
      * @return type
      */
@@ -441,7 +488,7 @@ class WPCF_Relationship_Child_Form
             );
 
             return empty( $output ) ? sprintf( __( 'No %s', 'wpcf' ),
-                    $taxonomy->label ) : $output; 
+                    $taxonomy->label ) : $output;
         }
 
         $data = array(
@@ -471,9 +518,9 @@ class WPCF_Relationship_Child_Form
 
     /**
      * Returns element form as array.
-     * 
+     *
      * This is done per field.
-     * 
+     *
      * @param type $key Field key as stored
      * @return array
      */
@@ -500,13 +547,13 @@ class WPCF_Relationship_Child_Form
             return wptoolset_form_field( 'post', $config, $meta );
         }
         /*
-         * 
+         *
          * Get meta form for field
          */
         $form = $this->cf->_get_meta_form( $this->cf->__meta,
                 $this->cf->meta_object->meta_id, false );
         /*
-         * 
+         *
          * Filter form
          */
         $_filtered_form = $this->__filter_meta_form( $form );
@@ -517,17 +564,17 @@ class WPCF_Relationship_Child_Form
 
     /**
      * Filters meta form.
-     * 
+     *
      * IMPORTANT: This is place where look of child form is altered.
      * Try not to spread it over other code.
-     * 
+     *
      * @param string $form
      * @return string
      */
     function __filter_meta_form( $form = array() ) {
         foreach ( $form as $k => &$e ) {
             /*
-             * 
+             *
              * Filter name
              */
             if ( isset( $e['#name'] ) ) {
@@ -568,7 +615,7 @@ class WPCF_Relationship_Child_Form
 
     /**
      * Content for choose parent column.
-     * 
+     *
      * @return boolean
      */
     function _parent_form( $post_parent = '' ) {
@@ -617,7 +664,7 @@ class WPCF_Relationship_Child_Form
 
     /**
      * HTML formatted row.
-     * 
+     *
      * @return type
      */
     function child_row( $child ) {
@@ -633,9 +680,9 @@ class WPCF_Relationship_Child_Form
 
     /**
      * Header HTML formatted output.
-     * 
+     *
      * Each header <th> is array element. Sortable.
-     * 
+     *
      * @return array 'header_id' => html
      */
     function headers() {
@@ -660,13 +707,17 @@ class WPCF_Relationship_Child_Form
             }
 
             if ( $header == '_wp_title' ) {
-                $title_dir = $sort_field == '_wp_title' ? $dir : 'ASC';
-                $headers[$header] = '';
-                $headers[$header] .= $sort_field == '_wp_title' ? '<div class="wpcf-pr-sort-' . $dir . '"></div>' : '';
-                $headers[$header] .= '<a href="' . admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_sort&amp;field='
-                                . '_wp_title&amp;sort=' . $title_dir . '&amp;post_id=' . $post->ID . '&amp;post_type='
-                                . $post_type . '&amp;_wpnonce='
-                                . wp_create_nonce( 'pr_sort' ) ) . '">' . __( 'Post Title' ) . '</a>';
+                if ( $this->child_supports['title']) {
+                    $title_dir = $sort_field == '_wp_title' ? $dir : 'ASC';
+                    $headers[$header] = '';
+                    $headers[$header] .= $sort_field == '_wp_title' ? '<div class="wpcf-pr-sort-' . $dir . '"></div>' : '';
+                    $headers[$header] .= '<a href="' . admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=pr_sort&amp;field='
+                        . '_wp_title&amp;sort=' . $title_dir . '&amp;post_id=' . $post->ID . '&amp;post_type='
+                        . $post_type . '&amp;_wpnonce='
+                        . wp_create_nonce( 'pr_sort' ) ) . '">' . __( 'Post Title' ) . '</a>';
+                } else {
+                    $headers[$header] = 'ID';
+                }
             } else if ( $header == '_wp_body' ) {
                 $body_dir = $sort_field == '_wp_body' ? $dir : $dir_default;
                 $headers[$header] = '';

@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/includes/fields/image.php $
- * $LastChangedDate: 2014-07-15 16:18:54 +0200 (Tue, 15 Jul 2014) $
- * $LastChangedRevision: 24974 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 add_filter( 'wpcf_fields_type_image_value_get', 'wpcf_fields_image_value_filter' );
@@ -224,7 +224,7 @@ function wpcf_fields_image_editor_submit( $data, $field, $context ) {
         $add .= ' onload="' . $data['onload'] . '"';
     }
 
-    if ( $data['image_size'] != 'full' ) {
+    if ( array_key_exists('image_size', $data) && $data['image_size'] != 'full' ) {
         if ( !empty( $data['proportional'] ) ) {
             $settings['resize'] = isset( $data['resize'] ) ? $data['resize'] : 'proportional';
             $add .= " resize=\"{$settings['resize']}\"";

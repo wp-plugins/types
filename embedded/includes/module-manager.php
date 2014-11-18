@@ -4,10 +4,10 @@
  *
  * Since Types 1.2
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/includes/module-manager.php $
- * $LastChangedDate: 2014-10-06 13:16:59 +0200 (Mon, 06 Oct 2014) $
- * $LastChangedRevision: 27769 $
- * $LastChangedBy: emerson $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 

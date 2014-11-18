@@ -19,6 +19,21 @@ var tChildTable = (function($) {
                 .bind('wpListAddEnd', taxAdjust);
         // Init non-hierarchical taxonomies
         tTagBox.init(selector);
+        /**
+         * bind to children pagination buttons
+         */
+        $('.wpcf-pr-pagination-link').on('click', function() {
+            param_pagination_name = $(this).data('pagination-name');
+            if ( param_pagination_name ) {
+                number_of_posts = $('select[name="'+param_pagination_name+'"]').val();
+                re = new RegExp(param_pagination_name+'=\\d+');
+                $(this).attr(
+                    'href',
+                    $(this).attr('href').replace(re, param_pagination_name+'='+number_of_posts)
+                );
+            }
+            return true;
+        });
     }
 
     function taxAdjust() {
@@ -33,9 +48,6 @@ var tChildTable = (function($) {
         reset: init
     }
 })(jQuery, undefined);
-
-
-
 
 /*
  * Hierarchical taxonomies form handling on post edit screen.

@@ -6,10 +6,10 @@ require_once 'class.file.php';
  *
  * @author Srdjan
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.image.php $
- * $LastChangedDate: 2014-09-29 18:01:46 +0200 (Mon, 29 Sep 2014) $
- * $LastChangedRevision: 27533 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 class WPToolset_Field_Image extends WPToolset_Field_File

@@ -1,4 +1,3 @@
-
 var wptDate = (function ($) {
     var _tempConditions, _tempField;
     function init(parent) {
@@ -99,7 +98,12 @@ var wptDate = (function ($) {
             //altFormat: wptDateData.dateFormat,
             changeMonth: true,
             changeYear: true,
-            yearRange: wptDateData.yearMin + ':' + wptDateData.yearMax
+            yearRange: wptDateData.yearMin + ':' + wptDateData.yearMax,
+            beforeShow: function(input) {
+                $(input).css({
+                    zIndex: 999999
+                })
+            }
         });
     }
 

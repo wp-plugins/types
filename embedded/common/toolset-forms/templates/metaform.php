@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/templates/metaform.php $
- * $LastChangedDate: 2014-08-18 17:18:52 +0200 (pon) $
- * $LastChangedRevision: 26059 $
- * $LastChangedBy: riccardo $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 
@@ -19,7 +19,7 @@ if ( is_admin() ) {
 		include 'metaform-item.php';
 	endforeach; ?>
     <?php if ( @$cfg['repetitive'] ): ?>
-        <a href="#" class="js-wpt-repadd wpt-repadd button button-small button-primary-toolset" data-wpt-type="<?php echo $cfg['type']; ?>" data-wpt-id="<?php echo $cfg['id']; ?>"><?php printf(__('Add new %s', 'wpv-views'), $cfg['title']); ?></a>
+        <a href="#" class="js-wpt-repadd wpt-repadd button button-small button-primary-toolset" data-wpt-type="<?php echo $cfg['type']; ?>" data-wpt-id="<?php echo $cfg['id']; ?>"><?php echo apply_filters( 'toolset_button_add_repetition_text', sprintf(__('Add new %s', 'wpv-views'), $cfg['title']), $cfg); ?></a>
 	<?php endif; ?>
 		</div>
 	</div>
@@ -60,7 +60,7 @@ if ( is_admin() ) {
     }
 	if ( $cfg['repetitive'] ) {
 		echo '<input type="button" class="js-wpt-repadd wpt-repadd' . $button_extra_classnames . '" data-wpt-type="' . $cfg['type'] . '" data-wpt-id="' . $cfg['id'] . '" value="';
-		echo esc_attr( sprintf( __( 'Add new %s', 'wpv-views' ), $cfg['title'] ) );
+		echo apply_filters( 'toolset_button_add_repetition_text', esc_attr( sprintf( __( 'Add new %s', 'wpv-views' ), $cfg['title'] ) ), $cfg );
 		echo '" />';
 	}
 	if ( $needs_wrapper) {

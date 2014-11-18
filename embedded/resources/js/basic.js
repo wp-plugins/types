@@ -4,10 +4,10 @@
  * For now full and embedded version use this script.
  * Before moving full-version-only code - make sure it's not needed here.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/resources/js/basic.js $
- * $LastChangedDate: 2014-10-06 12:18:49 +0200 (Mon, 06 Oct 2014) $
- * $LastChangedRevision: 27764 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 

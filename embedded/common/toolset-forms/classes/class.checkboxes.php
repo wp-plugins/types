@@ -4,10 +4,10 @@
  *
  * @author Srdjan
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.checkboxes.php $
- * $LastChangedDate: 2014-10-13 19:15:17 +0200 (pon) $
- * $LastChangedRevision: 28043 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 

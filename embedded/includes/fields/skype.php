@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/includes/fields/skype.php $
- * $LastChangedDate: 2014-09-17 16:47:53 +0200 (Wed, 17 Sep 2014) $
- * $LastChangedRevision: 27239 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 

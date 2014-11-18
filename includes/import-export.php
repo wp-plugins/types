@@ -2,10 +2,10 @@
 /*
  * Import/export data.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/includes/import-export.php $
- * $LastChangedDate: 2014-08-01 06:46:07 +0200 (Fri, 01 Aug 2014) $
- * $LastChangedRevision: 25533 $
- * $LastChangedBy: bruce $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/import-export.php';

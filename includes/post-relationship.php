@@ -286,7 +286,10 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
                 $options_cf[$__key]['#after'] = !isset( $data['fields'][$__key] ) ? '<div class="message error" style="display:none;"><p>' : '<div class="message error"><p>';
                 $options_cf[$__key]['#after'] .= $repetitive_warning_txt;
                 $options_cf[$__key]['#after'] .= '</p></div>';
-                $options_cf[$__key]['#attributes'] = array('onclick' => 'jQuery(this).parent().find(\'.message\').toggle();');
+                $options_cf[$__key]['#attributes'] = array(
+                    'onclick' => 'jQuery(this).parent().find(\'.message\').toggle();',
+                    'disabled' => 'disabled',
+                );
             }
         }
     }

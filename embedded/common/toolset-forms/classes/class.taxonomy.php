@@ -104,7 +104,7 @@ class WPToolset_Field_Taxonomy extends WPToolset_Field_Textfield
             '#title' => '',
             '#description' => '',
             '#name' => "new_tax_button_".$taxonomy,
-            '#value' => esc_attr( $attributes['add_text'] ),
+            '#value' => apply_filters('toolset_button_add_text', esc_attr( $attributes['add_text'] )),
             '#attributes' => array(
 				'class' => $use_bootstrap ? 'btn btn-default wpt-taxonomy-add-new js-wpt-taxonomy-add-new' : 'wpt-taxonomy-add-new js-wpt-taxonomy-add-new',
 				'data-taxonomy' => $taxonomy,
@@ -132,12 +132,12 @@ class WPToolset_Field_Taxonomy extends WPToolset_Field_Textfield
 			'#title' => '',
 			'#description' => '',
 			'#name' => "sh_".$taxonomy,
-			'#value' => esc_attr( $attributes['show_popular_text'] ),
+			'#value' => apply_filters('toolset_button_show_popular_text', esc_attr( $attributes['show_popular_text'] )),
 			'#attributes' => array(
 				'class' => $use_bootstrap ? 'btn btn-default popular wpt-taxonomy-popular-show-hide js-wpt-taxonomy-popular-show-hide' : 'popular wpt-taxonomy-popular-show-hide js-wpt-taxonomy-popular-show-hide',
 				'data-taxonomy' => $this->getName(),
-				'data-show-popular-text' => esc_attr( $attributes['show_popular_text'] ),
-				'data-hide-popular-text' => esc_attr( $attributes['hide_popular_text'] ),
+				'data-show-popular-text' => apply_filters('toolset_button_show_popular_text', esc_attr( $attributes['show_popular_text'] )),
+				'data-hide-popular-text' => apply_filters('toolset_button_hide_popular_text', esc_attr( $attributes['hide_popular_text'] )),
 				'data-after-selector' => 'js-show-popular-after',
 				'style' => $show ? '' : 'display:none;'
 			),

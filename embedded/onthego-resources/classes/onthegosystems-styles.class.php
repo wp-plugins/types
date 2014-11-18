@@ -21,7 +21,7 @@ class OnTheGoSystemsStyles_Class{
 
     public function register_and_enqueue_styles()
     {
-        if ( is_admin() ) {
+        if ( is_admin() || defined('WPDDL_VERSION') ) {
             wp_register_style('onthego-admin-styles', ON_THE_GO_SYSTEMS_BRANDING_REL_PATH .'onthego-styles/onthego-styles.css');
             wp_enqueue_style( 'onthego-admin-styles' );
         }

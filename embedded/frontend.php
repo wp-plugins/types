@@ -2,10 +2,10 @@
 /*
  * Frontend functions.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/embedded/frontend.php $
- * $LastChangedDate: 2014-09-17 18:03:32 +0200 (Wed, 17 Sep 2014) $
- * $LastChangedRevision: 27245 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 
@@ -532,7 +532,17 @@ function wpcf_views_query( $query, $view_settings ) {
                     $meta_filter_required = true;
                     $meta['compare'] = '=';
 
-                    $values = explode( ',', $meta['value'] );
+                    /* According to http://codex.wordpress.org/Class_Reference/WP_Meta_Query#Accepted_Arguments,
+					 * $meta['value'] can be an array or a string. In case of a string we additionally allow
+					 * multiple comma-separated values. */
+					if( is_array( $meta['value'] ) ) {
+						$values = $meta['value'];
+					} elseif( is_string( $meta['value'] ) ) {
+						$values = explode( ',', $meta['value'] );
+					} else {
+						// This can happen if $meta['value'] is a number, for example.
+						$values = array( $meta['value'] );
+					}
 
                     $meta['value'] = ' REGEXP(';
 

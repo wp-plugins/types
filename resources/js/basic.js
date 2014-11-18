@@ -3,10 +3,10 @@
  * Use this file only for scripts needed in full version.
  * Before moving from embedded JS - make sure it's needed only here.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/resources/js/basic.js $
- * $LastChangedDate: 2014-07-04 12:19:40 +0200 (Fri, 04 Jul 2014) $
- * $LastChangedRevision: 24633 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 jQuery(document).ready(function($){

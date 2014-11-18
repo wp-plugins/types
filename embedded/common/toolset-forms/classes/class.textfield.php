@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/classes/class.textfield.php $
- * $LastChangedDate: 2014-09-23 15:35:22 +0200 (Tue, 23 Sep 2014) $
- * $LastChangedRevision: 27379 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 require_once "class.field_factory.php";

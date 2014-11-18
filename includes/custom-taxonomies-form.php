@@ -3,10 +3,10 @@
  *
  * Custom taxonomies form
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/trunk/includes/custom-taxonomies-form.php $
- * $LastChangedDate: 2014-09-19 17:36:25 +0200 (Fri, 19 Sep 2014) $
- * $LastChangedRevision: 27322 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 
@@ -259,8 +259,7 @@ function wpcf_admin_custom_taxonomies_form() {
     );
     $form['table-6-open'] = array(
         '#type' => 'markup',
-        '#markup' => '<table id="wpcf-types-form-supports-table" class="wpcf-types-form-table widefat"><thead><tr><th>' . __( 'Advanced',
-                'wpcf' ) . '</th></tr></thead><tbody><tr><td>',
+        '#markup' => '<table id="wpcf-types-form-supports-table" class="wpcf-types-form-table widefat"><thead><tr><th>' . __( 'Options', 'wpcf' ) . '</th></tr></thead><tbody><tr><td>',
     );
     $form['make-hierarchical'] = array(
         '#type' => 'radios',
