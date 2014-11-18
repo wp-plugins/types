@@ -5,7 +5,7 @@ Tags: CMS, custom field, custom fields, custom post type, custom post types, pos
 License: GPLv2
 Requires at least: 3.4
 Tested up to: 4.0
-Stable tag: 1.6.3
+Stable tag: 1.6.4
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -13,7 +13,7 @@ The complete and reliable plugin for managing custom post types, custom taxonomy
 
 Types let's you customize the WordPress admin by adding content types, custom fields and taxonomy. You will be able to craft the WordPress admin and turn it into your very own content management system.
 
-[vimeo http://vimeo.com/43104695]
+[vimeo http://vimeo.com/112053938]
 
 = POWERFUL PHP API, SIMPLE GUI FOR NON-CODERS =
 If you're an experienced PHP developer, you'll appreciate Types comprehensive [PHP API](http://wp-types.com/documentation/functions/) and [documentation](http://wp-types.com/documentation/user-guides/).
