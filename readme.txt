@@ -151,8 +151,13 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
+= 1.6.5 =
+
+* Added ability to choosing hidden custom post types on post relationships list. https://wp-types.com/forums/topic/post-relationship-doesnt-show-post-type-events-created-by-events-espresso/
+
 = 1.6.4 =
 
+* Release date: 2014-11-17
 * Fixed an issue with dependency between custom taxonomy and custom posts when importing data from the "Custom Post Type UI" plugin.
 * Fixed an issue with editing checkboxes with the option "save 0 to the database" selected, created for Custom Posts. http://wp-types.com/forums/topic/checkbox-custom-field-doesnt-save-value-since-upgrade-to-version-1-6-2/ http://wp-types.com/forums/topic/types-checkbox-field-not-saving-after-save-0-to-the-database/
 * Fixed an issue with PHP notices being thrown when relative URLs to images were used. http://wp-types.com/forums/topic/php-notice-undefined-index-host-in-image-php/

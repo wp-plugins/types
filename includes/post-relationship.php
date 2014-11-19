@@ -77,9 +77,13 @@ function wpcf_pr_post_type_form_filter( $form, $post_type ) {
     $options = array();
 
     foreach ( $post_types as $temp_post_type_slug => $temp_post_type ) {
-        if ( in_array( $temp_post_type_slug,
-                        array($post_type['slug']) + $wpcf->excluded_post_types )
-                || !$temp_post_type->show_ui ) {
+        if (
+            in_array( $temp_post_type_slug, array($post_type['slug']) + $wpcf->excluded_post_types )
+            || (
+                !$temp_post_type->show_ui
+                && !wpcf_get_settings('show_ui_hide_for_relationships')
+            )
+        ) {
             continue;
         }
         // Check if it's in has
@@ -114,9 +118,13 @@ function wpcf_pr_post_type_form_filter( $form, $post_type ) {
     );
     $options = array();
     foreach ( $post_types as $temp_post_type_slug => $temp_post_type ) {
-        if ( in_array( $temp_post_type_slug,
-                        array($post_type['slug']) + $wpcf->excluded_post_types )
-                || !$temp_post_type->show_ui ) {
+        if (
+            in_array( $temp_post_type_slug, array($post_type['slug']) + $wpcf->excluded_post_types )
+            || (
+                !$temp_post_type->show_ui
+                && !wpcf_get_settings('show_ui_hide_for_relationships')
+            )
+        ) {
             continue;
         }
         // Check if it already belongs

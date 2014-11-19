@@ -300,7 +300,14 @@ function wpcf_embedded_init() {
     // 'attachment' = Media
     //
     $wpcf->excluded_post_types = array(
-        'revision', 'view', 'view-template', 'cred-form', 'nav_menu_item', 'mediapage',
+        'cred-form',
+        'mediapage',
+        'nav_menu_item',
+        'revision',
+        'view',
+        'view-template',
+        'wp-types-group',
+        'wp-types-user-group',
     );
 
     // Init loader

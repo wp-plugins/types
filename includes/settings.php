@@ -133,6 +133,14 @@ function wpcf_admin_general_settings_form() {
         '#inline' => false,
         '#default_value' => $settings['help_box'],
     );
+    $form['show_ui_hide_for_relationships'] = array(
+        '#id' => 'show_ui_hide_for_relationships',
+        '#name' => 'wpcf_settings[show_ui_hide_for_relationships]',
+        '#type' => 'checkbox',
+        '#title' => __('Show hidden post types for relationships.', 'wpcf'),
+        '#inline' => false,
+        '#default_value' => !empty($settings['show_ui_hide_for_relationships']),
+    );
     $form['submit'] = array(
         '#type' => 'submit',
         '#name' => 'submit',
@@ -179,10 +187,10 @@ function wpcf_admin_image_settings_form_submit($form) {
 
 
 function wpcf_admin_general_settings_form_submit($form) {
-    
+
     $settings = wpcf_get_settings();
     $data = $_POST['wpcf_settings'];
-    foreach (array('register_translations_on_import','help_box') as $setting) {
+    foreach (array('register_translations_on_import','help_box', 'show_ui_hide_for_relationships') as $setting) {
         if (!isset($data[$setting])) {
             $settings[$setting] = 0;
         } else {
