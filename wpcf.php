@@ -5,7 +5,7 @@
   Description: Define custom post types, custom taxonomy and custom fields.
   Author: OnTheGoSystems
   Author URI: http://www.onthegosystems.com
-  Version: trunk
+  Version: 1.6.5
  */
 /**
  *
@@ -20,7 +20,7 @@ if ( !defined( 'WPCF_VERSION' ) ) {
     /**
      * make sure that WPCF_VERSION in embedded/bootstrap.php is the same!
      */
-    define( 'WPCF_VERSION', 'trunk' );
+    define( 'WPCF_VERSION', '1.6.5' );
 }
 
 define( 'WPCF_REPOSITORY', 'http://api.wp-types.com/' );
@@ -34,12 +34,12 @@ define( 'WPCF_RES_RELPATH', WPCF_RELPATH . '/resources' );
 
 //Add installer
 include dirname( __FILE__ ) . '/embedded/common/installer/loader.php';
-WP_Installer_Setup($wp_installer_instance,  
+WP_Installer_Setup($wp_installer_instance,
 array(
     'plugins_install_tab' => '1',
-    'repositories_include' => array('toolset', 'wpml')	
+    'repositories_include' => array('toolset', 'wpml')
 ));
-		
+
 require_once WPCF_INC_ABSPATH . '/constants.php';
 /*
  * Since Types 1.2 we load all embedded code without conflicts
@@ -48,7 +48,6 @@ require_once WPCF_ABSPATH . '/embedded/types.php';
 
 require_once WPCF_ABSPATH . '/embedded/onthego-resources/onthegosystems-branding-loader.php';
 ont_set_on_the_go_systems_uri_and_start(WPCF_RELPATH . '/embedded/onthego-resources/' );
-
 
 // Plugin mode only hooks
 add_action( 'plugins_loaded', 'wpcf_init' );
@@ -85,19 +84,25 @@ function wpcf_init()
     }
 
     if ( is_admin() ) {
-	
         require_once WPCF_ABSPATH . '/admin.php';
     }
-	
-    
+    /**
+     * remove unused option
+     */
+    $version_from_db = get_option('wpcf-version', 0);
+    if ( version_compare(WPCF_VERSION, $version_from_db) > 0 ) {
+        delete_option('wpcf-survey-2014-09');
+        update_option('wpcf-version', WPCF_VERSION);
+    }
 }
 
 //Render Installer packages
-function installer_content(){			
-	echo '<div class="wrap">';
-	$config['repository'] = array(); // required
-	WP_Installer_Show_Products($config);			
-	echo "</div>";			
+function installer_content()
+{
+    echo '<div class="wrap">';
+    $config['repository'] = array(); // required
+    WP_Installer_Show_Products($config);
+    echo "</div>";
 }
 
 /**
@@ -106,14 +111,14 @@ function installer_content(){
 function wpcf_wp_init()
 {
     if ( is_admin() ) {
-	
-		require_once WPCF_ABSPATH . '/admin.php';
-		add_action('admin_menu', 'setup_installer');
-		//Add submenu Installer to Types
-		function setup_installer(){
-			add_submenu_page('wpcf', 'Installer', 'Installer', 'manage_options', 'installer', 'installer_content');
-		}
-	}
+        require_once WPCF_ABSPATH . '/admin.php';
+        add_action('admin_menu', 'setup_installer');
+        //Add submenu Installer to Types
+        function setup_installer()
+        {
+            add_submenu_page('wpcf', 'Installer', 'Installer', 'manage_options', 'installer', 'installer_content');
+        }
+    }
 }
 
 /**
@@ -333,4 +338,3 @@ function wpcf_fix_translated_post_relationships($post_id)
     wpcf_post_relationship_set_translated_parent( $post_id );
     wpcf_post_relationship_set_translated_children( $post_id );
 }
-

@@ -81,7 +81,7 @@ function wpcf_pr_post_type_form_filter( $form, $post_type ) {
             in_array( $temp_post_type_slug, array($post_type['slug']) + $wpcf->excluded_post_types )
             || (
                 !$temp_post_type->show_ui
-                && !wpcf_get_settings('show_ui_hide_for_relationships')
+                && !apply_filters('wpcf_show_ui_hide_in_relationships', true)
             )
         ) {
             continue;
@@ -122,7 +122,7 @@ function wpcf_pr_post_type_form_filter( $form, $post_type ) {
             in_array( $temp_post_type_slug, array($post_type['slug']) + $wpcf->excluded_post_types )
             || (
                 !$temp_post_type->show_ui
-                && !wpcf_get_settings('show_ui_hide_for_relationships')
+                && !apply_filters('wpcf_show_ui_hide_in_relationships', true)
             )
         ) {
             continue;

@@ -1198,14 +1198,19 @@ function wpcf_wpml_warnings_init()
         return;
     }
 
-	if ( $sitepress->get_default_language() != $sitepress_settings[ 'st' ][ 'strings_language' ] ) {
-		wp_types_default_language_warning();
-	} elseif ( $sitepress_settings[ 'st' ][ 'strings_language' ] != 'en' ) {
-		wp_types_st_language_warning();
-	} else {
-		ICL_AdminNotifier::removeMessage( 'wp_types_default_language_warning' );
-		ICL_AdminNotifier::removeMessage( 'wp_types_st_language_warning' );
-	}
+    /**
+     * do that only when version of WPML is lower then 3.2
+     */
+    if ( defined('ICL_SITEPRESS_VERSION') && version_compare( ICL_SITEPRESS_VERSION, '3.2', '<' ) ) {
+        if ( $sitepress->get_default_language() != $sitepress_settings[ 'st' ][ 'strings_language' ] ) {
+            wp_types_default_language_warning();
+        } elseif ( $sitepress_settings[ 'st' ][ 'strings_language' ] != 'en' ) {
+            wp_types_st_language_warning();
+        } else {
+            ICL_AdminNotifier::removeMessage( 'wp_types_default_language_warning' );
+            ICL_AdminNotifier::removeMessage( 'wp_types_st_language_warning' );
+        }
+    }
 }
 
 function wpcf_wpml_warning()

@@ -36,7 +36,6 @@ function wpcf_admin_init_hook() {
     /* wp_enqueue_style('wpcf-promo-tabs',
         WPCF_RES_RELPATH . '/css/tabs.css', array(), WPCF_VERSION); */
     wp_enqueue_style('toolset-dashicons');
-    types_marketing_message_survey_2014_09_helper();
 }
 
 /**

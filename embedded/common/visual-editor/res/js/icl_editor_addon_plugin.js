@@ -4,7 +4,8 @@ var iclEditorWidthMin = 195;
 var iclEditorHeight = 420;
 var iclEditorHeightMin = 195;
 var iclCodemirror = new Array();
-
+var my_codemirrors = [];
+var activeUrlEditor = '';
 jQuery(document).ready(function(){
     /*
      * Set active editor
@@ -306,6 +307,108 @@ jQuery(document).ready(function(){
  * FUNCTIONS
  */
 
+
+    function addEditorButtons( qt, my_editor_id ){
+        QTags._buttonsInit();
+        //dialongs/js/css-editor/csseditor.js
+        my_codemirrors[qt.name] =  my_editor_id;
+        jQuery('.quicktags-toolbar').addClass('code-editor-toolbar');
+        for (var button_name in qt.theButtons) {
+			if (qt.theButtons.hasOwnProperty(button_name)) {
+				qt.theButtons[button_name].old_callback = qt.theButtons[button_name].callback;
+                if ( qt.theButtons[button_name].id == 'img' ){
+                   qt.theButtons[button_name].callback = function (element, canvas, ed) {
+                    var t = this;
+                    qt.name = 'qt_'+jQuery(canvas).attr('id');
+                    var selection = my_codemirrors[qt.name].getSelection();
+                    var e="http://";
+                    var g=prompt(quicktagsL10n.enterImageURL,e);
+                    var f=prompt(quicktagsL10n.enterImageDescription,"");
+                    t.tagStart='<img src="'+g+'" alt="'+f+'" />';
+                    selection = t.tagStart;
+                    t.closeTag(element, ed);
+                    my_codemirrors[qt.name].replaceSelection(selection, 'end');
+                    my_codemirrors[qt.name].focus();
+                    }
+                }
+                else if ( qt.theButtons[button_name].id == 'close' ){
+                    
+                }
+                else if ( qt.theButtons[button_name].id == 'link' ){
+                   var t = this;
+                   qt.theButtons[button_name].callback = 
+                        function (b,c,d,e){ activeUrlEditor = c;var f,g=this;return"undefined"!=typeof wpLink?void wpLink.open(d.id):(e||(e="http://"),void(g.isOpen(d)===!1?(f=prompt(quicktagsL10n.enterURL,e),f&&(g.tagStart='<a href="'+f+'">',a.TagButton.prototype.callback.call(g,b,c,d))):a.TagButton.prototype.callback.call(g,b,c,d)))} 
+                   ;
+                  jQuery('#wp-link-submit').off();
+                   jQuery('#wp-link-submit').on('click', function(){
+                    qt.name = 'qt_'+jQuery(activeUrlEditor).attr('id');
+                    var selection = my_codemirrors[qt.name].getSelection();
+                    var target = '';
+                    if ( jQuery('#link-target-checkbox').prop('checked') ){
+                      target = '_blank';
+                    }
+                     html = '<a href="' + jQuery('#url-field').val() + '"';
+                     title = '';
+                     if ( jQuery('#link-title-field').val() ) {
+                         title = jQuery('#link-title-field').val().replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );
+                         html += ' title="' + title + '"';
+                     }
+         
+                     if ( target ) {
+                         html += ' target="' + target + '"';
+                     }
+         
+                     html += '>';
+                     if ( selection === ''){
+                        html += title;
+                     }else{
+                        html += selection;
+                     }
+                     html += '</a>';
+                     t.tagStart=html;
+                     selection = t.tagStart;
+                     my_codemirrors[qt.name].replaceSelection(selection, 'end');
+                     my_codemirrors[qt.name].focus();
+                     jQuery('#wp-link-backdrop,#wp-link-wrap').hide();
+                     return false;
+                    });
+                }
+                else{
+                   
+                    qt.theButtons[button_name].callback = function (element, canvas, ed) {                    
+                        qt.name = 'qt_'+jQuery(canvas).attr('id');
+                        var t = this;                       
+                        var selection = my_codemirrors[qt.name].getSelection();                   
+                                      
+                            if ( selection.length > 0 ) { 
+                                if ( !t.tagEnd ) {
+                                    selection = selection + t.tagStart;
+                                } else {
+                                    selection = t.tagStart + selection + t.tagEnd;
+                                }
+                            }
+                            else {
+                               
+                                if ( !t.tagEnd ) {
+                                    selection = t.tagStart;
+                                } else if ( t.isOpen(ed) === false ) {
+                                    selection = t.tagStart;
+                                    t.openTag(element, ed);
+                                } else {
+                                    selection = t.tagEnd;
+                                    t.closeTag(element, ed);
+                                }
+                            }
+                        		
+                        my_codemirrors[qt.name].replaceSelection(selection, 'end');
+                        my_codemirrors[qt.name].focus();
+                    }
+                }
+			}
+		}
+        
+    } 
+ 
 /**
  *
  * Main popup function
@@ -910,5 +1013,6 @@ var icl_editor = (function(window, $){
             return window.iclCodemirror[textarea];
         }
     };
+   
 
 })(window, jQuery, undefined);
