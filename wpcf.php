@@ -32,7 +32,7 @@ define( 'WPCF_INC_RELPATH', WPCF_RELPATH . '/includes' );
 define( 'WPCF_RES_ABSPATH', WPCF_ABSPATH . '/resources' );
 define( 'WPCF_RES_RELPATH', WPCF_RELPATH . '/resources' );
 
-//Add installer
+// Add installer
 include dirname( __FILE__ ) . '/embedded/common/installer/loader.php';
 WP_Installer_Setup($wp_installer_instance,
 array(
@@ -46,8 +46,9 @@ require_once WPCF_INC_ABSPATH . '/constants.php';
  */
 require_once WPCF_ABSPATH . '/embedded/types.php';
 
-require_once WPCF_ABSPATH . '/embedded/onthego-resources/onthegosystems-branding-loader.php';
-ont_set_on_the_go_systems_uri_and_start(WPCF_RELPATH . '/embedded/onthego-resources/' );
+require_once WPCF_ABSPATH . '/embedded/onthego-resources/loader.php';
+onthego_initialize(WPCF_ABSPATH . '/embedded/onthego-resources/',
+                                   WPCF_RELPATH . '/embedded/onthego-resources/' );
 
 // Plugin mode only hooks
 add_action( 'plugins_loaded', 'wpcf_init' );
@@ -55,10 +56,7 @@ add_action( 'plugins_loaded', 'wpcf_init' );
 // init hook for module manager
 add_action( 'init', 'wpcf_wp_init' );
 
-register_activation_hook( __FILE__, 'wpcf_upgrade_init' );
 register_deactivation_hook( __FILE__, 'wpcf_deactivation_hook' );
-
-add_filter( 'plugin_action_links', 'wpcf_types_plugin_action_links', 10, 2 );
 
 /**
  * Deactivation hook.
@@ -67,11 +65,14 @@ add_filter( 'plugin_action_links', 'wpcf_types_plugin_action_links', 10, 2 );
  */
 function wpcf_deactivation_hook()
 {
-    // Reset redirection
-    delete_option( 'wpcf_types_plugin_do_activation_redirect', true );
-
     // Delete messages
     delete_option( 'wpcf-messages' );
+    /**
+     * check site kind and if do not exist, delete types_show_on_activate
+     */
+    if ( !get_option('types-site-kind') ) {
+        delete_option('types_show_on_activate');
+    }
 }
 
 /**
@@ -119,66 +120,6 @@ function wpcf_wp_init()
             add_submenu_page('wpcf', 'Installer', 'Installer', 'manage_options', 'installer', 'installer_content');
         }
     }
-}
-
-/**
- * Include embedded code if not used in theme.
- *
- * We are actually calling this hook on after_setup_theme which is called
- * immediatelly before 'init'. However WP issues warnings because for some
- * action it strictly required 'init' hook to be used.
- *
- * @todo Revise this!
- */
-/*
- * TODO 1.2.1 remove
- */
-//function wpcf_init_embedded_code() {
-//    if ( !defined( 'WPCF_EMBEDDED_ABSPATH' ) ) {
-//        require_once WPCF_ABSPATH . '/embedded/types.php';
-//    } else {
-//        require_once WPCF_EMBEDDED_ABSPATH . '/types.php';
-//    }
-//
-//    // TODO Better bootstrapping is ready to be added
-//    // Make this check for now.
-//    if ( did_action( 'init' ) > 0 ) {
-//        wpcf_embedded_init();
-//    } else {
-//        add_action( 'init', 'wpcf_embedded_init' );
-//    }
-//}
-
-/**
- * Upgrade hook.
- */
-function wpcf_upgrade_init()
-{
-    wpcf_types_plugin_activate();
-}
-
-function wpcf_types_plugin_activate()
-{
-    add_option( 'wpcf_types_plugin_do_activation_redirect', true );
-}
-
-function wpcf_types_plugin_redirect()
-{
-    if ( get_option( 'wpcf_types_plugin_do_activation_redirect', false ) ) {
-        delete_option( 'wpcf_types_plugin_do_activation_redirect' );
-        wp_redirect( admin_url() . 'admin.php?page=wpcf-help' );
-        exit;
-    }
-}
-
-function wpcf_types_plugin_action_links($links, $file)
-{
-    $this_plugin = basename( WPCF_ABSPATH ) . '/wpcf.php';
-    if ( $file == $this_plugin ) {
-        $links[] = '<a href="admin.php?page=wpcf-help">' . __( 'Getting started',
-                        'wpcf' ) . '</a>';
-    }
-    return $links;
 }
 
 /**

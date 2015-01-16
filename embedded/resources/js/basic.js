@@ -19,6 +19,15 @@ var wpcfFormGroupsSupportTemplatesState = new Array();
 var wpcfFieldsEditorCallback_redirect = null;
 
 jQuery(document).ready(function(){
+    /**
+     * modal advertising
+     */
+    if(jQuery.isFunction(jQuery.fn.types_modal_box)) {
+        jQuery('.wpcf-disabled-on-submit').types_modal_box();
+    }
+    jQuery('.wpcf-notif-description a').on('click', function() {
+        jQuery(this).attr('target', '_blank');
+    });
     //user suggestion
     if(jQuery.isFunction(jQuery.suggest)) {
         jQuery('.input').suggest("admin-ajax.php?action=wpcf_types_suggest_user&tax=post_tag", {
@@ -500,7 +509,9 @@ function wpcfCdCheckDateCustomized(object) {
  */
 function wpcfLoadingButton() {
     jQuery('.wpcf-disabled-on-submit').attr('disabled', 'disabled').each(function(){
-        jQuery(this).after('<div id="'+jQuery(this).attr('id')+'-loading" class="wpcf-loading">&nbsp;</div>');
+        if ( 'undefined' == typeof(types_modal) ) {
+            jQuery(this).after('<div id="'+jQuery(this).attr('id')+'-loading" class="wpcf-loading">&nbsp;</div>');
+        }
     });
 }
 /**

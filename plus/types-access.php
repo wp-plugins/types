@@ -1,12 +1,18 @@
 <?php
 /*
  * Types Access teaser.
+ *
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
+ *
  */
 
 add_action( 'plugins_loaded', 'wpcf_access_teaser_init', 15 );
 
 /**
- * Teaser init. 
+ * Teaser init.
  */
 function wpcf_access_teaser_init() {
     global $pagenow;
@@ -30,7 +36,7 @@ function wpcf_access_teaser_init() {
 }
 
 /**
- * Teaser menu hook. 
+ * Teaser menu hook.
  */
 function wpcf_access_teaser_admin_menu() {
     $hook = add_submenu_page( 'wpcf',
@@ -41,7 +47,7 @@ function wpcf_access_teaser_admin_menu() {
 }
 
 /**
- * Teaser menu load. 
+ * Teaser menu load.
  */
 function wpcf_access_teaser_admin_menu_load() {
     require_once WPCF_ACCESS_ABSPATH . '/embedded.php';
@@ -56,9 +62,20 @@ function wpcf_access_teaser_admin_menu_load() {
 }
 
 /**
- * Teaser admin screen. 
+ * Teaser admin screen.
  */
-function wpcf_access_teaser_admin_menu_page() {
+function wpcf_access_teaser_admin_menu_page()
+{
+    $access_buy_link = 'http://wp-types.com/buy/?add-to-cart=38997&buy_now=1&utm_source=typesplugin&utm_medium=accessadmin&utm_term=Buy&utm_campaign=typesplugin';
+    /**
+     * get link by installer
+     */
+    if ( class_exists('WP_Installer_API') && method_exists('WP_Installer_API', 'get_product_installer_link') ) {
+        $access_buy_link = WP_Installer_API::get_product_installer_link('toolset', 'access');
+    }
+    /**
+     * show message
+     */
     echo wpcf_add_admin_header( __( 'Access', 'wpcf' ), 'icon-wpcf-access' );
     echo '<div class="types-help"><div class="types-help-content"';
     echo '<p>' . sprintf(__( 'This screen shows a preview of %sAccess%s - the access control and roles management addon for Types.',
@@ -66,11 +83,11 @@ function wpcf_access_teaser_admin_menu_page() {
     . '</p>'
     . '<p>' . __('Access lets you control what content types different users can read, edit and publish on your site and create custom roles.','wpcf') . '</p>'
     . '<p>' . sprintf(__('%sBuy Access%s to unlock this screen and add access control management to your site.','wpcf'),
-                      '<strong><a href="http://wp-types.com/buy/?add-to-cart=38997&buy_now=1&utm_source=typesplugin&utm_medium=accessadmin&utm_term=Buy&utm_campaign=typesplugin" target="_blank">',
+                      sprintf('<strong><a href="%s" target="_blank">', $access_buy_link),
                       '</a></strong>')
     . '</p>'
     . '<p><a href="http://wp-types.com/home/types-access/?utm_source=typesplugin&utm_medium=accessadmin&utm_term=AccessFeatures&utm_campaign=typesplugin" class="button-primary" target="_blank">'
-    . __( 'Access Features' ) . '</a>&nbsp;<a href="http://wp-types.com/buy/?add-to-cart=38997&buy_now=1&utm_source=typesplugin&utm_medium=accessadmin&utm_term=Buy&utm_campaign=typesplugin" class="button-primary" target="_blank">'
+    . sprintf(__( 'Access Features' ) . '</a>&nbsp;<a href="%s" class="button-primary" target="_blank">', $access_buy_link )
     . __( 'Buy Access - $39 (USD)' ) . '</a>' . '</p>';
     echo '</div></div>';
     require_once WPCF_ACCESS_INC . '/admin-edit-access.php';

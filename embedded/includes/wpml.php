@@ -1194,7 +1194,7 @@ function wpcf_wpml_warnings_init()
      * check is configuration done?!
      */
     global $sitepress, $sitepress_settings;
-    if ( !array_key_exists( 'st', $sitepress_settings ) ) {
+    if ( icl_get_setting('st') ) {
         return;
     }
 

@@ -358,8 +358,13 @@ function wpcf_admin_custom_fields_control_bulk_actions($action = '') {
                                     'wpcf'), implode(', ', $success)));
         }
         if (!empty($failed)) {
-            wpcf_admin_message_store(sprintf(__('Fields %s are not Types fields. Types wont delete these fields.',
-                                    'wpcf'), implode(', ', $failed)));
+            wpcf_admin_message_store(
+                sprintf(
+                    __('Fields %s are not Types fields. Types wont delete these fields.', 'wpcf'),
+                    implode(', ', $failed)
+                ),
+                'error'
+            );
         }
     }
     wp_redirect($_SERVER['REQUEST_URI']);

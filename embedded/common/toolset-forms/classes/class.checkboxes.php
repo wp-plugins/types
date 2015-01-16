@@ -20,7 +20,8 @@ class WPToolset_Field_Checkboxes extends FieldFactory
         global $post;
         $value = $this->getValue();
         $data = $this->getData();
-        $name = $this->getName();
+        $name = $this->getName();               
+
         $form = array();
         $_options = array();
         if (isset($data['options'])) {

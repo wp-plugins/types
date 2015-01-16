@@ -20,7 +20,7 @@ class WPToolset_Field_Checkbox extends FieldFactory
     {
         global $post;
         $value = $this->getValue();
-        $data = $this->getData();
+        $data = $this->getData();        
         $checked = null;
 
         /**
@@ -34,13 +34,13 @@ class WPToolset_Field_Checkbox extends FieldFactory
          */
         if ( isset($data['options']) && array_key_exists( 'checked', $data['options'] ) ) {
             $checked = $data['options']['checked'];
-        }
+        }                
         /**
          * if is a default value, there value is 1 or default_value
          */
         if (
             array_key_exists('default_value', $data)
-            && ( '1' === $value || $value == $data['default_value'] )
+            && ( 'y' === $value || $value === $data['default_value'])
         ) {
             $checked = true;
         }

@@ -188,42 +188,6 @@ function wpcf_form( $id, $form = array() ) {
 }
 
 /**
- * Add submit button, cancel button and help link to the popup.
- *
- */
-function wpcf_form_popup_helper( $form, $submit_text = '', $cancel_text = '',
-        $help = array() ) {
-    if ( $submit_text ) {
-        $form['submit'] = array(
-            '#type' => 'submit',
-            '#name' => 'submit',
-            '#value' => $submit_text,
-            '#attributes' => array('class' => 'button-primary'),
-        );
-    }
-    if ( $cancel_text ) {
-        $form['cancel'] = array(
-            '#type' => 'button',
-            '#name' => 'cancel',
-            '#value' => $cancel_text,
-            '#attributes' => array('class' => 'button-secondary',
-                'onclick' => 'window.parent.jQuery(\'#TB_closeWindowButton\').click();return true;'),
-            '#before' => ' ',
-        );
-    }
-    if ( $help ) {
-        $form = array_reverse( $form, true );
-        $form['help'] = array(
-            '#type' => 'markup',
-            '#markup' => '<a class="wpcf-help-link" href="' . $help['url'] . '" target="_blank">' . $help['text'] . '</a>',
-        );
-        $form = array_reverse( $form, true );
-    }
-
-    return $form;
-}
-
-/**
  * Renders form elements.
  * 
  * @staticvar string $form

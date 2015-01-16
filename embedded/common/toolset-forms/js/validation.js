@@ -17,7 +17,7 @@
 
 var wptValidationForms = [];
 var wptValidation = (function($) {
-    function init() {
+    function init() {        
         /**
          * add extension to validator method
          */
@@ -27,12 +27,20 @@ var wptValidation = (function($) {
         });      
         
         /**
+         * add hexadecimal to validator method
+         */
+        $.validator.addMethod("hexadecimal", function(value, element, param) {            
+            return /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(value);            
+        });
+        
+        /**
          * add extension to validator method require
          */
         $.validator.addMethod("required", function(value, element, param) {                                     
                 // check if dependency is met
                 if ( !this.depend(param, element) )
                         return "dependency-mismatch";
+                                        
                 switch( element.nodeName.toLowerCase() ) {
                 case 'select':                        
                         var val = $(element).val();                      
@@ -47,7 +55,19 @@ var wptValidation = (function($) {
                         });
                         //#########################################################################
                         return val && $.trim(val).length > 0;
-                case 'input':
+                case 'input':                                            
+//                        if (jQuery(element).hasClass("hasDatepicker")) {
+//                            element = jQuery(element).siblings( 'input[type="hidden"]' );
+//                            value = element.val();
+//                            element = element[0];  
+//                            console.log(value+" -> "+this.getLength(value, element));
+//                            return this.getLength(value, element) > 0;
+//                        }
+
+                        if (jQuery(element).hasClass("hasDatepicker")) {
+                            return false;
+                        }
+
                         if ( this.checkable(element) )
                                 return this.getLength(value, element) > 0;
                 default:

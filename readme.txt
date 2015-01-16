@@ -157,6 +157,13 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 * Added ability to hide custom post types on post relationships list. https://wp-types.com/forums/topic/post-relationship-doesnt-show-post-type-events-created-by-events-espresso/ using filter add_filter('wpcf_show_ui_hide_in_relationships', '__return_false');
 * Fixed a problem with deleting last children on post relationships table.
 * Added filter to allow use "?" in image url.  https://wp-types.com/forums/topic/image-custom-field-is-not-storing-image-path-with-parameters/
+* Added option for child table, when editing parent to allow show only list of children instead edit form.  http://wp-types.com/forums/topic/miss-settings-for-post-relationship-child-options/
+* Fixed a problem with slug in custom fields, when field have special chars.
+* Fixed wrong display message about custom fields not manageable by Types.
+* Fixed a conflict with Formidable-Pro plugin https://wp-types.com/forums/topic/plugin-conflict/
+* Fixed creating new post in relationships. WP 4.1 need real title not faked by one space.
+* Fixed problem with validate fields on user create page.  http://wp-types.com/forums/topic/custom-usermeta-bypassed-even-required-is-set/
+* Improve Edit CPT and Edit CT screens to be more compatibility with WP Admin UI
 
 = 1.6.4 =
 

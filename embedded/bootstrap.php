@@ -300,6 +300,7 @@ function wpcf_embedded_init() {
     // 'attachment' = Media
     //
     $wpcf->excluded_post_types = array(
+        'dd_layouts',
         'cred-form',
         'mediapage',
         'nav_menu_item',
