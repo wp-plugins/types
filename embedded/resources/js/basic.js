@@ -164,7 +164,6 @@ jQuery(document).ready(function(){
                     jQuery('#'+parentID).append('<div class="wpcf-form-error-unique-value wpcf-form-error">'+wpcfFormUniqueValuesCheckText+'</div>');
                     jQuery(this).parents('fieldset').children('.fieldset-wrapper').slideDown();
                     jQuery(this).focus();
-
                 }
 
                 checkedArr[parentID].push(currentValue);
@@ -520,6 +519,11 @@ function wpcfLoadingButton() {
 function wpcfLoadingButtonStop() {
     jQuery('.wpcf-disabled-on-submit').removeAttr('disabled');
     jQuery('.wpcf-loading').fadeOut();
+    //Fix https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/194177056/comments
+    //type modal didnt disappeared
+    jQuery('.types_modal_box').remove();
+    jQuery('.types_block_page').remove();
+    
 }
 
 /**

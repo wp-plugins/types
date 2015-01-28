@@ -36,7 +36,7 @@ final class WP_Installer{
         
         add_action('init', array($this, 'init'));
 
-        add_action('admin_init', array($this, 'admin_init'));
+        add_action('admin_init', array($this, 'load_deps_loader'), 0);
 
         add_action('admin_menu', array($this, 'menu_setup'));
         add_action('network_admin_menu', array($this, 'menu_setup'));
@@ -105,7 +105,7 @@ final class WP_Installer{
         
     }
 
-    public function admin_init(){
+    public function load_deps_loader(){
 
         new Installer_Deps_Loader();
 
@@ -662,10 +662,14 @@ final class WP_Installer{
             $affiliate_id  = ICL_AFFILIATE_ID;    
             $affiliate_key = ICL_AFFILIATE_KEY;    
             
+        }elseif(isset($this->config['affiliate_id']) && isset($this->config['affiliate_key'])) {
+            // BACKWARDS COMPATIBILITY
+            $affiliate_id = $this->config['affiliate_id'];
+            $affiliate_key = $this->config['affiliate_key'];
         }
-        
+
         if($affiliate_id && $affiliate_key){
-            $url = add_query_arg(array('affiliate_id' => $affiliate_id, 'affiliate_key' => $affiliate_key), $url);
+            $url = add_query_arg(array('aid' => $affiliate_id, 'affiliate_key' => $affiliate_key), $url);
         }
         
         return $url; 
@@ -1316,6 +1320,10 @@ final class WP_Installer{
         if(isset($_POST['nonce']) &&  isset($_POST['plugin_id']) && $_POST['nonce'] == wp_create_nonce('activate_' . $_POST['plugin_id'])){
             
             $plugin_id = $_POST['plugin_id'];
+
+            //prevent redirects
+            add_filter('wp_redirect', '__return_false', 10000);
+
             $return = activate_plugin($plugin_id);
 
             if(is_wp_error($return)){

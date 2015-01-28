@@ -49,7 +49,7 @@ add_shortcode( 'types', 'wpcf_shortcode' );
 function wpcf_shortcode( $atts, $content = null, $code = '' ) {
 
     global $wpcf;
-
+    
     // Switch the post if there is an attribute of 'id' in the shortcode.
     $post_id_atts = new WPV_wpcf_switch_post_from_attr_id( $atts );
 

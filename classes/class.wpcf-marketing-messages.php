@@ -336,7 +336,7 @@ class WPCF_Types_Marketing_Messages extends WPCF_Types_Marketing
         if ( is_multisite() ) {
             return;
         }
-        if ( get_option('types_show_on_activate') ) {
+        if ( 'show' != get_option('types_show_on_activate') ) {
             return;
         }
         wp_enqueue_style('onthego-admin-styles');
@@ -351,7 +351,7 @@ class WPCF_Types_Marketing_Messages extends WPCF_Types_Marketing
         );
         wp_localize_script('marketing-getting-started', 'types_activate', $data);
         wp_enqueue_script('marketing-getting-started');
-        add_option('types_show_on_activate', true);
+        update_option('types_show_on_activate', 'hide');
     }
 
 }

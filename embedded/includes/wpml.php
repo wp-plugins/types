@@ -1202,9 +1202,9 @@ function wpcf_wpml_warnings_init()
      * do that only when version of WPML is lower then 3.2
      */
     if ( defined('ICL_SITEPRESS_VERSION') && version_compare( ICL_SITEPRESS_VERSION, '3.2', '<' ) ) {
-        if ( $sitepress->get_default_language() != $sitepress_settings[ 'st' ][ 'strings_language' ] ) {
+        if (isset($sitepress_settings[ 'st' ]) && $sitepress->get_default_language() != $sitepress_settings[ 'st' ][ 'strings_language' ] ) {
             wp_types_default_language_warning();
-        } elseif ( $sitepress_settings[ 'st' ][ 'strings_language' ] != 'en' ) {
+        } elseif (isset($sitepress_settings[ 'st' ]) && $sitepress_settings[ 'st' ][ 'strings_language' ] != 'en' ) {
             wp_types_st_language_warning();
         } else {
             ICL_AdminNotifier::removeMessage( 'wp_types_default_language_warning' );
@@ -1266,7 +1266,7 @@ function wp_types_st_language_warning()
 	if ( class_exists( 'ICL_AdminNotifier' ) && defined( 'ICL_SITEPRESS_VERSION' ) ) {
 		ICL_AdminNotifier::removeMessage( 'wp_types_default_language_warning' );
 		static $called = false;
-		if ( !$called ) {
+		if ( !$called && isset($sitepress_settings[ 'st' ])) {
 			$st_language_code = $sitepress_settings[ 'st' ][ 'strings_language' ];
 			$st_language = $sitepress->get_display_language_name($st_language_code, $sitepress->get_admin_language());
 

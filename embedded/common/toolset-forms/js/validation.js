@@ -30,7 +30,7 @@ var wptValidation = (function($) {
          * add hexadecimal to validator method
          */
         $.validator.addMethod("hexadecimal", function(value, element, param) {            
-            return /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(value);            
+            return value=="" || /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(value);            
         });
         
         /**

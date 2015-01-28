@@ -156,14 +156,15 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 * Change in relationships, now all posts are showed, even those which have show_ui to false.
 * Added ability to hide custom post types on post relationships list. https://wp-types.com/forums/topic/post-relationship-doesnt-show-post-type-events-created-by-events-espresso/ using filter add_filter('wpcf_show_ui_hide_in_relationships', '__return_false');
 * Fixed a problem with deleting last children on post relationships table.
-* Added filter to allow use "?" in image url.  https://wp-types.com/forums/topic/image-custom-field-is-not-storing-image-path-with-parameters/
-* Added option for child table, when editing parent to allow show only list of children instead edit form.  http://wp-types.com/forums/topic/miss-settings-for-post-relationship-child-options/
+* Added filter to allow use "?" in image url. https://wp-types.com/forums/topic/image-custom-field-is-not-storing-image-path-with-parameters/
+* Added option for child table, when editing parent to allow show only list of children instead edit form. http://wp-types.com/forums/topic/miss-settings-for-post-relationship-child-options/
 * Fixed a problem with slug in custom fields, when field have special chars.
 * Fixed wrong display message about custom fields not manageable by Types.
 * Fixed a conflict with Formidable-Pro plugin https://wp-types.com/forums/topic/plugin-conflict/
 * Fixed creating new post in relationships. WP 4.1 need real title not faked by one space.
-* Fixed problem with validate fields on user create page.  http://wp-types.com/forums/topic/custom-usermeta-bypassed-even-required-is-set/
+* Fixed problem with validate fields on user create page. http://wp-types.com/forums/topic/custom-usermeta-bypassed-even-required-is-set/
 * Improve Edit CPT and Edit CT screens to be more compatibility with WP Admin UI
+* Fixed problem with default label which contains single quote character (eg. French) https://wp-types.com/forums/topic/default-label-always-shown/
 
 = 1.6.4 =
 
@@ -180,7 +181,7 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 * Fixed embedding OTGS CSS for the admin area. https://wordpress.org/support/topic/four-stylesheets-being-loaded-at-frontend
 * Fixed a problem with Checkbox field value not being saved. https://wp-types.com/forums/topic/checkbox-value-not-saved/
 * Added the option to select posts with the "Private" post status as parents in a parent-child Custom Post Types relationships. http://wp-types.com/forums/topic/cred-child-form-not-working-with-private-ctp/
-* Fixed a problem with the date-picker.  https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/191190651/comments
+* Fixed a problem with the date-picker. https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/191190651/comments
 * Fixed a problem with label menu in wp-admin for child posts.
 * Fixed a problem with child table when edit parent post and children do not have title.
 * Prevent to chose repetitive field in child table on edit parent screen. http://wp-types.com/forums/topic/wp-types-select-child-fields-to-be-displayed-specific-fields-not-working/

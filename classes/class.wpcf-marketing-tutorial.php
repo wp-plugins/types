@@ -156,6 +156,9 @@ class WPCF_Types_Marketing_Tutorial extends WPCF_Types_Marketing
 
     public function get_content()
     {
+        $class = ' class="wp-types-icon-external" ';
+        $target = ' target="_blank" ';
+        
         $url = $this->get_kind_url();
         $this->cache = md5($url);
         $content = get_transient($this->cache);
@@ -173,6 +176,9 @@ class WPCF_Types_Marketing_Tutorial extends WPCF_Types_Marketing
             'from' => array(),
             'to' => array(),
         );
+        
+        $content = preg_replace('/(<a.*?)[ ]?target="_blank"(.*?)/', '$1$2', $content);
+        
         /**
          * with '
          */
@@ -181,9 +187,9 @@ class WPCF_Types_Marketing_Tutorial extends WPCF_Types_Marketing
             foreach ( $matches[1] as $url ) {
                 if ( !preg_match('/wp-types.com/', $url ) ) {
                     continue;
-                }
+                }                
                 $replces['from'][] = sprintf("|'%s'|", $url);
-                $replces['to'][] = sprintf( "'%s'", $this->add_ga_campain($url));
+                $replces['to'][] = sprintf( "'%s'", $this->add_ga_campain($url).$class.$target);
             }
         }
         /**
@@ -191,14 +197,46 @@ class WPCF_Types_Marketing_Tutorial extends WPCF_Types_Marketing
          */
         preg_match_all('/href="([^"]+)"/', $content, $matches );
         if ( $matches ) {
-            foreach ( $matches[1] as $url ) {
-                if ( !preg_match('/wp-types.com/', $url ) ) {
+            foreach ( $matches[1] as $url ) {                
+                if ( !preg_match('/wp-types.com/', $url ) ) {                    
                     continue;
                 }
                 $replces['from'][] = sprintf('|"%s"|', $url);
-                $replces['to'][] = sprintf( '"%s"', $this->add_ga_campain($url));
+                $replces['to'][] = sprintf( '"%s"', $this->add_ga_campain($url)).$class.$target;
             }
         }
+        
+        //WP-Types External
+        
+        /**
+         * with '
+         */
+        preg_match_all('/href=\'([^\']+)\'/', $content, $matches );
+        if ( $matches ) {
+            foreach ( $matches[1] as $url ) {
+                if ( preg_match('/wp-types.com/', $url ) ) {
+                    continue;
+                }                
+                $replces['from'][] = sprintf("|'%s'|", $url);
+                $replces['to'][] = sprintf( "'%s'", $this->add_ga_campain($url).$class.$target);
+            }
+        }
+        /**
+         * with "
+         */
+        preg_match_all('/href="([^"]+)"/', $content, $matches );
+        if ( $matches ) {
+            foreach ( $matches[1] as $url ) {                
+                if ( preg_match('/wp-types.com/', $url ) ) {                    
+                    continue;
+                }
+                $replces['from'][] = sprintf('|"%s"|', $url);
+                $replces['to'][] = sprintf( '"%s"', $this->add_ga_campain($url)).$class.$target;
+            }
+        }        
+        
+        
+        
         if (count($replces['from'])) {
             $content = preg_replace( $replces['from'], $replces['to'], $content );
         }

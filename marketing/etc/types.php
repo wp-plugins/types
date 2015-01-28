@@ -34,7 +34,30 @@ return array(
      * directory | user-submitted content organized by categories E-Commerce
      */
 
-    'directory' => array(
+//    'directory' => array(
+//        'cpt' => array(
+//            array(
+//                'header' => __( 'You can build parametric searches for PPP using Toolset, without any PHP!', 'wcpf' ),
+//                'description' => __( 'Build custom classifieds sites with Toolset, on any theme, without writing PHP', 'wcpf' ),
+//                'link' => __('http://wp-types.com/', 'wcpf'),
+//            ),
+//        ),
+//        'taxonomy' => array(
+//            array(
+//                'header' => __( 'Toolset lets you display a directory of TTT!', 'wcpf' ),
+//                'description' => __( 'Build custom classifieds sites with Toolset, on any theme, without writing PHP', 'wcpf' ),
+//                'link' => __('http://wp-types.com/', 'wcpf'),
+//            ),
+//        ),
+//        'fields' => array(
+//            array(
+//                'description' => __( 'Develop flexible directory sites with Toolset, on any theme, without writing PHP', 'wcpf' ),
+//                'link' => __('http://wp-types.com/', 'wcpf'),
+//            ),
+//        ),
+//    ),
+    
+    'directory_classifieds' => array(
         'cpt' => array(
             array(
                 'header' => __( 'You can build parametric searches for PPP using Toolset, without any PHP!', 'wcpf' ),
@@ -55,7 +78,7 @@ return array(
                 'link' => __('http://wp-types.com/', 'wcpf'),
             ),
         ),
-    ),
+    ),    
 
     /*
      * Classifieds/directory | user-submitted content organized by categories E-Commerce

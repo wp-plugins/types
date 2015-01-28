@@ -57,6 +57,7 @@ add_action( 'plugins_loaded', 'wpcf_init' );
 add_action( 'init', 'wpcf_wp_init' );
 
 register_deactivation_hook( __FILE__, 'wpcf_deactivation_hook' );
+register_activation_hook( __FILE__, 'wpcf_activation_hook' );
 
 /**
  * Deactivation hook.
@@ -67,11 +68,35 @@ function wpcf_deactivation_hook()
 {
     // Delete messages
     delete_option( 'wpcf-messages' );
+    delete_option( 'WPCF_VERSION' );
     /**
      * check site kind and if do not exist, delete types_show_on_activate
      */
     if ( !get_option('types-site-kind') ) {
         delete_option('types_show_on_activate');
+    }
+}
+
+/**
+ * Activation hook.
+ *
+ * Reset some of data.
+ */
+function wpcf_activation_hook()
+{
+    $version = get_option('WPCF_VERSION');
+    if ( empty($version) ) {
+        $version = 0;
+        add_option('WPCF_VERSION', 0, null, 'no');
+    }
+    if ( version_compare($version, WPCF_VERSION) < 0 ) {
+        update_option('WPCF_VERSION', WPCF_VERSION);
+    }
+    if( 0 == version_compare(WPCF_VERSION, '1.6.5')) {
+        add_option('types_show_on_activate', 'show', null, 'no');
+        if ( get_option('types-site-kind') ) {
+            update_option('types_show_on_activate', 'hide');
+        }
     }
 }
 

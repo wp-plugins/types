@@ -346,20 +346,20 @@ function wpcf_admin_menu_edit_fields()
     <script type="text/javascript">
         function wpcf_group_submit()
         {
-        if (jQuery('#wpcf-group-name').val() == '<?php _e('Enter group title', 'wpcf'); ?>') {
+        if (jQuery('#wpcf-group-name').val() == "<?php echo addslashes(__('Enter group title', 'wpcf')); ?>") {
                 jQuery('#wpcf-group-name').val('');
             }
-            if (jQuery('#wpcf-group-description').val() == '<?php _e('Enter a description for this group', 'wpcf'); ?>') {
+            if (jQuery('#wpcf-group-description').val() == "<?php echo addslashes(__('Enter a description for this group', 'wpcf')); ?>") {
                 jQuery('#wpcf-group-description').val('');
             }
             jQuery('.wpcf-forms-set-legend').each(function () {
-                if (jQuery(this).val() == '<?php _e('Enter field name', 'wpcf'); ?>') {
+                if (jQuery(this).val() == "<?php echo addslashes(__('Enter field name', 'wpcf')); ?>") {
                     jQuery(this).val('');
                 }
-                if (jQuery(this).next().val() == '<?php _e('Enter field slug', 'wpcf'); ?>') {
+                if (jQuery(this).next().val() == "<?php echo addslashes(__('Enter field slug', 'wpcf')); ?>") {
                     jQuery(this).next().val('');
                 }
-                if (jQuery(this).next().next().val() == '<?php _e('Describe this field', 'wpcf'); ?>') {
+                if (jQuery(this).next().next().val() == "<?php echo addslashes(__('Describe this field', 'wpcf')); ?>") {
                     jQuery(this).next().next().val('');
                 }
             });
