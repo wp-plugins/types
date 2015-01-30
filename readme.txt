@@ -92,7 +92,6 @@ Types is part of a family of plugins, including WPML and Toolset, developed and 
 1. Upload 'types' to the '/wp-content/plugins/' directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 
-
 == Frequently Asked Questions ==
 
 = How can I display custom post types on the home-page? =
@@ -148,6 +147,8 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 3. Editing custom fields
 4. Inserting custom fields to content
 5. Bulk editing child content using Field Tables
+6. Edit Custom Post Type
+7. Edit Taxonomy
 
 == Changelog ==
 
