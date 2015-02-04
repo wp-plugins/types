@@ -36,7 +36,7 @@ final class WP_Installer{
         
         add_action('init', array($this, 'init'));
 
-        add_action('admin_init', array($this, 'load_deps_loader'), 0);
+        add_action('admin_init', array($this, 'admin_init'));
 
         add_action('admin_menu', array($this, 'menu_setup'));
         add_action('network_admin_menu', array($this, 'menu_setup'));
@@ -105,7 +105,7 @@ final class WP_Installer{
         
     }
 
-    public function load_deps_loader(){
+    public function admin_init(){
 
         new Installer_Deps_Loader();
 
@@ -539,28 +539,7 @@ final class WP_Installer{
         
     }
 
-    public function get_product_price($repository_id, $package_id, $product_id, $incl_discount = false){
-
-        $price = false;
-
-        foreach($this->settings['repositories'][$repository_id]['data']['packages'] as $package ){
-
-            if($package['id'] == $package_id){
-                if(isset($package['products'][$product_id])){
-                    if($incl_discount && isset($package['products'][$product_id]['price_disc'])){
-                        $price = $package['products'][$product_id]['price_disc'];
-                    }elseif(isset($package['products'][$product_id]['price'])){
-                        $price = $package['products'][$product_id]['price'];
-                    }
-                }
-                break;
-            }
-        }
-
-        return $price;
-    }
-
-    private function _render_product_packages($packages, $subscription_type, $expired, $upgrade_options, $repository_id){
+    private function _render_product_packages($packages, $subscription_type, $expired, $upgrade_options){
 
         $data = array();
 
@@ -572,7 +551,7 @@ final class WP_Installer{
                 // buy base
                 if(empty($subscription_type) || $expired) {
 
-                    $p['url'] = $this->append_parameters_to_buy_url($product['url'], $repository_id);
+                    $p['url'] = $this->append_parameters_to_buy_url($product['url']);
                     if (!empty($product['price_disc'])) {
                         $p['label'] = $product['call2action'] . ' - ' . sprintf('$%s %s$%d%s (USD)', $product['price_disc'], '&nbsp;&nbsp;<del>', $product['price'], '</del>');
                     } else {
@@ -585,7 +564,7 @@ final class WP_Installer{
 
                     if($product['renewals']) {
                         foreach ($product['renewals'] as $renewal) {
-                            $p['url'] = $this->append_parameters_to_buy_url($renewal['url'], $repository_id);
+                            $p['url'] = $this->append_parameters_to_buy_url($renewal['url']);
                             $p['label'] = $renewal['call2action'] . ' - ' . sprintf('$%d (USD)', $renewal['price']);
                         }
 
@@ -600,7 +579,7 @@ final class WP_Installer{
                     foreach($upgrade_options[$product['subscription_type']] as $stype => $upgrade){
                         if($stype != $subscription_type) continue;
 
-                        $p['url'] = $this->append_parameters_to_buy_url($upgrade['url'], $repository_id);
+                        $p['url'] = $this->append_parameters_to_buy_url($upgrade['url']);
                         if (!empty($upgrade['price_disc'])) {
                             $p['label'] = $upgrade['call2action'] . ' - ' . sprintf('$%s %s$%d%s (USD)', $upgrade['price_disc'], '&nbsp;&nbsp;<del>', $upgrade['price'], '</del>');
                         } else {
@@ -624,7 +603,6 @@ final class WP_Installer{
 
             }
 
-            $row['id']          = $package['id'];
             $row['image_url']   = $package['image_url'];
             $row['name']        = $package['name'];
             $row['description'] = $package['description'];
@@ -640,36 +618,32 @@ final class WP_Installer{
 
     }
 
-    public function append_parameters_to_buy_url($url, $repository_id, $args = array()){
+    public function append_parameters_to_buy_url($url, $args = array()){
 
         $url = add_query_arg( array('icl_site_url' => $this->get_installer_site_url() ), $url );
         
         $affiliate_id   = false;
         $affiliate_key  = false;
 
-        if(isset($this->config['affiliate_id:' . $repository_id]) && isset($this->config['affiliate_key:' . $repository_id])){
+        if(isset($this->config['affiliate_id']) && isset($this->config['affiliate_key'])){
             
-            $affiliate_id  = $this->config['affiliate_id:' . $repository_id];
-            $affiliate_key = $this->config['affiliate_key:' . $repository_id];
+            $affiliate_id  = $this->config['affiliate_id'];    
+            $affiliate_key = $this->config['affiliate_key'];    
             
-        }elseif(isset($args['affiliate_id:' . $repository_id]) && isset($args['affiliate_key:' . $repository_id])){
+        }elseif(isset($args['affiliate_id']) && isset($args['affiliate_key'])){
             
-            $affiliate_id   = $args['affiliate_id:' . $repository_id];
-            $affiliate_key  = $args['affiliate_key:' . $repository_id];
+            $affiliate_id   = $args['affiliate_id'];    
+            $affiliate_key  = $args['affiliate_key'];    
             
-        }elseif(defined('ICL_AFFILIATE_ID') && defined('ICL_AFFILIATE_KEY')){ //support for 1 repo
+        }elseif(defined('ICL_AFFILIATE_ID') && defined('ICL_AFFILIATE_KEY')){
             
             $affiliate_id  = ICL_AFFILIATE_ID;    
             $affiliate_key = ICL_AFFILIATE_KEY;    
             
-        }elseif(isset($this->config['affiliate_id']) && isset($this->config['affiliate_key'])) {
-            // BACKWARDS COMPATIBILITY
-            $affiliate_id = $this->config['affiliate_id'];
-            $affiliate_key = $this->config['affiliate_key'];
         }
-
+        
         if($affiliate_id && $affiliate_key){
-            $url = add_query_arg(array('aid' => $affiliate_id, 'affiliate_key' => $affiliate_key), $url);
+            $url = add_query_arg(array('affiliate_id' => $affiliate_id, 'affiliate_key' => $affiliate_key), $url);
         }
         
         return $url; 
@@ -797,13 +771,7 @@ final class WP_Installer{
         
         $subscription_data = false;
         
-        $args['body'] = array(
-                'action'    => 'site_key_validation',
-                'site_key'  => $site_key,
-                'site_url'  => $this->get_installer_site_url($repository_id),
-        );
-        $args['timeout'] = 45;
-        
+        $args['body'] = array('action' => 'site_key_validation', 'site_key' => $site_key, 'site_url' => $this->get_installer_site_url($repository_id) );
         $response = wp_remote_post($this->repositories[$repository_id]['api-url'], $args);
         
         $this->api_debug_log("POST {$this->repositories[$repository_id]['api-url']}");
@@ -1320,10 +1288,6 @@ final class WP_Installer{
         if(isset($_POST['nonce']) &&  isset($_POST['plugin_id']) && $_POST['nonce'] == wp_create_nonce('activate_' . $_POST['plugin_id'])){
             
             $plugin_id = $_POST['plugin_id'];
-
-            //prevent redirects
-            add_filter('wp_redirect', '__return_false', 10000);
-
             $return = activate_plugin($plugin_id);
 
             if(is_wp_error($return)){

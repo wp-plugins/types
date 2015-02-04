@@ -31,7 +31,7 @@
                                             'repository_id' => $repository_id
                                         );
                                     ?>
-                                    <input type="checkbox" name="downloads[]" value="<?php echo base64_encode(json_encode($download_data)); ?>" <?php 
+                                    <input type="checkbox" name="downloads[]" value="<?php echo base64_encode(json_encode($download_data)); ?>" <?php
                                         if($this->plugin_is_installed($download['name'], $download['basename'], $download['version']) || !WP_Installer()->is_uploading_allowed()): ?>disabled="disabled"<?php endif; ?> />&nbsp;
                                         
                                     </label>                                

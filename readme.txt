@@ -92,6 +92,7 @@ Types is part of a family of plugins, including WPML and Toolset, developed and 
 1. Upload 'types' to the '/wp-content/plugins/' directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 
+
 == Frequently Asked Questions ==
 
 = How can I display custom post types on the home-page? =
@@ -166,6 +167,7 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 * Fixed problem with validate fields on user create page. http://wp-types.com/forums/topic/custom-usermeta-bypassed-even-required-is-set/
 * Improve Edit CPT and Edit CT screens to be more compatibility with WP Admin UI
 * Fixed problem with default label which contains single quote character (eg. French) https://wp-types.com/forums/topic/default-label-always-shown/
+* Improve display list of custom fields groups.
 
 = 1.6.4 =
 
@@ -192,31 +194,27 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 = 1.6.3 =
 
+* Release date: 2014-10-23
 * Added the message to ask users to answer a short survey for feedback on their work using the Types plugin.
-
 * Fixed a problem where the custom field group’s description was missing from the post/page editing page. http://wp-types.com/forums/topic/custom-field-group-descriptions-no-longer-visible-in-cpt-add-newedit-screen/
-
 * Fixed a problem where the field descriptions weren’t displayed on the user profile editing page. http://wp-types.com/forums/topic/checkbox-description-fields-no-longer-display-in-types-1-6-2/
-
 * Fixed a problem where users weren’t able to untick the single and multiple checkbox fields on the user profile editing page.
-
 * Fixed a problem where the value of date field couldn’t be cleared and added new button which clears the date field value. http://wp-types.com/forums/topic/problem-2-after-update/
-
 * Replaced the deprecated like_escape function with the wpdb::esc_like function.
-
 * Fixed a problem where the parent-child relations between custom post types persisted after deleting and re-creating a custom post type.
-
 * Fixed a problem where date picker scripts were being enqueued in the front end. https://wordpress.org/support/topic/datepicker-css-enqueued-on-public
 
 
 = 1.6.2 =
 
+* Release date: 2014-08-29
 * Fix addslashes warning
 * Fix display problems with Types shortcodes
 * Fix PHP error for checkboxes
 
 = 1.6.1 =
 
+* Release date: 2014-08-22
 * Fix Formfactory::createForm and Formfactory::displayForm errors on some systems
 * Fix anonymous function problem with wysiwyg field
 * Fix datepicker.css so it only styles the datepicker popup
@@ -224,9 +222,10 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 = 1.6 =
 
+* Release date: 2014-08-22
 * Added ability to add extra options by filter *wpt_field_options* to fields with "options".
 * Added ability to create custom post type with the same singular and plural name.
-* Added ability to select menu icon for custom post type.
+* Added ability to select menu icon (WordPress dashicon) for custom post type.
 * Added delete attached repetitive files.
 * Added filter "wpcf_pr_belongs_post_status" that allows to change post_status for parent/child posts.
 * Added sanitization for uploaded file names, to remove non-latin1 characters.

@@ -32,6 +32,7 @@ class WPCF_Types_Marketing
         $this->options = include WPCF_ABSPATH.'/marketing/etc/types-site-kinds.php';
         $this->adverts = include WPCF_ABSPATH.'/marketing/etc/types.php';
         add_filter('admin_body_class', array($this, 'admin_body_class'));
+        add_action( 'wpcf_menu_plus', array( $this, 'add_getting_started_to_admin_menu'), PHP_INT_MAX);
     }
 
     public function admin_body_class($classes)
@@ -138,5 +139,21 @@ class WPCF_Types_Marketing
         );
         return $url;
     }
+
+    /**
+     * add Getting Started to menu
+     */
+    public function add_getting_started_to_admin_menu()
+    {
+        $menu = array(
+            'page_title' => __( 'What kind of site are you building?', 'wpcf' ),
+            'menu_title' => __( 'Getting Started', 'wpcf' ),
+            'menu_slug' => basename(dirname(dirname(__FILE__))).'/marketing/getting-started/index.php',
+            'hook' => 'wpcf_marketing',
+            'load_hook' => 'wpcf_marketing_hook',
+        );
+        wpcf_admin_add_submenu_page($menu);
+    }
+
 
 }

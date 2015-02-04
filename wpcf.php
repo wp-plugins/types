@@ -33,7 +33,7 @@ define( 'WPCF_RES_ABSPATH', WPCF_ABSPATH . '/resources' );
 define( 'WPCF_RES_RELPATH', WPCF_RELPATH . '/resources' );
 
 // Add installer
-include dirname( __FILE__ ) . '/embedded/common/installer/loader.php';
+include dirname( __FILE__ ) . '/plus/installer/loader.php';
 WP_Installer_Setup($wp_installer_instance,
 array(
     'plugins_install_tab' => '1',
@@ -138,11 +138,18 @@ function wpcf_wp_init()
 {
     if ( is_admin() ) {
         require_once WPCF_ABSPATH . '/admin.php';
-        add_action('admin_menu', 'setup_installer');
+        add_action('wpcf_menu_plus', 'setup_installer');
         //Add submenu Installer to Types
         function setup_installer()
         {
-            add_submenu_page('wpcf', 'Installer', 'Installer', 'manage_options', 'installer', 'installer_content');
+            wpcf_admin_add_submenu_page(
+                array(
+                    'page_title' => __('Installer', 'wpcf'),
+                    'menu_title' => __('Installer', 'wpcf'),
+                    'menu_slug' => 'installer',
+                    'function' => 'installer_content'
+                )
+            );
         }
     }
 }

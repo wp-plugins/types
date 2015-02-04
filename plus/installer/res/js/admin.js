@@ -16,8 +16,6 @@
         
         jQuery('.otgs_wp_installer_table').on('click', '.installer_expand_button', otgs_wp_installer.toggle_subpackages);
 
-        otgs_wp_installer.scroll_to_repository();
-
     },
 
     reset_errors: function(){
@@ -302,42 +300,7 @@
 
         return false;
 
-    },
-
-    scroll_to_repository: function(){
-
-        var ref = window.location.hash.replace('#', '');
-
-        if(ref) {
-            var split = ref.split('/');
-            var repo        = split[0];
-
-            if(typeof split[1] != 'undefiend'){
-                var package     = split[1];
-                var repo_element = jQuery('#repository-' + repo);
-
-
-
-                if(repo_element.length){
-
-                    jQuery('html, body').animate({
-                        scrollTop: repo_element.offset().top
-                    }, 1000);
-
-                    var package_element = jQuery('#repository-' + repo +'_' + package);
-
-                    if(package_element.length && !package_element.is(':visible')){
-                        package_element.parents('.otgs_wp_installer_subtable').slideDown();
-                        package_element.addClass('installer_highlight_package');
-                    }
-
-                    package_element.find('.button-secondary').removeClass('button-secondary').addClass('button-primary');
-                }
-            }
-
-        }
-
-    }
+    }    
 
     
 }

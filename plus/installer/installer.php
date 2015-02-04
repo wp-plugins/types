@@ -11,7 +11,6 @@ function WP_Installer() {
 
 WP_Installer();
 
-include_once dirname(__FILE__) . '/includes/installer-api.php';
 
 // Ext function 
 function WP_Installer_Show_Products($args = array()){

@@ -557,3 +557,13 @@ input.wpcf-form-error {
     margin: 35px 0 0 20px;
 }
 
+.status-inactive:hover
+{
+    opacity: 1;
+}
+
+.status-inactive
+{
+    opacity: .5;
+    transition: all .4s;
+}

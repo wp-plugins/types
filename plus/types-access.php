@@ -10,6 +10,7 @@
  */
 
 add_action( 'plugins_loaded', 'wpcf_access_teaser_init', 15 );
+add_action( 'wpcf_menu_plus', 'wpcf_access_teaser_admin_menu' );
 
 /**
  * Teaser init.
@@ -28,7 +29,6 @@ function wpcf_access_teaser_init() {
         define( 'WPCF_ACCESS_RELPATH',
                 plugins_url() . '/' . basename( WPCF_ABSPATH ) . '/plus/types-access' );
         define( 'WPCF_ACCESS_INC', WPCF_ACCESS_ABSPATH . '/includes' );
-        add_action( 'wpcf_menu_plus', 'wpcf_access_teaser_admin_menu' );
         $locale = get_locale();
         load_textdomain( 'wpcf_access',
                 WPCF_ACCESS_ABSPATH . '/locale/types-access-' . $locale . '.mo' );
@@ -39,11 +39,15 @@ function wpcf_access_teaser_init() {
  * Teaser menu hook.
  */
 function wpcf_access_teaser_admin_menu() {
-    $hook = add_submenu_page( 'wpcf',
-            __( 'Access Control and User Roles', 'wpcf' ),
-            __( 'Access Control and User Roles', 'wpcf' ), 'manage_options',
-            'wpcf-access', 'wpcf_access_teaser_admin_menu_page' );
-    add_action( 'load-' . $hook, 'wpcf_access_teaser_admin_menu_load' );
+    $hook = wpcf_admin_add_submenu_page(
+        array(
+            'page_title' => __( 'Access Control and User Roles', 'wpcf' ),
+            'menu_title' => __( 'Access Control and User Roles', 'wpcf' ),
+            'menu_slug' => 'wpcf-access',
+            'function' => 'wpcf_access_teaser_admin_menu_page',
+            'load_hook' => 'wpcf_access_teaser_admin_menu_load',
+        )
+    );
 }
 
 /**

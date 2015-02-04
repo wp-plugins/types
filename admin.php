@@ -38,8 +38,6 @@ function wpcf_admin_init_hook()
     wp_register_style('wpcf-css', WPCF_RES_RELPATH . '/css/basic.css', array(), WPCF_VERSION);
 
     wp_enqueue_style( 'wpcf-promo-tabs', WPCF_EMBEDDED_RES_RELPATH . '/css/tabs.css', array(), WPCF_VERSION );
-    /* wp_enqueue_style('wpcf-promo-tabs',
-        WPCF_RES_RELPATH . '/css/tabs.css', array(), WPCF_VERSION); */
     wp_enqueue_style('toolset-dashicons');
 }
 
@@ -60,20 +58,6 @@ function wpcf_admin_menu_hook()
     );
 
     $subpages = array();
-
-    $marketing = new WPCF_Types_Marketing_Messages();
-    $kind = $marketing->get_kind();
-    $getting_started = array(
-        'page_title' => __( 'What kind of site are you building?', 'wpcf' ),
-        'menu_title' => __( 'Getting Started', 'wpcf' ),
-        'menu_slug' => basename(dirname(__FILE__)).'/marketing/getting-started/index.php',
-        'hook' => 'wpcf_marketing',
-        'load_hook' => 'wpcf_marketing_hook',
-    );
-
-    if ( empty($kind ) ) {
-        $subpages['wpcf-getting-started'] = $getting_started;
-    }
 
     // Custom types and tax
     $subpages['wpcf-ctt'] = array(
@@ -112,7 +96,6 @@ function wpcf_admin_menu_hook()
     );
 
     if ( !empty($kind ) ) {
-        $subpages['wpcf-getting-started'] = $getting_started;
     }
 
     // Import/Export
@@ -137,35 +120,7 @@ function wpcf_admin_menu_hook()
     );
 
     foreach( $subpages as $menu_slug => $menu ) {
-        $hook = add_submenu_page(
-            'wpcf',
-            $menu['page_title'],
-            $menu['menu_title'],
-            $wpcf_capability,
-            array_key_exists('menu_slug', $menu)? $menu['menu_slug']:$menu_slug,
-            array_key_exists('function', $menu)? $menu['function']:null
-        );
-        if ( array_key_exists('submenu', $menu) ) {
-            foreach( $menu['submenu'] as $submenu_slug => $submenu ) {
-                add_submenu_page(
-                    $hook,
-                    $submenu['page_title'],
-                    $submenu['menu_title'],
-                    $wpcf_capability,
-                    array_key_exists('menu_slug', $submenu)? $submenu['menu_slug']:$submenu_slug,
-                    array_key_exists('function', $submenu)? $submenu['function']:null
-                );
-            }
-        }
-        if ( !array_key_exists('load_hook', $menu) && array_key_exists('function', $menu) ) {
-            $menu['load_hook'] = sprintf( '%s_hook', $menu['function'] );
-        }
-        wpcf_admin_plugin_help( $hook, $menu_slug );
-        $action = sprintf(
-            'load-%s',
-            array_key_exists('hook', $menu)? $menu['hook']:$hook
-        );
-        add_action( $action, $menu['load_hook'] );
+        wpcf_admin_add_submenu_page($menu, $menu_slug);
     }
 
     if ( isset( $_GET['page'] ) ) {
@@ -789,8 +744,11 @@ function wpcf_add_admin_footer()
  * @param type $rows
  * @param type $empty_message
  */
-function wpcf_admin_widefat_table( $ID, $header, $rows = array(),
-        $empty_message = 'No results' ) {
+function wpcf_admin_widefat_table( $ID, $header, $rows = array(), $empty_message = 'No results' )
+{
+    if ( 'No results' == $empty_message ) {
+        $empty_message = __('No results', 'wpcf');
+    }
     $head = '';
     $footer = '';
     foreach ( $header as $key => $value ) {
@@ -815,9 +773,20 @@ function wpcf_admin_widefat_table( $ID, $header, $rows = array(),
         echo '<tr><td colspan="' . count( $header ) . '">' . $empty_message
         . '</td></tr>';
     } else {
+        $i = 0;
         foreach ( $rows as $row ) {
-            echo '<tr>';
+            $classes = array();
+            if ( $i++%2 ) {
+                $classes[] =  'alternate';
+            }
+            if ( isset($row['status']) && 'inactive' == $row['status'] ) {
+                $classes[] = sprintf('status-%s', $row['status']);
+            };
+            printf('<tr class="%s">', implode(' ', $classes ));
             foreach ( $row as $column_name => $column_value ) {
+                if ( preg_match( '/^(status|raw_name)$/', $column_name )) {
+                    continue;
+                }
                 echo '<td class="wpcf-table-column-' . $column_name . '">';
                 echo $column_value;
                 echo '</td>' . "\r\n";
@@ -1160,3 +1129,49 @@ function wpcf_get_extra_debug_info($extra_debug)
 
 add_action( 'wpcf_admin_header', 'wpcf_welcome_panel', PHP_INT_SIZE );
 add_filter( 'icl_get_extra_debug_info', 'wpcf_get_extra_debug_info' );
+
+function wpcf_admin_add_submenu_page($menu, $menu_slug = null, $menu_parent = 'wpcf')
+{
+    if ( !is_admin() ) {
+        return;
+    }
+    $wpcf_capability = apply_filters( 'wpcf_capability', 'manage_options' );
+    $menu_slug = array_key_exists('menu_slug', $menu)? $menu['menu_slug']:$menu_slug;
+    /**
+     * add submenu
+     */
+    $hook = add_submenu_page(
+        $menu_parent,
+        $menu['page_title'],
+        $menu['menu_title'],
+        $wpcf_capability,
+        $menu_slug,
+        array_key_exists('function', $menu)? $menu['function']:null
+    );
+    if ( !empty($menu_slug) ) {
+        wpcf_admin_plugin_help( $hook, $menu_slug );
+    }
+    /**
+     * add action
+     */
+    if ( !array_key_exists('load_hook', $menu) && array_key_exists('function', $menu) ) {
+        $menu['load_hook'] = sprintf( '%s_hook', $menu['function'] );
+    }
+    if ( !empty($menu['load_hook']) && function_exists( $menu['load_hook'] ) ) {
+        $action = sprintf(
+            'load-%s',
+            array_key_exists('hook', $menu)? $menu['hook']:$hook
+        );
+        add_action( $action, $menu['load_hook'] );
+    }
+    /**
+     * add submenu to submenu
+     */
+    if ( array_key_exists('submenu', $menu) ) {
+        foreach( $menu['submenu'] as $submenu_slug => $submenu ) {
+            wpcf_admin_add_submenu_page($submenu, $submenu_slug, $hook);
+        }
+    }
+    return $hook;
+}
+

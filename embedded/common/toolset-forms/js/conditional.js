@@ -523,6 +523,17 @@ var wptCond = (function ($) {
                     console.log("The value is ", value, " for element: ", t, $trigger);
                 }
 
+                //Fix https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/193595717/comments
+                //group issue on select
+                if ($trigger.is('select')) {
+                    $("#" + $trigger.attr('id') + " > option").each(function () {
+                        //console.log(value + " " + this.text + ' ' + this.value + ' ' + $(this).data('typesValue'));
+                        if ($(this).data('typesValue') == value)
+                            value = this.text;
+                    });
+                }
+                //#####################################################################################
+
                 if (typeof value != 'undefined') {
 
                     // make it a string by wrapping in quotes if
@@ -596,8 +607,6 @@ var wptCond = (function ($) {
                 console.info("Error in Tokenizer", e, expression, " there may be an error in your expression syntax");
             }
 
-
-
             _showHide(result, _getAffected(field, formID));
 
         });
@@ -610,7 +619,7 @@ var wptCond = (function ($) {
         if (jQuery('.wpt-form-error').length) {
             jQuery('.wpt-form-error').hide();
         }
-        
+
         if (wptCondDebug) {
             console.info('_showHide');
             console.log(show, $el);
