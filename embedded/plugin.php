@@ -20,7 +20,7 @@ add_action( 'plugins_loaded', 'wpcf_embedded_load_or_deactivate' );
 
 function wpcf_embedded_load_or_deactivate()
 {
-    if ( function_exists('wpcf_upgrade_init') ) {
+    if ( function_exists('wpcf_activation_hook') ) {
         add_action( 'admin_init', 'wpcf_embedded_deactivate' );
         add_action( 'admin_notices', 'wpcf_embedded_deactivate_notice' );
     } else {

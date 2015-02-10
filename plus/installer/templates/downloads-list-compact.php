@@ -26,9 +26,17 @@
                                             'nonce'         => wp_create_nonce('install_plugin_' . $url),
                                             'repository_id' => $repository_id
                                         );
+
+                                        $disabled = $expired ||
+                                                    (
+                                                        $this->plugin_is_installed($download['name'], $download['basename'], $download['version']) &&
+                                                        !$this->plugin_is_embedded_version($download['name'], $download['basename'])
+                                                    )||
+                                                    !WP_Installer()->is_uploading_allowed();
+
                                     ?>
-                                    <input type="checkbox" name="downloads[]" value="<?php echo base64_encode(json_encode($download_data)); ?>" <?php
-                                        if($expired || $this->plugin_is_installed($download['name'], $download['basename'], $download['version']) || !WP_Installer()->is_uploading_allowed()): ?>disabled="disabled"<?php endif; ?> />&nbsp;
+                                    <input type="checkbox" name="downloads[]" value="<?php echo base64_encode(json_encode($download_data)); ?>" <?php 
+                                        if($disabled): ?>disabled="disabled"<?php endif; ?> />&nbsp;
                                         
                                     </label>                                
                                 </td>

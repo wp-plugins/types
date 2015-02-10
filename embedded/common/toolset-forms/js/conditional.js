@@ -527,8 +527,8 @@ var wptCond = (function ($) {
                 //group issue on select
                 if ($trigger.is('select')) {
                     $("#" + $trigger.attr('id') + " > option").each(function () {
-                        //console.log(value + " " + this.text + ' ' + this.value + ' ' + $(this).data('typesValue'));
-                        if ($(this).data('typesValue') == value)
+                        //console.log(value + " " + this.text + ' ' + this.value + ' ' + $(this).data('typesValue'));                        
+                        if ($(this).data('typesValue') && $(this).data('typesValue') == value || this.text==value || value==this.value)
                             value = this.text;
                     });
                 }

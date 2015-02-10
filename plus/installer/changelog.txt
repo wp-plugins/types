@@ -1,3 +1,15 @@
+= 1.5.1 =
+* Fix for allowing embedded plugins to be updated
+* Logic for the migration from embedded plugins to full plugins
+
+= 1.5 =
+* Support for embedded plugins
+* Bug fix: When user registers site key with trailing slash, downloads might not work
+* Tweak: Set a higher timeout limit for the http requests to CDN and API
+* API function: link to specific repository
+* API function: get product price
+* New method for defining affiliate info (with backwards compatibility)
+
 = 1.4 =
 * Show explicit error in case of connectivity issues while validating a key.
 * Bug fix: Downloading plugins in bulk was broken by plugin that had a redirect after activation

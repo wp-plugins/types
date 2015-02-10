@@ -2,12 +2,10 @@
 <p class="alignright installer_highlight"><strong><?php printf('Price offers available until %s', date_i18n(get_option( 'date_format' ), $match['exp'])) ?></strong></p>
 <?php endif; ?>
 
-<h3><?php echo $repository['data']['name'] ?></h3>
-
+<h3 id="repository-<?php echo $repository_id ?>"><?php echo $repository['data']['name'] ?></h3>
 <?php 
     $generic_product_name = $this->settings['repositories'][$repository_id]['data']['product-name'];
 ?>
-
 <table class="widefat otgs_wp_installer_table" id="installer_repo_<?php echo $repository_id ?>">
 
     <tr>
@@ -84,7 +82,7 @@
     $subscription_type = isset($subscription_type) ? $subscription_type : null;
     $expired = isset($expired) ? $expired : null;
     $upgrade_options = isset($upgrade_options) ? $upgrade_options : null;
-    $packages = $this->_render_product_packages($repository['data']['packages'], $subscription_type, $expired, $upgrade_options);
+    $packages = $this->_render_product_packages($repository['data']['packages'], $subscription_type, $expired, $upgrade_options, $repository_id);
     if(empty($subscription_type) || $expired){
         $subpackages_expandable = true;
     }else{
@@ -94,7 +92,7 @@
     ?>
 
     <?php foreach($packages as $package): ?>
-    <tr>
+    <tr id="repository-<?php echo $repository_id ?>_<?php echo $package['id'] ?>">
         <td><img width="140" height="140" src="<?php echo $package['image_url'] ?>" /></td>
         <td>
             <p><strong><?php echo $package['name'] ?></strong></p>
@@ -116,7 +114,7 @@
 
             <?php if(!empty($package['sub-packages'])): ?>
 
-                <?php $subpackages = $this->_render_product_packages($package['sub-packages'], $subscription_type, $expired, $upgrade_options); ?>
+                <?php $subpackages = $this->_render_product_packages($package['sub-packages'], $subscription_type, $expired, $upgrade_options, $repository_id); ?>
 
                 <?php if($subpackages): ?>
                 
@@ -126,7 +124,7 @@
 
                 <table class="otgs_wp_installer_subtable" style="<?php if($subpackages_expandable) echo 'display:none' ?>">
                 <?php foreach($subpackages as $package): ?>
-                    <tr>
+                    <tr id="repository-<?php echo $repository_id ?>_<?php echo $package['id'] ?>">
                         <td><img width="70" height="70" src="<?php echo $package['image_url'] ?>" /></td>
                         <td>
                             <p><strong><?php echo $package['name'] ?></strong></p>

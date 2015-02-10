@@ -62,7 +62,7 @@ if(!isset($args['product_name'])) $args['product_name'] = $product['name'];
             <br />
             <?php endif; ?>
             
-            <a class="button-primary" href="<?php echo $this->append_parameters_to_buy_url($product['url'], $args) ?>"><?php printf(__('Buy %s', 'installer'), $args['product_name']) ?></a> 
+            <a class="button-primary" href="<?php echo $this->append_parameters_to_buy_url($product['url'], $repository_id, $args) ?>"><?php printf(__('Buy %s', 'installer'), $args['product_name']) ?></a> 
             
             <div>
                 <br />
@@ -92,7 +92,7 @@ if(!isset($args['product_name'])) $args['product_name'] = $product['name'];
             <ul class="installer-products-list">    
             <?php foreach($product['renewals'] as $renewal): ?>
                 <li>
-                    <a href="<?php echo $this->append_parameters_to_buy_url($renewal['url'], $args) ?>"><?php printf(__('Renew %s', 'installer'), $args['product_name']) ?></a>
+                    <a href="<?php echo $this->append_parameters_to_buy_url($renewal['url'], $repository_id, $args) ?>"><?php printf(__('Renew %s', 'installer'), $args['product_name']) ?></a>
                 </li>
             <?php endforeach; ?>
             </ul>
