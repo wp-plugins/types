@@ -165,7 +165,7 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 * Fixed a conflict with Formidable-Pro plugin https://wp-types.com/forums/topic/plugin-conflict/
 * Fixed creating new post in relationships. WP 4.1 need real title not faked by one space.
 * Fixed problem with validate fields on user create page. http://wp-types.com/forums/topic/custom-usermeta-bypassed-even-required-is-set/
-* Improve Edit CPT and Edit CT screens to be more compatibility with WP Admin UI
+* Improve Edit CPT and Edit CT screens to be more compatible with WP Admin UI
 * Fixed problem with default label which contains single quote character (eg. French) https://wp-types.com/forums/topic/default-label-always-shown/
 * Improve display list of custom fields groups.
 
