@@ -64,7 +64,15 @@ class WPToolset_Field_Radios extends FieldFactory
              */
             $options[] = $one_option_data;
         }
-        $options = apply_filters( 'wpt_field_options', $options, $this->getTitle(), 'select' );
+        /**
+         * for user fields we reset title and description to avoid double 
+         * display
+         */
+        $title = $this->getTitle();
+        if ( empty($title) ) {
+            $title = $this->getTitle(true);
+        }
+        $options = apply_filters( 'wpt_field_options', $options, $title, 'select' );
         /**
          * default_value
          */

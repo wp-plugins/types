@@ -153,8 +153,17 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
+= 1.6.6 =
+
+* Fixed problem with shortcode "playlist" used in WYSIWYG field.  http://wp-types.com/forums/topic/media-play-list-not-outputting-from-custom-wysiwyg-field-js-error/
+* Fixed empty title problem for filter "wpt_field_options" on user edit/add screen https://wp-types.com/forums/topic/populate-select-field-in-wpcf-um-group/
+* Added ability to create CPT without title and editor. https://wp-types.com/forums/topic/inaccurate-warning-message-when-creatingediting-a-cpt/
+* Added Skype field validation.
+* Fixed problem with loading custom CSS when user meta group is inactive or not assign to certain user role.
+
 = 1.6.5 =
 
+* Release date: 2015-02-10
 * Change in relationships, now all posts are showed, even those which have show_ui to false.
 * Added ability to hide custom post types on post relationships list. https://wp-types.com/forums/topic/post-relationship-doesnt-show-post-type-events-created-by-events-espresso/ using filter add_filter('wpcf_show_ui_hide_in_relationships', '__return_false');
 * Fixed a problem with deleting last children on post relationships table.

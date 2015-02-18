@@ -127,12 +127,12 @@ class WPCF_Types_Marketing
         return $this->option_disable;
     }
 
-    protected function add_ga_campain($url)
+    protected function add_ga_campain($url, $utm_medium = 'getting-started')
     {
         $url = add_query_arg(
             array(
                 'utm_source' => 'typesplugin',
-                'utm_medium' => 'save-updated',
+                'utm_medium' =>  $utm_medium,
                 'utm_campaig' => sprintf('%s-howto', $this->get_kind() ),
             ),
             $url

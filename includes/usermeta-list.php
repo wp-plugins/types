@@ -55,10 +55,11 @@ function wpcf_admin_usermeta_list() {
             $name .= '<div id="wpcf_list_ajax_response_' . $group['id'] . '"></div>';
 
             $rows[$group['id']]['name'] = $name;
-
+            $rows[$group['id']]['raw_name'] = $group['name'];
 
             $rows[$group['id']]['description'] = $group['description'];
             $rows[$group['id']]['active-' . $group['id']] = $group['is_active'] ? __('Yes', 'wpcf') : __('No', 'wpcf');
+            $rows[$group['id']]['status'] = $group['is_active']? 'active':'inactive';
 			$show_for = wpcf_admin_get_groups_showfor_by_group($group['id']);
 			if (function_exists('wpcf_access_register_caps')){ 
 				$show_for = __('This groups visibility is also controlled by the Access plugin.', 
@@ -70,6 +71,7 @@ function wpcf_admin_usermeta_list() {
 			$rows[$group['id']]['group_post_types'] = $show_for;
 			
         }
+        uasort($rows, 'wpcf_admin_fields_list_sort');
 
         // Render table
         wpcf_admin_widefat_table('wpcf_groups_list', $header, $rows);

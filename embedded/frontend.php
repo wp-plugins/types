@@ -82,8 +82,11 @@ function wpcf_shortcode( $atts, $content = null, $code = '' ) {
  * @param type $atts
  * @return type 
  */
-function types_render_field( $field_id, $params, $content = null, $code = '' )
+function types_render_field( $field_id = null, $params = array(), $content = null, $code = '' )
 {
+    if ( empty($field_id) ) {
+        return '';
+    }
 
     global $wpcf;
 

@@ -1175,3 +1175,13 @@ function wpcf_admin_add_submenu_page($menu, $menu_slug = null, $menu_parent = 'w
     return $hook;
 }
 
+function wpcf_admin_fields_list_sort($a,$b)
+{
+    $a = strtolower($a['raw_name']);
+    $b = strtolower($b['raw_name']);
+    if ($a == $b) {
+        return 0;
+    }
+    return ($a < $b) ? -1 : 1;
+
+}

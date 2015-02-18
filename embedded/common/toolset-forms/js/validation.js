@@ -17,33 +17,40 @@
 
 var wptValidationForms = [];
 var wptValidation = (function($) {
-    function init() {        
+    function init() {
         /**
          * add extension to validator method
          */
         $.validator.addMethod("extension", function(value, element, param) {
             param = typeof param === "string" ? param.replace(/,/g, "|") : param;
             return this.optional(element) || value.match(new RegExp(".(" + param + ")$", "i"));
-        });      
-        
+        });
+
         /**
          * add hexadecimal to validator method
          */
-        $.validator.addMethod("hexadecimal", function(value, element, param) {            
-            return value=="" || /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(value);            
+        $.validator.addMethod("hexadecimal", function(value, element, param) {
+            return value=="" || /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(value);
         });
-        
+
+        /**
+         * add skype to validator method
+         */
+        $.validator.addMethod("skype", function(value, element, param) {
+            return value=="" || /^([a-z0-9\.]+)$/i.test(value);
+        });
+
         /**
          * add extension to validator method require
          */
-        $.validator.addMethod("required", function(value, element, param) {                                     
+        $.validator.addMethod("required", function(value, element, param) {
                 // check if dependency is met
                 if ( !this.depend(param, element) )
                         return "dependency-mismatch";
-                                        
+
                 switch( element.nodeName.toLowerCase() ) {
-                case 'select':                        
-                        var val = $(element).val();                      
+                case 'select':
+                        var val = $(element).val();
                         //Fix https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/189231348/comments
                         // we have data-types-value that in select contains the exactly value
                         $(element).find('option').each(function(index, option){
@@ -55,11 +62,11 @@ var wptValidation = (function($) {
                         });
                         //#########################################################################
                         return val && $.trim(val).length > 0;
-                case 'input':                                            
+                case 'input':
 //                        if (jQuery(element).hasClass("hasDatepicker")) {
 //                            element = jQuery(element).siblings( 'input[type="hidden"]' );
 //                            value = element.val();
-//                            element = element[0];  
+//                            element = element[0];
 //                            console.log(value+" -> "+this.getLength(value, element));
 //                            return this.getLength(value, element) > 0;
 //                        }
@@ -74,7 +81,7 @@ var wptValidation = (function($) {
                         return $.trim(value).length > 0;
                 }
         });
-        
+
         /**
          * Add validation method for datepicker adodb_xxx format for date fields
          */
@@ -164,7 +171,7 @@ var wptValidation = (function($) {
                     var _rule = {messages: {}};
                     _rule[rule] = value.args;
                     if (value.message !== 'undefined') {
-                        _rule.messages[rule] = value.message;                        
+                        _rule.messages[rule] = value.message;
                     }
                     element.rules('add', _rule);
                     element.addClass('js-wpt-validate');

@@ -200,8 +200,24 @@ function wpcf_custom_types_register( $post_type, $data ) {
         $data['permalink_epmask'] = constant( $data['permalink_epmask'] );
     }
 
-    $args = register_post_type( $post_type,
-            apply_filters( 'wpcf_type', $data, $post_type ) );
+    /**
+     * set default support options
+     */
+    $support_fields = array(
+        'editor' => false,
+        'author' => false,
+        'thumbnail' => false,
+        'excerpt' => false,
+        'trackbacks' => false,
+        'custom-fields' => false,
+        'comments' => false,
+        'revisions' => false,
+        'page-attributes' => false,
+        'post-formats' => false,
+    );
+    $data['supports'] = array_merge_recursive( $data['supports'], $support_fields );
+
+    $args = register_post_type( $post_type, apply_filters( 'wpcf_type', $data, $post_type ) );
 
     do_action( 'wpcf_type_registered', $args );
 

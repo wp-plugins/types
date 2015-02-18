@@ -82,8 +82,11 @@ abstract class FieldFactory extends FieldAbstract
         return $value;
     }
 
-    public function getTitle()
+    public function getTitle($_title = false)
     {
+        if ( $_title && empty($this->_data['title']) && isset($this->_data['_title']) ) {
+            return $this->_data['_title'];
+        }
         return $this->_data['title'];
     }
 

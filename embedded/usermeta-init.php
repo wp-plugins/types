@@ -746,8 +746,25 @@ function wpcf_admin_fields_usermeta_styles(){
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta-post.php';
     $groups = wpcf_admin_fields_get_groups( 'wp-types-user-group' );
     $content = '';
+
     if ( !empty( $groups ) ) {
+        global $user_id;
+        $user_role = false;
+        if ( !empty( $user_id ) ) {
+            $user_info = get_userdata($user_id);
+            $user_role = isset($user_info->roles) ? array_shift($user_info->roles) : 'subscriber';
+            unset($user_info);
+        }
         foreach ( $groups as $group ) {
+            if ( !empty($user_id) ) {
+                $for_users = wpcf_admin_get_groups_showfor_by_group($group['id']);
+                if ( !in_array($user_role, $for_users) ) {
+                    continue;
+                }
+            }
+            if ( empty( $group['is_active'] ) ) {
+                continue;
+            }
             $content .= str_replace( "}", '}'.PHP_EOL, wpcf_admin_get_groups_admin_styles_by_group( $group['id'] ) );
             $content .= PHP_EOL;
         }

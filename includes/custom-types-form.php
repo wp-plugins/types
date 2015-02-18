@@ -39,8 +39,7 @@ function wpcf_admin_custom_types_form()
                 flush_rewrite_rules();
             }
         } else {
-            wpcf_admin_message( __( 'Wrong custom post type specified', 'wpcf' ),
-                    'error' );
+            wpcf_admin_message( __( 'Wrong custom post type specified', 'wpcf' ), 'error' );
             return false;
         }
     } else {
@@ -436,9 +435,12 @@ function wpcf_admin_custom_types_form()
     /**
      * get box order
      */
-    $meta_box_order_defaults = array(
-        'side' => 'submitdiv,wpcf_visibility,taxonomies',
-        'normal' => 'labels,display_sections,options',
+    $meta_box_order_defaults = apply_filters(
+        'wpcf_meta_box_order_defaults',
+        array(
+            'side' => array('submitdiv', 'wpcf_visibility', 'taxonomies'),
+            'normal' => array('labels', 'display_sections', 'options'),
+        )
     );
     $screen = get_current_screen();
     if ( false == ( $meta_box_order = get_user_option( 'meta-box-order_'.$screen->id) )) {
@@ -449,14 +451,13 @@ function wpcf_admin_custom_types_form()
         }
     }
 
-    $meta_boxes = array(
-        'submitdiv' => false,
-        'wpcf_visibility' => $ct,
-        'taxonomies' => $ct,
-        'labels' => $ct,
-        'display_sections' => $ct,
-        'options' => $ct,
-    );
+    $meta_boxes = array();
+    foreach( $meta_box_order_defaults as $key => $value ) {
+        foreach($value as $meta_box_key) {
+            $meta_boxes[$meta_box_key] = $ct;
+        }
+    }
+    $meta_boxes[ 'submitdiv'] = false;
 
     /**
      * postbox-container-1
@@ -911,12 +912,6 @@ function wpcf_admin_metabox_display_sections($ct)
 {
     $form = array();
     $form['table-5-open'] = wpcf_admin_metabox_begin(__( 'Display Sections', 'wpcf' ), 'display_sections', 'wpcf-types-form-supports-table');
-    $form['title-editor-warning'] = array(
-        '#type' => 'markup',
-        '#markup' => '<div id="wpcf-types-title-editor-warning" class="wpcf-form-error" style="display:none;">'
-        . __( 'WordPress does not allow disabling both the title and the editor. Please enable at least one of these.',
-                'wpcf' ) . '</div>',
-    );
     $options = array(
         'title' => array(
             '#name' => 'ct[supports][title]',
@@ -926,9 +921,6 @@ function wpcf_admin_metabox_display_sections($ct)
                     'wpcf' ),
             '#inline' => true,
             '#id' => 'wpcf-supports-title',
-            '#attributes' => array(
-                'onclick' => 'wpcfTitleEditorCheck();',
-            ),
         ),
         'editor' => array(
             '#name' => 'ct[supports][editor]',
@@ -937,9 +929,6 @@ function wpcf_admin_metabox_display_sections($ct)
             '#description' => __( 'Content input box for writing.', 'wpcf' ),
             '#inline' => true,
             '#id' => 'wpcf-supports-editor',
-            '#attributes' => array(
-                'onclick' => 'wpcfTitleEditorCheck();',
-            ),
         ),
         'comments' => array(
             '#name' => 'ct[supports][comments]',

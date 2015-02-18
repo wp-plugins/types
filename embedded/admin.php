@@ -52,11 +52,8 @@ function wpcf_embedded_admin_init_hook() {
         require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields/file.php';
         // Add types button
         add_filter( 'attachment_fields_to_edit', 'wpcf_fields_file_attachment_fields_to_edit_filter', PHP_INT_MAX, 2 );
-        // Add JS
-        add_action( 'admin_head', 'wpcf_fields_file_media_admin_head' );
         // Filter media TABs
-        add_filter( 'media_upload_tabs',
-                'wpcf_fields_file_media_upload_tabs_filter' );
+        add_filter( 'media_upload_tabs', 'wpcf_fields_file_media_upload_tabs_filter' );
     }
 
     register_post_type( 'wp-types-group',
@@ -293,16 +290,17 @@ function wpcf_admin_validation_messages( $method = false, $sprintf = '' ) {
         'date' => __( 'Please enter a valid date', 'wpcf' ),
         'digits' => __( 'Please enter numeric data', 'wpcf' ),
         'number' => __( 'Please enter numeric data', 'wpcf' ),
-        'alphanumeric' => __( 'Letters, numbers, spaces or underscores only please',
-                'wpcf' ),
-        'nospecialchars' => __( 'Letters, numbers, spaces, underscores and dashes only please',
-                'wpcf' ),
-        'rewriteslug' => __( 'Letters, numbers, slashes, underscores and dashes only please',
-                'wpcf' ),
-        'negativeTimestamp' => __( 'Please enter a date after 1 January 1970.',
-                'wpcf' ),
-        'maxlength' => sprintf( __( 'Maximum of %s characters exceeded.', 'wpcf' ),
-                strval( $sprintf ) ),
+        'alphanumeric' => __( 'Letters, numbers, spaces or underscores only please', 'wpcf' ),
+        'nospecialchars' => __( 'Letters, numbers, spaces, underscores and dashes only please', 'wpcf' ),
+        'rewriteslug' => __( 'Letters, numbers, slashes, underscores and dashes only please', 'wpcf' ),
+        'negativeTimestamp' => __( 'Please enter a date after 1 January 1970.', 'wpcf' ),
+        'maxlength' => sprintf( __( 'Maximum of %s characters exceeded.', 'wpcf' ), strval( $sprintf ) ),
+        'minlength' => sprintf( __( 'Minimum of %s characters exceeded.', 'wpcf' ), strval( $sprintf ) ),
+        /**
+         * see 
+         * https://support.skype.com/en/faq/FA10858/what-is-a-skype-name-and-how-do-i-find-mine
+         */
+        'skype' => __( 'Letters, numbers, dashes, underscores, comas and full stops only please', 'wpcf' ),
     );
     if ( $method ) {
         return isset( $messages[$method] ) ? $messages[$method] : '';

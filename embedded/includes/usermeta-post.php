@@ -98,6 +98,7 @@ function wpcf_admin_userprofile_init($user_id){
                         if ( isset( $config['validation']['required'] ) ) {
                             $config['title'] .= '&#42;';
                         }
+                        $config['_title'] = $config['title'];
                         $output .= '
 <div class="wpcf-profile-field-line">
 	<div class="wpcf-profile-line-left">

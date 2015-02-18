@@ -71,7 +71,7 @@ class WPCF_Types_Marketing_Tutorial extends WPCF_Types_Marketing
         if ( empty($url) ) {
             return $this->error('empty url');
         }
-        $url = $this->add_ga_campain($url);
+        $url = $this->add_ga_campain($url, 'fetch-data');
 
         $resp = wp_remote_get($url);
 

@@ -265,6 +265,7 @@ jQuery(document).ready(function(){
         var updateAdd = wpcfGetParameterByName('wpcf_ajax_update_add', jQuery(this).attr('href'));
         var warning = wpcfGetParameterByName('wpcf_warning', jQuery(this).attr('href'));
         var thisObject = jQuery(this);
+        var thisObjectTR = jQuery(this).closest('tr');
         if (warning != false) {
             var answer = confirm(warning);
             if (answer == false) {
@@ -299,6 +300,13 @@ jQuery(document).ready(function(){
                         && (typeof data.wpcf_nonce_ajax_callback != 'undefined'
                             && data.wpcf_nonce_ajax_callback == wpcf_nonce_ajax_callback)) {
                         eval(data.execute);
+                    }
+                    if (typeof data.status != 'undefined' ) {
+                        if ( 'inactive' == data.status ) {
+                            thisObjectTR.closest('tr').addClass('status-inactive');
+                        } else {
+                            thisObjectTR.closest('tr').removeClass('status-inactive');
+                        }
                     }
                 }
                 if (callback != false) {
@@ -523,18 +531,6 @@ function wpcfLoadingButtonStop() {
     //type modal didnt disappeared
     jQuery('.types_modal_box').remove();
     jQuery('.types_block_page').remove();
-    
-}
-
-/**
- * Controls supports title or body Warning.
- */
-function wpcfTitleEditorCheck() {
-    if (!jQuery('#wpcf-supports-title').is(':checked') && !jQuery('#wpcf-supports-editor').is(':checked')) {
-        jQuery('#wpcf-types-title-editor-warning').fadeIn();
-    } else {
-        jQuery('#wpcf-types-title-editor-warning').fadeOut();
-    }
 }
 
 /**

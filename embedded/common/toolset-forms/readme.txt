@@ -30,6 +30,12 @@ function my_toolset_valid_image_extentions($valid_extensions)
 
 = Changelog =
 
+2015-02-06
+
+- Fixed empty object in WPV_Handle_Users_Functions class when user is
+  not logged always return false.
+  https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/194981023/comments
+
 2014-12-29
 
 - fixed display CPT in CT

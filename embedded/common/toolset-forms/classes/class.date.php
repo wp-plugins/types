@@ -269,6 +269,12 @@ class WPToolset_Field_Date extends FieldFactory
 
     public static function filterValidationValue($value)
     {
+        /**
+         * validate fimestamp range is possible
+         */
+        if (isset($value['timestamp'])) {
+            return $value['timestamp'];
+        }
         if (isset($value['datepicker'])) {
             return $value['datepicker'];
         }

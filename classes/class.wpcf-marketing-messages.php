@@ -274,7 +274,7 @@ class WPCF_Types_Marketing_Messages extends WPCF_Types_Marketing
             if ( isset($data['link']) ) {
                 $content .= sprintf(
                     '<a href="%s">%s</a>',
-                    $this->add_ga_campain($data['link']),
+                    $this->add_ga_campain($data['link'], 'save-updated'),
                     $data['description']
                 );
             } else {

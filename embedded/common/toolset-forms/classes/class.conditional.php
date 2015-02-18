@@ -493,7 +493,11 @@ if (!class_exists('WPV_Handle_Users_Functions')) {
             return false;
         }
 
-        private static function get_info() {
+        private static function get_info()
+        {
+            if (!is_user_logged_in()) {
+                return false;
+            }
             global $current_user;
 
             get_currentuserinfo();

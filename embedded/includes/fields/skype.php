@@ -18,7 +18,12 @@ function wpcf_fields_skype() {
         'id' => 'wpcf-skype',
         'title' => __( 'Skype', 'wpcf' ),
         'description' => __( 'Skype', 'wpcf' ),
-        'validate' => array('required'),
+        'validate' => array(
+            'required',
+            'skype',
+            'maxlength' => array('value' => 32),
+            'minlength' => array('value' => 6)
+        ),
     );
 }
 

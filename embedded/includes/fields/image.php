@@ -24,42 +24,8 @@ function wpcf_fields_image() {
         'title' => __( 'Image', 'wpcf' ),
         'description' => __( 'Image', 'wpcf' ),
         'validate' => array('required'),
-        'meta_box_js' => array(
-            'wpcf-jquery-fields-file' => array(
-                'inline' => 'wpcf_fields_file_meta_box_js_inline',
-            ),
-            'wpcf-jquery-fields-image' => array(
-                'inline' => 'wpcf_fields_image_meta_box_js_inline',
-            ),
-        ),
         'inherited_field_type' => 'file',
     );
-}
-
-/**
- * Renders inline JS.
- */
-function wpcf_fields_image_meta_box_js_inline() {
-    global $post;
-    $for_post = (isset( $post ) ? 'post_id=' . $post->ID . '&' : '');
-
-    ?>
-    <script type="text/javascript">
-        //<![CDATA[
-        jQuery(document).ready(function(){
-            wpcf_formfield = false;
-            jQuery('.wpcf-fields-image-upload-link').live('click', function() {
-                wpcf_formfield = '#'+jQuery(this).attr('id')+'-holder';
-                tb_show('<?php
-    echo esc_js( __( 'Upload image', 'wpcf' ) );
-
-    ?>', 'media-upload.php?<?php echo $for_post ?>type=image&context=wpcf-fields-media-insert&TB_iframe=1&width=640&height=336');
-                return false;
-            }); 
-        });
-        //]]>
-    </script>
-    <?php
 }
 
 /**

@@ -24,14 +24,20 @@ class WPToolset_Field_File extends WPToolset_Field_Textfield
         WPToolset_Field_File::file_enqueue_scripts();
     }
 
-    public static function file_enqueue_scripts() {
-        wp_register_script( 'wptoolset-field-file',
-                WPTOOLSET_FORMS_RELPATH . '/js/file.js', array('jquery'),
-                WPTOOLSET_FORMS_VERSION, true );
+    public static function file_enqueue_scripts(){
+        wp_register_script(
+            'wptoolset-field-file',
+            WPTOOLSET_FORMS_RELPATH . '/js/file-wp35.js',
+            array('jquery', 'jquery-masonry'),
+            WPTOOLSET_FORMS_VERSION,
+            true
+        );
         
         if ( !wp_script_is( 'wptoolset-field-file', 'enqueued' ) ) {
-			wp_enqueue_script( 'wptoolset-field-file' );
-			add_thickbox();
+            wp_enqueue_script( 'wptoolset-field-file' );
+            wp_enqueue_media();
+
+//			add_thickbox();
 			global $post;
 			$for_post = (!empty( $post->ID ) ? 'post_id=' . $post->ID . '&' : '');
 			$js_data = array('title' => esc_js( __( 'Select file', 'wpv-views' ) ), 'for_post' => $for_post, 'adminurl' => admin_url());

@@ -132,16 +132,15 @@ class WPToolset_Forms_Validation
      * @return \WP_Error|boolean
      * @throws Exception
      */
-    public function validateField( $field ) {        
-        $value = apply_filters( 'wptoolset_validation_value_' . $field->getType(),
-                $field->getValue() );
+    public function validateField( $field ) {
+        $value = apply_filters( 'wptoolset_validation_value_' . $field->getType(), $field->getValue() );
         $rules = $this->_parseRules( $field->getValidationData(), $value );
         // If not required but empty - skip
         if ( !isset( $rules['required'] )
                 && ( is_null( $value ) || $value === false || $value === '' ) ) {
             return true;
         }
-        
+
         try {
             $errors = array();
             foreach ( $rules as $rule => $args ) {
@@ -189,6 +188,11 @@ class WPToolset_Forms_Validation
     public function validate( $rule, $args ) {
         $validator = $this->_cake();
         $rule = $this->_map_rule_js_to_php( $rule );
+
+        if ( 'skype' == $rule ) {
+            return $validator->custom($args[0]['skypename'], '/^([a-z0-9\,\.\-]+)$/');
+        }
+
         if ( is_callable( array($validator, $rule) ) ) {
             return call_user_func_array( array($validator, $rule), $args );
         }

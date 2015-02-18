@@ -58,6 +58,7 @@ function wpcf_ajax() {
                     . '\');jQuery(".wpcf-table-column-active-'
                     . intval($_GET['group_id']) . '").html("' . __('No', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
+                    'status' => 'inactive',
                 ));
             } else {
                 echo json_encode(array(
@@ -79,6 +80,7 @@ function wpcf_ajax() {
                     . '\');jQuery(".wpcf-table-column-active-'
                     . intval($_GET['group_id']) . '").html("' . __('Yes', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
+                    'status' => 'active',
                 ));
             } else {
                 echo json_encode(array(
@@ -146,6 +148,7 @@ function wpcf_ajax() {
                     . '\');jQuery(".wpcf-table-column-active-'
                     . intval($_GET['group_id']) . '").html("' . __('No', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
+                    'status' => 'inactive',
                 ));
             } else {
                 echo json_encode(array(
@@ -166,6 +169,7 @@ function wpcf_ajax() {
                     . '\');jQuery(".wpcf-table-column-active-'
                     . intval($_GET['group_id']) . '").html("' . __('Yes', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
+                    'status' => 'active',
                 ));
             } else {
                 echo json_encode(array(

@@ -327,16 +327,17 @@ class Installer_Deps_Loader{
                             $real_basename .= '-' . $plugin['format'];
                         }
 
+                        $plugin_downloaded_once = false;    
                         if(isset($_POST['plugins_downloaded'])){
                             $return['plugins_downloaded'] = $_POST['plugins_downloaded'];
                             if(in_array($real_basename, $_POST['plugins_downloaded'])){
-                                continue;
+                                $plugin_downloaded_once = true;
                             }
                         }else{
                             $return['plugins_downloaded'] = array();
                         }
 
-                        if($this->is_plugin_installed($plugin['name']) && !$this->is_plugin_active($plugin['name']) && !$this->is_plugin_active($real_basename)){ // FULL PLUGIN PRESENT BUT INACTIVE
+                        if(!$plugin_downloaded_once && $this->is_plugin_installed($plugin['name']) && !$this->is_plugin_active($plugin['name']) && !$this->is_plugin_active($real_basename)){ // FULL PLUGIN PRESENT BUT INACTIVE
                             if($plugin_wp_id = $this->get_plugin_id($plugin['name'])){
                                 //prevent redirects
                                 add_filter('wp_redirect', '__return_false', 10000);
@@ -348,7 +349,7 @@ class Installer_Deps_Loader{
                                 $return['stop'] = 1;
                             }
                             break; // one operation at the time
-                        }elseif(!$this->is_plugin_installed($real_basename)){
+                        }elseif(!$plugin_downloaded_once && !$this->is_plugin_installed($real_basename) && !$this->is_plugin_installed($plugin['name'])){
                             $ret = WP_Installer()->download_plugin($downloads[$plugin['name']]['basename'],
                                 $downloads[$plugin['name']]['url']);
                             if($ret){

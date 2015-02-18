@@ -65,7 +65,6 @@ function wpcf_admin_fields_list() {
             $rows[$group['id']]['name'] = $name;
             $rows[$group['id']]['raw_name'] = $group['name'];
 
-
             $rows[$group['id']]['description'] = $group['description'];
             $rows[$group['id']]['active-' . $group['id']] = $group['is_active'] ? __('Yes', 'wpcf') : __('No', 'wpcf');
             $rows[$group['id']]['status'] = $group['is_active']? 'active':'inactive';
@@ -100,13 +99,3 @@ function wpcf_admin_fields_list() {
     do_action('wpcf_groups_list_table_after');
 }
 
-function wpcf_admin_fields_list_sort($a,$b)
-{
-    $a = strtolower($a['raw_name']);
-    $b = strtolower($b['raw_name']);
-    if ($a == $b) {
-        return 0;
-    }
-    return ($a < $b) ? -1 : 1;
-
-}
