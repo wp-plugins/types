@@ -1,4 +1,8 @@
+= 1.5.1.1 =
+* Changed products urls from S3 to CF
+
 = 1.5.1 =
+
 * Fix for allowing embedded plugins to be updated
 * Logic for the migration from embedded plugins to full plugins
 

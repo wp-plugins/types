@@ -10,7 +10,6 @@
  */
 
 add_action( 'plugins_loaded', 'wpcf_access_teaser_init', 15 );
-add_action( 'wpcf_menu_plus', 'wpcf_access_teaser_admin_menu' );
 
 /**
  * Teaser init.
@@ -32,6 +31,7 @@ function wpcf_access_teaser_init() {
         $locale = get_locale();
         load_textdomain( 'wpcf_access',
                 WPCF_ACCESS_ABSPATH . '/locale/types-access-' . $locale . '.mo' );
+        add_action( 'wpcf_menu_plus', 'wpcf_access_teaser_admin_menu' );
     }
 }
 

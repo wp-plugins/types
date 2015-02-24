@@ -4,8 +4,8 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields
 License: GPLv2
 Requires at least: 3.4
-Tested up to: 4.1
-Stable tag: 1.6.5
+Tested up to: 4.1.1
+Stable tag: 1.6.5.1
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -153,8 +153,16 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
+= 1.6.5.1 =
+
+* Release date: 2015-02-24
+* Fix Installer patch to plugins.
+* Fix problem with "Access Control and User Roles" menu in Types, when Access is active http://wp-types.com/forums/topic/update-issues-fatal-error-require_once-failed-opening-required-wpcf_access_/
+* Change utm_media used in links on "Getting Started" pages.
+
 = 1.6.5 =
 
+* Release date: 2015-02-10
 * Change in relationships, now all posts are showed, even those which have show_ui to false.
 * Added ability to hide custom post types on post relationships list. https://wp-types.com/forums/topic/post-relationship-doesnt-show-post-type-events-created-by-events-espresso/ using filter add_filter('wpcf_show_ui_hide_in_relationships', '__return_false');
 * Fixed a problem with deleting last children on post relationships table.
