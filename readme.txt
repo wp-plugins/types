@@ -4,8 +4,8 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, post, post type, post types, cck, taxonomy, fields
 License: GPLv2
 Requires at least: 3.4
-Tested up to: 4.1
-Stable tag: 1.6.5
+Tested up to: 4.1.1
+Stable tag: 1.6.5.1
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -153,13 +153,12 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
-= 1.6.6 =
+= 1.6.5.1 =
 
-* Fixed problem with shortcode "playlist" used in WYSIWYG field.  http://wp-types.com/forums/topic/media-play-list-not-outputting-from-custom-wysiwyg-field-js-error/
-* Fixed empty title problem for filter "wpt_field_options" on user edit/add screen https://wp-types.com/forums/topic/populate-select-field-in-wpcf-um-group/
-* Added ability to create CPT without title and editor. https://wp-types.com/forums/topic/inaccurate-warning-message-when-creatingediting-a-cpt/
-* Added Skype field validation.
-* Fixed problem with loading custom CSS when user meta group is inactive or not assign to certain user role.
+* Release date: 2015-02-24
+* Fix Installer patch to plugins.
+* Fix problem with "Access Control and User Roles" menu in Types, when Access is active http://wp-types.com/forums/topic/update-issues-fatal-error-require_once-failed-opening-required-wpcf_access_/
+* Change utm_media used in links on "Getting Started" pages.
 
 = 1.6.5 =
 
