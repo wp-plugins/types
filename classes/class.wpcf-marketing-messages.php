@@ -43,8 +43,7 @@ class WPCF_Types_Marketing_Messages extends WPCF_Types_Marketing
             return;
         }
         if ( self::check_register() ) {
-
-                $this->state = 'disabled';
+            $this->state = 'disabled';
         }
     }
 
@@ -139,10 +138,12 @@ class WPCF_Types_Marketing_Messages extends WPCF_Types_Marketing
                     if ( array_key_exists('supports', $taxonomies[$_GET['wpcf-tax']]) ) {
                         $types = get_option('wpcf-custom-types', array());
                         $post_type = array_keys($taxonomies[$_GET['wpcf-tax']]['supports']);
-                        $post_type = $post_type[array_rand($post_type)];
-                        $post_type = get_post_type_object($post_type);
-                        if ( $post_type ) {
-                            $text = preg_replace( '/PPP/', $post_type->labels->name, $text);
+                        if ( !empty($post_type) ) {
+                            $post_type = $post_type[array_rand($post_type)];
+                            $post_type = get_post_type_object($post_type);
+                            if ( $post_type ) {
+                                $text = preg_replace( '/PPP/', $post_type->labels->name, $text);
+                            }
                         }
                     }
                 }

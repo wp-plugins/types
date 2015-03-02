@@ -276,6 +276,9 @@ toolsetForms.CRED_taxonomy = function () {
         // replace the taxonomy button placeholders with the actual buttons.
         jQuery('.js-taxonomy-button-placeholder').each(function () {
             var placeholder = jQuery(this);
+            //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/195150507/comments
+            var label = jQuery(this).attr('data-label');
+            //###########################################################################################
             var taxonomy = jQuery(this).data('taxonomy');
             var form = jQuery(this).closest('form');
             var buttons = jQuery('[name="sh_' + taxonomy + '"],[name="btn_' + taxonomy + '"]', form);
@@ -285,8 +288,11 @@ toolsetForms.CRED_taxonomy = function () {
 
                 buttons.each(function () {
                     var button = jQuery(this, form);
-
-                    button.detach();
+                    
+                    //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/195150507/comments
+                    button.val(label);
+                    //##########################################################################################
+                    
                     placeholder.replaceWith(button);
 
                     if (button.hasClass('js-wpt-taxonomy-popular-show-hide')) {

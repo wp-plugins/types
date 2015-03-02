@@ -22,6 +22,7 @@ class WPToolset_Field_File extends WPToolset_Field_Textfield
 
     public function init() {
         WPToolset_Field_File::file_enqueue_scripts();
+        $this->set_placeholder_as_attribute();
     }
 
     public static function file_enqueue_scripts(){
@@ -108,6 +109,7 @@ class WPToolset_Field_File extends WPToolset_Field_Textfield
             '#suffix' => '&nbsp;' . $button,
             '#validate' => $this->getValidationData(),
             '#repetitive' => $this->isRepetitive(),
+            '#attributes' => $this->getAttr(),
         );
 
         $form[] = array(

@@ -521,7 +521,7 @@ function wpcf_admin_post_meta_box( $post, $group, $echo = '', $open_style_editor
                 $field['type'] = 'wysiwyg';
                 $group_output .= '</div>';
                 $group_output .= isset( $field['#after'] ) ? $field['#after'] : '';
-                $group_output .= '</div><br /><br />';
+                $group_output .= '</div>';
             } else {
                 if (
                     array_key_exists( '#type', $field )

@@ -141,3 +141,8 @@
 .installer_highlight_package{
     background-color: #fff9c0;
 }
+
+.plugin_progress{
+    font-style: italic;
+    color: #777
+}

@@ -22,11 +22,11 @@ if ( version_compare( $wp_version, '3.5', '<' ) ) {
 
 /**
  * Saves fields and groups.
- * 
+ *
  * If field name is changed in specific group - new one will be created,
  * otherwise old one will be updated and will appear in that way in other grups.
- * 
- * @return type 
+ *
+ * @return type
  */
 function wpcf_admin_save_fields_groups_submit( $form ) {
     if ( !isset( $_POST['wpcf']['group']['name'] ) ) {
@@ -356,50 +356,33 @@ function wpcf_admin_fields_form() {
         '#type' => 'textfield',
         '#name' => 'wpcf[group][name]',
         '#id' => 'wpcf-group-name',
-        '#value' => $update ? $update['name'] : __( 'Enter group title', 'wpcf' ),
+        '#value' => $update ? $update['name']:'',
         '#inline' => true,
-        '#attributes' => array('style' => 'width:100%;margin-bottom:10px;'),
+        '#attributes' => array(
+            'style' => 'width:100%;margin-bottom:10px;',
+            'placeholder' => __( 'Enter group title', 'wpcf' ),
+        ),
         '#validate' => array(
             'required' => array(
                 'value' => true,
             ),
         )
     );
-    if ( !$update ) {
-        $form['title']['#attributes']['data-label'] = addcslashes(__( 'Enter group title', 'wpcf' ), '"');
-        $form['title']['#attributes']['onfocus'] = 'if (jQuery(this).val() == jQuery(this).data(\'label\')) { jQuery(this).val(\'\'); }';
-        $form['title']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(jQuery(this).data(\'label\')) }';
-    }
     $form['description'] = array(
         '#type' => 'textarea',
         '#id' => 'wpcf-group-description',
         '#name' => 'wpcf[group][description]',
-        '#value' => $update ? $update['description'] : __( 'Enter a description for this group', 'wpcf' ),
+        '#value' => $update ? $update['description']:'',
+        '#attributes' => array(
+            'placeholder' =>  __( 'Enter a description for this group', 'wpcf' ),
+        ),
     );
-    if ( !$update ) {
-        $form['description']['#attributes']['data-label'] = addcslashes(__( 'Enter a description for this group', 'wpcf' ), '"');
-        $form['description']['#attributes']['onfocus'] = 'if (jQuery(this).val() == jQuery(this).data(\'label\')) { jQuery(this).val(\'\'); }';
-        $form['description']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(jQuery(this).data(\'label\')) }';
-    }
 
-    /*
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
+    /**
+     *
      * FILTER BOX
      * Since Types 1.2 we moved JS to /embedded/resources/js/custom-fields-form-filter.js
+     *
      */
     // Support post types and taxonomies
 
@@ -431,17 +414,7 @@ function wpcf_admin_fields_form() {
     }
 
 
-    /*
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
+    /**
      * POST TYPE FILTER
      */
     $temp = array(
@@ -450,8 +423,7 @@ function wpcf_admin_fields_form() {
         '#name' => 'wpcf[group][supports]',
         '#inline' => true,
     );
-    /*
-     * 
+    /**
      * Here we use unique function for all filters
      * Since Types 1.2
      */
@@ -460,15 +432,7 @@ function wpcf_admin_fields_form() {
             implode( ',', $post_types_currently_supported ),
             __( 'Displayed on all content types', 'wpcf' ), $temp );
 
-    /*
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
+    /**
      * TAXONOMIES FILTER QUERY
      */
     $taxonomies = apply_filters( 'wpcf_group_form_filter_taxonomies', get_taxonomies( '', 'objects' ) );
@@ -478,9 +442,7 @@ function wpcf_admin_fields_form() {
     $form_tax_single = array();
 
 
-    /*
-     * 
-     * 
+    /**
      * Filter toxonomies
      */
     foreach ( $taxonomies as $category_slug => $category ) {
@@ -533,11 +495,7 @@ function wpcf_admin_fields_form() {
         $tax_currently_supported[] = __( 'Not Selected', 'wpcf' );
     }
 
-    /*
-     * 
-     * 
-     * 
-     * 
+    /**
      * Since Types 1.2 we use unique function
      */
     $form_tax = _wpcf_filter_wrap( 'custom_taxonomies', __( 'Terms:', 'wpcf' ),
@@ -546,20 +504,7 @@ function wpcf_admin_fields_form() {
 
 
 
-    /*
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
+    /**
      * TEMPLATES
      */
     // Choose templates
@@ -569,8 +514,7 @@ function wpcf_admin_fields_form() {
     $options = array();
     $options['default-template'] = array(
         '#title' => __( 'Default Template' ),
-        '#default_value' => !empty( $update['templates'] ) && in_array( 'default',
-                $update['templates'] ),
+        '#default_value' => !empty( $update['templates'] ) && in_array( 'default', $update['templates'] ),
         '#name' => 'wpcf[group][templates][]',
         '#value' => 'default',
         '#inline' => true,
@@ -579,8 +523,7 @@ function wpcf_admin_fields_form() {
     foreach ( $templates as $template_name => $template_filename ) {
         $options[$template_filename] = array(
             '#title' => $template_name,
-            '#default_value' => !empty( $update['templates'] ) && in_array( $template_filename,
-                    $update['templates'] ),
+            '#default_value' => !empty( $update['templates'] ) && in_array( $template_filename, $update['templates'] ),
             '#name' => 'wpcf[group][templates][]',
             '#value' => $template_filename,
             '#inline' => true,
@@ -590,8 +533,7 @@ function wpcf_admin_fields_form() {
     foreach ( $templates_views as $template_view ) {
         $options[$template_view->post_name] = array(
             '#title' => 'View Template ' . $template_view->post_title,
-            '#default_value' => !empty( $update['templates'] ) && in_array( $template_view->ID,
-                    $update['templates'] ),
+            '#default_value' => !empty( $update['templates'] ) && in_array( $template_view->ID, $update['templates'] ),
             '#name' => 'wpcf[group][templates][]',
             '#value' => $template_view->ID,
             '#inline' => true,
@@ -629,37 +571,19 @@ function wpcf_admin_fields_form() {
         '#options' => $options,
         '#inline' => true,
     );
-//    $form['templates'] = wpcf_admin_fields_form_nested_elements('templates',
-//            $form['templates'], __('Content templates:', 'wpcf'), $text,
-//            $empty_txt);
 
-    /*
-     * 
-     * 
-     * 
-     * 
+    /**
      * Since Types 1.2 we use unique function
      */
-    $form_templates = _wpcf_filter_wrap( 'templates',
-            __( 'Templates:', 'wpcf' ), $text, __( 'Not Selected', 'wpcf' ),
-            $form_templates );
+    $form_templates = _wpcf_filter_wrap(
+        'templates',
+        __( 'Templates:', 'wpcf' ),
+        $text,
+        __( 'Not Selected', 'wpcf' ),
+        $form_templates
+    );
 
-
-
-
-
-    /*
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
+    /**
      * Now starting form
      */
     $form['supports-table-open'] = array(
@@ -672,14 +596,8 @@ function wpcf_admin_fields_form() {
                 'wpcf' )
         . '</p>',
     );
-    /*
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
+
+    /**
      * Join filter forms
      */
     // Types
@@ -707,18 +625,9 @@ function wpcf_admin_fields_form() {
         '#markup' => '</p>',
     );
 
-
-    /*
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
+    /**
      * TODO Code from now on should be revised
      */
-
 
     $count = 0;
     $count +=!empty( $update['post_types'] ) ? 1 : 0;
@@ -821,7 +730,6 @@ function wpcf_admin_fields_form() {
         '#type' => 'textarea',
         '#name' => 'wpcf[group][admin_html_preview]',
         '#inline' => true,
-        '#value' => '',
         '#id' => 'wpcf-form-groups-admin-html-preview',
         '#before' => '<h3>Field group HTML</h3>'
     );
@@ -834,20 +742,17 @@ function wpcf_admin_fields_form() {
         '#default_value' => '',
         '#id' => 'wpcf-form-groups-css-fields-editor',
         '#after' => '
-		<div class="wpcf-update-preview-btn"><input type="button" value="Update preview" onclick="wpcfPreviewHtml()" style="float:right;" class="button-secondary"></div>
-		<h3>Field group preview</h3>
-		<div id="wpcf-update-preview-div">Preview here</div>
-		<script type="text/javascript">
-			var wpcfReadOnly = ' . json_encode( $preview_profile ) . ';
-			var wpcfEditMode = ' . json_encode( $edit_profile ) . ';
-			var wpcfDefaultCss = ' . json_encode( $admin_styles_value ) . ';
-		</script>
-		',
+        <div class="wpcf-update-preview-btn"><input type="button" value="Update preview" onclick="wpcfPreviewHtml()" style="float:right;" class="button-secondary"></div>
+        <h3>Field group preview</h3>
+        <div id="wpcf-update-preview-div">Preview here</div>
+        <script type="text/javascript">
+var wpcfReadOnly = ' . json_encode( $preview_profile ) . ';
+var wpcfEditMode = ' . json_encode( $edit_profile ) . ';
+var wpcfDefaultCss = ' . json_encode( $admin_styles_value ) . ';
+        </script>
+        ',
         '#before' => '<h3>Your CSS</h3>'
     );
-
-
-
 
     $admin_styles = _wpcf_filter_wrap( 'admin_styles',
             __( 'Admin styles for fields:', 'wpcf' ), '', '', $temp,
@@ -974,8 +879,8 @@ function wpcf_admin_fields_form() {
 
 /**
  * Dynamically adds new field on AJAX call.
- * 
- * @param type $form_data 
+ *
+ * @param type $form_data
  */
 function wpcf_fields_insert_ajax( $form_data = array() ) {
     echo wpcf_fields_get_field_form( $_GET['field'] );
@@ -983,8 +888,8 @@ function wpcf_fields_insert_ajax( $form_data = array() ) {
 
 /**
  * Dynamically adds existing field on AJAX call.
- * 
- * @param type $form_data 
+ *
+ * @param type $form_data
  */
 function wpcf_fields_insert_existing_ajax() {
     $field = wpcf_admin_fields_get_field( $_GET['field'], false, true );
@@ -997,10 +902,10 @@ function wpcf_fields_insert_existing_ajax() {
 
 /**
  * Returns HTML formatted field form (draggable).
- * 
+ *
  * @param type $type
  * @param type $form_data
- * @return type 
+ * @return type
  */
 function wpcf_fields_get_field_form( $type, $form_data = array() ) {
     $form = wpcf_fields_get_field_form_data( $type, $form_data );
@@ -1033,10 +938,10 @@ function wpcf_fields_get_field_form( $type, $form_data = array() ) {
 
 /**
  * Processes field form data.
- * 
+ *
  * @param type $type
  * @param type $form_data
- * @return type 
+ * @return type
  */
 function wpcf_fields_get_field_form_data( $type, $form_data = array() ) {
 
@@ -1126,28 +1031,22 @@ function wpcf_fields_get_field_form_data( $type, $form_data = array() ) {
             '#attributes' => array('class' => 'wpcf-forms-set-legend wpcf-forms-field-name', 'style' => 'width:100%;margin:10px 0 10px 0;'),
             '#validate' => array('required' => array('value' => true)),
             '#inline' => true,
-            '#value' => __( 'Enter field name', 'wpcf' ),
+            '#attributes' => array(
+                'placeholder' => __( 'Enter field name', 'wpcf' ),
+            ),
         );
-        if ( empty( $form_data['name'] ) ) {
-            $form_field['name']['#attributes']['onclick'] = 'if (jQuery(this).val() == \''
-                    . __( 'Enter field name', 'wpcf' ) . '\') { jQuery(this).val(\'\'); }';
-            $form_field['name']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(\''
-                    . __( 'Enter field name', 'wpcf' ) . '\') }';
-        }
         $form_field['slug'] = array(
             '#type' => 'textfield',
             '#name' => 'slug',
-            '#attributes' => array('class' => 'wpcf-forms-field-slug', 'style' => 'width:100%;margin:0 0 10px 0;'),
+            '#attributes' => array(
+                'class' => 'wpcf-forms-field-slug',
+                'style' => 'width:100%;margin:0 0 10px 0;',
+                'maxlength' => 255,
+                'placeholder' => __( 'Enter field slug', 'wpcf' ),
+            ),
             '#validate' => array('nospecialchars' => array('value' => true)),
             '#inline' => true,
-            '#value' => __( 'Enter field slug', 'wpcf' ),
         );
-        if ( empty( $form_data['slug'] ) ) {
-            $form_field['slug']['#attributes']['onclick'] = 'if (jQuery(this).val() == \''
-                    . __( 'Enter field slug', 'wpcf' ) . '\') { jQuery(this).val(\'\'); }';
-            $form_field['slug']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(\''
-                    . __( 'Enter field slug', 'wpcf' ) . '\') }';
-        }
 
         // If insert form callback is not provided, use generic form data
         if ( function_exists( 'wpcf_fields_' . $type . '_insert_form' ) ) {
@@ -1164,27 +1063,49 @@ function wpcf_fields_get_field_form_data( $type, $form_data = array() ) {
         $form_field['description'] = array(
             '#type' => 'textarea',
             '#name' => 'description',
-            '#attributes' => array('rows' => 5, 'cols' => 1, 'style' => 'margin:0 0 10px 0;'),
+            '#attributes' => array(
+                'rows' => 5,
+                'cols' => 1,
+                'style' => 'margin:0 0 10px 0;',
+                'placeholder' => __( 'Describe this field', 'wpcf' ),
+            ),
             '#inline' => true,
-            '#value' => __( 'Describe this field', 'wpcf' ),
         );
-        if ( empty( $form_data['description'] ) ) {
-            $form_field['description']['#attributes']['onfocus'] = 'if (jQuery(this).val() == \''
-                    . __( 'Describe this field', 'wpcf' ) . '\') { jQuery(this).val(\'\'); }';
-            $form_field['description']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(\''
-                    . __( 'Describe this field', 'wpcf' ) . '\') }';
-        }
+
+        /**
+         * add placeholder field
+         */
+            switch($type)
+            {
+            case 'audio':
+            case 'colorpicker':
+            case 'date':
+            case 'email':
+            case 'embed':
+            case 'file':
+            case 'image':
+            case 'numeric':
+            case 'phone':
+            case 'skype':
+            case 'textarea':
+            case 'textfield':
+            case 'url':
+            case 'video':
+                $form_field['placeholder'] = array(
+                    '#type' => 'textfield',
+                    '#name' => 'placeholder',
+                    '#inline' => true,
+                    '#title' => __( 'Placeholder', 'wpcf' ),
+                    '#attributes' => array(
+                        'style' => 'width:100%;margin:0 0 10px 0;',
+                        'placeholder' =>  __('Enter placeholder', 'wpcf'),
+                    ),
+                );
+                break;
+            }
 
         if ( wpcf_admin_can_be_repetitive( $type ) ) {
             $temp_warning_message = '';
-//            $temp_warning_message .= '<div class="wpcf-message wpcf-cd-repetitive-warning wpcf-error"';
-//            if (empty($form_data['data']['repetitive'])) {
-//                $temp_warning_message .= ' style="display:none;"';
-//            }
-//            $temp_warning_message .= '><p>'
-//                    . __('Since this field is repeating, you cannot use it to control the display of other fields.',
-//                            'wpcf')
-//                    . '</p></div>';
             $form_field['repetitive'] = array(
                 '#type' => 'radios',
                 '#name' => 'repetitive',
@@ -1204,7 +1125,6 @@ function wpcf_fields_get_field_form_data( $type, $form_data = array() ) {
                     ),
                 ),
                 '#default_value' => isset( $form_data['data']['repetitive'] ) ? $form_data['data']['repetitive'] : '0',
-//                '#attributes' => array('onclick' => 'if (jQuery(this).is(\':checked\')) { jQuery(this).parent().find(\'.wpcf-cd-warning\').hide(); jQuery(this).parent().find(\'.wpcf-cd-repetitive-warning\').show(); } else { jQuery(this).parent().find(\'.wpcf-cd-warning\').show(); jQuery(this).parent().find(\'.wpcf-cd-repetitive-warning\').hide(); }'),
                 '#after' => wpcf_admin_is_repetitive( $form_data ) ? '<div class="wpcf-message wpcf-cd-warning wpcf-error" style="display:none;"><p>' . __( "There may be multiple instances of this field already. When you switch back to single-field mode, all values of this field will be updated when it's edited.",
                                 'wpcf' ) . '</p></div>' . $temp_warning_message : $temp_warning_message,
             );
@@ -1296,11 +1216,11 @@ function wpcf_fields_get_field_form_data( $type, $form_data = array() ) {
 
 /**
  * Adds validation box.
- * 
+ *
  * @param type $name
  * @param string $field
  * @param type $form_data
- * @return type 
+ * @return type
  */
 function wpcf_admin_fields_form_validation( $name, $field, $form_data = array() ) {
     $form = array();
@@ -1385,10 +1305,10 @@ function wpcf_admin_fields_form_js_validation() {
 
 /**
  * Saves open fieldsets.
- * 
+ *
  * @param type $action
  * @param type $fieldset
- * @param type $group_id 
+ * @param type $group_id
  */
 function wpcf_admin_fields_form_save_open_fieldset( $action, $fieldset,
         $group_id = false ) {
@@ -1412,10 +1332,10 @@ function wpcf_admin_fields_form_save_open_fieldset( $action, $fieldset,
 
 /**
  * Saves open fieldsets.
- * 
+ *
  * @param type $action
  * @param type $fieldset
- * @param type $group_id 
+ * @param type $group_id
  */
 function wpcf_admin_fields_form_fieldset_is_collapsed( $fieldset ) {
     if ( isset( $_REQUEST['group_id'] ) ) {
@@ -1432,15 +1352,15 @@ function wpcf_admin_fields_form_fieldset_is_collapsed( $fieldset ) {
 
 /**
  * Adds 'Edit' and 'Cancel' buttons, expandable div.
- * 
+ *
  * @todo REMOVE THIS - Since Types 1.2 we do not need it
- * 
+ *
  * @param type $id
  * @param type $element
  * @param type $title
  * @param type $list
  * @param type $empty_txt
- * @return string 
+ * @return string
  */
 function wpcf_admin_fields_form_nested_elements( $id, $element, $title, $list,
         $empty_txt ) {
@@ -1479,33 +1399,33 @@ function wpcf_admin_fields_form_nested_elements( $id, $element, $title, $list,
 }
 
 /*
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  * From here add revised code
  */
 
 /**
- * 
+ *
  * Use this to show filter item
- * 
+ *
  * @since Types 1.2
  * @global type $wpcf_button_style
  * @global type $wpcf_button_style30
@@ -1531,7 +1451,7 @@ function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e, $edit_button = ''
         $edit = $edit_button;
     }
     /*
-     * 
+     *
      * Title and Edit button
      */
     $form['filter_' . $unique_id . '_wrapper'] = array(
@@ -1545,9 +1465,7 @@ function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e, $edit_button = ''
         . $edit . '</a><div class="hidden" id="wpcf-form-fields-' . $id . '">',
     );
 
-    /*
-     * 
-     * 
+    /**
      * Form element as param
      * It may be single element or array of elements
      * Simply check if array has #type - indicates it is a form item
@@ -1556,15 +1474,12 @@ function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e, $edit_button = ''
         $form['filter_' . $unique_id . '_items'] = $e;
     } else {
         /*
-         * 
          * If array of elements just join
          */
         $form = $form + (array) $e;
     }
 
-    /*
-     * 
-     * 
+    /**
      * OK button
      */
     $form['filter_' . $unique_id . '_ok'] = array(
@@ -1577,9 +1492,7 @@ function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e, $edit_button = ''
         . __( 'OK', 'wpcf' ) . '</a>&nbsp;',
     );
 
-    /*
-     * 
-     * 
+    /**
      * Cancel button
      */
     $form['filter_' . $unique_id . '_cancel'] = array(
@@ -1592,9 +1505,7 @@ function _wpcf_filter_wrap( $id, $title, $txt, $txt_empty, $e, $edit_button = ''
         . __( 'Cancel', 'wpcf' ) . '</a>',
     );
 
-    /*
-     * 
-     * 
+    /**
      * Close wrapper
      */
     $form['filter_' . $unique_id . 'wrapper_close'] = array(

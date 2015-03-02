@@ -7,6 +7,8 @@ Common x.x ()
 	- Fixed empty title problem for filter "wpt_field_options" on user edit/add screen https://wp-types.com/forums/topic/populate-select-field-in-wpcf-um-group/
 	- Added filter "toolset_editor_add_form_buttons" to allow developers do not add Toolset buttons to editor.
 	- Update CakePHP validation URL method to allow new TLD's
+	- Fix a little problem with edit skype button modal window - was to short.
+	- Add placeholder attributes to fields.
 
 -------------------------------------------------------------------------------------------------------------------
 Common 1.4 (Feb 2 2015)

@@ -28,6 +28,17 @@ abstract class FieldFactory extends FieldAbstract
     {
         $cred_cred_settings = get_option( 'cred_cred_settings' );
         $this->_use_bootstrap = is_array($cred_cred_settings) && array_key_exists( 'use_bootstrap', $cred_cred_settings ) && $cred_cred_settings['use_bootstrap'];
+        $this->set_placeholder_as_attribute();
+    }
+
+    public function set_placeholder_as_attribute()
+    {
+        if ( !isset($this->_data['attribute']) ) {
+            $this->_data['attribute'] = array();
+        }
+        if ( isset($this->_data['placeholder']) && !empty($this->_data['placeholder'])) {
+            $this->_data['attribute']['placeholder'] = htmlentities(stripcslashes($this->_data['placeholder']));
+        }
     }
 
     public function set_metaform($metaform)

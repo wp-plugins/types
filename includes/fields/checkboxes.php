@@ -220,12 +220,18 @@ function wpcf_fields_checkboxes_get_option( $parent_name = '',
         '#name' => $parent_name . '[options][' . $id . '][display_value_not_selected]',
         '#value' => isset( $form_data['display_value_not_selected'] ) ? $form_data['display_value_not_selected'] : '',
         '#inline' => true,
+        '#attributes' => array(
+            'placeholder' => __('Enter not selected value', 'wpcf'),
+        ),
     );
     $form[$id]['display-value-2'] = array(
         '#type' => 'textfield',
         '#title' => __( 'Selected:', 'wpcf' ),
         '#name' => $parent_name . '[options][' . $id . '][display_value_selected]',
         '#value' => isset( $form_data['display_value_selected'] ) ? $form_data['display_value_selected'] : '',
+        '#attributes' => array(
+            'placeholder' => __('Enter selected value', 'wpcf'),
+        ),
     );
     $form[$id . 'drag-close'] = array(
         '#type' => 'markup',

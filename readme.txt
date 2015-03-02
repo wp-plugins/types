@@ -153,12 +153,25 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
+= 1.6.6 =
+
+* Fixed problem with shortcode "playlist" used in WYSIWYG field.  http://wp-types.com/forums/topic/media-play-list-not-outputting-from-custom-wysiwyg-field-js-error/
+* Fixed empty title problem for filter "wpt_field_options" on user edit/add screen https://wp-types.com/forums/topic/populate-select-field-in-wpcf-um-group/
+* Added ability to create CPT without title and editor. https://wp-types.com/forums/topic/inaccurate-warning-message-when-creatingediting-a-cpt/
+* Added Skype field validation.
+* Fixed problem with loading custom CSS when user meta group is inactive or not assign to certain user role.
+* Added ability to add to menu link to archive of post type.
+* Added ability to setup meta box callback function. https://wp-types.com/forums/topic/add-support-for-meta_box_cb-in-custom-taxonomy/
+* Added ability to add HTML5 placeholder attribute for custom post fields.
+* Fixed problem with CPT labels.  https://wp-types.com/forums/topic/after-save-cpts-cutom-labels-always-revert-to-default-label/
+* Add a filters to the post title as option text in the select dropdown for post parents. wpcf_pr_belongs_items for array of options and wpcf_pr_belongs_item for one option. https://wp-types.com/forums/topic/help-to-distinguish-duplicate-titles-in-post-relationship/
+
 = 1.6.5.1 =
 
 * Release date: 2015-02-24
-* Fix Installer patch to plugins.
-* Fix problem with "Access Control and User Roles" menu in Types, when Access is active http://wp-types.com/forums/topic/update-issues-fatal-error-require_once-failed-opening-required-wpcf_access_/
-* Change utm_media used in links on "Getting Started" pages.
+* Fixed Installer patch to plugins.
+* Fixed problem with "Access Control and User Roles" menu in Types, when Access is active http://wp-types.com/forums/topic/update-issues-fatal-error-require_once-failed-opening-required-wpcf_access_/
+* Changed utm_media used in links on "Getting Started" pages.
 
 = 1.6.5 =
 

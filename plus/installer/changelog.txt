@@ -1,3 +1,8 @@
+= 1.5.2 =
+* Support putting deps.xml config file in the theme folder (root)
+* Included code for importing data for toolset plugins
+* Use CloudFront urls for products list files
+
 = 1.5.1 =
 * Fix for allowing embedded plugins to be updated
 * Logic for the migration from embedded plugins to full plugins

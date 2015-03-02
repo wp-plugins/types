@@ -14,18 +14,20 @@ function wpcf_post_relationship_init() {
     wp_enqueue_script( 'wpcf-post-relationship',
             WPCF_EMBEDDED_RELPATH . '/resources/js/post-relationship.js',
             array('jquery'), WPCF_VERSION );
-    add_filter('wpcf_meta_box_order_defaults', 'wpcf_post_relationship_add_metabox');
+    add_filter('wpcf_meta_box_order_defaults', 'wpcf_post_relationship_add_metabox', 10, 2);
 }
 
 /**
  * add metabox relationship to list
  */
 
-function wpcf_post_relationship_add_metabox($meta_boxes)
+function wpcf_post_relationship_add_metabox($meta_boxes, $type )
 {
-    $key = 'relationship';
-    if ( !in_array($key, $meta_boxes['side']) && !in_array($key, $meta_boxes['normal'])) {
-        $meta_boxes['normal'][] = $key;
+    if ( 'post_type' == $type ) {
+        $key = 'relationship';
+        if ( !in_array($key, $meta_boxes['side']) && !in_array($key, $meta_boxes['normal'])) {
+            $meta_boxes['normal'][] = $key;
+        }
     }
     return $meta_boxes;
 }

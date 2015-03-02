@@ -17,6 +17,7 @@ class WPToolset_Field_Date extends FieldFactory
 
     public function init()
     {
+        $this->set_placeholder_as_attribute();
     }
 
     public static function registerScripts()
@@ -122,7 +123,7 @@ class WPToolset_Field_Date extends FieldFactory
 
         $attr_visible = array(
             'class' => $def_class,
-            'style' => 'display:inline;width:150px;position:relative;z-index:20;',
+            'style' => 'display:inline;width:150px;position:relative;',
             'readonly' => 'readonly',
             'title' => esc_attr(__('Select date', 'wpv-views'))
         );

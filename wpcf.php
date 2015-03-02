@@ -33,12 +33,19 @@ define( 'WPCF_RES_ABSPATH', WPCF_ABSPATH . '/resources' );
 define( 'WPCF_RES_RELPATH', WPCF_RELPATH . '/resources' );
 
 // Add installer
-include dirname( __FILE__ ) . '/plus/installer/loader.php';
-WP_Installer_Setup($wp_installer_instance,
-array(
-    'plugins_install_tab' => '1',
-    'repositories_include' => array('toolset', 'wpml')
-));
+$installer = dirname( __FILE__ ) . '/plus/installer/loader.php';
+if ( file_exists($installer) ) {
+    include_once $installer;
+    if ( class_exists('WP_Installer_Setup') ) {
+        WP_Installer_Setup(
+            $wp_installer_instance,
+            array(
+                'plugins_install_tab' => '1',
+                'repositories_include' => array('toolset', 'wpml')
+            )
+        );
+    }
+}
 
 require_once WPCF_INC_ABSPATH . '/constants.php';
 /*

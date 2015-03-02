@@ -36,7 +36,10 @@ final class WP_Installer{
         
         add_action('init', array($this, 'init'));
 
-        add_action('admin_init', array($this, 'load_deps_loader'), 0);
+        if(file_exists($this->plugin_path() . '/embedded-plugins' )){
+            add_action('admin_init', array($this, 'load_embedded_plugins'), 0);    
+        }
+        
 
         add_action('admin_menu', array($this, 'menu_setup'));
         add_action('network_admin_menu', array($this, 'menu_setup'));
@@ -105,9 +108,10 @@ final class WP_Installer{
         
     }
 
-    public function load_deps_loader(){
+    public function load_embedded_plugins(){
 
-        new Installer_Deps_Loader();
+        include_once $this->plugin_path() . '/embedded-plugins/embedded-plugins.class.php';
+        new Installer_Embedded_Plugins();
 
     }
 
@@ -242,10 +246,16 @@ final class WP_Installer{
     }
     
     public function plugin_url() {
-        return untrailingslashit( plugins_url( '/', dirname(__FILE__) ) );
+        if(isset($this->config['in_theme_folder']) && !empty($this->config['in_theme_folder'])){
+            $url = untrailingslashit(get_template_directory_uri() . '/' . $this->config['in_theme_folder']);
+        }else{
+            $url = untrailingslashit( plugins_url( '/', dirname(__FILE__) ) );
+        }
+
+        return $url;
     }
     
-    public function res_url(){
+    public function res_url(){        
         if(isset($this->config['in_theme_folder']) && !empty($this->config['in_theme_folder'])){
             $url = untrailingslashit(get_template_directory_uri() . '/' . $this->config['in_theme_folder']);
         }else{

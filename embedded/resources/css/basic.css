@@ -567,3 +567,14 @@ input.wpcf-form-error {
     opacity: .5;
     transition: all .4s;
 }
+
+.wpcf-table-column-name
+{
+    min-width: 250px;
+}
+
+#wpcf_types_list
+,#wpcf_tax_list
+{
+    margin: 1.5em 0;
+}

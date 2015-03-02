@@ -98,8 +98,7 @@ function wpcf_admin_menu_edit_user_fields() {
     } else {
         $title = __( 'Add New Usermeta Group', 'wpcf' );
     }
-    echo wpcf_add_admin_header( $title );
-
+    wpcf_add_admin_header( $title );
     $form = wpcf_form( 'wpcf_form_fields' );
     echo '<br /><form method="post" action="" class="wpcf-fields-form '
     . 'wpcf-form-validate" onsubmit="';
@@ -124,7 +123,7 @@ function wpcf_admin_menu_edit_user_fields() {
     echo '">';
     echo $form->renderForm();
     echo '</form>';
-    echo wpcf_add_admin_footer();
+    wpcf_add_admin_footer();
 }
 
 /**
@@ -165,13 +164,13 @@ function wpcf_admin_menu_user_fields_control_hook() {
  */
 function wpcf_admin_menu_user_fields_control() {
     global $wpcf_control_table;
-    echo wpcf_add_admin_header( __( 'User Fields Control', 'wpcf' ) );
+    wpcf_add_admin_header( __( 'User Fields Control', 'wpcf' ) );
     echo '<br /><form method="post" action="" id="wpcf-custom-fields-control-form" class="wpcf-custom-fields-control-form '
     . 'wpcf-form-validate" enctype="multipart/form-data">';
     echo wpcf_admin_custom_fields_control_form( $wpcf_control_table );
     wp_nonce_field( 'user_fields_control_bulk' );
     echo '</form>';
-    echo wpcf_add_admin_footer();
+    wpcf_add_admin_footer();
 }
 
 /**
@@ -180,18 +179,22 @@ function wpcf_admin_menu_user_fields_control() {
  * @author Gen gen.i@icanlocalize.com
  * @since Types 1.3
  */
-function wpcf_usermeta_summary() {
-    echo wpcf_add_admin_header( __( 'User Fields', 'wpcf' ) );
+function wpcf_usermeta_summary()
+{
+    wpcf_add_admin_header(
+        __( 'User Fields', 'wpcf' ),
+        array('page' => 'wpcf-edit-usermeta'),
+        __('Add New Usermeta Group', 'wpcf')
+    );
     require_once WPCF_INC_ABSPATH . '/fields.php';
     require_once WPCF_INC_ABSPATH . '/usermeta.php';
     require_once WPCF_INC_ABSPATH . '/usermeta-list.php';
     $to_display = wpcf_admin_fields_get_fields();
     if ( !empty( $to_display ) ) {
-        add_action( 'wpcf_groups_list_table_after',
-                'wpcf_admin_promotional_text' );
+        add_action( 'wpcf_groups_list_table_after', 'wpcf_admin_promotional_text' );
     }
     wpcf_admin_usermeta_list();
-    echo wpcf_add_admin_footer();
+    wpcf_add_admin_footer();
 }
 
 //Add usermeta hook when user profile loaded

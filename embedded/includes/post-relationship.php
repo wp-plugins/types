@@ -302,19 +302,32 @@ function wpcf_pr_admin_post_meta_box_belongs_form( $post, $type, $belongs )
         return array();
     }
 
-    $_titles = $wpdb->get_results( $wpdb->prepare(
-                    "SELECT ID, post_title FROM $wpdb->posts
-                        WHERE post_type=%s AND post_status<>%s",
-                    $type, 'auto-draft'
-            ), OBJECT_K );
+    $_titles = apply_filters(
+        'wpcf_pr_belongs_items',
+        $wpdb->get_results(
+            $wpdb->prepare(
+                sprintf(
+                    'SELECT ID, post_title FROM %s WHERE ID IN (%%s)',
+                    $wpdb->posts
+                ),
+                implode(',', $items)
+            ),
+            OBJECT_K
+        ),
+        $type
+    );
 
     foreach ( $items as $temp_post ) {
         if ( !isset( $_titles[$temp_post]->post_title ) ) {
             continue;
         }
-        $options[] = array(
-            '#title' => $_titles[$temp_post]->post_title,
-            '#value' => $temp_post,
+        $options[] = apply_filters(
+            'wpcf_pr_belongs_item',
+            array(
+                '#title' => $_titles[$temp_post]->post_title,
+                '#value' => $temp_post,
+            ),
+            $type
         );
     }
 

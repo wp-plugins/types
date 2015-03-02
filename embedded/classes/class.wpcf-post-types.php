@@ -29,6 +29,123 @@ class WPCF_Post_Types
     var $settings;
     var $messages = null;
 
+    function __construct()
+    {
+        add_action('admin_head-nav-menus.php', array($this, 'add_filters'));
+        add_filter('wp_setup_nav_menu_item',  array( $this, 'setup_archive_item'));
+        add_filter('wp_nav_menu_objects', array( $this, 'maybe_make_current'));
+    }
+
+    /**
+     * Assign menu item the appropriate url
+     * @param  object $menu_item
+     * @return object $menu_item
+     */
+    public function setup_archive_item( $menu_item ) {
+        if ( $menu_item->type !== 'post_type_archive' ) {
+            return $menu_item;
+        }
+        $post_type = $menu_item->object;
+        if (post_type_exists( $post_type )) {
+            $data = get_post_type_object( $post_type );
+            $menu_item->type_label = sprintf( __( 'Archive for %s', 'wpcf' ), $data->labels->name);
+            $menu_item->url = get_post_type_archive_link( $post_type );
+        }
+        return $menu_item;
+    }
+
+    public function add_filters()
+    {
+        $custom_post_types = wpcf_get_active_custom_types();
+        if ( empty($custom_post_types) ) {
+            return;
+        }
+        foreach ( $custom_post_types as $slug => $data ) {
+            add_filter( 'nav_menu_items_' . $slug, array( $this, 'add_archive_checkbox' ), null, 3 );
+        }
+    }
+
+    public function add_archive_checkbox( $posts, $args, $post_type )
+    {
+        global $_nav_menu_placeholder, $wp_rewrite;
+        $_nav_menu_placeholder = ( 0 > $_nav_menu_placeholder ) ? intval($_nav_menu_placeholder) - 1 : -1;
+
+        array_unshift( $posts, (object) array(
+            'ID' => 0,
+            'object_id' => $_nav_menu_placeholder,
+            'post_title' => $post_type['args']->labels->all_items,
+            'post_type' => 'nav_menu_item',
+            'type' => 'post_type_archive',
+            'object' => $post_type['args']->slug,
+        ) );
+
+        return $posts;
+    }
+
+    /**
+     * Make post type archive link 'current'
+     * @uses   Post_Type_Archive_Links :: get_item_ancestors()
+     * @param  array $items
+     * @return array $items
+     */
+    public function maybe_make_current( $items ) {
+        foreach ( $items as $item ) {
+            if ( 'post_type_archive' !== $item->type ) {
+                continue;
+            }
+            $post_type = $item->object;
+            if (
+                ! is_post_type_archive( $post_type )
+                AND ! is_singular( $post_type )
+            )
+            continue;
+
+            // Make item current
+            $item->current = true;
+            $item->classes[] = 'current-menu-item';
+
+            // Loop through ancestors and give them 'parent' or 'ancestor' class
+            $active_anc_item_ids = $this->get_item_ancestors( $item );
+            foreach ( $items as $key => $parent_item ) {
+                $classes = (array) $parent_item->classes;
+
+                // If menu item is the parent
+                if ( $parent_item->db_id == $item->menu_item_parent ) {
+                    $classes[] = 'current-menu-parent';
+                    $items[ $key ]->current_item_parent = true;
+                }
+
+                // If menu item is an ancestor
+                if ( in_array( intval( $parent_item->db_id ), $active_anc_item_ids ) ) {
+                    $classes[] = 'current-menu-ancestor';
+                    $items[ $key ]->current_item_ancestor = true;
+                }
+
+                $items[ $key ]->classes = array_unique( $classes );
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Get menu item's ancestors
+     * @param  object $item
+     * @return array  $active_anc_item_ids
+     */
+    public function get_item_ancestors( $item ) {
+        $anc_id = absint( $item->db_id );
+
+        $active_anc_item_ids = array();
+        while (
+            $anc_id = get_post_meta( $anc_id, '_menu_item_menu_item_parent', true )
+            AND ! in_array( $anc_id, $active_anc_item_ids )
+        )
+        $active_anc_item_ids[] = $anc_id;
+
+        return $active_anc_item_ids;
+    }
+
     function set($post_type, $settings = null)
     {
         $data = get_post_type_object( $post_type );

@@ -80,7 +80,7 @@ function wpcf_access_teaser_admin_menu_page()
     /**
      * show message
      */
-    echo wpcf_add_admin_header( __( 'Access', 'wpcf' ), 'icon-wpcf-access' );
+    wpcf_add_admin_header( __( 'Access', 'wpcf' ), 'icon-wpcf-access' );
     echo '<div class="types-help"><div class="types-help-content"';
     echo '<p>' . sprintf(__( 'This screen shows a preview of %sAccess%s - the access control and roles management addon for Types.',
             'wpcf' ), '<strong><a href="http://wp-types.com/home/types-access/?utm_source=typesplugin&utm_medium=accessadmin&utm_term=Access&utm_campaign=typesplugin" target="_blank">','</a></strong>')
@@ -96,5 +96,5 @@ function wpcf_access_teaser_admin_menu_page()
     echo '</div></div>';
     require_once WPCF_ACCESS_INC . '/admin-edit-access.php';
     wpcf_access_admin_edit_access( false );
-    echo wpcf_add_admin_footer();
+    wpcf_add_admin_footer();
 }

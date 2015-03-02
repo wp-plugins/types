@@ -573,12 +573,12 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
 
         // add parent groups for vew templates
         function add_view_template_parent_groups( $items ) {
-            global $post;
+            global $post, $WPV_settings;
             // get current View ID
             $view_template_id = $post->ID;
 
             // get all view templates attached in the Settings page for single view
-            $view_template_relations = $this->get_view_template_settings();
+            $view_template_relations = $WPV_settings->get_view_template_settings();
 
             // find view template groups and get their parents
             $current_types = array();
@@ -713,20 +713,7 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             }
         }
 
-        function get_view_template_settings() {
-            $post_types = get_post_types();
-
-            $options = array();
-            $wpv_options = get_option( 'wpv_options' );
-
-            foreach ( $post_types as $type ) {
-                if ( isset( $wpv_options['views_template_for_' . $type] ) && !empty( $wpv_options['views_template_for_' . $type] ) ) {
-                    $options[$type] = $wpv_options['views_template_for_' . $type];
-                }
-            }
-
-            return $options;
-        }
+        
 
     }
 

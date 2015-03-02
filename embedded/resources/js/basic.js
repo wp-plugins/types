@@ -243,7 +243,7 @@ jQuery(document).ready(function(){
                 passed = false;
             }
         });
-        
+
         if (passed == false) {
             // Bind message fade out
             jQuery('.wpcf-forms-field-slug').live('keyup', function(){
@@ -377,6 +377,16 @@ jQuery(document).ready(function(){
             jQuery('#wpcf-types-form-rewrite-toggle').slideDown();
         } else {
             jQuery('#wpcf-types-form-rewrite-toggle').slideUp();
+        }
+    });
+    /**
+     * meta_box_cb
+     */
+    jQuery('.wpcf-tax-form input[name="ct[meta_box_cb][disabled]"]').change(function(){
+        if (jQuery(this).is(':checked')) {
+            jQuery('#wpcf-types-form-meta_box_cb-toggle').slideUp();
+        } else {
+            jQuery('#wpcf-types-form-meta_box_cb-toggle').slideDown();
         }
     });
     jQuery('input[name="ct[show_in_menu]"]').change(function(){

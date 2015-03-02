@@ -440,7 +440,8 @@ function wpcf_admin_custom_types_form()
         array(
             'side' => array('submitdiv', 'wpcf_visibility', 'taxonomies'),
             'normal' => array('labels', 'display_sections', 'options'),
-        )
+        ),
+        'post_type'
     );
     $screen = get_current_screen();
     if ( false == ( $meta_box_order = get_user_option( 'meta-box-order_'.$screen->id) )) {
@@ -459,6 +460,13 @@ function wpcf_admin_custom_types_form()
     }
     $meta_boxes[ 'submitdiv'] = false;
 
+    foreach ( $meta_box_order as $key => $value ) {
+        if ( is_array($value) ) {
+            continue;
+        }
+        $meta_box_order[$key] = explode(',', $value);
+    }
+
     /**
      * postbox-container-1
      */
@@ -467,7 +475,7 @@ function wpcf_admin_custom_types_form()
         '#type' => 'markup',
         '#markup' => '<div id="postbox-container-1" class="postbox-container"><div class="meta-box-sortables ui-sortable" id="side-sortables">',
     );
-    foreach( explode(',',$meta_box_order['side']) as $key ) {
+    foreach( $meta_box_order['side'] as $key ) {
         $function = sprintf('wpcf_admin_metabox_%s', $key);
         if ( is_callable($function) ) {
             $form += $function($meta_boxes[$key]);
@@ -488,7 +496,7 @@ function wpcf_admin_custom_types_form()
         '#type' => 'markup',
         '#markup' => '<div id="postbox-container-2" class="postbox-container"><div class="meta-box-sortables ui-sortable">',
     );
-    foreach( explode(',',$meta_box_order['normal']) as $key ) {
+    foreach( $meta_box_order['normal'] as $key ) {
         $function = sprintf('wpcf_admin_metabox_%s', $key);
         if ( is_callable($function) ) {
             $form += $function($meta_boxes[$key]);
@@ -779,7 +787,7 @@ function wpcf_admin_metabox_submitdiv($cf)
 /**
  * Visibility
  */
-function wpcf_admin_metabox_wpcf_visibility($cf)
+function wpcf_admin_metabox_wpcf_visibility($ct)
 {
     $form = array();
     $form['table-2-open'] = wpcf_admin_metabox_begin(__( 'Visibility', 'wpcf' ), 'wpcf_visibility', 'wpcf-types-form-visibility-table', false);
@@ -814,6 +822,15 @@ function wpcf_admin_metabox_wpcf_visibility($cf)
         '#pattern' => '<BEFORE><p><LABEL><ELEMENT><ERROR></p><AFTER>',
         '#after' => '</div>',
     );
+    /*
+    $form['right_now'] = array(
+        '#type' => 'checkbox',
+        '#before' => sprintf('<h4>%s</h4>', __( 'Show in Right Now', 'wpcf' )),
+        '#name' => 'ct[rewrite][enabled]',
+        '#title' => __( 'Show number of enties in "Right Now" admin widget.', 'wpcf' ),
+        '#default_value' => !empty( $ct['right_now'] ),
+    );
+     */
     $form['table-2-close'] = wpcf_admin_metabox_end();
     return $form;
 }
@@ -861,7 +878,7 @@ function wpcf_admin_metabox_taxonomies($ct)
     /**
      * Labels
      */
-function wpcf_admin_metabox_labels($cf)
+function wpcf_admin_metabox_labels($ct)
 {
     $form = array();
     $form['table-4-open'] = wpcf_admin_metabox_begin(__( 'Labels', 'wpcf' ), 'labels', 'wpcf-types-form-table');

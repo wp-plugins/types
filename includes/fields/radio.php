@@ -160,8 +160,7 @@ function wpcf_fields_radio_get_option( $parent_name = '', $form_data = array() )
     $id = isset( $form_data['key'] ) ? $form_data['key'] : 'wpcf-fields-radio-option-'
             . wpcf_unique_id( serialize( $form_data ) );
     $form = array();
-    $value = isset( $_GET['count'] ) ? __( 'Option title', 'wpcf' ) . ' ' . $_GET['count'] : __( 'Option title',
-                    'wpcf' ) . ' 1';
+    $value = isset( $_GET['count'] ) ? __( 'Option title', 'wpcf' ) . ' ' . $_GET['count'] : __( 'Option title', 'wpcf' ) . ' 1';
     $value = isset( $form_data['title'] ) ? $form_data['title'] : $value;
     $form[$id . '-id'] = $id;
     $form[$id . '-title'] = array(
@@ -173,6 +172,7 @@ function wpcf_fields_radio_get_option( $parent_name = '', $form_data = array() )
         '#attributes' => array(
             'style' => 'width:80px;',
             'class' => 'wpcf-form-groups-radio-update-title-display-value',
+            'placeholder' => __('Title', 'wpcf'),
         ),
         '#before' => '<div class="js-types-sortable"><img src="'
         . WPCF_RES_RELPATH
@@ -198,6 +198,7 @@ function wpcf_fields_radio_get_option( $parent_name = '', $form_data = array() )
         '#attributes' => array(
             'style' => 'width:80px;',
             'class' => 'wpcf-compare-unique-value',
+            'placeholder' => __('Value', 'wpcf'),
         ),
     );
     $form[$id . '-default'] = array(
@@ -238,6 +239,9 @@ function wpcf_fields_radio_get_option_alt_text( $id, $parent_name = '',
         '#inline' => true,
         '#before' => '<div id="' . $id . '-title-display-value-wrapper">',
         '#after' => '</div>',
+        '#attributes' => array(
+            'placeholder' => __('Value to display', 'wpcf'),
+        ),
     );
     return $form;
 }
