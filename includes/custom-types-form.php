@@ -18,6 +18,7 @@ function wpcf_admin_custom_types_form()
     global $wpcf;
 
     include_once dirname(__FILE__).'/common-functions.php';
+    include_once dirname(__FILE__).'/fields.php';
 
     $ct = array();
     $id = false;
@@ -87,6 +88,7 @@ function wpcf_admin_custom_types_form()
                 continue;
             }
             unset($custom_taxonomies[$slug]['supports'][$id]);
+            $custom_taxonomies[$slug][TOOLSET_EDIT_LAST] = time();
         }
         update_option( 'wpcf-custom-taxonomies', $custom_taxonomies);
     }
@@ -124,12 +126,10 @@ function wpcf_admin_custom_types_form()
         '#title' => __( 'Custom post type name plural', 'wpcf' ) . ' (<strong>' . __( 'required',
                 'wpcf' ) . '</strong>)',
         '#description' => '<strong>' . __( 'Enter in plural!', 'wpcf' )
-//        . '</strong><br />' . __('Alphanumeric with whitespaces only', 'wpcf')
         . '.',
         '#value' => isset( $ct['labels']['name'] ) ? $ct['labels']['name'] : '',
         '#validate' => array(
             'required' => array('value' => 'true'),
-//            'alphanumeric' => array('value' => 'true'),
         ),
         '#pattern' => $table_row,
         '#inline' => true,
@@ -137,6 +137,7 @@ function wpcf_admin_custom_types_form()
         '#attributes' => array(
             'data-wpcf_warning_same_as_slug' => $wpcf->post_types->message( 'warning_singular_plural_match' ),
             'data-wpcf_warning_same_as_slug_ignore' => $wpcf->post_types->message( 'warning_singular_plural_match_ignore' ),
+            'placeholder' => __('Enter post type name plural', 'wpcf' ),
         ),
     );
     $form['name-singular'] = array(
@@ -146,20 +147,20 @@ function wpcf_admin_custom_types_form()
                 'wpcf' ) . '</strong>)',
         '#description' => '<strong>' . __( 'Enter in singular!', 'wpcf' )
         . '</strong><br />'
-//        . __('Alphanumeric with whitespaces only', 'wpcf')
         . '.',
         '#value' => isset( $ct['labels']['singular_name'] ) ? $ct['labels']['singular_name'] : '',
         '#validate' => array(
             'required' => array('value' => 'true'),
-//            'alphanumeric' => array('value' => 'true'),
         ),
         '#pattern' => $table_row,
         '#inline' => true,
         '#id' => 'name-singular',
+        '#attributes' => array(
+            'placeholder' => __('Enter post type name singular', 'wpcf' ),
+        ),
     );
 
-    /*
-     *
+    /**
      * IF isset $_POST['slug'] it means form is not submitted
      */
     $attributes = array();
@@ -185,7 +186,10 @@ function wpcf_admin_custom_types_form()
             'nospecialchars' => array('value' => 'true'),
             'maxlength' => array('value' => '20'),
         ),
-        '#attributes' => $attributes + array('maxlength' => '20'),
+        '#attributes' => $attributes + array(
+            'maxlength' => '20',
+            'placeholder' => __('Enter post type slug', 'wpcf' ),
+            ),
         '#id' => 'slug',
     );
     $form['description'] = array(
@@ -196,6 +200,7 @@ function wpcf_admin_custom_types_form()
         '#attributes' => array(
             'rows' => 4,
             'cols' => 60,
+            'placeholder' => __('Enter post type description', 'wpcf' ),
         ),
         '#pattern' => $table_row,
         '#inline' => true,
@@ -421,11 +426,13 @@ function wpcf_admin_custom_types_form()
     );
 
     global $sitepress;
-    if ( $update && isset( $sitepress )
-            && version_compare( ICL_SITEPRESS_VERSION, '2.6.2', '>=' )
-            && function_exists( 'wpml_custom_post_translation_options' ) ) {
+    if (
+        $update && isset( $sitepress )
+        && version_compare( ICL_SITEPRESS_VERSION, '2.6.2', '>=' )
+        && function_exists( 'wpml_custom_post_translation_options' )
+    ) {
         $form['table-1-close']['#markup'] .= wpml_custom_post_translation_options( $ct['slug'] );
-            }
+    }
 
     $form['post-body-content-close'] = array(
         '#type' => 'markup',
@@ -691,6 +698,7 @@ function wpcf_admin_custom_types_form_submit($form)
             foreach( $wpcf_custom_taxonomies as $key => $value ) {
                 if ( array_key_exists( 'supports', $value ) && array_key_exists( $data['wpcf-post-type'], $value['supports'] ) ) {
                     unset( $wpcf_custom_taxonomies[$key]['supports'][$data['wpcf-post-type']] );
+                    $wpcf_custom_taxonomies[$key][TOOLSET_EDIT_LAST] = time();
                     $update_wpcf_custom_taxonomies = true;
                 }
             }
@@ -726,6 +734,7 @@ function wpcf_admin_custom_types_form_submit($form)
             } else {
                 unset( $taxes[$id]['supports'][$data['slug']] );
             }
+            $taxes[$id][TOOLSET_EDIT_LAST] = time();
         }
         update_option( 'wpcf-custom-taxonomies', $taxes );
     }
@@ -822,15 +831,16 @@ function wpcf_admin_metabox_wpcf_visibility($ct)
         '#pattern' => '<BEFORE><p><LABEL><ELEMENT><ERROR></p><AFTER>',
         '#after' => '</div>',
     );
-    /*
-    $form['right_now'] = array(
+    /**
+     * dashboard glance option to show counters on admin dashbord widget
+     */
+    $form['dashboard_glance'] = array(
         '#type' => 'checkbox',
         '#before' => sprintf('<h4>%s</h4>', __( 'Show in Right Now', 'wpcf' )),
-        '#name' => 'ct[rewrite][enabled]',
-        '#title' => __( 'Show number of enties in "Right Now" admin widget.', 'wpcf' ),
-        '#default_value' => !empty( $ct['right_now'] ),
+        '#name' => 'ct[dashboard_glance]',
+        '#title' => __( 'Show number of enties on "At a Glance" admin widget.', 'wpcf' ),
+        '#default_value' => !empty( $ct['dashboard_glance'] ),
     );
-     */
     $form['table-2-close'] = wpcf_admin_metabox_end();
     return $form;
 }

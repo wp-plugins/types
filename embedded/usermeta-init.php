@@ -724,9 +724,6 @@ function wpcf_admin_user_profile_load_hook( $user ){
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta.php';
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta-post.php';
-    add_action( 'admin_footer', 'wpcf_admin_fields_usermeta_styles' );
-
-
     wpcf_admin_userprofile_init( $user );
 }
 
@@ -761,7 +758,7 @@ function wpcf_admin_fields_usermeta_styles(){
         foreach ( $groups as $group ) {
             if ( !empty($user_id) ) {
                 $for_users = wpcf_admin_get_groups_showfor_by_group($group['id']);
-                if ( !in_array($user_role, $for_users) ) {
+                if ( !empty($for_users) && !in_array($user_role, $for_users) ) {
                     continue;
                 }
             }

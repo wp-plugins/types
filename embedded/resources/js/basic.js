@@ -276,7 +276,6 @@ jQuery(document).ready(function(){
             url: jQuery(this).attr('href'),
             type: 'get',
             dataType: 'json',
-            //            data: ,
             cache: false,
             beforeSend: function() {
                 if (update != false) {
@@ -303,10 +302,14 @@ jQuery(document).ready(function(){
                     }
                     if (typeof data.status != 'undefined' ) {
                         if ( 'inactive' == data.status ) {
-                            thisObjectTR.closest('tr').addClass('status-inactive');
+                            thisObjectTR.addClass('status-inactive');
+
                         } else {
-                            thisObjectTR.closest('tr').removeClass('status-inactive');
+                            thisObjectTR.removeClass('status-inactive');
                         }
+                    }
+                    if (typeof data.status_label != 'undefined' ) {
+                        jQuery('td.status', thisObjectTR).html(data.status_label);
                     }
                 }
                 if (callback != false) {

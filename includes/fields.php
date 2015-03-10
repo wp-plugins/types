@@ -240,6 +240,7 @@ function wpcf_admin_fields_save_group( $group, $post_type = 'wp-types-group' ) {
         if ( !$group_id ) {
             return false;
         }
+        update_post_meta( $group_id, TOOLSET_EDIT_LAST, time());
     } else {
         $group_id = wp_insert_post( $post, true );
         if ( is_wp_error( $group_id ) ) {
@@ -1226,3 +1227,71 @@ function wpcf_admin_fields_form_fix_styles()
     );
 }
 
+/**
+ * add
+ */
+add_filter('wpcf_meta_box_order_defaults', 'wpcf_admin_fields_add_metabox', 10, 2);
+function wpcf_admin_fields_add_metabox($meta_boxes, $type )
+{
+    if ( 'post_type' == $type ) {
+        $key = 'custom_fields';
+        if ( !in_array($key, $meta_boxes['side']) && !in_array($key, $meta_boxes['normal'])) {
+            $meta_boxes['side'][] = $key;
+        }
+    }
+    return $meta_boxes;
+}
+
+function wpcf_admin_metabox_custom_fields($ct)
+{
+    $form = array();
+    $options = array();
+    $groups = wpcf_admin_fields_get_groups('wp-types-group', true, true);
+    foreach( $groups as $group ) {
+        $post_types = wpcf_admin_get_post_types_by_group($group['id']);
+        if ( empty($post_types) || (isset( $ct['wpcf-post-type']) && in_array($ct['wpcf-post-type'], $post_types)) ) {
+            if ( !(empty($group['fields']) ) ) {
+                foreach($group['fields'] as $field => $data) {
+                    if ( isset($data['data']['repetitive']) && $data['data']['repetitive']) {
+                        continue;
+                    }
+                    switch( $data['type'] ) {
+                    case 'embed':
+                    case 'audio':
+                    case 'file':
+                    case 'skype':
+                    case 'textarea':
+                    case 'video':
+                        continue;
+                    default:
+                        $options[$field] = array(
+                            '#name' => 'ct[custom_fields][]',
+                            '#title' => sprintf( '%s <small>(%s)</small>', $data['name'], $data['type']),
+                            '#value' => $data['meta_key'],
+                            '#inline' => true,
+                            '#before' => '<li>',
+                            '#after' => '</li>',
+                            '#default_value' => intval(isset($ct['custom_fields']) && in_array($data['meta_key'], $ct['custom_fields']))
+                        );
+                    }
+                }
+            }
+        }
+    }
+    unset($groups);
+
+    $form['table-custom_fields-open'] = wpcf_admin_metabox_begin(__( 'Custom Fields', 'wpcf' ), 'custom_fields', 'wpcf-types-form-visiblity-custom-fields-table', false);
+
+    $form['table-custom_fields-description'] = 
+        array(
+        '#type' => 'checkboxes',
+        '#options' => $options,
+        '#name' => 'wpcf[group][supports]',
+        '#inline' => true,
+        '#before' => wpautop(__('Check which fields should be shown on custom post list as a column.', 'wpcf')).'<ul>',
+        '#after' => '</ul>',
+    );
+
+    $form['table-custom_fields-close'] = wpcf_admin_metabox_end();
+    return $form;
+}

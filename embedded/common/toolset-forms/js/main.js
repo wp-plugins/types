@@ -8,9 +8,9 @@ wptCallbacks.removeRepetitive = jQuery.Callbacks('unique');
 wptCallbacks.conditionalCheck = jQuery.Callbacks('unique');
 wptCallbacks.reset = jQuery.Callbacks('unique');
 
-jQuery(document).ready(function() {
+jQuery(document).ready(function () {
     if (typeof wptValidation !== 'undefined') {
-        wptCallbacks.validationInit.add(function() {
+        wptCallbacks.validationInit.add(function () {
             wptValidation.init();
         });
     }
@@ -22,9 +22,11 @@ jQuery(document).ready(function() {
     /**
      * check taxonmies on submitted forms
      */
-    jQuery('.cred-taxonomy', jQuery('form.is_submitted')).each(function(){
+    jQuery('.cred-taxonomy', jQuery('form.is_submitted')).each(function () {
         parent = jQuery(this);
-        setTimeout( function(){jQuery('input.wpt-taxonomy-add-new', parent).click();}, 50);
+        setTimeout(function () {
+            jQuery('input.wpt-taxonomy-add-new', parent).click();
+        }, 50);
     });
 });
 
@@ -42,8 +44,8 @@ function apply_filters(name, val) {
     if (typeof wptFilters[name] === 'undefined')
         return val;
     var args = _.rest(_.toArray(arguments));
-    _.each(wptFilters[name], function(funcs, priority) {
-        _.each(funcs, function($callback) {
+    _.each(wptFilters[name], function (funcs, priority) {
+        _.each(funcs, function ($callback) {
             var _args = args.slice(0, $callback[1]);
             args[0] = $callback[0].apply(null, _args);
         });
@@ -57,8 +59,8 @@ function do_action(name) {
     if (typeof wptFilters[name] === 'undefined')
         return false;
     var args = _.rest(_.toArray(arguments));
-    _.each(wptFilters[name], function(funcs, priority) {
-        _.each(funcs, function($callback) {
+    _.each(wptFilters[name], function (funcs, priority) {
+        _.each(funcs, function ($callback) {
             var _args = args.slice(0, $callback[1]);
             $callback[0].apply(null, _args);
         });
@@ -75,19 +77,20 @@ function showHideMostPopularButton(taxonomy, form)
     var $taxonomy_box = jQuery('.shmpt-' + taxonomy, form);
     var $tag_list = $taxonomy_box.find('.js-wpt-taxonomy-popular-add');
 
-    if( !$button.hasClass('js-wpt-taxonomy-popular-show-hide') ) return true;
+    if (!$button.hasClass('js-wpt-taxonomy-popular-show-hide'))
+        return true;
 
-    if( $tag_list.length > 0 )
+    if ($tag_list.length > 0)
     {
         $button.show();
         return true;
-    }else{
+    } else {
         $button.hide();
         return false;
     }
 }
 
-jQuery(document).on('click', '.js-wpt-taxonomy-popular-show-hide', function() {
+jQuery(document).on('click', '.js-wpt-taxonomy-popular-show-hide', function () {
     showHideMostPopularTaxonomy(this);
 });
 
@@ -95,20 +98,20 @@ function showHideMostPopularTaxonomy(el)
 {
     var taxonomy = jQuery(el).data('taxonomy');
     var form = jQuery(el).closest('form');
-    jQuery('.shmpt-'+taxonomy, form).toggle();
+    jQuery('.shmpt-' + taxonomy, form).toggle();
     var curr = jQuery(el).val();
-    if (curr==jQuery(el).data('show-popular-text')) {
+    if (curr == jQuery(el).data('show-popular-text')) {
         jQuery(el).val(jQuery(el).data('hide-popular-text'), form).addClass('btn-cancel');
     } else {
         jQuery(el).val(jQuery(el).data('show-popular-text'), form).removeClass('btn-cancel');
     }
 }
 
-jQuery(document).on('click', '.js-wpt-taxonomy-popular-add', function() {
+jQuery(document).on('click', '.js-wpt-taxonomy-popular-add', function () {
     var thiz = jQuery(this);
-    var taxonomy = thiz.data( 'taxonomy' );
-    var slug = thiz.data( 'slug' );
-    var _name = thiz.data( 'name' );
+    var taxonomy = thiz.data('taxonomy');
+    var slug = thiz.data('slug');
+    var _name = thiz.data('name');
     addTaxonomy(_name, taxonomy, this);
     return false;
 });
@@ -116,79 +119,82 @@ jQuery(document).on('click', '.js-wpt-taxonomy-popular-add', function() {
 function addTaxonomy(slug, taxonomy, el)
 {
     var form = jQuery(el).closest('form');
-    var curr = jQuery('input[name=tmp_'+taxonomy+']', form).val().trim();
-    if (''==curr) {
-        jQuery('input[name=tmp_'+taxonomy+']', form).val(slug);
+    var curr = jQuery('input[name=tmp_' + taxonomy + ']', form).val().trim();
+    if ('' == curr) {
+        jQuery('input[name=tmp_' + taxonomy + ']', form).val(slug);
         setTaxonomy(taxonomy, el);
     } else {
-        if (curr.indexOf( slug )==-1) {
-            jQuery('input[name=tmp_'+taxonomy+']', form).val(curr+','+slug);
+        if (curr.indexOf(slug) == -1) {
+            jQuery('input[name=tmp_' + taxonomy + ']', form).val(curr + ',' + slug);
             setTaxonomy(taxonomy, el);
         }
     }
-    jQuery('input[name=tmp_'+taxonomy+']', form).val('');
+    jQuery('input[name=tmp_' + taxonomy + ']', form).val('');
 }
 
-jQuery(document).on('click', '.js-wpt-taxonomy-add-new', function() {
-	var thiz = jQuery(this),
-	taxonomy = thiz.data( 'taxonomy' );
-	setTaxonomy(taxonomy, this);
+jQuery(document).on('click', '.js-wpt-taxonomy-add-new', function () {
+    var thiz = jQuery(this),
+            taxonomy = thiz.data('taxonomy');
+    setTaxonomy(taxonomy, this);
 });
 
-jQuery(document).on('keypress', '.js-wpt-new-taxonomy-title', function(e) {
-		if( 13 === e.keyCode ) {
-			e.preventDefault();
-			var thiz = jQuery(this),
-			taxonomy = thiz.data( 'taxonomy' ),
-			taxtype = thiz.data( 'taxtype' );
-			if ( taxtype == 'hierarchical' ) {
-				toolsetForms.cred_tax.add_taxonomy( taxonomy, this );
-			} else {
-				setTaxonomy(taxonomy, this);
-			}
-		}
-	});
+jQuery(document).on('keypress', '.js-wpt-new-taxonomy-title', function (e) {
+    if (13 === e.keyCode) {
+        e.preventDefault();
+        var thiz = jQuery(this),
+                taxonomy = thiz.data('taxonomy'),
+                taxtype = thiz.data('taxtype');
+        if (taxtype == 'hierarchical') {
+            toolsetForms.cred_tax.add_taxonomy(taxonomy, this);
+        } else {
+            setTaxonomy(taxonomy, this);
+        }
+    }
+});
 
 function setTaxonomy(taxonomy, el)
 {
     var form = jQuery(el).closest('form');
-    var tmp_tax = jQuery('input[name=tmp_'+taxonomy+']', form).val();
-    if (tmp_tax.trim()=='') return;
-    var tax = jQuery('input[name='+taxonomy+']', form).val();
+    var tmp_tax = jQuery('input[name=tmp_' + taxonomy + ']', form).val();
+    if (tmp_tax.trim() == '')
+        return;
+    var tax = jQuery('input[name=' + taxonomy + ']', form).val();
     var arr = tax.split(',');
-    if (jQuery.inArray(tmp_tax, arr)!==-1) return;
-    var toadd = (tax=='') ? tmp_tax : tax+','+tmp_tax;
-    jQuery('input[name='+taxonomy+']', form).val(toadd);
-    jQuery('input[name=tmp_'+taxonomy+']', form).val('');
+    if (jQuery.inArray(tmp_tax, arr) !== -1)
+        return;
+    var toadd = (tax == '') ? tmp_tax : tax + ',' + tmp_tax;
+    jQuery('input[name=' + taxonomy + ']', form).val(toadd);
+    jQuery('input[name=tmp_' + taxonomy + ']', form).val('');
     updateTaxonomies(taxonomy, form);
 }
 
 function updateTaxonomies(taxonomy, form)
 {
-    var taxonomies = jQuery('input[name='+taxonomy+']', form).val();
-    jQuery('div.tagchecklist-'+taxonomy, form).html('');
-    if (!taxonomies||(taxonomies&&taxonomies.trim()=='')) return;
+    var taxonomies = jQuery('input[name=' + taxonomy + ']', form).val();
+    jQuery('div.tagchecklist-' + taxonomy, form).html('');
+    if (!taxonomies || (taxonomies && taxonomies.trim() == ''))
+        return;
     var toshow = taxonomies.split(',');
     var str = '';
-    for (var i=0;i<toshow.length;i++) {
+    for (var i = 0; i < toshow.length; i++) {
         var sh = toshow[i].trim();
-        str += '<span><a href="#" class=\'ntdelbutton\' data-wpcf-i=\''+i+'\' id=\'post_tag-check-num-'+i+'\'>X</a>&nbsp;'+sh+'</span>';
+        str += '<span><a href="#" class=\'ntdelbutton\' data-wpcf-i=\'' + i + '\' id=\'post_tag-check-num-' + i + '\'>X</a>&nbsp;' + sh + '</span>';
     }
-    jQuery('div.tagchecklist-'+taxonomy, form).html(str);
-    jQuery('div.tagchecklist-'+taxonomy+' a', form).bind('click', function() {
-        jQuery('input[name='+taxonomy+']', form).val('');
+    jQuery('div.tagchecklist-' + taxonomy, form).html(str);
+    jQuery('div.tagchecklist-' + taxonomy + ' a', form).bind('click', function () {
+        jQuery('input[name=' + taxonomy + ']', form).val('');
         del = jQuery(this).data('wpcf-i');
         var values = '';
-        for(i=0;i<toshow.length;i++ ) {
-            if ( del == i ) {
+        for (i = 0; i < toshow.length; i++) {
+            if (del == i) {
                 continue;
             }
-            if ( values ) {
+            if (values) {
                 values += ',';
             }
             values += toshow[i];
         }
-        jQuery('input[name='+taxonomy+']', form).val(values) ;
+        jQuery('input[name=' + taxonomy + ']', form).val(values);
         updateTaxonomies(taxonomy, form);
 
         return false;
@@ -198,23 +204,27 @@ function updateTaxonomies(taxonomy, form)
 
 function initTaxonomies(values, taxonomy, url, fieldId)
 {
-    form = jQuery('#'+fieldId.replace(/_field_\d+$/, '' ) ).closest('form');
-    jQuery('div.tagchecklist-'+taxonomy).html(values);
-    jQuery('input[name='+taxonomy+']').val(values);
+    form = jQuery('#' + fieldId.replace(/_field_\d+$/, '')).closest('form');
+    jQuery('div.tagchecklist-' + taxonomy).html(values);
+
+    jQuery('input[name=' + taxonomy + ']').val(values);
     updateTaxonomies(taxonomy, form);
-    jQuery('input[name=tmp_'+taxonomy+']').autocomplete (
-        url+'/external/autocompleter.php',
-        {
-            delay:10,
-            minChars:2,
-            matchSubset:1,
-            matchContains:1,
-            cacheLength:10,
-            formatItem:formatItem,
-            onItemSelect:onSelectItem,
-            autoFill:true
-        }
+    jQuery('input[name=tmp_' + taxonomy + ']').autocomplete(
+            url + '/external/autocompleter.php',
+            {
+                delay: 10,
+                minChars: 2,
+                matchSubset: 1,
+                matchContains: 1,
+                cacheLength: 10,
+                formatItem: formatItem,
+                onItemSelect: onSelectItem,
+                autoFill: true
+            }
     );
+    //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/195723133/comments#308689055
+    if (jQuery('input[name=tmp_' + taxonomy + ']').val() != "")
+        jQuery("input[name='new_tax_button_" + taxonomy + "']").trigger("click");
 }
 
 toolsetForms.CRED_taxonomy = function () {
@@ -236,11 +246,11 @@ toolsetForms.CRED_taxonomy = function () {
     }
 
     self._fill_parent_drop_down = function () {
-        jQuery('select.js-taxonomy-parent').each ( function () {
+        jQuery('select.js-taxonomy-parent').each(function () {
             var select = jQuery(this);
 
             // remove all the options
-            jQuery(this).find('option').each (function () {
+            jQuery(this).find('option').each(function () {
                 if (jQuery(this).val() != '-1') {
                     jQuery(this).remove();
                 }
@@ -249,19 +259,19 @@ toolsetForms.CRED_taxonomy = function () {
             var taxonomy = jQuery(this).data('taxonomy');
 
             // Copy all the checkbox values if it's checkbox mode
-            jQuery('input[name="' + taxonomy + '\[\]"]').each (function () {
+            jQuery('input[name="' + taxonomy + '\[\]"]').each(function () {
                 var id = jQuery(this).attr('id');
                 var label = jQuery(this).next('label');
                 var level = jQuery(this).closest('ul').data('level');
                 var prefix = '';
-                if ( level ) {
+                if (level) {
                     prefix = "\xA0\xA0" + Array(level).join("\xA0\xA0");
                 }
                 select.append('<option value="' + jQuery(this).val() + '">' + prefix + label.text() + '</option>');
             })
 
             // Copy all the select option values if it's select mode
-            jQuery('select[name="' + taxonomy + '\[\]"]').find('option').each (function () {
+            jQuery('select[name="' + taxonomy + '\[\]"]').find('option').each(function () {
                 var id = jQuery(this).val();
                 var text = jQuery(this).text();
                 select.append('<option value="' + id + '">' + text + '</option>');
@@ -288,15 +298,15 @@ toolsetForms.CRED_taxonomy = function () {
 
                 buttons.each(function () {
                     var button = jQuery(this, form);
-                    
+
                     //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/195150507/comments
                     button.val(label);
                     //##########################################################################################
-                    
+
                     placeholder.replaceWith(button);
 
                     if (button.hasClass('js-wpt-taxonomy-popular-show-hide')) {
-                        if( showHideMostPopularButton(taxonomy, form) ) {
+                        if (showHideMostPopularButton(taxonomy, form)) {
                             button.show();
                         }
                     } else {
@@ -307,56 +317,56 @@ toolsetForms.CRED_taxonomy = function () {
                     //Responsible of the issue https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188673095/comments
                     //changed selector
                     //var selector = button.data('after-selector');
-                    selectors.push( button.data('after-selector') )
+                    selectors.push(button.data('after-selector'))
                     if (typeof selector !== 'undefined' && selector.length) {
                         var position = button;
-                            jQuery('.' + selectors[0]).detach();
-                            jQuery('.' + selectors[0]).insertAfter(button);
-                            position = jQuery('.' + selectors[0]);
-                            selectors.pop();
+                        jQuery('.' + selectors[0]).detach();
+                        jQuery('.' + selectors[0]).insertAfter(button);
+                        position = jQuery('.' + selectors[0]);
+                        selectors.pop();
                     }
                 })
             }
         });
     }
 
-    jQuery(document).on('click', '.js-wpt-hierarchical-taxonomy-add-new-show-hide', function() {
-        if ( jQuery(this).val() == jQuery(this).data('close') ) {
+    jQuery(document).on('click', '.js-wpt-hierarchical-taxonomy-add-new-show-hide', function () {
+        if (jQuery(this).val() == jQuery(this).data('close')) {
             jQuery(this).val(jQuery(this).data('open')).removeClass('btn-cancel');
         } else {
             jQuery(this).val(jQuery(this).data('close')).addClass('btn-cancel');
         }
-        var thiz = jQuery(this), taxonomy = thiz.data( 'taxonomy' );
-        self.add_new_show_hide( taxonomy, this );
+        var thiz = jQuery(this), taxonomy = thiz.data('taxonomy');
+        self.add_new_show_hide(taxonomy, this);
     });
 
-    self.add_new_show_hide = function ( taxonomy, button ) {
+    self.add_new_show_hide = function (taxonomy, button) {
         var form = jQuery(button).closest('form');
         jQuery('.js-wpt-hierarchical-taxonomy-add-new-' + taxonomy, form).toggle();
-        self.hide_parent_button_if_no_terms( taxonomy, button );
+        self.hide_parent_button_if_no_terms(taxonomy, button);
     }
 
-    jQuery(document).on('click', '.js-wpt-hierarchical-taxonomy-add-new', function() {
-            var thiz = jQuery(this),
-            taxonomy = thiz.data( 'taxonomy' );
-            self.add_taxonomy( taxonomy, this );
+    jQuery(document).on('click', '.js-wpt-hierarchical-taxonomy-add-new', function () {
+        var thiz = jQuery(this),
+                taxonomy = thiz.data('taxonomy');
+        self.add_taxonomy(taxonomy, this);
     });
     /*
-    jQuery(document).on('keypress', '.js-wpt-new-taxonomy-title', function(e) {
-            if( 13 === e.keyCode ) {
-                    e.preventDefault();
-                    var thiz = jQuery(this),
-                    taxonomy = thiz.data( 'taxonomy' );
-                    self.add_taxonomy( taxonomy, this );
-            }
-    });
-    */
+     jQuery(document).on('keypress', '.js-wpt-new-taxonomy-title', function(e) {
+     if( 13 === e.keyCode ) {
+     e.preventDefault();
+     var thiz = jQuery(this),
+     taxonomy = thiz.data( 'taxonomy' );
+     self.add_taxonomy( taxonomy, this );
+     }
+     });
+     */
 
-    self.terms_exist = function( taxonomy, button )
+    self.terms_exist = function (taxonomy, button)
     {
         var form = jQuery(button).closest('form');
         var build_what = jQuery(button).data('build_what'), parent = jQuery('[name="new_tax_select_' + taxonomy + '"]', form).val();
-        if ( build_what === 'checkboxes' ){
+        if (build_what === 'checkboxes') {
             var first_checkbox = jQuery('input[name="' + taxonomy + '\[\]"][data-parent="' + parent + '"]:first', form);
             return first_checkbox.length > 0;
         } else {
@@ -368,22 +378,22 @@ toolsetForms.CRED_taxonomy = function () {
     };
 
     self._add_new_flag = [];
-    self.hide_parent_button_if_no_terms = function( taxonomy, button )
+    self.hide_parent_button_if_no_terms = function (taxonomy, button)
     {
         var form = jQuery(button).closest('form');
         var form_id = form.attr('id');
-        if ('undefined' == typeof self._add_new_flag[form_id] ) {
+        if ('undefined' == typeof self._add_new_flag[form_id]) {
             self._add_new_flag[form_id] = '';
         }
         self._add_new_flag[form_id] = !self._add_new_flag[form_id];
-        if( self._add_new_flag[form_id] === false ) {
+        if (self._add_new_flag[form_id] === false) {
             jQuery('[name="new_tax_select_' + taxonomy + '"]', form).hide();
         } else {
             jQuery('[name="new_tax_select_' + taxonomy + '"]', form).show();
         }
     };
 
-    self.add_taxonomy = function ( taxonomy, button )
+    self.add_taxonomy = function (taxonomy, button)
     {
         var form = jQuery(button).closest('form');
         var new_taxonomy = jQuery('[name="new_tax_text_' + taxonomy + '"]', form).val();
@@ -396,7 +406,7 @@ toolsetForms.CRED_taxonomy = function () {
 
         // make sure we don't already have a taxonomy with the same name.
         var exists = false;
-        jQuery('input[name="' + taxonomy + '\[\]"]').each (function () {
+        jQuery('input[name="' + taxonomy + '\[\]"]').each(function () {
             var id = jQuery(this).attr('id');
             var label = jQuery('label[for="' + id + '"]', form);
 
@@ -406,7 +416,7 @@ toolsetForms.CRED_taxonomy = function () {
             }
         });
 
-        jQuery('select[name="' + taxonomy + '\[\]"]', form).find('option').each (function () {
+        jQuery('select[name="' + taxonomy + '\[\]"]', form).find('option').each(function () {
             if (new_taxonomy == jQuery(this).text()) {
                 exists = true;
                 self._flash_it(jQuery(this));
@@ -419,43 +429,43 @@ toolsetForms.CRED_taxonomy = function () {
         }
 
         var parent = jQuery('[name="new_tax_select_' + taxonomy + '"]', form).val(),
-            add_position = null,
-            add_before = true,
-            div_fields_wrap = jQuery('div[data-item_name="taxonomyhierarchical-'+taxonomy+'"]', form),
-            level = 0;
+                add_position = null,
+                add_before = true,
+                div_fields_wrap = jQuery('div[data-item_name="taxonomyhierarchical-' + taxonomy + '"]', form),
+                level = 0;
 
-        if ( build_what === 'checkboxes' ){
+        if (build_what === 'checkboxes') {
             //Fix add new leaf
             //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188589136/comments
-            jQuery('div[data-item_name="taxonomyhierarchical-'+taxonomy+'"] li input[type=checkbox]', form).each(function() {
-               if (this.value==parent || this.value==new_taxonomy) {
-                   div_fields_wrap = jQuery(this).parent();
-               }
+            jQuery('div[data-item_name="taxonomyhierarchical-' + taxonomy + '"] li input[type=checkbox]', form).each(function () {
+                if (this.value == parent || this.value == new_taxonomy) {
+                    div_fields_wrap = jQuery(this).parent();
+                }
             });
             //#########################################################################################
 
             var new_checkbox = '<li><input data-parent="' + parent + '" class="wpt-form-checkbox form-checkbox checkbox" type="checkbox" name="' + taxonomy + '[]" checked="checked" value="' + new_taxonomy + '"></input><label>' + new_taxonomy + '</label></li>';
-			// find the first checkbox sharing parent
+            // find the first checkbox sharing parent
             var first_checkbox = jQuery('input[name="' + taxonomy + '\[\]"][data-parent="' + parent + '"]:first', form);
             if (first_checkbox.length == 0) {
                 // there are no existing brothers
-				// so we need to compose the ul wrapper and append to the parent li
-				//add_position = jQuery('input[name="' + taxonomy + '\[\]"][value="' + parent + '"]').closest('li');
-				level = jQuery('input[name="' + taxonomy + '\[\]"][value="' + parent + '"]', form).closest('ul').data( 'level' );
-				level++;
+                // so we need to compose the ul wrapper and append to the parent li
+                //add_position = jQuery('input[name="' + taxonomy + '\[\]"][value="' + parent + '"]').closest('li');
+                level = jQuery('input[name="' + taxonomy + '\[\]"][value="' + parent + '"]', form).closest('ul').data('level');
+                level++;
                 new_checkbox = '<ul class="wpt-form-set-children" data-level="' + level + '">' + new_checkbox + '</ul>';
-				//first_checkbox = ;
+                //first_checkbox = ;
                 //add_before = false;
                 //add_position = jQuery('input[name="' + taxonomy + '\[\]"][value="' + parent + '"]').closest('li');
-				jQuery(new_checkbox).appendTo( div_fields_wrap );
+                jQuery(new_checkbox).appendTo(div_fields_wrap);
             } else {
                 // there are brothers
-				// so we need to insert before all of them
-				add_position = first_checkbox.closest('li');
-				jQuery(new_checkbox).insertBefore(add_position);
+                // so we need to insert before all of them
+                add_position = first_checkbox.closest('li');
+                jQuery(new_checkbox).insertBefore(add_position);
             }
             jQuery('[name="new_tax_select_' + taxonomy + '"]', form).show();
-        } else if( build_what === 'select' ) {
+        } else if (build_what === 'select') {
             // Select control
 
             jQuery('select[name="' + taxonomy + '\[\]"]').show();
@@ -539,20 +549,20 @@ toolsetForms.cred_tax = new toolsetForms.CRED_taxonomy();
 
 //Fix https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188725294/comments
 //removed return key press
-jQuery(function(){
- var keyStop = {
-   8: ":not(input:text, textarea, input:file, input:password)", // stop backspace = back
-   13: "input:text, input:password", // stop enter = submit
+jQuery(function () {
+    var keyStop = {
+        8: ":not(input:text, textarea, input:file, input:password)", // stop backspace = back
+        13: "input:text, input:password", // stop enter = submit
 
-   end: null
- };
- jQuery(document).bind("keydown", function(event){
-  var selector = keyStop[event.which];
+        end: null
+    };
+    jQuery(document).bind("keydown", function (event) {
+        var selector = keyStop[event.which];
 
-  if(selector !== undefined && jQuery(event.target).is(selector)) {
-      event.preventDefault(); //stop event
-  }
-  return true;
- });
+        if (selector !== undefined && jQuery(event.target).is(selector)) {
+            event.preventDefault(); //stop event
+        }
+        return true;
+    });
 });
 

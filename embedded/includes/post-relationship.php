@@ -301,7 +301,22 @@ function wpcf_pr_admin_post_meta_box_belongs_form( $post, $type, $belongs )
     if ( empty( $items ) ) {
         return array();
     }
-
+    /**
+     * Filter array of parent objects.
+     *
+     * Allow to change array of parent objects, modyfiy titles, remove
+     * or add some data from list of avaiable post parents.
+     *
+     * @since 1.6.6
+     *
+     * @param array $args {
+     *     Array of objects with all possible parents
+     *
+     *     @param int    $ID   Post ID
+     *     @param string $type Post title.
+     * }
+     * @param string $type Post Type of parent.
+     */
     $_titles = apply_filters(
         'wpcf_pr_belongs_items',
         $wpdb->get_results(
@@ -321,6 +336,16 @@ function wpcf_pr_admin_post_meta_box_belongs_form( $post, $type, $belongs )
         if ( !isset( $_titles[$temp_post]->post_title ) ) {
             continue;
         }
+        /**
+         * Filter single parent data
+         *
+         * Allow change singla parent data.
+         *
+         * @since 1.6.6
+         *
+         * @param array $args Single parent title and id
+         * @param string $type Post Type of parent.
+         */
         $options[] = apply_filters(
             'wpcf_pr_belongs_item',
             array(

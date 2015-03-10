@@ -30,6 +30,13 @@ include_once WPCF_ABSPATH.'/classes/class.wpcf-marketing-messages.php';
 new WPCF_Types_Marketing_Messages();
 
 /**
+ * last edit flag
+ */
+if ( !defined('TOOLSET_EDIT_LAST' )){
+    define( 'TOOLSET_EDIT_LAST', '_toolset_edit_last');
+}
+
+/**
  * admin_init hook.
  */
 function wpcf_admin_init_hook()
@@ -297,35 +304,11 @@ function wpcf_admin_menu_edit_fields()
     wpcf_add_admin_header( $title );
     wpcf_wpml_warning();
     $form = wpcf_form( 'wpcf_form_fields' );
-
-    ?>
-    <script type="text/javascript">
-        function wpcf_group_submit()
-        {
-        if (jQuery('#wpcf-group-name').val() == "<?php echo addslashes(__('Enter group title', 'wpcf')); ?>") {
-                jQuery('#wpcf-group-name').val('');
-            }
-            if (jQuery('#wpcf-group-description').val() == "<?php echo addslashes(__('Enter a description for this group', 'wpcf')); ?>") {
-                jQuery('#wpcf-group-description').val('');
-            }
-            jQuery('.wpcf-forms-set-legend').each(function () {
-                if (jQuery(this).val() == "<?php echo addslashes(__('Enter field name', 'wpcf')); ?>") {
-                    jQuery(this).val('');
-                }
-                if (jQuery(this).next().val() == "<?php echo addslashes(__('Enter field slug', 'wpcf')); ?>") {
-                    jQuery(this).next().val('');
-                }
-                if (jQuery(this).next().next().val() == "<?php echo addslashes(__('Describe this field', 'wpcf')); ?>") {
-                    jQuery(this).next().next().val('');
-                }
-            });
-        }
-    </script>
-
-    <br /><form method="post" action="" class="wpcf-fields-form wpcf-form-validate" onsubmit="wpcf_group_submit()">
-    <?php echo $form->renderForm(); ?>
-    </form>
-    <?php
+    echo '<form method="post" action="" class="wpcf-fields-form wpcf-form-validate">';
+    echo '<div id="poststuff">';
+    echo $form->renderForm();
+    echo '</div>';
+    echo '</form>';
     wpcf_add_admin_footer();
 }
 
@@ -1058,6 +1041,7 @@ function wpcf_admin_deactivate_content($type, $arg, $action = 'delete')
                     }
                     if ( array_key_exists( $arg, $data['supports'] ) ) {
                         unset( $custom[$post_type]['supports'][$arg] );
+                        $custom[$post_type][TOOLSET_EDIT_LAST] = time();
                     }
                 }
                 update_option( 'wpcf-custom-taxonomies', $custom );
@@ -1074,6 +1058,7 @@ function wpcf_admin_deactivate_content($type, $arg, $action = 'delete')
                     }
                     if ( array_key_exists( $arg, $data['taxonomies'] ) ) {
                         unset( $custom[$post_type]['taxonomies'][$arg] );
+                        $custom[$post_type][TOOLSET_EDIT_LAST] = time();
                     }
                 }
                 update_option( 'wpcf-custom-types', $custom );

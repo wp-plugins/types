@@ -190,7 +190,7 @@ class WPToolset_Forms_Validation
         $rule = $this->_map_rule_js_to_php( $rule );
 
         if ( 'skype' == $rule ) {
-            return $validator->custom($args[0]['skypename'], '/^([a-z0-9\,\.\-]+)$/');
+            return $validator->custom($args[0]['skypename'], '/^([a-zA-Z0-9\,\.\-\_]+)$/');
         }
 
         if ( is_callable( array($validator, $rule) ) ) {

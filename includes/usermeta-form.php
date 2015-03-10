@@ -23,31 +23,31 @@ if (version_compare($wp_version, '3.5', '<')) {
 
 /**
  * Saves user fields and groups.
- * 
+ *
  * If field name is changed in specific group - new one will be created,
  * otherwise old one will be updated and will appear in that way in other grups.
- * 
- * @return type 
+ *
+ * @return type
  */
 function wpcf_admin_save_usermeta_groups_submit($form) {
     if (!isset($_POST['wpcf']['group']['name'])) {
         return false;
     }
-	
+
     $_POST['wpcf']['group']['name'] = trim($_POST['wpcf']['group']['name']);
 
     $_POST['wpcf']['group'] = apply_filters('wpcf_group_pre_save',
             $_POST['wpcf']['group']);
 
     global $wpdb;
-	
+
     $new_group = false;
 
     $group_slug = $_POST['wpcf']['group']['slug'] = sanitize_title($_POST['wpcf']['group']['name']);
 
     // Basic check
-	
-	
+
+
     if (isset($_REQUEST['group_id'])) {
         // Check if group exists
         $post = get_post($_REQUEST['group_id']);
@@ -71,7 +71,7 @@ function wpcf_admin_save_usermeta_groups_submit($form) {
             return $form;
         }
         $group_id = $post->ID;
-		
+
     } else {
         $new_group = true;
         // Check if already exists
@@ -101,7 +101,7 @@ function wpcf_admin_save_usermeta_groups_submit($form) {
                 return $form;
             }
         }
-		
+
         foreach ($_POST['wpcf']['fields'] as $key => $field) {
             $field = apply_filters('wpcf_field_pre_save', $field);
             if (!empty($field['is_new'])) {
@@ -126,13 +126,13 @@ function wpcf_admin_save_usermeta_groups_submit($form) {
             if (!empty($field_id)) {
                 $fields[] = $field_id;
             }
-           
+
         }
     }
 
     // Save group
     $roles = isset($_POST['wpcf']['group']['supports']) ? $_POST['wpcf']['group']['supports'] : array();
-	$admin_style = $_POST['wpcf']['group']['admin_styles'];
+    $admin_style = $_POST['wpcf']['group']['admin_styles'];
     // Rename if needed
     if (isset($_REQUEST['group_id'])) {
         $_POST['wpcf']['group']['id'] = $_REQUEST['group_id'];
@@ -152,14 +152,14 @@ function wpcf_admin_save_usermeta_groups_submit($form) {
                     $open_fieldsets);
         }
     }
-	
-	
+
+
     // Rest of processes
     if (!empty($group_id)) {
         wpcf_admin_fields_save_group_fields($group_id, $fields, false, 'wp-types-user-group');
         wpcf_admin_fields_save_group_showfor($group_id, $roles);
-		wpcf_admin_fields_save_group_admin_styles($group_id, $admin_style);
-       
+        wpcf_admin_fields_save_group_admin_styles($group_id, $admin_style);
+
         $_POST['wpcf']['group']['fields'] = isset($_POST['wpcf']['fields']) ? $_POST['wpcf']['fields'] : array();
         do_action('wpcf_save_group', $_POST['wpcf']['group']);
         wpcf_admin_message_store(apply_filters('types_message_usermeta_saved',
@@ -170,8 +170,8 @@ function wpcf_admin_save_usermeta_groups_submit($form) {
     } else {
         wpcf_admin_message_store(__('Error saving group', 'wpcf'), 'error');
     }
-	
-	
+
+
 }
 
 
@@ -179,7 +179,7 @@ function wpcf_admin_save_usermeta_groups_submit($form) {
  * Generates form data.
  */
 function wpcf_admin_usermeta_form() {
-	global $wpcf;
+    global $wpcf;
     wpcf_admin_add_js_settings('wpcf_nonce_toggle_group',
             '\'' . wp_create_nonce('group_form_collapsed') . '\'');
     wpcf_admin_add_js_settings('wpcf_nonce_toggle_fieldset',
@@ -200,10 +200,10 @@ function wpcf_admin_usermeta_form() {
         } else {
             $update['fields'] = wpcf_admin_fields_get_fields_by_group($_REQUEST['group_id'], 'slug', false, true, false, 'wp-types-user-group', 'wpcf-usermeta');
             $update['show_for'] = wpcf_admin_get_groups_showfor_by_group($_REQUEST['group_id']);
-			$update['admin_styles'] = wpcf_admin_get_groups_admin_styles_by_group($_REQUEST['group_id']);
+            $update['admin_styles'] = wpcf_admin_get_groups_admin_styles_by_group($_REQUEST['group_id']);
         }
     }
-	
+
     $form = array();
     $form['#form']['callback'] = array('wpcf_admin_save_usermeta_groups_submit');
 
@@ -287,7 +287,7 @@ function wpcf_admin_usermeta_form() {
                 continue;
             }
             if ( !empty( $field['data']['removed_from_history'] ) ) {
-				continue;
+                continue;
             }
             $form['fields-existing'][$key] = array(
                 '#type' => 'markup',
@@ -322,7 +322,7 @@ function wpcf_admin_usermeta_form() {
         '#type' => 'markup',
         '#markup' => '</div>',
     );
-	
+
     // Group data
 
     $form['open-main'] = array(
@@ -334,40 +334,35 @@ function wpcf_admin_usermeta_form() {
         '#type' => 'textfield',
         '#name' => 'wpcf[group][name]',
         '#id' => 'wpcf-group-name',
-        '#value' => $update ? $update['name'] : __('Enter group title', 'wpcf'),
+        '#value' => $update ? $update['name'] : '',
         '#inline' => true,
-        '#attributes' => array('style' => 'width:100%;margin-bottom:10px;'),
+        '#attributes' => array(
+            'style' => 'width:100%;margin-bottom:10px;',
+            'placeholder' => __('Enter group title', 'wpcf'),
+        ),
         '#validate' => array(
             'required' => array(
                 'value' => true,
             ),
         )
     );
-    if (!$update) {
-        $form['title']['#attributes']['data-label'] = addcslashes(__( 'Enter group title', 'wpcf' ), '"');
-        $form['title']['#attributes']['onfocus'] = 'if (jQuery(this).val() == jQuery(this).data(\'label\')) { jQuery(this).val(\'\'); }';
-        $form['title']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(jQuery(this).data(\'label\')) }';
-    }
     $form['description'] = array(
         '#type' => 'textarea',
         '#id' => 'wpcf-group-description',
         '#name' => 'wpcf[group][description]',
-        '#value' => $update ? $update['description'] : __('Enter a description for this group',
-                        'wpcf'),
+        '#value' => $update ? $update['description'] : '',
+        '#attributes' => array(
+            'placeholder' => __('Enter a description for this group', 'wpcf'),
+        ),
     );
-    if (!$update) {
-        $form['description']['#attributes']['data-label'] = addcslashes(__( 'Enter a description for this group', 'wpcf' ), '"');
-        $form['description']['#attributes']['onfocus'] = 'if (jQuery(this).val() == jQuery(this).data(\'label\')) { jQuery(this).val(\'\'); }';
-        $form['description']['#attributes']['onblur'] = 'if (jQuery(this).val() == \'\') { jQuery(this).val(jQuery(this).data(\'label\')) }';
-    }
 
-	// Show Fields for
-	global $wp_roles;
+    // Show Fields for
+    global $wp_roles;
     $options = array();
     $users_currently_supported = array();
     $form_types = array();
-	foreach ( $wp_roles->role_names as $role => $name   ) :
-		$options[$role]['#name'] = 'wpcf[group][supports][' . $role . ']';
+    foreach ( $wp_roles->role_names as $role => $name   ) :
+        $options[$role]['#name'] = 'wpcf[group][supports][' . $role . ']';
         $options[$role]['#title'] = ucwords($role);
         $options[$role]['#default_value'] = ($update && !empty($update['show_for']) && in_array($role,
                         $update['show_for'])) ? 1 : 0;
@@ -380,9 +375,9 @@ function wpcf_admin_usermeta_form() {
                         $update['show_for'])) {
             $users_currently_supported[] = ucwords($role);
         }
-	endforeach;
-	
-	if (empty($users_currently_supported)) {
+    endforeach;
+
+    if (empty($users_currently_supported)) {
         $users_currently_supported[] = __('Displayed for all users roles',
                 'wpcf');
     }
@@ -397,7 +392,7 @@ function wpcf_admin_usermeta_form() {
         '#inline' => true,
     );
     /*
-     * 
+     *
      * Here we use unique function for all filters
      * Since Types 1.1.4
      */
@@ -406,24 +401,24 @@ function wpcf_admin_usermeta_form() {
             implode(', ', $users_currently_supported),
             __('Displayed for all users roles', 'wpcf'), $temp);
 
-	/*
+    /*
      * Now starting form
      */
-	$access_notification = '';
-	if (function_exists('wpcf_access_register_caps')){ 
-		$access_notification = '<div class="message custom wpcf-notif"><span class="wpcf-notif-congrats">'
-		. __('This groups visibility is also controlled by the Access plugin.', 
+    $access_notification = '';
+    if (function_exists('wpcf_access_register_caps')){
+        $access_notification = '<div class="message custom wpcf-notif"><span class="wpcf-notif-congrats">'
+        . __('This groups visibility is also controlled by the Access plugin.',
                 'wpcf')  .'</span></div>';
-	}
+    }
     $form['supports-table-open'] = array(
         '#type' => 'markup',
         '#markup' => '<table class="widefat"><thead><tr><th>'
         . __('Where to display this group', 'wpcf')
         . '</th></tr></thead><tbody><tr><td>'
         . '<p>'
-        . __('Each usermeta group can display different fields for user roles.', 
+        . __('Each usermeta group can display different fields for user roles.',
                 'wpcf')
-		. $access_notification
+        . $access_notification
         . '</p>',
     );
     /*
@@ -440,13 +435,13 @@ function wpcf_admin_usermeta_form() {
         '#type' => 'markup',
         '#markup' => '</td></tr></tbody></table><br />',
     );
-	
-	
-	
-	
-	/** Admin styles**/
-	
-	$form['adminstyles-table-open'] = array(
+
+
+
+
+    /** Admin styles**/
+
+    $form['adminstyles-table-open'] = array(
         '#type' => 'markup',
         '#markup' => '<table class="widefat" id="wpcf-admin-styles-box"><thead><tr><th>'
         . __('Styling Editor', 'wpcf')
@@ -456,93 +451,93 @@ function wpcf_admin_usermeta_form() {
                 'wpcf')
         . '</p>',
     );
-	
-	$admin_styles_value = $preview_profile = $edit_profile = '';
-	if ( isset ($update['admin_styles']) ){
-		$admin_styles_value = $update['admin_styles'];
-	}
-	$temp = '';
-	if ($update){
-		require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
-		require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta.php';
-		require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
-		require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta-post.php';
-		
-		$user_id = wpcf_usermeta_get_user();
-		$preview_profile = wpcf_usermeta_preview_profile( $user_id, $update, 1 );
-		$group = $update;
-		$group['fields'] = wpcf_admin_usermeta_process_fields( $user_id, $group['fields'], true, false );
-		$edit_profile = wpcf_admin_render_fields($group, $user_id, 1);
+
+    $admin_styles_value = $preview_profile = $edit_profile = '';
+    if ( isset ($update['admin_styles']) ){
+        $admin_styles_value = $update['admin_styles'];
+    }
+    $temp = '';
+    if ($update){
+        require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
+        require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta.php';
+        require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
+        require_once WPCF_EMBEDDED_INC_ABSPATH . '/usermeta-post.php';
+
+        $user_id = wpcf_usermeta_get_user();
+        $preview_profile = wpcf_usermeta_preview_profile( $user_id, $update, 1 );
+        $group = $update;
+        $group['fields'] = wpcf_admin_usermeta_process_fields( $user_id, $group['fields'], true, false );
+        $edit_profile = wpcf_admin_render_fields($group, $user_id, 1);
         add_action( 'admin_enqueue_scripts', 'wpcf_admin_fields_form_fix_styles', PHP_INT_MAX  );
-	}
-	$temp[] = array(
-		'#type' => 'radio',
-		'#suffix' => '<br />',
-		'#value' => 'edit_mode',
-		'#title' => 'Edit mode',
+    }
+    $temp[] = array(
+        '#type' => 'radio',
+        '#suffix' => '<br />',
+        '#value' => 'edit_mode',
+        '#title' => 'Edit mode',
         '#name' => 'wpcf[group][preview]','#default_value' => '',
-		'#before' => '<div class="wpcf-admin-css-preview-style-edit">',
+        '#before' => '<div class="wpcf-admin-css-preview-style-edit">',
         '#inline' => true,
-		'#attributes' => array('onclick' => 'changePreviewHtml(\'editmode\')','checked'=>'checked')
-	);
-	
-	$temp[] = array(
-		'#type' => 'radio',
-		'#title' => 'Read Only',
+        '#attributes' => array('onclick' => 'changePreviewHtml(\'editmode\')','checked'=>'checked')
+    );
+
+    $temp[] = array(
+        '#type' => 'radio',
+        '#title' => 'Read Only',
         '#name' => 'wpcf[group][preview]','#default_value' => '',
-		'#after' => '</div>',
+        '#after' => '</div>',
         '#inline' => true,
-		'#attributes' => array('onclick' => 'changePreviewHtml(\'readonly\')')
-	);
-	
-	$temp[] = array(
+        '#attributes' => array('onclick' => 'changePreviewHtml(\'readonly\')')
+    );
+
+    $temp[] = array(
         '#type' => 'textarea',
         '#name' => 'wpcf[group][admin_html_preview]',
         '#inline' => true,
-		'#value' => '',		
-		'#id' => 'wpcf-form-groups-admin-html-preview',
-		'#before' => '<h3>Field group HTML</h3>'
+        '#value' => '',
+        '#id' => 'wpcf-form-groups-admin-html-preview',
+        '#before' => '<h3>Field group HTML</h3>'
     );
-	
-	$temp[] = array(
+
+    $temp[] = array(
         '#type' => 'textarea',
         '#name' => 'wpcf[group][admin_styles]',
         '#inline' => true,
-		'#value' => $admin_styles_value,
-		'#default_value' => '',
-		'#id' => 'wpcf-form-groups-css-fields-editor',
-		'#after' => '
-		<div class="wpcf-update-preview-btn"><input type="button" value="Update preview" onclick="wpcfPreviewHtml()" style="float:right;" class="button-secondary"></div>
-		<h3>Field group preview</h3>
-		<div id="wpcf-update-preview-div">Preview here</div>
-		<script type="text/javascript">
-			var wpcfReadOnly = ' .  json_encode($preview_profile) . ';
-			var wpcfEditMode = ' .  json_encode($edit_profile) . ';
-			var wpcfDefaultCss = ' .  json_encode($admin_styles_value) . ';
-		</script>
-		',
-		'#before' => '<h3>Your CSS</h3>'
+        '#value' => $admin_styles_value,
+        '#default_value' => '',
+        '#id' => 'wpcf-form-groups-css-fields-editor',
+        '#after' => '
+        <div class="wpcf-update-preview-btn"><input type="button" value="Update preview" onclick="wpcfPreviewHtml()" style="float:right;" class="button-secondary"></div>
+        <h3>Field group preview</h3>
+        <div id="wpcf-update-preview-div">Preview here</div>
+        <script type="text/javascript">
+            var wpcfReadOnly = ' .  json_encode($preview_profile) . ';
+            var wpcfEditMode = ' .  json_encode($edit_profile) . ';
+            var wpcfDefaultCss = ' .  json_encode($admin_styles_value) . ';
+        </script>
+        ',
+        '#before' => '<h3>Your CSS</h3>'
     );
-	
-		
-			
-	
-	$admin_styles = _wpcf_filter_wrap( 'admin_styles',
+
+
+
+
+    $admin_styles = _wpcf_filter_wrap( 'admin_styles',
             __('Admin styles for fields:', 'wpcf'), '', '', $temp, __( 'Open style editor', 'wpcf' ) );
-	$form['p_wrap_1_' . wpcf_unique_id(serialize($admin_styles))] = array(
+    $form['p_wrap_1_' . wpcf_unique_id(serialize($admin_styles))] = array(
         '#type' => 'markup',
         '#markup' => '<p class="wpcf-filter-wrap">',
     );
-	$form = $form + $admin_styles;
-	$form['adminstyles-table-close'] = array(
+    $form = $form + $admin_styles;
+    $form['adminstyles-table-close'] = array(
         '#type' => 'markup',
         '#markup' => '</td></tr></tbody></table><br />',
     );
-	/** End admin Styles **/
-	
-	
-	 
-	
+    /** End admin Styles **/
+
+
+
+
     // Group fields
 
     $form['fields_title'] = array(
@@ -636,8 +631,8 @@ function wpcf_admin_usermeta_form() {
         '#markup' => '</div>',
     );
 
-    
-	wpcf_admin_add_js_settings( 'wpcf_filters_association_or',
+
+    wpcf_admin_add_js_settings( 'wpcf_filters_association_or',
             '\'' . __( 'This group will appear on %pt% edit pages where content belongs to taxonomy: %tx% or View Template is: %vt%',
                     'wpcf' ) . '\'' );
     wpcf_admin_add_js_settings( 'wpcf_filters_association_and',
@@ -663,12 +658,12 @@ function wpcf_admin_usermeta_form() {
 
 /**
  * Dynamically adds existing field on AJAX call.
- * 
- * @param type $form_data 
+ *
+ * @param type $form_data
  */
 function wpcf_usermeta_insert_existing_ajax() {
     $field = wpcf_admin_fields_get_field( $_GET['field'], false, true, false, 'wpcf-usermeta');
-	
+
     if ( !empty( $field ) ) {
         echo wpcf_fields_get_field_form( $field['type'], $field );
     } else {

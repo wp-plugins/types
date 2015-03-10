@@ -313,3 +313,48 @@ function wpcf_get_active_custom_types() {
     }
     return $types;
 }
+
+/** This action is documented in wp-admin/includes/dashboard.php */
+add_action('dashboard_glance_items', 'wpcf_dashboard_glance_items');
+
+/**
+ * Add CPT info to "At a Glance"
+ *
+ * Add to "At a Glance" WordPress admin dashboard widget information
+ * about number of posts.
+ *
+ * @since 1.6.6
+ *
+ */
+function wpcf_dashboard_glance_items()
+{
+    $custom_types = get_option( 'wpcf-custom-types', array() );
+    ksort($custom_types);
+    if ( !empty( $custom_types ) ) {
+        foreach ( $custom_types as $post_type => $data ) {
+            if ( !isset($data['dashboard_glance']) || !$data['dashboard_glance']) {
+                continue;
+            }
+            if ( isset($data['disabled']) && $data['disabled'] ) {
+                continue;
+            }
+            $num_posts = wp_count_posts($post_type);
+            $num = number_format_i18n($num_posts->publish);
+            $text = _n( $data['labels']['singular_name'], $data['labels']['name'], intval($num_posts->publish) );
+            printf(
+                '<li class="page-count %s-count"><a href="%s"%s>%d %s</a></li>',
+                $post_type,
+                add_query_arg(
+                    array(
+                        'post_type' => $post_type,
+                    ),
+                    admin_url('edit.php')
+                ),
+                isset($data['icon'])? sprintf('class="dashicons-%s"', $data['icon']):'',
+                $num,
+                $text
+            );
+        }
+    }
+}
+

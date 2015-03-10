@@ -164,7 +164,8 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 * Added ability to setup meta box callback function. https://wp-types.com/forums/topic/add-support-for-meta_box_cb-in-custom-taxonomy/
 * Added ability to add HTML5 placeholder attribute for custom post fields.
 * Fixed problem with CPT labels.  https://wp-types.com/forums/topic/after-save-cpts-cutom-labels-always-revert-to-default-label/
-* Add a filters to the post title as option text in the select dropdown for post parents. wpcf_pr_belongs_items for array of options and wpcf_pr_belongs_item for one option. https://wp-types.com/forums/topic/help-to-distinguish-duplicate-titles-in-post-relationship/
+* Added a filters to the post title as option text in the select dropdown for post parents. wpcf_pr_belongs_items for array of options and wpcf_pr_belongs_item for one option. https://wp-types.com/forums/topic/help-to-distinguish-duplicate-titles-in-post-relationship/
+* Added ability to choose custom fields to display it on custom posts admin list.
 
 = 1.6.5.1 =
 

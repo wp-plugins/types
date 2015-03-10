@@ -111,7 +111,7 @@ final class WP_Installer{
     public function load_embedded_plugins(){
 
         include_once $this->plugin_path() . '/embedded-plugins/embedded-plugins.class.php';
-        new Installer_Embedded_Plugins();
+        $this->installer_embedded_plugins = new Installer_Embedded_Plugins();
 
     }
 
@@ -1246,7 +1246,7 @@ final class WP_Installer{
                 foreach($package['products'] as $product) {
                     
                     foreach($product['downloads'] as $download){
-                        
+
                         if($download['basename'] == $plugin_basename){
                             $version  = $download['version'];
                             break (3);

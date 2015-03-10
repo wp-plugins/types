@@ -39,8 +39,7 @@ if(!class_exists('WP_List_Table')){
  */
 class WPCF_User_Fields_List_Table extends WP_List_Table
 {
-    var $disable_bulk_actions = true;
-
+    var $bulk_action_field_name = 'wpcf_ids';
     /** ************************************************************************
      * REQUIRED. Set up a constructor that references the parent constructor. We
      * use the parent reference to set some default configs.
@@ -130,7 +129,7 @@ class WPCF_User_Fields_List_Table extends WP_List_Table
         //Build row actions
         $actions = array(
             'edit'      => sprintf('<a href="%s">%s</a>', $edit_link, __('Edit', 'wpcf')),
-            'status' => 'active' == $item['status']? wpcf_admin_usermeta_get_ajax_deactivation_link($item['id']):wpcf_admin_usermeta_get_ajax_deactivation_link($item['id']),
+            'status' => 'active' == $item['status']? wpcf_admin_usermeta_get_ajax_deactivation_link($item['id']):wpcf_admin_usermeta_get_ajax_activation_link($item['id']),
             'delete'     => sprintf(
                 '<a href="%s" class="submitdelete wpcf-ajax-link" id="wpcf-list-delete-%d"">%s</a>',
                 add_query_arg(
@@ -171,9 +170,9 @@ class WPCF_User_Fields_List_Table extends WP_List_Table
     function column_cb($item)
     {
         return sprintf(
-            '<input type="checkbox" name="%1$s[]" value="%2$s" />',
-            /*$1%s*/ $this->_args['singular'],  //Let's simply repurpose the table's singular label ("movie")
-            /*$2%s*/ $item['id']                //The value of the checkbox should be the record's id
+            '<input type="checkbox" name="%s[]" value="%s" />',
+            $this->bulk_action_field_name,
+            $item['id']
         );
     }
 
@@ -245,11 +244,7 @@ class WPCF_User_Fields_List_Table extends WP_List_Table
      **************************************************************************/
     function get_bulk_actions()
     {
-        if ( $this->disable_bulk_actions ) {
-            return array();
-        }
         $actions = array(
-            'delete'     => __('Delete', 'wpcf'),
             'activate'   => __('Activate', 'wpcf'),
             'deactivate' => __('Deactivate', 'wpcf'),
         );
@@ -265,10 +260,46 @@ class WPCF_User_Fields_List_Table extends WP_List_Table
      **************************************************************************/
     function process_bulk_action()
     {
+        global $wpdb;
+        $action = $this->current_action();
         //Detect when a bulk action is being triggered...
-        if( 'delete'===$this->current_action() ) {
-            wp_die('Items deleted (or they would be if we had items to delete)!');
+        switch($action) {
+        case 'deactivate':
+            if (
+                true
+                && isset($_POST[$this->bulk_action_field_name])
+                && !empty($_POST[$this->bulk_action_field_name])
+            ) {
+                foreach( $_POST[$this->bulk_action_field_name] as $key ) {
+                    $wpdb->update(
+                        $wpdb->posts,
+                        array( 'post_status' => 'draft' ),
+                        array( 'ID' => $key, 'post_type' => 'wp-types-user-group' ),
+                        array('%s'),
+                        array('%d', '%s')
+                    );
+                }
+            }
+            break;
+        case 'activate':
+            if (
+                true
+                && isset($_POST[$this->bulk_action_field_name])
+                && !empty($_POST[$this->bulk_action_field_name])
+            ) {
+                foreach( $_POST[$this->bulk_action_field_name] as $key ) {
+                    $wpdb->update(
+                        $wpdb->posts,
+                        array( 'post_status' => 'publish' ),
+                        array( 'ID' => $key ),
+                        array('%s'),
+                        array('%d')
+                    );
+                }
+            }
+            break;
         }
+        wp_cache_delete(md5('group::_get_group'.'wp-types-user-group'),'types_cache_groups');
     }
 
     /** ************************************************************************
@@ -338,7 +369,7 @@ class WPCF_User_Fields_List_Table extends WP_List_Table
                     'id' => $group['id'],
                     'slug' => $group['slug'],
                     'status' => (isset($group['is_active']) && $group['is_active'])? 'active':'inactive',
-                    'supports' => $group['supports'],
+                    'supports' => isset($group['supports'])? $group['supports']:array(),
                     'title' => $group['name'],
                 );
                 $add_one = true;

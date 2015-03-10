@@ -59,6 +59,7 @@ function wpcf_ajax() {
                     . intval($_GET['group_id']) . '").html("' . __('No', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                     'status' => 'inactive',
+                    'status_label' => __('No', 'wpcf'),
                 ));
             } else {
                 echo json_encode(array(
@@ -81,6 +82,7 @@ function wpcf_ajax() {
                     . intval($_GET['group_id']) . '").html("' . __('Yes', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                     'status' => 'active',
+                    'status_label' => __('Yes', 'wpcf'),
                 ));
             } else {
                 echo json_encode(array(
@@ -149,6 +151,7 @@ function wpcf_ajax() {
                     . intval($_GET['group_id']) . '").html("' . __('No', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                     'status' => 'inactive',
+                    'status_label' => __('No', 'wpcf'),
                 ));
             } else {
                 echo json_encode(array(
@@ -170,6 +173,7 @@ function wpcf_ajax() {
                     . intval($_GET['group_id']) . '").html("' . __('Yes', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                     'status' => 'active',
+                    'status_label' => __('Yes', 'wpcf'),
                 ));
             } else {
                 echo json_encode(array(
@@ -198,6 +202,7 @@ function wpcf_ajax() {
             $custom_types = get_option('wpcf-custom-types', array());
             if (isset($custom_types[$_GET['wpcf-post-type']])) {
                 $custom_types[$_GET['wpcf-post-type']]['disabled'] = 1;
+                $custom_types[$_GET['wpcf-post-type']][TOOLSET_EDIT_LAST] = time();
                 update_option('wpcf-custom-types', $custom_types);
                 echo json_encode(array(
                     'output' => __('Post type deactivated', 'wpcf'),
@@ -224,6 +229,7 @@ function wpcf_ajax() {
             $custom_types = get_option('wpcf-custom-types', array());
             if (isset($custom_types[$_GET['wpcf-post-type']])) {
                 $custom_types[$_GET['wpcf-post-type']]['disabled'] = 0;
+                $custom_types[$_GET['wpcf-post-type']][TOOLSET_EDIT_LAST] = time();
                 update_option('wpcf-custom-types', $custom_types);
                 echo json_encode(array(
                     'output' => __('Post type activated', 'wpcf'),
@@ -249,9 +255,17 @@ function wpcf_ajax() {
             $custom_type = strval($_GET['wpcf-post-type']);
 
             /**
-             * delete relataion?
+             * Delete relation between custom posts types
+             *
+             * Filter allow to delete all custom fields used to make
+             * a relation between posts.
+             *
+             * @since 1.6.4
+             *
+             * @param bool   $delete True or false flag to delete relationships.
+             * @param string $var Currently deleted custom post type.
              */
-            if ( apply_filters('wpcf_delete_relation_meta', false) ) {
+            if ( apply_filters('wpcf_delete_relation_meta', false, $custom_type) ) {
                 global $wpdb;
                 $wpdb->delete(
                     $wpdb->postmeta,
@@ -274,6 +288,7 @@ function wpcf_ajax() {
                         && array_key_exists( $custom_type, $custom_types[$post_type]['post_relationship']['has'] )
                     ) {
                         unset($custom_types[$post_type]['post_relationship']['has'][$custom_type]);
+                        $custom_types[$post_type][TOOLSET_EDIT_LAST] = time();
                     }
                     /**
                      * remove "belongs" relation
@@ -283,6 +298,7 @@ function wpcf_ajax() {
                         && array_key_exists( $custom_type, $custom_types[$post_type]['post_relationship']['belongs'] )
                     ) {
                         unset($custom_types[$post_type]['post_relationship']['belongs'][$custom_type]);
+                        $custom_types[$post_type][TOOLSET_EDIT_LAST] = time();
                     }
                 }
             }
@@ -305,6 +321,7 @@ function wpcf_ajax() {
             $custom_taxonomies = get_option('wpcf-custom-taxonomies', array());
             if (isset($custom_taxonomies[$_GET['wpcf-tax']])) {
                 $custom_taxonomies[$_GET['wpcf-tax']]['disabled'] = 1;
+                $custom_taxonomies[$_GET['wpcf-tax']][TOOLSET_EDIT_LAST] = time();
                 update_option('wpcf-custom-taxonomies', $custom_taxonomies);
                 echo json_encode(array(
                     'output' => __('Taxonomy deactivated', 'wpcf'),
@@ -330,6 +347,7 @@ function wpcf_ajax() {
             $custom_taxonomies = get_option('wpcf-custom-taxonomies', array());
             if (isset($custom_taxonomies[$_GET['wpcf-tax']])) {
                 $custom_taxonomies[$_GET['wpcf-tax']]['disabled'] = 0;
+                $custom_taxonomies[$_GET['wpcf-tax']][TOOLSET_EDIT_LAST] = time();
                 update_option('wpcf-custom-taxonomies', $custom_taxonomies);
                 echo json_encode(array(
                     'output' => __('Taxonomy activated', 'wpcf'),

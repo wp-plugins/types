@@ -369,6 +369,7 @@ function wpcf_admin_migration_form_submit() {
                                     $wpcf_types[$types_slug]['taxonomies'] = array();
                                 }
                                 $wpcf_types[$types_slug]['taxonomies'][$tax_slug] = 1;
+                                $wpcf_types[$types_slug][TOOLSET_EDIT_LAST] = time();
                             }
                         }
 

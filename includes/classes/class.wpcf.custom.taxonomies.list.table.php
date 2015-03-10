@@ -40,7 +40,7 @@ if(!class_exists('WP_List_Table')){
 class WPCF_Custom_Taxonomies_List_Table extends WP_List_Table
 {
     var $custom_taxonomies;
-    var $disable_bulk_actions = true;
+    var $bulk_action_field_name = 'wpcf_ct_ids';
 
     /** ************************************************************************
      * REQUIRED. Set up a constructor that references the parent constructor. We
@@ -172,9 +172,9 @@ class WPCF_Custom_Taxonomies_List_Table extends WP_List_Table
     function column_cb($item)
     {
         return sprintf(
-            '<input type="checkbox" name="%1$s[]" value="%2$s" />',
-            /*$1%s*/ $this->_args['singular'],  //Let's simply repurpose the table's singular label ("movie")
-            /*$2%s*/ $item['post_type']                //The value of the checkbox should be the record's id
+            '<input type="checkbox" name="%s[]" value="%s" />',
+            $this->bulk_action_field_name,
+            $item['slug']
         );
     }
 
@@ -200,9 +200,6 @@ class WPCF_Custom_Taxonomies_List_Table extends WP_List_Table
             'status'      => __('Active', 'wpcf'),
             'supports'    => __('Post Types', 'wpcf'),
         );
-        if ($this->disable_bulk_actions) {
-            unset($columns['cb']);
-        }
         return $columns;
     }
 
@@ -246,11 +243,7 @@ class WPCF_Custom_Taxonomies_List_Table extends WP_List_Table
      **************************************************************************/
     function get_bulk_actions()
     {
-        if ( $this->disable_bulk_actions ) {
-            return array();
-        }
         $actions = array(
-            'delete'     => __('Delete', 'wpcf'),
             'activate'   => __('Activate', 'wpcf'),
             'deactivate' => __('Deactivate', 'wpcf'),
         );
@@ -266,9 +259,41 @@ class WPCF_Custom_Taxonomies_List_Table extends WP_List_Table
      **************************************************************************/
     function process_bulk_action()
     {
+        $action = $this->current_action();
         //Detect when a bulk action is being triggered...
-        if( 'delete'===$this->current_action() ) {
-            wp_die('Items deleted (or they would be if we had items to delete)!');
+        switch($action) {
+        case 'deactivate':
+            if (
+                !empty($this->custom_taxonomies)
+                && isset($_POST[$this->bulk_action_field_name])
+                && !empty($_POST[$this->bulk_action_field_name])
+            ) {
+                foreach( $_POST[$this->bulk_action_field_name] as $key ) {
+                    if ( !isset($this->custom_taxonomies[$key]) ) {
+                        continue;
+                    }
+                    $this->custom_taxonomies[$key]['disabled'] = 1;
+                }
+                update_option('wpcf-custom-taxonomies', $this->custom_taxonomies);
+            }
+            break;
+        case 'activate':
+            if (
+                !empty($this->custom_taxonomies)
+                && isset($_POST[$this->bulk_action_field_name])
+                && !empty($_POST[$this->bulk_action_field_name])
+            ) {
+                foreach( $_POST[$this->bulk_action_field_name] as $key ) {
+                    if ( !isset($this->custom_taxonomies[$key]) ) {
+                        continue;
+                    }
+                    if ( isset($this->custom_taxonomies[$key]['disabled']) ) {
+                        unset($this->custom_taxonomies[$key]['disabled']);
+                    }
+                }
+                update_option('wpcf-custom-taxonomies', $this->custom_taxonomies);
+            }
+            break;
         }
     }
 

@@ -187,6 +187,16 @@ function wpcf_admin_fields_get_fields( $only_active = false,
     return $cache[$cache_key];
 }
 
+function wpcf_admin_fields_get_field_by_meta_key( $meta_key )
+{
+    $fields = wpcf_admin_fields_get_fields();
+    foreach( $fields as $field) {
+        if ( $meta_key == $field['meta_key'] ) {
+            return $field;
+        }
+    }
+}
+
 /**
  * Gets field by ID.
  * Modified by Gen, 13.02.2013

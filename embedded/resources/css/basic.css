@@ -564,8 +564,8 @@ input.wpcf-form-error {
 
 .status-inactive
 {
-    opacity: .5;
-    transition: all .4s;
+    opacity: .7;
+/*transition: all .4s;*/
 }
 
 .wpcf-table-column-name

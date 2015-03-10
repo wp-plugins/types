@@ -103,19 +103,19 @@ function wpcf_admin_custom_taxonomies_form() {
     $form['name'] = array(
         '#type' => 'textfield',
         '#name' => 'ct[labels][name]',
-        '#title' => __( 'Custom taxonomy name plural', 'wpcf' ) . ' (<strong>' . __( 'required',
-                'wpcf' ) . '</strong>)',
+        '#title' => __( 'Custom taxonomy name plural', 'wpcf' ) . ' (<strong>' . __( 'required', 'wpcf' ) . '</strong>)',
         '#description' => '<strong>' . __( 'Enter in plural!', 'wpcf' )
-//        . '</strong><br />' . __('Alphanumeric with whitespaces only', 'wpcf')
         . '.',
         '#value' => isset( $ct['labels']['name'] ) ? $ct['labels']['name'] : '',
         '#validate' => array(
             'required' => array('value' => true),
             'maxlength' => array('value' => 30),
-//            'alphanumeric' => array('value' => true),
         ),
         '#pattern' => $table_row,
         '#inline' => true,
+        '#attributes' => array(
+            'placeholder' => __('Enter custom taxonomy name plural','wpcf'),
+        ),
     );
     $form['name-singular'] = array(
         '#type' => 'textfield',
@@ -124,16 +124,17 @@ function wpcf_admin_custom_taxonomies_form() {
                 'wpcf' ) . '</strong>)',
         '#description' => '<strong>' . __( 'Enter in singular!', 'wpcf' )
         . '</strong><br />'
-//        . __('Alphanumeric with whitespaces only', 'wpcf')
         . '.',
         '#value' => isset( $ct['labels']['singular_name'] ) ? $ct['labels']['singular_name'] : '',
         '#validate' => array(
             'required' => array('value' => true),
             'maxlength' => array('value' => 30),
-//            'alphanumeric' => array('value' => true),
         ),
         '#pattern' => $table_row,
         '#inline' => true,
+        '#attributes' => array(
+            'placeholder' => __('Enter custom taxonomy name singular','wpcf'),
+        ),
     );
 
     /*
@@ -167,7 +168,10 @@ function wpcf_admin_custom_taxonomies_form() {
             'nospecialchars' => array('value' => true),
             'maxlength' => array('value' => 30),
         ),
-        '#attributes' => $attributes + array('maxlength' => '30'),
+        '#attributes' => $attributes + array(
+            'maxlength' => '30',
+            'placeholder' => __('Enter custom taxonomy slug','wpcf'),
+        ),
     );
     $form['description'] = array(
         '#type' => 'textarea',
@@ -177,6 +181,7 @@ function wpcf_admin_custom_taxonomies_form() {
         '#attributes' => array(
             'rows' => 4,
             'cols' => 60,
+            'placeholder' => __('Enter custom taxonomy description','wpcf'),
         ),
         '#pattern' => $table_row,
         '#inline' => true,
@@ -400,11 +405,13 @@ function wpcf_admin_custom_taxonomies_form_submit( $form )
             } else {
                 unset( $post_types[$id]['taxonomies'][$data['slug']] );
             }
+            $post_types[$id][TOOLSET_EDIT_LAST] = time();
         }
         update_option( 'wpcf-custom-types', $post_types );
     }
 
     $custom_taxonomies[$tax] = $data;
+    $custom_taxonomies[$tax][TOOLSET_EDIT_LAST] = time();
     update_option( 'wpcf-custom-taxonomies', $custom_taxonomies );
 
     // WPML register strings

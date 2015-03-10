@@ -47,6 +47,13 @@ class WPToolset_Field_Date_Scripts
     public function date_enqueue_scripts()
     {
         /**
+         * prevent load scripts on custom field group edit screen
+         */
+        $screen = get_current_screen();
+        if ( 'types_page_wpcf-edit' == $screen->id ) {
+            return;
+        }
+        /**
          * styles
          */
         wp_register_style(

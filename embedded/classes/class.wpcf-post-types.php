@@ -31,9 +31,114 @@ class WPCF_Post_Types
 
     function __construct()
     {
+        add_action('admin_init', array($this, 'admin_init'));
         add_action('admin_head-nav-menus.php', array($this, 'add_filters'));
         add_filter('wp_setup_nav_menu_item',  array( $this, 'setup_archive_item'));
         add_filter('wp_nav_menu_objects', array( $this, 'maybe_make_current'));
+    }
+    /**
+     * Check has some custom fields to display.
+     *
+     * Check custom post type for custom fields to display on custom post edit 
+     * screen.
+     *
+     * @since 1.6.6
+     * @access (for functions: only use if private)
+     *
+     * @return bool It has some fields?
+     */
+    private function check_has_custom_fields($data)
+    {
+        return
+            isset($data['custom_fields'])
+            && is_array($data['custom_fields'])
+            && !empty($data['custom_fields']);
+    }
+
+    /**
+     * Admin init.
+     *
+     * Admin init function used to add columns..
+     *
+     * @since 1.6.6
+     */
+    public function admin_init()
+    {
+        $custom_post_types = wpcf_get_active_custom_types();
+        foreach( $custom_post_types as $post_type => $data ) {
+            if ( $this->check_has_custom_fields($data)) {
+                $hook = sprintf('manage_edit-%s_columns', $post_type);
+                add_filter($hook, array($this, 'manage_posts_columns'));
+                $hook = sprintf('manage_%s_posts_custom_column', $post_type);
+                add_action($hook, array($this, 'manage_custom_columns'), 10, 2);
+            }
+        }
+    }
+
+    /**
+     * Add custom fields as a columns.
+     *
+     * Add custom fields as a columns on custom post admin list
+     *
+     * @since 1.6.6
+     *
+     * @param array $columns Hashtable of columns;
+     * @return array Hashtable of columns;
+     */
+    public function manage_posts_columns($columns)
+    {
+        $screen = get_current_screen();
+        if ( !isset( $screen->post_type) ) {
+            return $columns;
+        }
+        $custom_post_types = wpcf_get_active_custom_types();
+        if(
+            !isset($custom_post_types[$screen->post_type])
+            || !$this->check_has_custom_fields($custom_post_types[$screen->post_type])
+        ) {
+            return $columns;
+        }
+        $fields = wpcf_admin_fields_get_fields();
+        ksort($fields);
+        foreach( $fields as $key => $data ) {
+            if ( !isset($data['meta_key']) ) {
+                continue;
+            }
+            if ( in_array($data['meta_key'], $custom_post_types[$screen->post_type]['custom_fields']) ) {
+                $columns[$data['meta_key']] = $data['name'];
+            }
+        }
+        return $columns;
+    }
+
+    /**
+     * Show value of custom field.
+     *
+     * Show value of custom field.
+     *
+     * @since 1.6.6
+     *
+     * @param string $column Column name,
+     * @param int $var Current post ID.
+     */
+    public function manage_custom_columns($column, $post_id)
+    {
+        $value = get_post_meta($post_id, $column, true);
+        if ( empty($value) ) {
+            return;
+        }
+        $field = wpcf_admin_fields_get_field_by_meta_key($column);
+        if ( isset( $field['type'] ) ) {
+            switch( $field['type'] ) {
+            case 'image':
+                $value = sprintf(
+                    '<img src="%s" width="120" />',
+                    $value
+                );
+                break;
+            }
+        }
+        echo $value;
     }
 
     /**

@@ -1028,12 +1028,13 @@ function wpcf_fields_get_field_form_data( $type, $form_data = array() ) {
         $form_field['name'] = array(
             '#type' => 'textfield',
             '#name' => 'name',
-            '#attributes' => array('class' => 'wpcf-forms-set-legend wpcf-forms-field-name', 'style' => 'width:100%;margin:10px 0 10px 0;'),
-            '#validate' => array('required' => array('value' => true)),
-            '#inline' => true,
             '#attributes' => array(
+                'class' => 'wpcf-forms-set-legend wpcf-forms-field-name',
+                'style' => 'width:100%;margin:10px 0 10px 0;',
                 'placeholder' => __( 'Enter field name', 'wpcf' ),
             ),
+            '#validate' => array('required' => array('value' => true)),
+            '#inline' => true,
         );
         $form_field['slug'] = array(
             '#type' => 'textfield',
