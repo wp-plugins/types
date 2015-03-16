@@ -308,6 +308,9 @@ function wpcf_admin_tax_form_js_validation()
 
 /**
  * Submit function
+ *
+ * @global object $wpdb
+ *
  */
 function wpcf_admin_custom_taxonomies_form_submit( $form )
 {

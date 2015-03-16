@@ -1,13 +1,13 @@
 <?php
 /*
  * Post relationship code.
- * 
+ *
  */
 require_once WPCF_EMBEDDED_ABSPATH . '/includes/post-relationship.php';
 add_action( 'wpcf_custom_types_save', 'wpcf_pr_custom_types_save_action' );
 
 /**
- * Init funtion. 
+ * Init funtion.
  */
 function wpcf_post_relationship_init() {
     add_thickbox();
@@ -34,8 +34,8 @@ function wpcf_post_relationship_add_metabox($meta_boxes, $type )
 
 /**
  * Saves relationships.
- * 
- * @param type $data 
+ *
+ * @param type $data
  */
 function wpcf_pr_custom_types_save_action( $data ) {
     $relationships = get_option( 'wpcf_post_relationship', array() );
@@ -79,13 +79,11 @@ function wpcf_pr_custom_types_save_action( $data ) {
 
 /**
  * Edit fields form.
- * 
- * @global type $wpdb
+ *
  * @param type $parent
- * @param type $child 
+ * @param type $child
  */
 function wpcf_pr_admin_edit_fields( $parent, $child ) {
-    global $wpdb;
 
     $post_type_parent = get_post_type_object( $parent );
     $post_type_child = get_post_type_object( $child );
@@ -217,7 +215,7 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
             if (jQuery('input[name="fields_setting"]:checked').val() == 'specific') {
                 jQuery('#wpcf-specific').show();
             } else {
-    <?php if ( $repetitive_warning && 'only_list' != $form['select']['#default_value']) { 
+    <?php if ( $repetitive_warning && 'only_list' != $form['select']['#default_value']) {
 
 ?>
                     jQuery('#wpcf-repetitive-warning').show();

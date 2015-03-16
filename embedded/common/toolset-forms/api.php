@@ -66,21 +66,23 @@ function wptoolset_timetodate( $timestamp, $format = null ){
     global $wptoolset_forms;
     return $wptoolset_forms->timetodate( $timestamp, $format );
 }
-/**
-* wptoolset_esc_like
-*
-* In WordPress 4.0, like_escape() was deprecated, due to incorrect
-* documentation and improper sanitization leading to a history of misuse
-* To maintain compatibility with versions of WP before 4.0, we duplicate the
-* logic of the replacement, wpdb::esc_like()
-*
-* @see wpdb::esc_like() for more details on proper use.
-*
-* @param string $text The raw text to be escaped.
-* @return string Text in the form of a LIKE phrase. Not SQL safe. Run through
-*                wpdb::prepare() before use.
-*/
 
+/**
+ * wptoolset_esc_like
+ *
+ * In WordPress 4.0, like_escape() was deprecated, due to incorrect
+ * documentation and improper sanitization leading to a history of misuse
+ * To maintain compatibility with versions of WP before 4.0, we duplicate the
+ * logic of the replacement, wpdb::esc_like()
+ *
+ * @see wpdb::esc_like() for more details on proper use.
+ *
+ * @global object $wpdb
+ *
+ * @param string $text The raw text to be escaped.
+ * @return string Text in the form of a LIKE phrase. Not SQL safe. Run through
+ *                wpdb::prepare() before use.
+ */
 function wptoolset_esc_like( $like )
 {
     global $wpdb;

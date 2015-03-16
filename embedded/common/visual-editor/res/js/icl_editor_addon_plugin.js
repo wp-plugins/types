@@ -802,41 +802,76 @@ var icl_editor = (function(window, $){
 
     function isCodeMirror($textarea)
     {        
-	//EMERSON: isCodeMirror method revision: WordPress 4.1 compatibility
-	//Contact me if you have questions regarding this revision.
-
-        var textareaNext = $textarea[0].nextSibling;        
-        // if CodeMirror       
-        if (
-	    //Usual way before WordPress 4.1
-            textareaNext && $textarea.is('textarea')&&            
-            textareaNext.CodeMirror &&
-            $textarea[0]==textareaNext.CodeMirror.getTextArea()
-            ) {
-            return textareaNext.CodeMirror;
-        } else {
-        	//Emerson: WordPress 4.0+ introduces 'content-textarea-clone' div which in some instances loaded before the code mirror div
-        	//This core feature in WP is used in their auto-resize editor and distraction free writing.
-        	//This is particularly found in pages and post affecting syntax highlighting in these areas.
-        	//Let's skip and check if the nextsibling is really the code mirror div
-        	
-        	if(typeof textareaNext === 'undefined'){
-        		  //Undefined
-        		  return false;
-        	} else if (textareaNext) {
-        	
-            	var textareaNextnext=textareaNext.nextSibling;
-            	if (
-            			textareaNextnext && $textarea.is('textarea')&&                    
-            			textareaNextnext.CodeMirror &&
-            			$textarea[0]==textareaNextnext.CodeMirror.getTextArea()
-                    ) {
-            		return textareaNextnext.CodeMirror;
-            	    }  
-            }
-        }
+        if ( ! $textarea.is('textarea') ) {
+			return false;
+		}
+		var textareaNext = $textarea[0].nextSibling;
+		if ( typeof textareaNext === 'undefined' ) {
+			return false;
+		}
+		if ( textareaNext ) {
+			//Usual way before WordPress 4.1
+			if (
+				textareaNext.CodeMirror 
+				&& $textarea[0] == textareaNext.CodeMirror.getTextArea()
+			) {
+				return textareaNext.CodeMirror;
+			}
+			// Juan: CodeMirror panels wrap the CodeMirror div and themselves into a div.
+			// Depending on the panels position, the CodeMirror div becomes the first or last child of that wrapper.
+			// We need to check if the relevant node contains the right CodeMirror div as a child node.
+			// Note that we will do the same below, so we can have CodeMirror panels in main editors too.
+			var textareaNextHasPanels = isCodeMirrorWithPanels( $textarea, textareaNext );
+			if ( textareaNextHasPanels ) {
+				return textareaNextHasPanels;
+			}
+			// Emerson: WordPress 4.0+ introduces 'content-textarea-clone' div which in some instances is loaded after our textarea and before the CodeMirror div.
+			// This core feature in WP is used in their auto-resize editor and distraction free writing.
+			// This is particularly found in pages and post affecting syntax highlighting in main editors.
+			// Let's skip that node and check if the nextsibling is really the CodeMirror div.
+			var textareaNextNext = textareaNext.nextSibling;
+			if ( textareaNextNext ) {
+				if (
+					textareaNextNext.CodeMirror
+					&& $textarea[0] == textareaNextNext.CodeMirror.getTextArea()
+				) {
+					return textareaNextNext.CodeMirror;
+				}
+				var textareaNextNextHasPanels = isCodeMirrorWithPanels( $textarea, textareaNextNext );
+				if ( textareaNextNextHasPanels ) {
+					return textareaNextNextHasPanels;
+				}
+			}
+		}
         return false;
     };
+	
+	function isCodeMirrorWithPanels( $textarea, candidateNode ) {
+		if ( ! $textarea.is('textarea') ) {
+			return false;
+		}
+		if ( typeof candidateNode === 'undefined' ) {
+			return false;
+		}
+		if ( candidateNode ) {
+			var candidateNodeFirstChild = candidateNode.firstChild,
+			candidateNodeLastChiild = candidateNode.lastChild;
+			if ( 
+				candidateNodeFirstChild 
+				&& candidateNodeFirstChild.CodeMirror
+				&& $textarea[0] == candidateNodeFirstChild.CodeMirror.getTextArea()
+			) {
+				return candidateNodeFirstChild.CodeMirror;
+			} else if ( 
+				candidateNodeLastChiild 
+				&& candidateNodeLastChiild.CodeMirror
+				&& $textarea[0] == candidateNodeLastChiild.CodeMirror.getTextArea()
+			) {
+				return candidateNodeLastChiild.CodeMirror;
+			}
+		}
+		return false;
+	}
 
     function getContent($area)
     {

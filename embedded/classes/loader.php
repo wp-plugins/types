@@ -12,7 +12,7 @@
 
 /**
  * Loader Class
- * 
+ *
  * @since Types 1.2
  * @package Types
  * @subpackage Classes
@@ -25,7 +25,7 @@ class WPCF_Loader
 
     /**
      * Settings
-     * @var array 
+     * @var array
      */
     private static $__settings = array();
 
@@ -38,11 +38,14 @@ class WPCF_Loader
                 array('WPCF_Loader', 'renderJsSettings'), 5 );
 		add_filter( 'the_posts', array('WPCF_Loader', 'wpcf_cache_complete_postmeta') );
     }
-    
+
     /**
-    * Cache the postmeta for posts returned by a WP_Query
-    */
-    
+     * Cache the postmeta for posts returned by a WP_Query
+     *
+     * @global object $wpdb
+     *
+     */
+
     public static function wpcf_cache_complete_postmeta( $posts ) {
 		global $wpdb;
 		if ( !$posts )
@@ -150,7 +153,7 @@ class WPCF_Loader
 
     /**
      * Returns HTML formatted output.
-     * 
+     *
      * @param string $view
      * @param mixed $data
      * @return string
@@ -171,7 +174,7 @@ class WPCF_Loader
 
     /**
      * Returns HTML formatted output.
-     * 
+     *
      * @param string $view
      * @param mixed $data
      * @return string
@@ -187,7 +190,7 @@ class WPCF_Loader
 
     /**
      * Returns HTML formatted output.
-     * 
+     *
      * @param string $template
      * @param mixed $data
      * @return string
@@ -208,7 +211,7 @@ class WPCF_Loader
 
     /**
      * Loads model.
-     * 
+     *
      * @param string $template
      * @param mixed $data
      * @return string
@@ -224,7 +227,7 @@ class WPCF_Loader
 
     /**
      * Loads class.
-     * 
+     *
      * @param string $template
      * @param mixed $data
      * @return string
@@ -240,7 +243,7 @@ class WPCF_Loader
 
     /**
      * Loads include.
-     * 
+     *
      * @param string $template
      * @param mixed $data
      * @return string
@@ -256,7 +259,7 @@ class WPCF_Loader
 
     /**
      * Adds JS settings.
-     * 
+     *
      * @staticvar array $settings
      * @param type $id
      * @param type $setting

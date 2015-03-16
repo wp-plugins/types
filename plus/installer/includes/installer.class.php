@@ -23,10 +23,25 @@ final class WP_Installer{
     }
     
     public function __construct(){
-        
-        $this->_gz_on = function_exists('gzuncompress') && function_exists('gzcompress');
 
+        if(!is_admin() || !is_user_logged_in()) return; //Only for admin
+
+        $this->_gz_on = function_exists('gzuncompress') && function_exists('gzcompress');
         $this->settings = $this->get_settings();
+
+        add_action('admin_notices', array($this, 'show_site_key_nags'));
+
+
+        add_action('admin_init', array($this, 'load_embedded_plugins'), 0);
+
+        add_action('admin_menu', array($this, 'menu_setup'));
+        add_action('network_admin_menu', array($this, 'menu_setup'));
+
+        if(defined('DOING_AJAX') && isset($_POST['action']) && $_POST['action'] == 'installer_download_plugin'){
+            add_filter( 'site_transient_update_plugins', array( $this, 'plugins_upgrade_check') );
+        }
+        add_filter('plugins_api', array( $this, 'custom_plugins_api_call'), 10, 3);
+        add_filter('pre_set_site_transient_update_plugins', array( $this, 'plugins_upgrade_check'));
 
         // register repositories
         $this->load_repositories_list();
@@ -35,26 +50,10 @@ final class WP_Installer{
         $this->config['plugins_install_tab'] = false;    
         
         add_action('init', array($this, 'init'));
+        
+        //add_filter('wp_installer_buy_url', array($this, 'append_parameters_to_buy_url'));
 
-        if(file_exists($this->plugin_path() . '/embedded-plugins' )){
-            add_action('admin_init', array($this, 'load_embedded_plugins'), 0);    
-        }
-        
 
-        add_action('admin_menu', array($this, 'menu_setup'));
-        add_action('network_admin_menu', array($this, 'menu_setup'));
-        
-        add_filter('wp_installer_buy_url', array($this, 'append_parameters_to_buy_url'));
-        
-        add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'plugins_upgrade_check') );
-
-        if(defined('DOING_AJAX') && isset($_POST['action']) && $_POST['action'] == 'installer_download_plugin'){
-            add_filter( 'site_transient_update_plugins', array( $this, 'plugins_upgrade_check') );
-        }
-        add_filter( 'plugins_api', array( $this, 'custom_plugins_api_call'), 10, 3 );
-        
-        add_action('admin_notices', array($this, 'show_site_key_nags'));
-        
     }
     
     public function set_config($key, $value){
@@ -76,19 +75,16 @@ final class WP_Installer{
         
         // refresh repositories data on WP update schedule
         // add_action('wp_maybe_auto_update', array($this, 'refresh_repositories_data'));
+
+        wp_enqueue_script('installer-admin', $this->res_url() . '/res/js/admin.js', array('jquery'), $this->version());
+        wp_enqueue_style('installer-admin', $this->res_url() . '/res/css/admin.css', array(), $this->version());
         
-        if(is_admin()){
-            wp_enqueue_script('installer-admin', $this->res_url() . '/res/js/admin.js', array('jquery'), $this->version());
-            wp_enqueue_style('installer-admin', $this->res_url() . '/res/css/admin.css', array(), $this->version());
-        }
-        
-        if(is_admin() && $pagenow == 'plugins.php'){
+        if($pagenow == 'plugins.php'){
             add_action('admin_notices', array($this, 'setup_plugins_page_notices'));
             add_action('admin_notices', array($this, 'setup_plugins_renew_warnings'), 10);
             add_action('admin_notices', array($this, 'queue_plugins_renew_warnings'), 20);
             
             add_action('admin_init', array($this, 'setup_plugins_action_links'));
-            
         }
         
         if(defined('DOING_AJAX')){
@@ -100,8 +96,6 @@ final class WP_Installer{
             add_action('wp_ajax_installer_activate_plugin', array($this, 'activate_plugin'));
             
             add_action('wp_ajax_installer_dismiss_nag', array($this, 'dismiss_nag'));
-            
-            
         }
 
 
@@ -109,10 +103,10 @@ final class WP_Installer{
     }
 
     public function load_embedded_plugins(){
-
-        include_once $this->plugin_path() . '/embedded-plugins/embedded-plugins.class.php';
-        $this->installer_embedded_plugins = new Installer_Embedded_Plugins();
-
+        if(file_exists($this->plugin_path() . '/embedded-plugins' )) {
+            include_once $this->plugin_path() . '/embedded-plugins/embedded-plugins.class.php';
+            $this->installer_embedded_plugins = new Installer_Embedded_Plugins();
+        }
     }
 
     public function menu_setup(){
@@ -254,7 +248,13 @@ final class WP_Installer{
 
         return $url;
     }
-    
+
+    public function is_repositories_page(){
+        global $pagenow;
+
+        return $pagenow == 'plugin-install.php' && isset($_GET['tab']) && $_GET['tab'] == 'commercial';
+    }
+
     public function res_url(){        
         if(isset($this->config['in_theme_folder']) && !empty($this->config['in_theme_folder'])){
             $url = untrailingslashit(get_template_directory_uri() . '/' . $this->config['in_theme_folder']);
@@ -313,13 +313,6 @@ final class WP_Installer{
                 }
             }
         }
-
-        /*
-        echo '<pre>';
-        print_r($settings);
-        echo '</pre>';
-        exit;
-        */
 
         return $settings;
     }
@@ -388,45 +381,48 @@ final class WP_Installer{
     }
     
     public function load_repositories_list(){
-        global $wp_installer_instances;
+        global $wp_installer_instances, $pagenow;
 
+        $is_cron = defined( 'DOING_CRON' ) && DOING_CRON;
+        $is_ajax = defined('DOING_AJAX') && DOING_AJAX;
+        $is_force_update = $pagenow == 'update-core.php' && !empty($_GET['force-check']);
 
-        foreach($wp_installer_instances as $instance){
+        if($is_cron || $is_ajax || $pagenow == 'plugins.php' || $this->is_repositories_page() || $is_force_update) {
+            foreach ($wp_installer_instances as $instance) {
 
-            if(file_exists(dirname($instance['bootfile']) . '/repositories.xml')){
-                $config_file = dirname($instance['bootfile']) . '/repositories.xml';
+                if (file_exists(dirname($instance['bootfile']) . '/repositories.xml')) {
+                    $config_file = dirname($instance['bootfile']) . '/repositories.xml';
 
-                if(file_exists(dirname($instance['bootfile']) . '/repositories.sandbox.xml')){
-                    $config_file = dirname($instance['bootfile']) . '/repositories.sandbox.xml';
-                }
-
-                $repos = simplexml_load_file($config_file);
-
-                foreach($repos as $repo){
-                    $id = strval($repo->id);
-
-                    $data['api-url']    = strval($repo->apiurl);
-                    $data['products']   = strval($repo->products);
-
-                    // excludes rule;
-                    if(isset($this->config['repositories_exclude']) && in_array($id, $this->config['repositories_exclude'])){
-                        continue;
+                    if (file_exists(dirname($instance['bootfile']) . '/repositories.sandbox.xml')) {
+                        $config_file = dirname($instance['bootfile']) . '/repositories.sandbox.xml';
                     }
 
-                    // includes rule;
-                    if(isset($this->config['repositories_include']) && !in_array($id, $this->config['repositories_include'])){
-                        continue;
+                    $repos = simplexml_load_file($config_file);
+
+                    foreach ($repos as $repo) {
+                        $id = strval($repo->id);
+
+                        $data['api-url'] = strval($repo->apiurl);
+                        $data['products'] = strval($repo->products);
+
+                        // excludes rule;
+                        if (isset($this->config['repositories_exclude']) && in_array($id, $this->config['repositories_exclude'])) {
+                            continue;
+                        }
+
+                        // includes rule;
+                        if (isset($this->config['repositories_include']) && !in_array($id, $this->config['repositories_include'])) {
+                            continue;
+                        }
+
+                        $this->repositories[$id] = $data;
+
                     }
-
-                    $this->repositories[$id] = $data;
-
 
                 }
 
             }
-
         }
-
 
     }
     
@@ -820,7 +816,7 @@ final class WP_Installer{
                 'site_url'  => $this->get_installer_site_url($repository_id),
         );
         $args['timeout'] = 45;
-        
+
         $response = wp_remote_post($this->repositories[$repository_id]['api-url'], $args);
         
         $this->api_debug_log("POST {$this->repositories[$repository_id]['api-url']}");
@@ -1122,8 +1118,8 @@ final class WP_Installer{
                 }
 
                 if(!empty($package['sub-packages'])){
-                    foreach($package['sub-packages'] as $package){
-                        foreach($package['products'] as $product){
+                    foreach($package['sub-packages'] as $sub_package){
+                        foreach($sub_package['products'] as $product){
                             if($product['name'] == $product_name && ($subscription_type == $product['subscription_type'] || $has_top_package)){
                                 return $available = true;
                             }
@@ -1640,9 +1636,7 @@ final class WP_Installer{
     
     public function localize_strings(){
         global $sitepress;
-        
-        
-        
+
         if(!empty($this->settings['repositories'])){
             foreach($this->settings['repositories'] as $repository_id => $repository){
                 //set name as call2action when don't have any
@@ -1786,8 +1780,7 @@ final class WP_Installer{
             foreach($repository['data']['packages'] as $package_id => $package){
                 
                 foreach($package['products'] as $product_id => $product){
-                    
-                    $fprice = false;
+
                     if($match['dtp'] == '%'){
                         $fprice = round( $product['price'] * (1 - $match['amt']/100), 2 );
                         $fprice = $fprice != round($fprice) ? sprintf('%.2f', $fprice) : round($fprice, 0);

@@ -208,22 +208,5 @@ function wpcf_admin_general_settings_form_submit($form) {
     }
     update_option('wpcf_settings', $settings);
 
-    // Credits
-    // TODO Remove
-//    require_once WPCF_EMBEDDED_INC_ABSPATH . '/footer-credit.php';
-//    $option = get_option('wpcf_footer_credit', array());
-//    if (!isset($option['message'])) {
-//        $data = wpcf_footer_credit_defaults();
-//        shuffle($data);
-//        $option['message'] = rand(0, count($data));
-//    }
-//    if (!isset($_POST['show_credits'])) {
-//        update_option('wpcf_footer_credit',
-//                array('active' => 0, 'message' => $option['message']));
-//    } else {
-//        update_option('wpcf_footer_credit',
-//                array('active' => 1, 'message' => $option['message']));
-//    }
-
     wpcf_admin_message_store(__('Settings saved', 'wpcf'));
 }

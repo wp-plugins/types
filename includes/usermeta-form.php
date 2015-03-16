@@ -30,16 +30,17 @@ if (version_compare($wp_version, '3.5', '<')) {
  * @return type
  */
 function wpcf_admin_save_usermeta_groups_submit($form) {
-    if (!isset($_POST['wpcf']['group']['name'])) {
+    if (
+           !isset($_POST['wpcf'])
+        || !isset($_POST['wpcf']['group'])
+        || !isset($_POST['wpcf']['group']['name'])
+    ) {
         return false;
     }
 
     $_POST['wpcf']['group']['name'] = trim($_POST['wpcf']['group']['name']);
 
-    $_POST['wpcf']['group'] = apply_filters('wpcf_group_pre_save',
-            $_POST['wpcf']['group']);
-
-    global $wpdb;
+    $_POST['wpcf']['group'] = apply_filters('wpcf_group_pre_save', $_POST['wpcf']['group']);
 
     $new_group = false;
 
@@ -50,24 +51,26 @@ function wpcf_admin_save_usermeta_groups_submit($form) {
 
     if (isset($_REQUEST['group_id'])) {
         // Check if group exists
-        $post = get_post($_REQUEST['group_id']);
+        $post = get_post(intval($_REQUEST['group_id']));
         // Name changed
         if (strtolower($_POST['wpcf']['group']['name']) != strtolower($post->post_title)) {
             // Check if already exists
-            $exists = get_page_by_title($_POST['wpcf']['group']['name'],
-                    'OBJECT', 'wp-types-user-group');
+            $exists = get_page_by_title($_POST['wpcf']['group']['name'], 'OBJECT', 'wp-types-user-group');
             if (!empty($exists)) {
                 $form->triggerError();
-                wpcf_admin_message(sprintf(__("A group by name <em>%s</em> already exists. Please use a different name and save again.",
-                                        'wpcf'), $_POST['wpcf']['group']['name']),
-                        'error');
+                wpcf_admin_message(
+                    sprintf(
+                        __("A group by name <em>%s</em> already exists. Please use a different name and save again.", 'wpcf'),
+                        htmlspecialchars($_POST['wpcf']['group']['name'])
+                    ),
+                    'error'
+                );
                 return $form;
             }
         }
         if (empty($post) || $post->post_type != 'wp-types-user-group') {
             $form->triggerError();
-            wpcf_admin_message(sprintf(__("Wrong group ID %d", 'wpcf'),
-                            intval($_REQUEST['group_id'])), 'error');
+            wpcf_admin_message(sprintf(__("Wrong group ID %d", 'wpcf'), intval($_REQUEST['group_id'])), 'error');
             return $form;
         }
         $group_id = $post->ID;
@@ -79,9 +82,13 @@ function wpcf_admin_save_usermeta_groups_submit($form) {
                 'wp-types-user-group');
         if (!empty($exists)) {
             $form->triggerError();
-            wpcf_admin_message(sprintf(__("A group by name <em>%s</em> already exists. Please use a different name and save again.",
-                                    'wpcf'), $_POST['wpcf']['group']['name']),
-                    'error');
+            wpcf_admin_message(
+                sprintf(
+                    __("A group by name <em>%s</em> already exists. Please use a different name and save again.", 'wpcf'),
+                    htmlspecialchars($_POST['wpcf']['group']['name'])
+                ),
+                'error'
+            );
             return $form;
         }
     }
@@ -135,7 +142,7 @@ function wpcf_admin_save_usermeta_groups_submit($form) {
     $admin_style = $_POST['wpcf']['group']['admin_styles'];
     // Rename if needed
     if (isset($_REQUEST['group_id'])) {
-        $_POST['wpcf']['group']['id'] = $_REQUEST['group_id'];
+        $_POST['wpcf']['group']['id'] = intval($_REQUEST['group_id']);
     }
 
     $group_id = wpcf_admin_fields_save_group($_POST['wpcf']['group'], 'wp-types-user-group');
@@ -195,8 +202,7 @@ function wpcf_admin_usermeta_form() {
         $update = wpcf_admin_fields_get_group(intval($_REQUEST['group_id']), 'wp-types-user-group');
         if (empty($update)) {
             $update = false;
-            wpcf_admin_message(sprintf(__("Group with ID %d do not exist",
-                                    'wpcf'), intval($_REQUEST['group_id'])));
+            wpcf_admin_message(sprintf(__("Group with ID %d do not exist", 'wpcf'), intval($_REQUEST['group_id'])));
         } else {
             $update['fields'] = wpcf_admin_fields_get_fields_by_group($_REQUEST['group_id'], 'slug', false, true, false, 'wp-types-user-group', 'wpcf-usermeta');
             $update['show_for'] = wpcf_admin_get_groups_showfor_by_group($_REQUEST['group_id']);

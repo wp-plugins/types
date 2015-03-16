@@ -28,6 +28,8 @@ function wpcf_fields_video() {
  * View function.
  * 
  * @global type $wp_embed
+ * @global object $wpdb
+ *
  * @param type $field
  * @return string
  */
@@ -83,9 +85,12 @@ function wpcf_fields_video_editor_callback( $field, $data, $meta_type, $post ) {
         if ( !empty( $file ) ) {
             // Get attachment by guid
             global $wpdb;
-            $attachment_id = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts}
-    WHERE post_type = 'attachment' AND guid=%s",
-                            $file ) );
+            $attachment_id = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid=%s",
+                    $file
+                )
+            );
         }
     }
 

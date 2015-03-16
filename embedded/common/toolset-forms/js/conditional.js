@@ -147,13 +147,13 @@ var wptCond = (function ($) {
                     console.log('radio', radio);
                 }
                 break;
-            case 'select':
+            case 'select':                
                 option = $('[name="' + $trigger.attr('name') + '"] option:selected', formID);
                 // If no option was selected, the value should be empty
                 val = '';
                 if (wptCondDebug) {
                     console.log('option', option);
-                }
+                }                
                 if (option.length == 1) {
                     if ('undefined' == typeof (option.data('types-value'))) {
                         val = option.val();
@@ -168,7 +168,7 @@ var wptCond = (function ($) {
                         } else {
                             val.push($(this).data('types-value'));
                         }
-                    });
+                    });                    
                 }
                 break;
             case 'checkbox':
@@ -525,12 +525,14 @@ var wptCond = (function ($) {
 
                 //Fix https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/193595717/comments
                 //group issue on select
-                if ($trigger.is('select')) {
-                    $("#" + $trigger.attr('id') + " > option").each(function () {
-                        //console.log(value + " " + this.text + ' ' + this.value + ' ' + $(this).data('typesValue'));                        
-                        if ($(this).data('typesValue') && $(this).data('typesValue') == value || this.text==value || value==this.value)
-                            value = this.text;
-                    });
+                if (false) {
+                    if ($trigger.is('select') && !$trigger.attr('multiple')) {                   
+                        $("#" + $trigger.attr('id') + " > option").each(function () {
+                            //console.log(value + " " + this.text + ' ' + this.value + ' ' + $(this).data('typesValue'));                        
+                            if ($(this).data('typesValue') && $(this).data('typesValue') == value || this.text==value || value==this.value)
+                                value = this.text;
+                        });                  
+                    }
                 }
                 //#####################################################################################
 
@@ -597,6 +599,9 @@ var wptCond = (function ($) {
             });
 
             var result = false;
+            //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/196173370/comments#309696464
+            //Added a new check using text element on select
+            var result2 = false;
 
             try {
                 var parser = new ToolsetParser.Expression(expression);
@@ -606,8 +611,101 @@ var wptCond = (function ($) {
             catch (e) {
                 console.info("Error in Tokenizer", e, expression, " there may be an error in your expression syntax");
             }
+            
+            //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/196173370/comments#309696464
+            //Added a new check using text element on select
+            // Get the values and update the expression.
+            _.each(c.triggers, function (t) {
+                var $trigger = _getTrigger(t, formID),
+                        value = _getTriggerValue($trigger, formID),
+                        is_array = $trigger.length > 1 ? true : false;
+                if (wptCondDebug) {
+                    console.log("The value is ", value, " for element: ", t, $trigger);
+                }
 
-            _showHide(result, _getAffected(field, formID));
+                //Fix https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/193595717/comments
+                //group issue on select
+                if ($trigger.is('select') && !$trigger.attr('multiple')) {                   
+                    $("#" + $trigger.attr('id') + " > option").each(function () {
+                        //console.log(value + " " + this.text + ' ' + this.value + ' ' + $(this).data('typesValue'));                        
+                        if ($(this).data('typesValue') && $(this).data('typesValue') == value || this.text==value || value==this.value)
+                            value = this.text;
+                    });                  
+                }
+                //#####################################################################################
+
+                if (typeof value != 'undefined') {
+
+                    // make it a string by wrapping in quotes if
+                    //    1. the value is an empty string
+                    //    2. or it's not a number
+
+                    // if the trigger is an array, eg checkboxes
+                    // then convert value to ARRAY(...)
+
+
+                    if (is_array === true) {
+
+                        var val_array = '';
+
+                        if (wptCondDebug) {
+                            console.log();
+                        }
+
+                        if (value instanceof Array) {
+                            for (var i = 0; i < value.length; i++) {
+                                var val = value[i];
+                                if (val === '' || isNaN(val)) {
+                                    val = '\'' + val + '\'';
+                                }
+
+                                if (val_array == '') {
+                                    val_array = val;
+                                } else {
+                                    val_array += ',' + val;
+                                }
+                            }
+                        } else {
+                            if (isNaN(value)) {
+                                value = '\'' + value + '\'';
+                            }
+                            val_array = value;
+                        }
+
+                        value = 'ARRAY(' + val_array + ')';
+
+                    }
+                    else
+                    {
+                        if (value === '' || isNaN(value)) {
+                            value = '\'' + value + '\'';
+                        }
+                    }
+
+                    // First replace the $(field_name) format
+                    var replace = new RegExp('\\$\\(' + t + '\\)', 'g');
+
+                    expression = expression.replace(replace, value);
+
+                    // next replace the $field_name format
+                    var replace_old = new RegExp('\\$' + t, 'g');
+
+                    expression = expression.replace(replace_old, value);
+
+                }
+
+            });
+            
+            try {
+                var parser = new ToolsetParser.Expression(expression);
+                parser.parse();
+                result2 = parser.eval();
+            }
+            catch (e) {
+                console.info("Error in Tokenizer", e, expression, " there may be an error in your expression syntax");
+            }
+
+            _showHide(result||result2, _getAffected(field, formID));
 
         });
         wptCallbacks.conditionalCheck.fire(formID);

@@ -775,7 +775,7 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
  *
  * Import selected items given by xmlstring.
  *
- * @global type $wpdb
+ * @global object $wpdb
  * @global type $iclTranslationManagement
  * @param type $data
  * @param type $_type

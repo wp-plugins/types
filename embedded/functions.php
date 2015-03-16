@@ -149,10 +149,6 @@ function wpcf_embedded_check_import()
                     $_POST['overwrite-fields'] = 1;
                     $_POST['overwrite-types'] = 1;
                     $_POST['overwrite-tax'] = 1;
-//                    $_POST['delete-groups'] = 0;
-//                    $_POST['delete-fields'] = 0;
-//                    $_POST['delete-types'] = 0;
-//                    $_POST['delete-tax'] = 0;
                     $_POST['post_relationship'] = 1;
                     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
                     require_once WPCF_EMBEDDED_INC_ABSPATH . '/import-export.php';

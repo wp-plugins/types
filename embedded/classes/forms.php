@@ -125,8 +125,10 @@ class Enlimbo_Forms_Wpcf
         if ( empty( $id ) ) {
             $id = $this->_id;
         }
-        return (isset( $_REQUEST['_wpnonce_wpcf'] )
-                && wp_verify_nonce( $_REQUEST['_wpnonce_wpcf'], $id ));
+        return (
+            isset( $_REQUEST['_wpnonce_wpcf'] )
+            && wp_verify_nonce( $_REQUEST['_wpnonce_wpcf'], $id )
+        );
     }
 
     /**
@@ -920,9 +922,15 @@ class Enlimbo_Forms_Wpcf
                             array('textfield', 'textarea') ) ? '' : 0;
         }
 
+        if ( !function_exists('getSubmittedDataTrim')) {
+            function getSubmittedDataTrim($a)
+            {
+                return trim($a, ']');
+            }
+        }
+
         $parts = explode( '[', $name );
-        $parts = array_map( create_function( '&$a', 'return trim($a, \']\');' ),
-                $parts );
+        $parts = array_map( 'getSubmittedDataTrim', $parts );
         if ( !isset( $_REQUEST[$parts[0]] ) ) {
             return in_array( $element['#type'], array('textfield', 'textarea') ) ? '' : 0;
         }

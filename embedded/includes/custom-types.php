@@ -220,34 +220,6 @@ function wpcf_custom_types_register( $post_type, $data ) {
     $args = register_post_type( $post_type, apply_filters( 'wpcf_type', $data, $post_type ) );
 
     do_action( 'wpcf_type_registered', $args );
-
-    /*
-     * Since Types 1.2
-     * We do not encourage plural and singular names to be same.
-     */
-    $wpcf->post_types->set( $post_type, $data );
-    if ( $wpcf->post_types->check_singular_plural_match() ) {
-        if ( is_admin() ) {
-//            wpcf_admin_message_dismiss( $post_type . 'warning_singular_plural_match',
-//                    $wpcf->post_types->message( 'warning_singular_plural_match' )
-//            );
-        }
-    }
-
-    // Add the standard tags and categoires if the're set.
-    $body = '';
-    if ( in_array( 'post_tag', $data['taxonomies'] ) ) {
-        $body = 'register_taxonomy_for_object_type("post_tag", "' . $post_type . '");';
-    }
-    if ( in_array( 'category', $data['taxonomies'] ) ) {
-        $body .= 'register_taxonomy_for_object_type("category", "' . $post_type . '");';
-    }
-
-    // make sure the function name is OK
-    $post_type = str_replace( '-', '_', $post_type );
-    if ( $body != '' ) {
-        add_action( 'init', create_function('', $body ));
-    }
 }
 
 /**

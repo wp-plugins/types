@@ -1515,9 +1515,8 @@ function wpcf_admin_post_process_field( $field_object ) {
  * @param type $post_ID
  * @return type
  */
-function wpcf_admin_post_get_post_groups_fields( $post = false,
-        $context = 'group' ) {
-
+function wpcf_admin_post_get_post_groups_fields( $post = false, $context = 'group' )
+{
     // Get post_type
     /*
      *
@@ -1533,8 +1532,7 @@ function wpcf_admin_post_get_post_groups_fields( $post = false,
     } else {
         if ( !isset( $_GET['post_type'] ) ) {
             $post_type = 'post';
-        } else if ( in_array( $_GET['post_type'],
-                        get_post_types( array('show_ui' => true) ) ) ) {
+        } else if ( in_array( $_GET['post_type'], get_post_types( array('show_ui' => true) ) ) ) {
             $post_type = $_GET['post_type'];
         } else {
             $post_type = 'post';
@@ -1568,10 +1566,8 @@ function wpcf_admin_post_get_post_groups_fields( $post = false,
         $post->_wpcf_post_template = false;
         $post->_wpcf_post_views_template = false;
     } else {
-        $post->_wpcf_post_template = get_post_meta( $post->ID,
-                '_wp_page_template', true );
-        $post->_wpcf_post_views_template = get_post_meta( $post->ID,
-                '_views_template', true );
+        $post->_wpcf_post_template = get_post_meta( $post->ID, '_wp_page_template', true );
+        $post->_wpcf_post_views_template = get_post_meta( $post->ID, '_views_template', true );
     }
 
     if ( empty( $post->_wpcf_post_terms ) ) {

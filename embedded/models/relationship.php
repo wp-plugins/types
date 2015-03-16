@@ -8,8 +8,9 @@ class WPCF_Relationship_Model
 
     /**
      * Fetch children by post type.
-     * 
-     * @global type $wpdb
+     *
+     * @global object $wpdb
+     *
      * @param type $post
      * @param type $post_type
      * @param string $data
@@ -108,8 +109,7 @@ class WPCF_Relationship_Model
                     WHERE p.post_type = %s
                     AND p.post_status NOT IN ('auto-draft', 'trash', 'inherit')
                     ORDER BY p.post_content " . $query['order'];
-                $sorted = $wpdb->get_results( $wpdb->prepare( $_query,
-                                $post_type ) );
+                $sorted = $wpdb->get_results( $wpdb->prepare( $_query, $post_type ) );
                 if ( !empty( $sorted ) ) {
                     $query['orderby'] = 'post__in';
                     foreach ( $sorted as $key => $value ) {

@@ -216,11 +216,10 @@ class WPCF_Relationship
      *
      * @param type $child_id
      * @param type $parent_id
+     *
      */
     function save_child( $parent_id, $child_id, $save_fields = array() )
     {
-        global $wpdb;
-
         $parent = get_post( intval( $parent_id ) );
         $child = get_post( intval( $child_id ) );
         $post_data = array();
@@ -379,6 +378,8 @@ class WPCF_Relationship
 
     /**
      * Saves new child.
+     *
+     * @global object $wpdb
      *
      * @param type $parent_id
      * @param type $post_type

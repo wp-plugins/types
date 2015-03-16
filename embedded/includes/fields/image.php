@@ -16,7 +16,7 @@ add_filter( 'types_view', 'wpcf_fields_image_view_filter', 10, 6 );
 
 /**
  * Register data (called automatically).
- * @return type 
+ * @return type
  */
 function wpcf_fields_image() {
     return array(
@@ -30,6 +30,9 @@ function wpcf_fields_image() {
 
 /**
  * Editor callback form.
+ *
+ * @global object $wpdb
+ *
  */
 function wpcf_fields_image_editor_callback( $field, $data, $context, $post ) {
 
@@ -50,9 +53,12 @@ function wpcf_fields_image_editor_callback( $field, $data, $context, $post ) {
         if ( !empty( $image ) ) {
             // Get attachment by guid
             global $wpdb;
-            $attachment_id = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts}
-    WHERE post_type = 'attachment' AND guid=%s",
-                            $image ) );
+            $attachment_id = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid=%s",
+                    $image
+                )
+            );
         }
     }
     $data['image'] = $image;
@@ -230,8 +236,8 @@ function wpcf_fields_image_editor_submit( $data, $field, $context ) {
 
 /**
  * View function.
- * 
- * @param type $params 
+ *
+ * @param type $params
  */
 function wpcf_fields_image_view( $params ) {
 
@@ -277,7 +283,7 @@ function wpcf_fields_image_view( $params ) {
     if ( !empty( $params['style'] ) ) {
         $style[] = $params['style'];
     }
-    
+
     // Compatibility with old parameters
     $old_param = isset( $params['proportional'] ) && $params['proportional'] == 'true' ? 'proportional' : 'crop';
     $resize = isset( $params['resize'] ) ? $params['resize'] : $old_param;
@@ -516,10 +522,9 @@ function wpcf_fields_image_resize_image( $url_path, $width = 300, $height = 200,
 
 /**
  * Gets all necessary data for processed image.
- * 
- * @global type $wpdb
+ *
  * @param type $image
- * @return type 
+ * @return type
  */
 function wpcf_fields_image_get_data( $image ) {
 
@@ -531,7 +536,7 @@ function wpcf_fields_image_get_data( $image ) {
     if ( isset( $cache[$cache_key] ) ) {
         return $cache[$cache_key];
     }
-    
+
     WPCF_Loader::loadView( 'image' );
     $utils = Types_Image_Utils::getInstance();
 
@@ -624,9 +629,9 @@ function wpcf_fields_image_get_data( $image ) {
 
 /**
  * Strips GET vars from value.
- * 
+ *
  * @param type $value
- * @return type 
+ * @return type
  */
 function wpcf_fields_image_value_filter( $value ) {
     if ( is_string( $value ) && !apply_filters('wpcf_allow_questionmark_in_image_url', false) ) {
@@ -637,8 +642,8 @@ function wpcf_fields_image_value_filter( $value ) {
 
 /**
  * Gets cache directory.
- * 
- * @return \WP_Error 
+ *
+ * @return \WP_Error
  */
 function wpcf_fields_image_get_cache_directory( $suppress_filters = false ) {
     WPCF_Loader::loadView( 'image' );
@@ -665,9 +670,9 @@ function wpcf_image_http_request_timeout( $timeout ) {
 
 /**
  * Fetches remote images.
- * 
+ *
  * @param type $url
- * @return \WP_Error 
+ * @return \WP_Error
  */
 function wpcf_fields_image_get_remote( $url ) {
 
@@ -766,8 +771,8 @@ function wpcf_fields_image_get_remote( $url ) {
 
 /**
  * Clears remote image cache.
- * 
- * @param type $action 
+ *
+ * @param type $action
  */
 function wpcf_fields_image_clear_cache( $cache_dir = null, $action = 'outdated' ) {
     if ( is_null( $cache_dir ) ) {
@@ -796,7 +801,7 @@ function wpcf_fields_image_clear_cache( $cache_dir = null, $action = 'outdated' 
 
 /**
  * Filters upload paths (to fix Windows issues).
- * 
+ *
  * @param type $args
  * @return type
  */
@@ -809,12 +814,12 @@ function wpcf_fields_image_uploads_realpath( $args ) {
         if ( isset( $args[$fix] ) ) {
             /*
              * Since 1.1.5
-             * 
+             *
              * We need realpath(), open_basedir restriction check
-             * 
+             *
              * Suppressing warnings, checking realpath returning FALSE, check
              * if open_basedir ini is set.
-             * 
+             *
              * https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/153462252/comments
              * http://php.net/manual/en/ini.sect.safe-mode.php
              * http://php.net/manual/en/ini.core.php#ini.open-basedir
@@ -944,9 +949,9 @@ function wpcf_image_resize( $file, $max_w, $max_h, $crop = false,
 
 /**
  * Fixes for Win.
- * 
+ *
  * For now we fix file path to have unified type slashes.
- * 
+ *
  * @param type $file
  * @param type $attachment_id
  * @return type
@@ -968,10 +973,10 @@ function wpcf_fields_image_win32_update_attached_file_filter( $file,
 
 /**
  * Filters image view.
- * 
+ *
  * This is added to handle image 'url' parameter.
  * We need to unwrap value. Also added to avoid cludging frontend.php.
- * 
+ *
  * @param boolean $params
  * @param type $field
  * @return boolean
@@ -996,7 +1001,7 @@ function wpcf_fields_image_view_filter( $output, $value, $type, $slug, $name,
 
 /**
  * Adds image to library.
- * 
+ *
  * @param type $post
  * @param type $abspath
  */
@@ -1023,21 +1028,24 @@ function wpcf_image_add_to_library( $post, $abspath ){
 
 /**
  * Checks if image is attachment.
- * 
- * @global type $wpdb
+ *
+ * @global object $wpdb
  * @param type $guid
  * @return type
  */
 function wpcf_image_is_attachment( $guid ) {
     global $wpdb;
-    return $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts}
-    WHERE post_type = 'attachment' AND guid=%s",
-                            $guid ) );
+    return $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid=%s",
+            $guid
+        )
+    );
 }
 
 /**
  * Gets attachment URL (in uploads, root or date structure).
- * 
+ *
  * @param type $abspath
  * @return type
  */
@@ -1048,7 +1056,7 @@ function wpcf_image_attachment_url( $abspath ) {
 
 /**
  * Returns path to attachment relative to upload_dir.
- * 
+ *
  * @param type $abspath
  * @return string '2014/01/img.jpg'
  */

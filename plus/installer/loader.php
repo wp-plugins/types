@@ -13,8 +13,16 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
 
+//It should only be loaded on the admin side
+if( !is_admin() ){
+    if(!function_exists('WP_Installer_Setup')){ function WP_Installer_Setup(){} }
+    $wp_installer_instance = null;
+    return;
+}
+
 
 $wp_installer_instance = dirname(__FILE__) . '/installer.php';
+
 
 // Global stack of instances
 global $wp_installer_instances;

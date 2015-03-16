@@ -24,6 +24,8 @@ function wpcf_fields_file() {
 /**
  * Form data for post edit page.
  *
+ * @global object $wpdb
+ *
  * @param type $field
  */
 function wpcf_fields_file_meta_box_form( $field ) {
@@ -36,9 +38,12 @@ function wpcf_fields_file_meta_box_form( $field ) {
     // Get attachment by guid
     global $wpdb;
     if ( !empty( $field['value'] ) ) {
-        $attachment_id = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts}
-    WHERE post_type = 'attachment' AND guid=%s",
-                        $field['value'] ) );
+        $attachment_id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid=%s",
+                $field['value']
+            )
+        );
     }
 
     // Set preview
@@ -163,6 +168,9 @@ function wpcf_fields_file_view( $params ) {
 
 /**
  * Editor callback form.
+ *
+ * @global object $wpdb
+ *
  */
 function wpcf_fields_file_editor_callback( $field, $data, $meta_type, $post ) {
 
@@ -179,14 +187,16 @@ function wpcf_fields_file_editor_callback( $field, $data, $meta_type, $post ) {
         if ( !empty( $file ) ) {
             // Get attachment by guid
             global $wpdb;
-            $attachment_id = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts}
-    WHERE post_type = 'attachment' AND guid=%s",
-                            $file ) );
+            $attachment_id = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid=%s",
+                    $file
+                )
+            );
         }
     }
 
     // Set data
-//    $data['post_id'] = !empty( $post->ID ) ? $post->ID : -1;
     $data['attachment_id'] = $attachment_id;
     $data['file'] = !empty($file) ? $file : '';
 

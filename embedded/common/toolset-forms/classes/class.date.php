@@ -30,8 +30,9 @@ class WPToolset_Field_Date extends FieldFactory
 
     public static function addFilters()
     {
-        if (has_filter('wptoolset_validation_value_date', array('WPToolset_Field_Date', 'filterValidationValue')))
+        if (has_filter('wptoolset_validation_value_date', array('WPToolset_Field_Date', 'filterValidationValue'))) {
             return;
+        }
         // Filter validation
         add_filter('wptoolset_validation_value_date', array('WPToolset_Field_Date', 'filterValidationValue'));
         add_filter('wptoolset_validation_rule_js', array('WPToolset_Field_Date', 'filterValidationRuleJs'));

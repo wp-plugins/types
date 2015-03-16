@@ -11,9 +11,10 @@ function wpcf_ajax_embedded() {
         }
     } else {
 
-        if ( !isset( $_REQUEST['_wpnonce'] )
-                || !wp_verify_nonce( $_REQUEST['_wpnonce'],
-                        $_REQUEST['wpcf_action'] ) ) {
+        if (
+            !isset( $_REQUEST['_wpnonce'] )
+            || !wp_verify_nonce( $_REQUEST['_wpnonce'], $_REQUEST['wpcf_action'] ) 
+        ) {
             die( 'Verification failed' );
         }
     }

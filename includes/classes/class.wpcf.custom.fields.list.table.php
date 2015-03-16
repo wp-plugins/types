@@ -229,7 +229,7 @@ class WPCF_Custom_Fields_List_Table extends WP_List_Table
     function get_sortable_columns()
     {
         $sortable_columns = array(
-            'title'       => array('title',false),     //true means it's already sorted
+            'title'       => array('title',true),     //true means it's already sorted
             'description' => array('description',false),
             'status'      => array('status',false)
         );
@@ -263,6 +263,8 @@ class WPCF_Custom_Fields_List_Table extends WP_List_Table
      * Optional. You can handle your bulk actions anywhere or anyhow you prefer.
      * For this example package, we will handle it in the class to keep things
      * clean and organized.
+     *
+     * @global object $wpdb
      *
      * @see $this->prepare_items()
      **************************************************************************/

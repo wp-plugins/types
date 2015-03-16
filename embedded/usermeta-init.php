@@ -210,15 +210,10 @@ add_action( 'edit_user_profile_update', 'wpcf_admin_user_profile_save_hook' );
 /**
  * Add usermeta groups to post editor
  */
-add_filter( 'editor_addon_menus_types',
-        'wpcf_admin_post_add_usermeta_to_editor_js' );
-
+add_filter( 'editor_addon_menus_types', 'wpcf_admin_post_add_usermeta_to_editor_js' );
 
 add_action( 'load-post.php', '__wpcf_usermeta_test', PHP_INT_MAX );
 add_action( 'load-post-new.php', '__wpcf_usermeta_test', PHP_INT_MAX );
-if ( is_admin() ) {
-    add_filter( 'wpcf_post_groups', '__wpcf_usermeta_test_groups' );
-}
 
 function __wpcf_usermeta_test() {
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
@@ -241,46 +236,12 @@ function __wpcf_usermeta_test() {
     }
 }
 
-function __wpcf_usermeta_test_groups( $groups ) {
-    if ( !empty( $groups ) ) {
-        return $groups;
-    }
-    $groups = wpcf_admin_fields_get_groups( 'wp-types-user-group' );
-    $check = false;
-    if ( !empty( $groups ) ) {
-
-        foreach ( $groups as $group_id => $group ) {
-
-            // Mark meta box as hidden
-            $groups[$group_id]['__show_meta_box'] = false;
-
-            if ( empty( $group['is_active'] ) ) {
-                unset( $groups[$group_id] );
-                continue;
-            }
-            $fields = wpcf_admin_fields_get_fields_by_group( $group['id'],
-                    'slug', true, false, true, 'wp-types-user-group',
-                    'wpcf-usermeta' );
-            if ( empty( $fields ) ) {
-                unset( $groups[$group_id] );
-                continue;
-            }
-            $check = true;
-        }
-    }
-    if ( !$check ) {
-        remove_action( 'admin_enqueue_scripts',
-                'wpcf_admin_post_add_to_editor_js' );
-    } else {
-        wpcf_edit_post_screen_scripts();
-    }
-    return $groups;
-}
-
 if ( !isset( $_GET['post_type'] ) && isset( $_GET['post'] ) ) {
     $post_type = get_post_type( $_GET['post'] );
-} else if ( isset( $_GET['post_type'] ) && in_array( $_GET['post_type'],
-                get_post_types( array('show_ui' => true) ) ) ) {
+} else if (
+    isset( $_GET['post_type'] )
+    && in_array( $_GET['post_type'], get_post_types( array('show_ui' => true) ) ) 
+) {
     $post_type = $_GET['post_type'];
 }
 
@@ -403,6 +364,8 @@ function wpcf_usermeta_get_shortcode( $field, $add = '', $content = '' ) {
 /**
  * Calls view function for specific usermeta field type.
  *
+ * @global object $wpdb
+ *
  * @param type $field
  * @param type $atts (additional attributes: user_id, user_name, user_is_author, user_current)
  * @return type
@@ -436,8 +399,12 @@ function types_render_usermeta( $field_id, $params, $content = null, $code = '' 
     if ( isset( $params['user_id'] ) ) {
         $user_id = $params['user_id'];
     } else if ( isset( $params['user_name'] ) ) { //Get user by login
-        $user_id = $wpdb->get_var( "SELECT * FROM " . $wpdb->users . " WHERE user_login = '" . $params['user_name'] . "'",
-                0, 0 );
+        $user_id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT * FROM " . $wpdb->users . " WHERE user_login = %s",
+                $params['user_name']
+            )
+        );
     } else if ( isset( $params['user_is_author'] ) ) { //Get Post author
         $user_id = $post->post_author;
     } else if ( isset( $params['user_current'] ) ) {//Get current logged user
@@ -566,6 +533,8 @@ function types_render_usermeta( $field_id, $params, $content = null, $code = '' 
 /**
  * Calls view function for specific field type.
  *
+ * @global object $wpdb
+ *
  * @param type $field
  * @param type $atts
  * @return type
@@ -606,8 +575,12 @@ function types_render_usermeta_field( $field_id, $params, $content = null,
     if ( isset( $params['user_id'] ) ) {
         $user_id = $params['user_id'];
     } else if ( isset( $params['user_name'] ) ) { //Get user by login
-        $user_id = $wpdb->get_var( "SELECT * FROM " . $wpdb->prefix . "users WHERE user_login = '" . $params['user_name'] . "'",
-                0, 0 );
+        $user_id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT * FROM " . $wpdb->users . " WHERE user_login = %s",
+                $params['user_name']
+            )
+        );
     } else if ( isset( $params['user_is_author'] ) ) { //Get Post author
         $user_id = $post->post_author;
     } else if ( isset( $params['user_current'] ) ) {//Get current logged user
@@ -1018,13 +991,25 @@ add_action( 'wp_ajax_wpcf_types_suggest_user',
 
 /**
  * Suggest user AJAX.
+ *
+ * @global object $wpdb
+ *
  */
 function wpcf_access_wpcf_types_suggest_user_ajax()
 {
     global $wpdb;
     $users = '';
-    $q = wptoolset_esc_like(esc_sql( trim( $_GET['q'] ) ));
-    $found = $wpdb->get_results( "SELECT ID, display_name, user_login FROM $wpdb->users WHERE user_nicename LIKE '%%$q%%' OR user_login LIKE '%%$q%%' OR display_name LIKE '%%$q%%' OR user_email LIKE '%%$q%%' LIMIT 10" );
+    $q = '%s'.wptoolset_esc_like(esc_sql( trim( $_GET['q'] ) )).'%s';
+    $found = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT ID, display_name, user_login FROM $wpdb->users WHERE user_nicename LIKE %s OR user_login LIKE %s OR display_name LIKE %s OR user_email LIKE %s LIMIT %d",
+            $q,
+            $q,
+            $q,
+            $q,
+            10
+        )
+    );
 
     if ( !empty( $found ) ) {
         foreach ( $found as $user ) {
@@ -1061,7 +1046,10 @@ function wpcf_get_usermeta_form_addon_submit( $views_usermeta = false ){
 /*
  * Usermeta fields addon.
  * Add form user users
-*/
+ *
+ * @global object $wpdb
+ *
+ */
 
 function wpcf_get_usermeta_form_addon( $settings = array() ){
 	global $wpdb;

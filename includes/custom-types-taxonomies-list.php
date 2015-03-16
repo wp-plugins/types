@@ -20,9 +20,9 @@ function wpcf_admin_ctt_list_header()
 
 function wpcf_admin_custom_post_types_list()
 {
-    include_once dirname(__FILE__).'/classes/class.wpcf.custom.type.posts.list.table.php';
+    include_once dirname(__FILE__).'/classes/class.wpcf.custom.post.types.list.table.php';
     //Create an instance of our package class...
-    $listTable = new WPCF_Custom_Type_Posts_List_Table();
+    $listTable = new WPCF_Custom_Post_Types_List_Table();
     //Fetch, prepare, sort, and filter our data...
     $listTable->prepare_items();
     ?>

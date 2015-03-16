@@ -300,6 +300,7 @@ toolsetForms.CRED_taxonomy = function () {
                     var button = jQuery(this, form);
 
                     //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/195150507/comments
+                    if (label)
                     button.val(label);
                     //##########################################################################################
 

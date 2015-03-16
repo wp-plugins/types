@@ -14,6 +14,11 @@ while ( !is_file( $path.$file) ) {
     $path = dirname($path);
 }
 require_once $path.$file;
+/**
+ *
+ * @global object $wpdb
+ *
+ */
 function autocompleter()
 {
 	$results = 1;

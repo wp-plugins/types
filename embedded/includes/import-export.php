@@ -11,9 +11,12 @@
 
 /**
  * Imports data from XML.
+ *
+ * @global object $wpdb
+ *
  */
-function wpcf_admin_import_data($data = '', $redirect = true,
-        $context = 'types') {
+function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types')
+{
     global $wpdb;
 
     libxml_use_internal_errors( true );
@@ -90,10 +93,13 @@ function wpcf_admin_import_data($data = '', $redirect = true,
                 $post['post_name'] = $group['__types_id'];
             }
             if ( (isset( $group['add'] ) && $group['add'] ) ) {
-                $post_to_update = $wpdb->get_var( $wpdb->prepare(
-                                "SELECT ID FROM $wpdb->posts
-                    WHERE post_title = %s AND post_type = %s",
-                                $group['post_title'], 'wp-types-group' ) );
+                $post_to_update = $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s",
+                        $group['post_title'],
+                        'wp-types-group'
+                    )
+                );
                 // Update (may be forced by bulk action)
                 if ( $group['update'] || ($overwrite_groups && !empty( $post_to_update )) ) {
                     if ( !empty( $post_to_update ) ) {
@@ -321,10 +327,13 @@ function wpcf_admin_import_data($data = '', $redirect = true,
                 'post_content' => !empty( $group['post_content'] ) ? $group['post_content'] : '',
             );
             if ( (isset( $group['add'] ) && $group['add'] ) ) {
-                $post_to_update = $wpdb->get_var( $wpdb->prepare(
-                                "SELECT ID FROM $wpdb->posts
-                    WHERE post_title = %s AND post_type = %s",
-                                $group['post_title'], 'wp-types-user-group' ) );
+                $post_to_update = $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s",
+                        $group['post_title'],
+                        'wp-types-user-group'
+                    )
+                );
 
                 // Update (may be forced by bulk action)
                 if ( $group['update'] || ($overwrite_groups && !empty( $post_to_update )) ) {

@@ -552,6 +552,9 @@ function wpcf_admin_types_form_js_validation()
 
 /**
  * Submit function
+ *
+ * @global object $wpdb
+ *
  */
 function wpcf_admin_custom_types_form_submit($form)
 {
@@ -633,9 +636,11 @@ function wpcf_admin_custom_types_form_submit($form)
         /**
          * update post meta "_wp_types_group_post_types"
          */
-        $sql = sprintf(
-            'select meta_id, meta_value from %s where meta_key = \'%s\'',
-            $wpdb->postmeta,
+        $sql = $wpdb->prepare(
+            sprintf(
+                'select meta_id, meta_value from %s where meta_key = %%s',
+                $wpdb->postmeta
+            ),
             '_wp_types_group_post_types'
         );
         $all_meta = $wpdb->get_results($sql, OBJECT_K);
@@ -838,7 +843,7 @@ function wpcf_admin_metabox_wpcf_visibility($ct)
         '#type' => 'checkbox',
         '#before' => sprintf('<h4>%s</h4>', __( 'Show in Right Now', 'wpcf' )),
         '#name' => 'ct[dashboard_glance]',
-        '#title' => __( 'Show number of enties on "At a Glance" admin widget.', 'wpcf' ),
+        '#title' => __( 'Show number of entries on "At a Glance" admin widget.', 'wpcf' ),
         '#default_value' => !empty( $ct['dashboard_glance'] ),
     );
     $form['table-2-close'] = wpcf_admin_metabox_end();

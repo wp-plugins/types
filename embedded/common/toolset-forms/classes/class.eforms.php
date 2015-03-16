@@ -1117,7 +1117,10 @@ class Enlimbo_Forms {
         }
 
         $parts = explode('[', $name);
-        $parts = array_map(create_function('&$a', 'return trim($a, \']\');'), $parts);
+        //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/196173458/comments
+        //Security Fixing
+        //$parts = array_map(create function('&$a', 'return trim($a, \']\');'), $parts);
+        $parts = array_map("cred_mytrimfunction", $parts);
         if (!isset($_REQUEST[$parts[0]])) {
             return in_array($element['#type'], array('textfield', 'textarea')) ? '' : 0;
         }

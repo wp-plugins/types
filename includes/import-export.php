@@ -303,7 +303,7 @@ function wpcf_admin_import_export_file_upload_error($file, $error_msg)
 /**
  * Import settings.
  *
- * @global type $wpdb
+ * @global object $wpdb
  * @param SimpleXMLElement $data
  * @return string
  */

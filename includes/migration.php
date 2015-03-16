@@ -12,6 +12,8 @@
 /**
  * Migration form.
  *
+ * @global object $wpdb
+ *
  * @return array
  */
 function wpcf_admin_migration_form() {
@@ -253,9 +255,9 @@ function wpcf_admin_migration_form() {
                                 $option_value = trim($temp[0]);
                                 $option_title = trim($temp[1]);
                             }
-                            
+
                             $_key = sanitize_title($option_value);
-                            
+
                             $form[$acf_post->ID . '_acf_field_' . $meta_name . '_option_' . $_key . '_value'] = array(
                                 '#type' => 'hidden',
                                 '#name' => 'acf_posts[' . $acf_post->ID . '][fields][' . $meta_name . '][options][' . $_key . '][value]',
@@ -450,9 +452,9 @@ function wpcf_admin_migration_form_submit() {
 
 /**
  * Gets types data.
- * 
+ *
  * @param type $cfui_type
- * @return type 
+ * @return type
  */
 function wpcf_admin_migrate_get_cfui_type_data($cfui_type) {
     $cfui_types_migrated = array();
@@ -539,9 +541,9 @@ function wpcf_admin_migrate_get_cfui_type_data($cfui_type) {
 
 /**
  * Gets taxonomies data.
- * 
+ *
  * @param type $cfui_tax
- * @return type 
+ * @return type
  */
 function wpcf_admin_migrate_get_cfui_tax_data($cfui_tax) {
     $cfui_tax_migrated = array();

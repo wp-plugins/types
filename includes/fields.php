@@ -13,7 +13,6 @@ require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
 /**
  * Gets post_types supported by specific group.
  *
- * @global type $wpdb
  * @param type $group_id
  * @return type
  */
@@ -29,7 +28,8 @@ function wpcf_admin_get_post_types_by_group( $group_id ) {
 /**
  * Gets taxonomies supported by specific group.
  *
- * @global type $wpdb
+ * @global object $wpdb
+ *
  * @param type $group_id
  * @return type
  */
@@ -43,12 +43,13 @@ function wpcf_admin_get_taxonomies_by_group( $group_id ) {
     $taxonomies = array();
     if ( !empty( $terms ) ) {
         foreach ( $terms as $term ) {
-            $term = $wpdb->get_row( "SELECT tt.term_taxonomy_id, tt.taxonomy,
-                    t.term_id, t.slug, t.name
-                    FROM {$wpdb->prefix}term_taxonomy tt
-            JOIN {$wpdb->prefix}terms t
-            WHERE t.term_id = tt.term_id AND tt.term_taxonomy_id="
-                    . intval( $term ), ARRAY_A );
+            $term = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT tt.term_taxonomy_id, tt.taxonomy, t.term_id, t.slug, t.name FROM {$wpdb->term_taxonomy} tt JOIN {$wpdb->terms} t WHERE t.term_id = tt.term_id AND tt.term_taxonomy_id = %d",
+                    $term
+                ),
+                ARRAY_A
+            );
             if ( !empty( $term ) ) {
                 $taxonomies[$term['taxonomy']][$term['term_taxonomy_id']] = $term;
             }
@@ -62,12 +63,11 @@ function wpcf_admin_get_taxonomies_by_group( $group_id ) {
 /**
  * Gets templates supported by specific group.
  *
- * @global type $wpdb
  * @param type $group_id
  * @return type
  */
-function wpcf_admin_get_templates_by_group( $group_id ) {
-    global $wpdb;
+function wpcf_admin_get_templates_by_group( $group_id )
+{
     $data = get_post_meta( $group_id, '_wp_types_group_templates', true );
     if ( $data == 'all' ) {
         return array();
@@ -94,12 +94,13 @@ function wpcf_admin_get_templates_by_group( $group_id ) {
  * Activates group.
  * Modified by Gen, 13.02.2013
  *
- * @global type $wpdb
+ * @global object $wpdb
+ *
  * @param type $group_id
  * @return type
  */
-function wpcf_admin_fields_activate_group( $group_id,
-        $post_type = 'wp-types-group' ) {
+function wpcf_admin_fields_activate_group( $group_id, $post_type = 'wp-types-group' )
+{
     global $wpdb;
     return $wpdb->update( $wpdb->posts, array('post_status' => 'publish'),
                     array('ID' => intval( $group_id ), 'post_type' => $post_type),
@@ -111,7 +112,8 @@ function wpcf_admin_fields_activate_group( $group_id,
  * Deactivates group.
  * Modified by Gen, 13.02.2013
  *
- * @global type $wpdb
+ * @global object $wpdb
+ *
  * @param type $group_id
  * @return type
  */
@@ -127,8 +129,6 @@ function wpcf_admin_fields_deactivate_group( $group_id,
 /**
  * Removes specific field from group.
  *
- * @global type $wpdb
- * @global type $wpdb
  * @param type $group_id
  * @param type $field_id
  * @return type
@@ -159,6 +159,8 @@ function wpcf_admin_fields_remove_field_from_group_bulk( $group_id, $fields ) {
  * Deletes field.
  * Modified by Gen, 13.02.2013
  *
+ * @global object $wpdb
+ *
  * @param type $field_id
  */
 function wpcf_admin_fields_delete_field( $field_id,
@@ -172,9 +174,13 @@ function wpcf_admin_fields_delete_field( $field_id,
             wpcf_admin_fields_remove_field_from_group( $group['id'], $field_id );
         }
         // Remove from posts
-        if ( !wpcf_types_cf_under_control( 'check_outsider', $field_id,
-                        $post_type, $meta_name ) ) {
-            $results = $wpdb->get_results( "SELECT post_id, meta_key FROM $wpdb->postmeta WHERE meta_key = '" . wpcf_types_get_meta_prefix( $fields[$field_id] ) . strval( $field_id ) . "'" );
+        if ( !wpcf_types_cf_under_control( 'check_outsider', $field_id, $post_type, $meta_name ) ) {
+            $results = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT post_id, meta_key FROM $wpdb->postmeta WHERE meta_key = %s",
+                    wpcf_types_get_meta_prefix( $fields[$field_id] ) . strval( $field_id )
+                )
+            );
             foreach ( $results as $result ) {
                 delete_post_meta( $result->post_id, $result->meta_key );
             }
@@ -191,7 +197,6 @@ function wpcf_admin_fields_delete_field( $field_id,
  * Deletes group by ID.
  * Modified by Gen, 13.02.2013
  *
- * @global type $wpdb
  * @param type $group_id
  * @return type
  */
@@ -551,7 +556,6 @@ function wpcf_admin_custom_fields_change_type( $fields, $type,
  * Saves group's fields.
  * Modified by Gen, 13.02.2013
  *
- * @global type $wpdb
  * @param type $group_id
  * @param type $fields
  */
@@ -588,7 +592,6 @@ function wpcf_admin_fields_save_group_fields( $group_id, $fields, $add = false,
 /**
  * Saves group's post types.
  *
- * @global type $wpdb
  * @param type $group_id
  * @param type $post_types
  */
@@ -604,7 +607,6 @@ function wpcf_admin_fields_save_group_post_types( $group_id, $post_types ) {
 /**
  * Saves group's terms.
  *
- * @global type $wpdb
  * @param type $group_id
  * @param type $terms
  */
@@ -620,7 +622,6 @@ function wpcf_admin_fields_save_group_terms( $group_id, $terms ) {
 /**
  * Saves group's templates.
  *
- * @global type $wpdb
  * @param type $group_id
  * @param type $terms
  */
@@ -635,6 +636,8 @@ function wpcf_admin_fields_save_group_templates( $group_id, $templates ) {
 
 /**
  * Returns HTML formatted AJAX activation link.
+ *
+ * @global object $wpdb
  *
  * @param type $group_id
  * @return type
@@ -865,7 +868,7 @@ function wpcf_admin_fields_get_filter_by_field( $field ) {
 /**
  * Gets posts by filter fetched with wpcf_admin_fields_get_filter_by_field().
  *
- * @global type $wpdb
+ * @global object $wpdb
  * @param type $filter
  * @return type
  */
@@ -924,7 +927,7 @@ function wpcf_admin_fields_get_posts_by_filter( $filter, $meta_query = '' ) {
  * Gets posts by filter with missing meta fetched
  * with wpcf_admin_fields_get_filter_by_field().
  *
- * @global type $wpdb
+ * @global object $wpdb
  * @param type $filter
  * @return type
  */
@@ -973,6 +976,8 @@ function wpcf_admin_fields_get_posts_by_filter_missing_meta( $filter,
 
 /**
  * Check how many posts needs checkboxes update.
+ *
+ * @global object $wpdb
  *
  * @param type $field
  * @param type $action
@@ -1257,11 +1262,12 @@ function wpcf_admin_metabox_custom_fields($ct)
                     }
                     switch( $data['type'] ) {
                     case 'embed':
+                    case 'checkboxes':
                     case 'audio':
                     case 'file':
-                    case 'skype':
                     case 'textarea':
                     case 'video':
+                    case 'wysiwyg':
                         continue;
                     default:
                         $options[$field] = array(
@@ -1282,8 +1288,7 @@ function wpcf_admin_metabox_custom_fields($ct)
 
     $form['table-custom_fields-open'] = wpcf_admin_metabox_begin(__( 'Custom Fields', 'wpcf' ), 'custom_fields', 'wpcf-types-form-visiblity-custom-fields-table', false);
 
-    $form['table-custom_fields-description'] = 
-        array(
+    $form['table-custom_fields-description'] = array(
         '#type' => 'checkboxes',
         '#options' => $options,
         '#name' => 'wpcf[group][supports]',

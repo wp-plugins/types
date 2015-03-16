@@ -37,7 +37,7 @@ if(!class_exists('WP_List_Table')){
  *
  * Our theme for this list table is going to be movies.
  */
-class WPCF_Custom_Type_Posts_List_Table extends WP_List_Table
+class WPCF_Custom_Post_Types_List_Table extends WP_List_Table
 {
     var $custom_types;
     var $bulk_action_field_name = 'wpcf_cpt_ids';
@@ -220,7 +220,7 @@ class WPCF_Custom_Type_Posts_List_Table extends WP_List_Table
     function get_sortable_columns()
     {
         $sortable_columns = array(
-            'title'       => array('title',false),     //true means it's already sorted
+            'title'       => array('title',true),     //true means it's already sorted
             'description' => array('description',false),
             'status'      => array('status',false)
         );

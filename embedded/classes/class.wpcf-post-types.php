@@ -136,9 +136,18 @@ class WPCF_Post_Types
                     $value
                 );
                 break;
+            case 'skype':
+                $value = isset($value['skypename'])? $value['skypename']:'';
+                break;
+            case 'date':
+                require_once WPTOOLSET_FORMS_ABSPATH . '/classes/class.date.php';
+                $value = WPToolset_Field_Date::timetodate($value);
+                break;
             }
         }
-        echo $value;
+        if ( is_string($value ) ) {
+            echo $value;
+        }
     }
 
     /**

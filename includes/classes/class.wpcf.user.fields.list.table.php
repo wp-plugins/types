@@ -85,8 +85,8 @@ class WPCF_User_Fields_List_Table extends WP_List_Table
                 return $item[$column_name];
             case 'show_for':
                 $show_for = wpcf_admin_get_groups_showfor_by_group($item['id']);
-                if (function_exists('wpcf_access_register_caps')){ 
-                    $show_for = __('This groups visibility is also controlled by the Access plugin.', 
+                if (function_exists('wpcf_access_register_caps')){
+                    $show_for = __('This groups visibility is also controlled by the Access plugin.',
                         'wpcf');
                 }
                 else{
@@ -198,9 +198,6 @@ class WPCF_User_Fields_List_Table extends WP_List_Table
             'status'      => __('Active', 'wpcf'),
             'show_for'    => __('Available for', 'wpcf'),
         );
-        if ($this->disable_bulk_actions) {
-            unset($columns['cb']);
-        }
         return $columns;
     }
 
@@ -221,7 +218,7 @@ class WPCF_User_Fields_List_Table extends WP_List_Table
     function get_sortable_columns()
     {
         $sortable_columns = array(
-            'title'       => array('title',false),     //true means it's already sorted
+            'title'       => array('title',true),     //true means it's already sorted
             'description' => array('description',false),
             'status'      => array('status',false)
         );
@@ -255,6 +252,8 @@ class WPCF_User_Fields_List_Table extends WP_List_Table
      * Optional. You can handle your bulk actions anywhere or anyhow you prefer.
      * For this example package, we will handle it in the class to keep things
      * clean and organized.
+     *
+     * @global object $wpdb
      *
      * @see $this->prepare_items()
      **************************************************************************/

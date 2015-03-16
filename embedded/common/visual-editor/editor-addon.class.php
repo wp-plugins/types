@@ -163,6 +163,9 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
 
         /**
          * Adding a "V" button to the menu (for user fields)
+         *
+         * @global object $wpdb
+         *
          * @param string $context
          * @param string $text_area
          * @param boolean $standard_v is this a standard V button
@@ -662,13 +665,26 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             return $searchbar;
         }
 
+        /**
+         *
+         * @global object $wpdb
+         *
+         */
         function add_view_type( &$menus, $post_type, $post_name ) {
             global $wpdb;
             $all_post_types = implode( ' ',
                     get_post_types( array('public' => true) ) );
 
-            $view_templates_available = $wpdb->get_results( "SELECT ID, post_title, post_name FROM {$wpdb->posts} WHERE
-            post_type='{$post_type}' AND post_status in ('publish')" );
+            $view_templates_available = $wpdb->get_results(
+                $wpdb->prepare(
+                    sprintf(
+                        'SELECT ID, post_title, post_name FROM %s WHERE post_type = %%s AND post_status in (%%s)',
+                        $wpdb->posts
+                    ),
+                    $post_type,
+                    'publish'
+                )
+            );
             $menus[$post_name] = array();
             $menus[$post_name]['css'] = $all_post_types;
 
@@ -712,9 +728,6 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
                 $vtemplate_index++;
             }
         }
-
-        
-
     }
 
 /*

@@ -1215,9 +1215,13 @@ function wpcf_admin_add_submenu_page($menu, $menu_slug = null, $menu_parent = 'w
 /**
  * sort helper for tables
  */
-function wpcf_usort_reorder($a,$b){
+function wpcf_usort_reorder($a,$b)
+{
     $orderby = (!empty($_REQUEST['orderby'])) ? $_REQUEST['orderby'] : 'title'; //If no sort, default to title
     $order = (!empty($_REQUEST['order'])) ? $_REQUEST['order'] : 'asc'; //If no order, default to asc
+    if ( !preg_match('/^(asc|desc)$/', $order ) ) {
+        $order = 'asc';
+    }
     if ('title' == $orderby || !isset($a[$orderby])) {
         $orderby = 'slug';
     }

@@ -107,7 +107,7 @@ var wptDate = (function ($) {
             yearRange: wptDateData.yearMin + ':' + wptDateData.yearMax,
             beforeShow: function(input) {
                 $(input).css({
-                    zIndex: 999999
+                    zIndex: 159999 // media library has z-index 160000
                 })
             }
         });

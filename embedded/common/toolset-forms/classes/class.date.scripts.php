@@ -49,9 +49,11 @@ class WPToolset_Field_Date_Scripts
         /**
          * prevent load scripts on custom field group edit screen
          */
-        $screen = get_current_screen();
-        if ( 'types_page_wpcf-edit' == $screen->id ) {
-            return;
+        if ( is_admin() ) {
+            $screen = get_current_screen();
+            if ( 'types_page_wpcf-edit' == $screen->id ) {
+                return;
+            }
         }
         /**
          * styles

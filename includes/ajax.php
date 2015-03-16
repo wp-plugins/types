@@ -2,6 +2,9 @@
 
 /**
  * All AJAX calls go here.
+ *
+ * @global object $wpdb
+ *
  */
 function wpcf_ajax() {
     if (!current_user_can('manage_options')

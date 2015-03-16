@@ -220,7 +220,7 @@ class WPCF_Custom_Taxonomies_List_Table extends WP_List_Table
     function get_sortable_columns()
     {
         $sortable_columns = array(
-            'title'       => array('title',false),     //true means it's already sorted
+            'title'       => array('title',true),     //true means it's already sorted
             'description' => array('description',false),
             'status'      => array('status',false)
         );
@@ -360,7 +360,7 @@ class WPCF_Custom_Taxonomies_List_Table extends WP_List_Table
             foreach( array_values($this->custom_taxonomies) as $taxonomy ) {
                 $one = array(
                     'description' => $taxonomy['description'],
-                    'supports' => $taxonomy['supports'],
+                    'supports' => isset($taxonomy['supports'])? $taxonomy['supports']:array(),
                     'slug' => $taxonomy['slug'],
                     'status' => (isset($taxonomy['disabled']) && $taxonomy['disabled'])? 'inactive':'active',
                     'title' => $taxonomy['labels']['singular_name'],

@@ -154,7 +154,8 @@ function wpcf_admin_fields_postfields_styles(){
 
 //    $groups = wpcf_admin_fields_get_groups();
     $groups = wpcf_admin_post_get_post_groups_fields( wpcf_admin_get_edited_post() );
-    echo '<style type="text/css">';
+
+    echo 'a<style type="text/css">';
     if ( !empty( $groups ) ) {
         foreach ( $groups as $group ) {
             echo str_replace( "}", "}\n",
