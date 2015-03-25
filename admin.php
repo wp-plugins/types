@@ -93,7 +93,6 @@ function wpcf_admin_menu_hook()
     $subpages['wpcf-um'] = array(
         'menu_title' => __( 'User Fields', 'wpcf' ),
         'function'   => 'wpcf_usermeta_summary',
-        'load_hook'  => 'wpcf_admin_menu_summary_hook',
     );
 
     // User Fields Control
@@ -197,11 +196,21 @@ function wpcf_admin_menu_debug_information()
 /**
  * Menu page hook.
  */
-function wpcf_admin_menu_summary_hook()
+function wpcf_usermeta_summary_hook()
 {
     do_action( 'wpcf_admin_page_init' );
     wpcf_admin_load_collapsible();
     wpcf_admin_page_add_options('uf',  __( 'User Fields', 'wpcf' ));
+}
+
+/**
+ * Menu page hook.
+ */
+function wpcf_admin_menu_summary_hook()
+{
+    do_action( 'wpcf_admin_page_init' );
+    wpcf_admin_load_collapsible();
+    wpcf_admin_page_add_options('cf',  __( 'Custom Fields', 'wpcf' ));
 }
 
 /**
@@ -528,7 +537,7 @@ function wpcf_admin_menu_custom_fields_control_hook()
             && wp_verify_nonce( $_REQUEST['_wpnonce'],
                     'custom_fields_control_bulk' )
             && (isset( $_POST['action'] ) || isset( $_POST['action2'] )) && !empty( $_POST['fields'] ) ) {
-        $action = $_POST['action'] == '-1' ? $_POST['action2'] : $_POST['action'];
+        $action = ( $_POST['action'] == '-1' ) ? sanitize_text_field( $_POST['action2'] ) : sanitize_text_field( $_POST['action'] );
         wpcf_admin_custom_fields_control_bulk_actions( $action );
     }
 
@@ -753,8 +762,9 @@ function wpcf_add_admin_header($title, $add_new = false, $add_new_title = false)
         );
     }
     echo '</h2>';
+	$current_page = sanitize_text_field( $_GET['page'] );
     do_action( 'wpcf_admin_header' );
-    do_action( 'wpcf_admin_header_' . $_GET['page'] );
+    do_action( 'wpcf_admin_header_' . $current_page );
 }
 
 /**
@@ -765,7 +775,8 @@ function wpcf_add_admin_header($title, $add_new = false, $add_new_title = false)
  */
 function wpcf_add_admin_footer()
 {
-    do_action( 'wpcf_admin_footer_' . $_GET['page'] );
+    $current_page = sanitize_text_field( $_GET['page'] );
+	do_action( 'wpcf_admin_footer_' . $current_page );
     do_action( 'wpcf_admin_footer' );
     echo '</div>';
 }
@@ -845,7 +856,7 @@ function wpcf_admin_widefat_table( $ID, $header, $rows = array(), $empty_message
 function wpcf_admin_tabs($tabs, $page, $default = '', $current = '')
 {
     if ( empty( $current ) && isset( $_GET['tab'] ) ) {
-        $current = $_GET['tab'];
+        $current = sanitize_text_field( $_GET['tab'] );
     } else {
         $current = $default;
     }
@@ -1217,9 +1228,9 @@ function wpcf_admin_add_submenu_page($menu, $menu_slug = null, $menu_parent = 'w
  */
 function wpcf_usort_reorder($a,$b)
 {
-    $orderby = (!empty($_REQUEST['orderby'])) ? $_REQUEST['orderby'] : 'title'; //If no sort, default to title
-    $order = (!empty($_REQUEST['order'])) ? $_REQUEST['order'] : 'asc'; //If no order, default to asc
-    if ( !preg_match('/^(asc|desc)$/', $order ) ) {
+    $orderby = (!empty($_REQUEST['orderby'])) ? sanitize_text_field( $_REQUEST['orderby'] ) : 'title'; //If no sort, default to title
+    $order = (!empty($_REQUEST['order'])) ? sanitize_text_field( $_REQUEST['order'] ) : 'asc'; //If no order, default to asc
+    if ( ! in_array( $order, array( 'asc', 'desc' ) ) ) {
         $order = 'asc';
     }
     if ('title' == $orderby || !isset($a[$orderby])) {

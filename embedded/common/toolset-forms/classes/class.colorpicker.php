@@ -37,7 +37,7 @@ class WPToolset_Field_Colorpicker extends FieldFactory
             $colorpicker_l10n = array(
                 'clear' => __( 'Clear' ),
                 'defaultString' => __( 'Default', 'wpv-views' ),
-                'pick' => __( 'Select Color', 'wpv-views' )
+                'pick' => __( 'Select', 'wpv-views' )." Color"
             );
             wp_localize_script( 'wp-color-picker', 'wpColorPickerL10n', $colorpicker_l10n );
         }

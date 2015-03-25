@@ -37,8 +37,10 @@ function wpcf_admin_fields_get_groups( $post_type = 'wp-types-group',
  *
  * Since 1.2 we enabled fetching by post title.
  *
- * @param type $group_id
- * @return type
+ * @param $group_id
+ * @param string $post_type
+ * @param bool $add_fields
+ * @return array
  */
 function wpcf_admin_fields_get_group( $group_id, $post_type = 'wp-types-group',
         $add_fields = false ) {
@@ -58,8 +60,9 @@ function wpcf_admin_fields_get_group( $group_id, $post_type = 'wp-types-group',
 /**
  * Converts post data.
  *
- * @param type $post
- * @return type
+ * @param $post
+ * @param bool $add_fields
+ * @return array
  */
 function wpcf_admin_fields_adjust_group( $post, $add_fields = false ) {
     if ( empty( $post ) ) {
@@ -111,7 +114,15 @@ function wpcf_admin_fields_save_group_admin_styles( $group_id, $admin_styles ) {
  * Gets all fields.
  *
  * @todo Move to WPCF_Fields
+ * @param bool $only_active
+ * @param bool $disabled_by_type
+ * @param bool $strictly_active
+ * @param string $option_name
+ * @param bool $use_cache
+ * @param bool $clear_cache
  * @return type
+ *
+ * added param $use_cache by Gen (used when adding new fields to group)
  * added param $use_cache by Gen (used when adding new fields to group)
  */
 function wpcf_admin_fields_get_fields( $only_active = false,
@@ -195,9 +206,12 @@ function wpcf_admin_fields_get_field_by_meta_key( $meta_key )
  * Gets field by ID.
  * Modified by Gen, 13.02.2013
  *
- * @param type $field_id
- * @param type $only_active
- * @return type
+ * @param string $field_id
+ * @param bool $only_active
+ * @param bool $disabled_by_type
+ * @param bool $strictly_active
+ * @param string $option_name
+ * @return array
  */
 function wpcf_admin_fields_get_field( $field_id, $only_active = false,
         $disabled_by_type = false, $strictly_active = false,
@@ -328,8 +342,8 @@ function wpcf_admin_fields_get_groups_by_term( $term_id = false,
  * @param type $only_active
  * @return type
  */
-function wpcf_admin_get_groups_by_post_type( $post_type, $fetch_empty = true,
-        $terms = null, $only_active = true ) {
+function wpcf_admin_get_groups_by_post_type( $post_type, $fetch_empty = true, $terms = null, $only_active = true )
+{
     $args = array();
     $args['post_type'] = 'wp-types-group';
     $args['numberposts'] = -1;
@@ -383,10 +397,9 @@ function wpcf_admin_get_groups_by_post_type( $post_type, $fetch_empty = true,
                 $add = " OR m.meta_value LIKE 'all'";
             }
             foreach ( $terms as $term ) {
-                $terms_sql[] = $term;
+                $terms_sql[] = esc_sql( $term );
             }
-            $terms_sql = "AND (m.meta_value LIKE '%%," . implode( ",%%' OR m.meta_value LIKE '%%,",
-                $terms ) . ",%%' $add)";
+            $terms_sql = "AND (m.meta_value LIKE '%%," . implode( ",%%' OR m.meta_value LIKE '%%,", $terms_sql ) . ",%%' $add)";
             global $wpdb;
             $terms_sql = "SELECT * FROM $wpdb->posts p
                 JOIN $wpdb->postmeta m

@@ -166,38 +166,6 @@ function wpcf_embedded_check_import()
 }
 
 /**
- * Display information about upgrading to the plugin version of types.
- *
- */
-function wpcf_promote_types_admin()
-{
-    $custom_types = get_option( 'wpcf-custom-types', array() );
-
-    ?>
-
-    <?php
-    if ( sizeof( $custom_types ) > 0 ) {
-        echo '<p>' . __( 'Types creates Custom Post Types. These are user-defined WordPress content types. On your theme the following types are defined:',
-                'wpcf' ) . "</p>\n";
-        echo "<ul style='margin-left:20px;'>\n";
-        foreach ( $custom_types as $type ) {
-            echo "<li>" . $type['labels']['name'] . "</li>\n";
-        }
-        echo "</ul>\n";
-    }
-
-    ?>
-    <p><?php
-        echo sprintf( __( 'If you want to edit these or create your own you can download the full version of <strong>Types</strong> from <a href="%s">%s</a>',
-                        'wpcf' ), 'http://wordpress.org/extend/plugins/types/',
-                'http://wordpress.org/extend/plugins/types/' );
-
-        ?></p>
-
-    <?php
-}
-
-/**
  * Actions for outside fields control.
  *
  * @param type $action

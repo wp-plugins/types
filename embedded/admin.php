@@ -301,7 +301,7 @@ function wpcf_admin_validation_messages( $method = false, $sprintf = '' ) {
          * see 
          * https://support.skype.com/en/faq/FA10858/what-is-a-skype-name-and-how-do-i-find-mine
          */
-        'skype' => __( 'Letters, numbers, dashes, underscores, comas and full stops only please', 'wpcf' ),
+        'skype' => __( 'Letters, numbers, dashes, underscores, commas and periods only please.', 'wpcf' ),
     );
     if ( $method ) {
         return isset( $messages[$method] ) ? $messages[$method] : '';

@@ -72,7 +72,7 @@ class WPToolset_Field_Skype extends WPToolset_Field_Textfield
             $button_element = array(
                 '#name' => '',
                 '#type' => 'button',
-                '#value' => esc_attr( __( 'Edit Skype button', 'wpv-views' ) ),
+                '#value' => esc_attr( __( 'Edit', 'wpv-views' ) )." Skype button",
                 '#attributes' => array('class' => 'js-wpt-skype-edit-button button button-small button-secondary'),
             );
 			/*

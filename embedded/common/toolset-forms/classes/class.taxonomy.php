@@ -26,40 +26,15 @@ class WPToolset_Field_Taxonomy extends WPToolset_Field_Textfield
             $this->objValues[$term->slug] = $term;
             $i++;
         }
-
-        wp_register_script( 'wptoolset-jquery-autocompleter',
-                WPTOOLSET_FORMS_RELPATH . '/js/jquery.autocomplete.js',
-                array('jquery'), WPTOOLSET_FORMS_VERSION, true );
-
-        wp_register_style('wptoolset-autocompleter', WPTOOLSET_FORMS_RELPATH.'/css/autocompleter.css');
-        wp_enqueue_script('wptoolset-jquery-autocompleter');
+		
         add_action( 'wp_footer', array($this, 'javascript_autocompleter') );
     }
 
     public function javascript_autocompleter() {
-            $autosubmit = 'function onSelectItem(row)
-                           {
-                                jQuery("input#'.$this->getName().'").focus();
-                           }';
-            $extra = '
-                    function formatItem(row) {
-                            return row[0];
-                    }
-                    function formatItem2(row) {
-                        if(row.length == 3){
-                            var attr = "attr=\"" + row[2] + "\"";
-                        } else {
-                            attr = "";
-                        }
-                        return "<span "+attr+">" + row[1] + " matches</span>" + row[0];
-                    }';
-            $results = 1;
             echo '<script type="text/javascript">
                     jQuery(document).ready(function() {
                             initTaxonomies("'. $this->values .'", "'.$this->getName().'", "'.WPTOOLSET_FORMS_RELPATH.'", "'.$this->_nameField.'");
                     });
-                    '.$autosubmit.'
-                    '.$extra.'
             </script>';
     }
 

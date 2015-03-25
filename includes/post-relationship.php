@@ -100,7 +100,8 @@ function wpcf_pr_admin_edit_fields( $parent, $child ) {
     wpcf_admin_ajax_head( 'Edit fields', 'wpcf' );
     // Process submit
     if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_POST['_wpnonce'], 'pt_edit_fields' ) ) {
-        $relationships[$parent][$child]['fields_setting'] = $_POST['fields_setting'];
+        $relationships[$parent][$child]['fields_setting'] = sanitize_text_field( $_POST['fields_setting'] );
+		// @todo Maybe sanitization here
         $relationships[$parent][$child]['fields'] = isset( $_POST['fields'] ) ? $_POST['fields'] : array();
         update_option( 'wpcf_post_relationship', $relationships );
         ?>

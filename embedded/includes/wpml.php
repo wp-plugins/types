@@ -1059,7 +1059,7 @@ function wpcf_wpml_post_is_original( $post = null ) {
         // WPML There is no lang on new post
         if ( $pagenow == 'post-new.php' ) {
             $post_type = wpcf_admin_get_edited_post_type();
-            $current_lang = isset( $_GET['lang'] ) ? $_GET['lang'] : $sitepress->get_current_language();
+            $current_lang = isset( $_GET['lang'] ) ? sanitize_text_field( $_GET['lang'] ) : $sitepress->get_current_language();
             if ( in_array( $post_type,
                             array_keys( $sitepress->get_translatable_documents() ) ) ) {
                 return $sitepress->get_default_language() == $current_lang;

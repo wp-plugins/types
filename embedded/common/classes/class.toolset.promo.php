@@ -113,10 +113,9 @@ if (!class_exists('Toolset_Promotion')) {
          */
         public function admin_footer()
         {
-            $this->get_affiliate_string();
-            $affiliate = $this->get_affiliate_string();
-            $link_button = sprintf('http://wp-types.com/#buy-toolset%s', $affiliate);
-            $link_learn = sprintf('http://wp-types.com%s', $affiliate);
+            $link_learn = $this->get_affiliate_link_string('http://wp-types.com/');
+            $link_button = $this->get_affiliate_link_string('http://wp-types.com/#buy-toolset');
+
             ob_start();
             ?>
 
@@ -159,11 +158,10 @@ if (!class_exists('Toolset_Promotion')) {
             echo ob_get_clean();
         }
 
-        private function get_affiliate_string()
+        private function get_affiliate_link_string($link)
         {
-
             if (function_exists('installer_ep_get_configuration') === false) {
-                return '';
+                return $link;
             }
 
             $info = installer_ep_get_configuration(wp_get_theme()->Name);
@@ -171,7 +169,7 @@ if (!class_exists('Toolset_Promotion')) {
             if (!isset($info['repositories']) &&
                 !isset($info['repositories']['toolset'])
             ) {
-                return '';
+                return $link;
 
             } else if (
                 isset($info['repositories']['toolset']['affiliate_id']) &&
@@ -179,11 +177,19 @@ if (!class_exists('Toolset_Promotion')) {
             ) {
                 $id = $info['repositories']['toolset']['affiliate_id'];
                 $key = $info['repositories']['toolset']['affiliate_key'];
-                $site_url = WP_Installer()->get_installer_site_url();
-                return sprintf("?icl_site_url=%s&aid=%s&affiliate_key=%s", $site_url, $id, $key);
+
+                $hash = explode( '#', $link );
+                if( count($hash) > 1 ){
+                    $link = $hash[0];
+                    $hash = "#" . $hash[1];
+                } else {
+                    $hash = '';
+                }
+
+                return sprintf("%s?aid=%s&affiliate_key=%s%s", $link, $id, $key, $hash);
             }
 
-            return '';
+            return $link;
         }
 
     }

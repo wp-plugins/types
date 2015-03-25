@@ -700,7 +700,14 @@ class WPCF_Field
      *
      * @param type $output
      */
-    function html( $html, $params ) {
+    function html( $html, $params )
+    {
+        /**
+         * check input
+         */
+        if ( !is_string($html) || empty($html) ) {
+            return '';
+        }
         /**
          *
          * Exception when RAW = TRUE.
@@ -713,9 +720,7 @@ class WPCF_Field
             $html = htmlspecialchars( $html );
         }
         // Process shortcodes too
-//        $shortcode = do_shortcode( $html );
         $html = do_shortcode( htmlspecialchars_decode( stripslashes( $html ) ) );
-
         return $html;
     }
 

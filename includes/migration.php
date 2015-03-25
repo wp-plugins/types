@@ -151,8 +151,12 @@ function wpcf_admin_migration_form() {
         }
 
         foreach ($acf_groups as $acf_key => $acf_post) {
-            $group_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type='wp-types-group'",
-                            $acf_post->post_title));
+            $group_id = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type='wp-types-group'",
+                    $acf_post->post_title
+                )
+            );
             if (empty($group_id)) {
                 $add = __('Group will be created', 'wpcf');
             } else {
@@ -392,9 +396,14 @@ function wpcf_admin_migration_form_submit() {
                 continue;
             }
             global $wpdb;
-            $group = $wpdb->get_row($wpdb->prepare("SELECT ID, post_title FROM $wpdb->posts WHERE post_title = %s AND post_type='wp-types-group'",
-                            $_POST['acf_posts'][$acf_group_id]['post_title']));
+            $group = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT ID, post_title FROM $wpdb->posts WHERE post_title = %s AND post_type='wp-types-group'",
+                    $_POST['acf_posts'][$acf_group_id]['post_title']
+                )
+            );
             if (empty($group)) {
+				// @todo Maybe sanitize here
                 $group = array();
                 $group['name'] = $_POST['acf_posts'][$acf_group_id]['post_title'];
                 $group['description'] = $_POST['acf_posts'][$acf_group_id]['post_content'];

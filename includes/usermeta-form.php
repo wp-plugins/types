@@ -38,9 +38,15 @@ function wpcf_admin_save_usermeta_groups_submit($form) {
         return false;
     }
 
-    $_POST['wpcf']['group']['name'] = trim($_POST['wpcf']['group']['name']);
+    $_POST['wpcf']['group']['name'] = trim(strip_tags($_POST['wpcf']['group']['name']));
 
     $_POST['wpcf']['group'] = apply_filters('wpcf_group_pre_save', $_POST['wpcf']['group']);
+
+    if ( empty($_POST['wpcf']['group']['name']) ) {
+        $form->triggerError();
+        wpcf_admin_message( __( 'Group name can not be empty.', 'wpcf' ), 'error');
+        return $form;
+    }
 
     $new_group = false;
 
@@ -204,9 +210,9 @@ function wpcf_admin_usermeta_form() {
             $update = false;
             wpcf_admin_message(sprintf(__("Group with ID %d do not exist", 'wpcf'), intval($_REQUEST['group_id'])));
         } else {
-            $update['fields'] = wpcf_admin_fields_get_fields_by_group($_REQUEST['group_id'], 'slug', false, true, false, 'wp-types-user-group', 'wpcf-usermeta');
-            $update['show_for'] = wpcf_admin_get_groups_showfor_by_group($_REQUEST['group_id']);
-            $update['admin_styles'] = wpcf_admin_get_groups_admin_styles_by_group($_REQUEST['group_id']);
+            $update['fields'] = wpcf_admin_fields_get_fields_by_group( sanitize_text_field( $_REQUEST['group_id'] ), 'slug', false, true, false, 'wp-types-user-group', 'wpcf-usermeta');
+            $update['show_for'] = wpcf_admin_get_groups_showfor_by_group( sanitize_text_field( $_REQUEST['group_id'] ) );
+            $update['admin_styles'] = wpcf_admin_get_groups_admin_styles_by_group( sanitize_text_field( $_REQUEST['group_id'] ) );
         }
     }
 
@@ -668,7 +674,7 @@ function wpcf_admin_usermeta_form() {
  * @param type $form_data
  */
 function wpcf_usermeta_insert_existing_ajax() {
-    $field = wpcf_admin_fields_get_field( $_GET['field'], false, true, false, 'wpcf-usermeta');
+    $field = wpcf_admin_fields_get_field( sanitize_text_field( $_GET['field'] ), false, true, false, 'wpcf-usermeta');
 
     if ( !empty( $field ) ) {
         echo wpcf_fields_get_field_form( $field['type'], $field );

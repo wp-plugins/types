@@ -8,8 +8,6 @@
  * $LastChangedBy$
  *
  */
-require_once WPCF_EMBEDDED_INC_ABSPATH . '/editor-support/post-relationship-editor-support.php';
-
 add_action( 'wpcf_admin_post_init', 'wpcf_pr_admin_post_init_action', 10, 4 );
 add_action( 'save_post', 'wpcf_pr_admin_save_post_hook', 20, 2 ); // Trigger afer main hook
 
@@ -258,7 +256,7 @@ function wpcf_pr_admin_post_meta_box_output( $post, $args )
 /**
  * AJAX delete child item call.
  *
- * @param type $post_id
+ * @param int $post_id
  * @return string
  */
 function wpcf_pr_admin_delete_child_item( $post_id ) {
@@ -377,7 +375,7 @@ function wpcf_pr_admin_post_meta_box_belongs_form( $post, $type, $belongs )
 /**
  * Updates belongs data.
  *
- * @param type $post_id
+ * @param int $post_id
  * @param array $data $post_type => $post_id
  * @return string
  */
@@ -452,13 +450,13 @@ function wpcf_pr_admin_has_pagination( $post, $post_type, $page, $prev, $next,
     $link = '';
     $add = '';
     if ( isset( $_GET['sort'] ) ) {
-        $add .= '&sort=' . $_GET['sort'];
+        $add .= '&sort=' . sanitize_text_field( $_GET['sort'] );
     }
     if ( isset( $_GET['field'] ) ) {
-        $add .= '&field=' . $_GET['field'];
+        $add .= '&field=' . sanitize_text_field( $_GET['field'] );
     }
     if ( isset( $_GET['post_type_sort_parent'] ) ) {
-        $add .= '&post_type_sort_parent=' . $_GET['post_type_sort_parent'];
+        $add .= '&post_type_sort_parent=' . sanitize_text_field( $_GET['post_type_sort_parent'] );
     }
 
     /**

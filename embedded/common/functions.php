@@ -149,6 +149,8 @@ function wpv_condition( $atts, $post_to_check = null ) {
 
     add_filter( 'wpv-extra-condition-filters', 'wpv_add_time_functions' );
     $evaluate = apply_filters( 'wpv-extra-condition-filters', $evaluate );
+	
+	$logging_string .= "; After extra conditions: " . $evaluate;
 
     // evaluate empty() statements for variables
 	if ( $has_post ) {
@@ -165,8 +167,8 @@ function wpv_condition( $atts, $post_to_check = null ) {
 						|| ( is_array( $match_var ) && empty( $match_var ) ) ) {
 					$is_empty = '1=1';
 				}
-
 				$evaluate = str_replace( $matches[0][$i], $is_empty, $evaluate );
+				$logging_string .= "; After empty: " . $evaluate;
 			}
 		}
 	}
@@ -185,10 +187,9 @@ function wpv_condition( $atts, $post_to_check = null ) {
 				if ( strpos( $string, '$' ) === 0 ) {
 					$variable_name = substr( $string, 1 ); // omit dollar sign
 					if ( isset( $atts[$variable_name] ) ) {
-						$string = get_post_meta( $post->ID, $atts[$variable_name],
-								true );
-						$evaluate = str_replace( $matches[1][$i],
-								"'" . $string . "'", $evaluate );
+						$string = get_post_meta( $post->ID, $atts[$variable_name], true );
+						$evaluate = str_replace( $matches[1][$i], "'" . $string . "'", $evaluate );
+						$logging_string .= "; After variables I: " . $evaluate;
 					}
 				}
 			}
@@ -246,11 +247,10 @@ function wpv_condition( $atts, $post_to_check = null ) {
                     $evaluate = str_replace( $matches[0][$i], '1=0', $evaluate );
                 }
             } else {
-                $evaluate = str_replace( $matches[1][$i], $first_string,
-                        $evaluate );
-                $evaluate = str_replace( $matches[5][$i], $second_string,
-                        $evaluate );
+                $evaluate = str_replace( $matches[1][$i], $first_string, $evaluate );
+                $evaluate = str_replace( $matches[5][$i], $second_string, $evaluate );
             }
+			$logging_string .= "; After variables II: " . $evaluate;
         }
     }
 
@@ -261,10 +261,10 @@ function wpv_condition( $atts, $post_to_check = null ) {
         for ( $i = 0; $i < $strings_count; $i++ ) {
             $string = $matches[1][$i];
             // remove single quotes from string literals to get value only
-            $string = (strpos( $string, '\'' ) === 0) ? substr( $string, 1,
-                            strlen( $string ) - 2 ) : $string;
+            $string = (strpos( $string, '\'' ) === 0) ? substr( $string, 1, strlen( $string ) - 2 ) : $string;
             if ( is_numeric( $string ) ) {
                 $evaluate = str_replace( $matches[1][$i], $string, $evaluate );
+				$logging_string .= "; After variables III: " . $evaluate;
             }
         }
     }
@@ -292,6 +292,7 @@ function wpv_condition( $atts, $post_to_check = null ) {
 					$meta = "0";
 				}
 				$evaluate = str_replace( '$' . $match, $meta, $evaluate );
+				$logging_string .= "; After variables IV: " . $evaluate;
 			}
 		}
 	}
@@ -487,7 +488,7 @@ class WPV_wpcf_switch_post_from_attr_id
                 $this->found = true;
 
                 // save original post 
-                $this->post = isset( $post ) ? clone $post : null;
+                $this->post = ( isset( $post ) && ( $post instanceof WP_Post ) ) ? clone $post : null;
                 if ( $authordata ) {
                     $this->authordata = clone $authordata;
                 } else {
@@ -509,7 +510,7 @@ class WPV_wpcf_switch_post_from_attr_id
             global $post, $authordata, $id;
 
             // restore the global post values.
-            $post = isset( $this->post ) ? clone $this->post : null;
+            $post = ( isset( $this->post ) && ( $this->post instanceof WP_Post ) ) ? clone $this->post : null;
             if ( $this->authordata ) {
                 $authordata = clone $this->authordata;
             } else {

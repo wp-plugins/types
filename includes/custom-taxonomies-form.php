@@ -24,9 +24,9 @@ function wpcf_admin_custom_taxonomies_form() {
     $update = false;
 
     if ( isset( $_GET['wpcf-tax'] ) ) {
-        $id = $_GET['wpcf-tax'];
+        $id = sanitize_text_field( $_GET['wpcf-tax'] );
     } else if ( isset( $_POST['wpcf-tax'] ) ) {
-        $id = $_POST['wpcf-tax'];
+        $id = sanitize_text_field( $_POST['wpcf-tax'] );
     }
 
     if ( $id ) {
@@ -143,7 +143,7 @@ function wpcf_admin_custom_taxonomies_form() {
      */
     $attributes = array();
     if ( !empty( $_POST['ct']['slug'] ) ) {
-        $reserved = wpcf_is_reserved_name( $_POST['ct']['slug'], 'taxonomy' );
+        $reserved = wpcf_is_reserved_name( sanitize_text_field( $_POST['ct']['slug'] ), 'taxonomy' );
         if ( is_wp_error( $reserved ) ) {
             $attributes = array(
                 'class' => 'wpcf-form-error',

@@ -714,9 +714,11 @@ var wptCond = (function ($) {
     function _showHide(show, $el)
     {
         //Fix https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/193353994/comments#302703480
-        if (jQuery('.wpt-form-error').length) {
+        
+        //TODO: check this cause side effect
+        /*if (jQuery('.wpt-form-error').length) {            
             jQuery('.wpt-form-error').hide();
-        }
+        }*/
 
         if (wptCondDebug) {
             console.info('_showHide');
@@ -759,6 +761,7 @@ var wptCond = (function ($) {
                     $el.show();
                     break;
             }
+            $($el).find('input, textarea, button, select').prop("disabled", false);
         } else {
             $el.addClass('wpt-conditional-hidden js-wpt-remove-on-submit js-wpt-validation-ignore').removeClass('wpt-conditional-visible');
             switch (effectmode) {
@@ -785,6 +788,7 @@ var wptCond = (function ($) {
                     $el.hide();
                     break;
             }
+            $($el).find('input, textarea, button, select').attr('disabled','disabled');            
         }
     }
 

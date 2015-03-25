@@ -50,6 +50,11 @@
     color: #f00;
 }
 
+.installer-status-note{
+    color: #6F6E6D;
+    font-style: italic;
+}
+
 .installer-warn-box{
     -webkit-border-radius: 5px;-moz-border-radius: 5px;border-radius: 5px;border:1px solid #962722;background-color:#F5C8C6;
     color: #333;

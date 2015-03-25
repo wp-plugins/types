@@ -282,6 +282,7 @@ function wpcf_admin_user_fields_control_bulk_actions($action = '')
 
         $fields = wpcf_admin_fields_get_fields(false, true, false, 'wpcf-usermeta');
         foreach ($_POST['fields'] as $field_id) {
+			$field_id = sanitize_text_field( $field_id );
             if (isset($fields[$field_id])) {
                 $fields[$field_id]['data']['disabled'] = 1;
                 wpcf_admin_message_store(sprintf(__('Removed from Types control: %s', 'wpcf'), $fields[$field_id]['name']));
@@ -305,6 +306,7 @@ function wpcf_admin_user_fields_control_bulk_actions($action = '')
         $failed = array();
         $success = array();
         foreach ($_POST['fields'] as $field_id) {
+			$field_id = sanitize_text_field( $field_id );
             $response = wpcf_admin_fields_delete_field($field_id, 'wp-types-user-group', 'wpcf-usermeta');
             if (!$response) {
                 $failed[] = str_replace('_' . md5('wpcf_not_controlled'), '', $field_id);
@@ -394,8 +396,9 @@ function wpcf_admin_user_fields_control_bulk_ajax() {
     }
     if (!empty($_POST)) {
         if (!empty($_POST['groups']) && !empty($_POST['fields'])) {
-            $action = isset($_POST['wpcf_action_control']) ? $_POST['wpcf_action_control'] : 'wpcf-add-to-group-bulk';
+            $action = isset($_POST['wpcf_action_control']) ? sanitize_text_field( $_POST['wpcf_action_control'] ) : 'wpcf-add-to-group-bulk';
             foreach ($_POST['groups'] as $group_id) {
+				$group_id = sanitize_text_field( $group_id );
                 switch ($action) {
                     case 'wpcf-add-to-group-bulk':
                         wpcf_admin_fields_save_group_fields($group_id,
@@ -413,7 +416,7 @@ function wpcf_admin_user_fields_control_bulk_ajax() {
             }
         } else if (!empty($_POST['type']) && !empty($_POST['fields'])) {
             wpcf_admin_custom_fields_change_type($_POST['fields'],
-                    $_POST['type'], 'wp-types-user-group', 'wpcf-usermeta');
+                    sanitize_text_field( $_POST['type'] ), 'wp-types-user-group', 'wpcf-usermeta');
         }
         echo '<script type="text/javascript">
             window.parent.jQuery("#TB_closeWindowButton").click();
@@ -445,6 +448,7 @@ function wpcf_admin_user_fields_control_bulk_ajax() {
     }
 
     foreach ($_GET['fields'] as $field_id) {
+		$field_id = sanitize_text_field( $field_id );
         $output[$field_id] = array(
             '#type' => 'hidden',
             '#name' => 'fields[]',

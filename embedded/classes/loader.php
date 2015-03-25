@@ -57,7 +57,7 @@ class WPCF_Loader
 			$cache_key_looped_post = md5( 'post::_is_cached' . $post->ID );
 			$cached_object = wp_cache_get( $cache_key_looped_post, $cache_group_ids );
 			if ( false === $cached_object ) {
-				$post_ids[] = $post->ID;
+				$post_ids[] = intval( $post->ID );
 				wp_cache_add( $cache_key_looped_post, $post->ID, $cache_group_ids );
 			}
 		}

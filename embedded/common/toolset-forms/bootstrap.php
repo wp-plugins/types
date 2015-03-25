@@ -48,6 +48,10 @@ class WPToolset_Forms_Bootstrap
         // Date extended localization AJAX callback
         add_action( 'wp_ajax_wpt_localize_extended_date', array( $this, 'wpt_localize_extended_date' ) );
         add_action( 'wp_ajax_nopriv_wpt_localize_extended_date', array( $this, 'wpt_localize_extended_date' ) );
+		
+		// Taxonomy term suggest AJAX callback
+        add_action( 'wp_ajax_wpt_suggest_taxonomy_term', array( $this, 'wpt_suggest_taxonomy_term' ) );
+        add_action( 'wp_ajax_nopriv_wpt_suggest_taxonomy_term', array( $this, 'wpt_suggest_taxonomy_term' ) );
 
         // File media popup
         if ( (isset( $_GET['context'] ) && $_GET['context'] == 'wpt-fields-media-insert') || (isset( $_SERVER['HTTP_REFERER'] ) && strpos( $_SERVER['HTTP_REFERER'],
@@ -129,16 +133,74 @@ class WPToolset_Forms_Bootstrap
 
     public function wpt_localize_extended_date()
     {
-        $date_format = $_POST['date-format'];
-        if ($date_format == '') {
-            $date_format = get_option('date_format');
+        if ( ! isset( $_POST['date'] ) ) {
+			die();
+		}
+		$date = $_POST['date'];
+		$date_format = '';
+		if ( isset( $_POST['date-format'] ) ) {
+			$date_format = $_POST['date-format'];
+		}
+        if ( $date_format == '' ) {
+            $date_format = get_option( 'date_format' );
         }
-        $date = $_POST['date'];
-        $date = adodb_mktime(0, 0, 0, substr($date, 2, 2), substr($date, 0, 2), substr($date, 4, 4));
-        $date_format = str_replace('\\\\', '\\', $date_format);
-        echo json_encode(array('display' => adodb_date($date_format, $date),'timestamp' => $date));
+        $date = adodb_mktime( 0, 0, 0, substr( $date, 2, 2 ), substr( $date, 0, 2 ), substr( $date, 4, 4 ) );
+        $date_format = str_replace( '\\\\', '\\', $date_format );
+        echo json_encode( array( 'display' => adodb_date( $date_format, $date ), 'timestamp' => $date ) );
         die();
     }
+	
+	/**
+	* wpt_suggest_taxonomy_term
+	*
+	* Renders the suggestions when adding new flat taxonomy terms on a CRED form
+	*
+	* Needs a non-empty q attribute and can take an optional non-empty taxonomy attribute on the $_REQUEST
+	*
+	* @since 1.5.0
+	*/
+	
+	public function wpt_suggest_taxonomy_term()
+	{
+		if ( 
+			! isset( $_REQUEST['q']  ) 
+			|| $_REQUEST['q'] == ''
+		) {
+			die();
+		}
+		global $wpdb;
+		$values_to_prepare = array();
+		
+		$term_name = '%' . wpv_esc_like( $_REQUEST['q'] ) . '%';
+		$values_to_prepare[] = $term_name;
+		
+		$tax_join = "";
+		$tax_where = "";
+		if ( 
+			isset( $_REQUEST['taxonomy'] ) 
+			&& $_REQUEST['taxonomy'] != ''
+		) {
+			$tax_join = " JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id  ";
+			$tax_where = " AND tt.taxonomy = %s ";
+			$values_to_prepare[] = $_REQUEST['taxonomy'];
+		}
+		//
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT name FROM {$wpdb->terms} t {$tax_join} 
+				WHERE t.name LIKE %s 
+				{$tax_where}
+				ORDER BY name DESC 
+				LIMIT 5",
+				$values_to_prepare
+			)
+		);
+		foreach ( $results as $row ) {
+			echo $row->name . "\n";
+		}
+		
+		die();
+	}
 
     public function filterTypesField($field, $post_id = null, $_post_wpcf = array())
     {

@@ -187,6 +187,7 @@ function wpcf_admin_image_settings_form_submit($form) {
         if (!isset($data[$setting])) {
             $settings[$setting] = 0;
         } else {
+			// @todo Add sanitization here
             $settings[$setting] = $data[$setting];
         }
     }
@@ -203,6 +204,7 @@ function wpcf_admin_general_settings_form_submit($form) {
         if (!isset($data[$setting])) {
             $settings[$setting] = 0;
         } else {
+			// @todo Add sanitization here
             $settings[$setting] = $data[$setting];
         }
     }

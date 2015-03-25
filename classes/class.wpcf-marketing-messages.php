@@ -121,8 +121,9 @@ class WPCF_Types_Marketing_Messages extends WPCF_Types_Marketing
                 && array_key_exists('wpcf-post-type', $_GET)
             ) {
                 $types = get_option('wpcf-custom-types', array());
-                if ( array_key_exists($_GET['wpcf-post-type'], $types ) ) {
-                    $text = preg_replace( '/PPP/', $types[$_GET['wpcf-post-type']]['labels']['name'], $text);
+				$candidate_key = sanitize_text_field( $_GET['wpcf-post-type'] );
+                if ( array_key_exists($candidate_key, $types ) ) {
+                    $text = preg_replace( '/PPP/', $types[$candidate_key]['labels']['name'], $text);
                 }
             }
             break;
@@ -133,11 +134,12 @@ class WPCF_Types_Marketing_Messages extends WPCF_Types_Marketing
                 && array_key_exists('wpcf-tax', $_GET)
             ) {
                 $taxonomies = get_option('wpcf-custom-taxonomies', array());
-                if ( array_key_exists($_GET['wpcf-tax'], $taxonomies) ) {
-                    $text = preg_replace( '/TTT/', $taxonomies[$_GET['wpcf-tax']]['labels']['name'], $text);
-                    if ( array_key_exists('supports', $taxonomies[$_GET['wpcf-tax']]) ) {
+				$candidate_key = sanitize_text_field( $_GET['wpcf-tax'] );
+                if ( array_key_exists($candidate_key, $taxonomies) ) {
+                    $text = preg_replace( '/TTT/', $taxonomies[$candidate_key]['labels']['name'], $text);
+                    if ( array_key_exists('supports', $taxonomies[$candidate_key]) ) {
                         $types = get_option('wpcf-custom-types', array());
-                        $post_type = array_keys($taxonomies[$_GET['wpcf-tax']]['supports']);
+                        $post_type = array_keys($taxonomies[$candidate_key]['supports']);
                         if ( !empty($post_type) ) {
                             $post_type = $post_type[array_rand($post_type)];
                             $post_type = get_post_type_object($post_type);
@@ -219,6 +221,7 @@ class WPCF_Types_Marketing_Messages extends WPCF_Types_Marketing
             array_key_exists($this->option_name, $_POST)
             && array_key_exists($_POST[$this->option_name], $this->options)
         ) {
+			// @todo we need to sanitize $_POST[$this->option_name]: is it a string, an array or what?
             if ( !add_option($this->option_name, $_POST[$this->option_name], '', 'no') ) {
                 update_option($this->option_name, $_POST[$this->option_name]);
             }
@@ -307,6 +310,8 @@ class WPCF_Types_Marketing_Messages extends WPCF_Types_Marketing
         return;
     }
 
+    // @todo nonce ?
+    // @todo auth ?
     public function update_toolset_messages()
     {
         $settings = wpcf_get_settings();

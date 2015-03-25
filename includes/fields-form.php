@@ -37,9 +37,16 @@ function wpcf_admin_save_fields_groups_submit( $form )
     ) {
         return false;
     }
-    $_POST['wpcf']['group']['name'] = trim( $_POST['wpcf']['group']['name'] );
+    // @todo maybe sanitize_text_field this too
+    $_POST['wpcf']['group']['name'] = trim(strip_tags($_POST['wpcf']['group']['name']));
 
     $_POST['wpcf']['group'] = apply_filters( 'wpcf_group_pre_save', $_POST['wpcf']['group'] );
+
+    if ( empty($_POST['wpcf']['group']['name']) ) {
+        $form->triggerError();
+        wpcf_admin_message( __( 'Group name can not be empty.', 'wpcf' ), 'error');
+        return $form;
+    }
 
     $new_group = false;
 
@@ -229,11 +236,11 @@ function wpcf_admin_fields_form() {
             wpcf_admin_message( sprintf( __( "Group with ID %d do not exist",
                                     'wpcf' ), intval( $_REQUEST['group_id'] ) ) );
         } else {
-            $update['fields'] = wpcf_admin_fields_get_fields_by_group( $_REQUEST['group_id'], 'slug', false, true );
-            $update['post_types'] = wpcf_admin_get_post_types_by_group( $_REQUEST['group_id'] );
-            $update['taxonomies'] = wpcf_admin_get_taxonomies_by_group( $_REQUEST['group_id'] );
-            $update['templates'] = wpcf_admin_get_templates_by_group( $_REQUEST['group_id'] );
-            $update['admin_styles'] = wpcf_admin_get_groups_admin_styles_by_group( $_REQUEST['group_id'] );
+            $update['fields'] = wpcf_admin_fields_get_fields_by_group( sanitize_text_field( $_REQUEST['group_id'] ), 'slug', false, true );
+            $update['post_types'] = wpcf_admin_get_post_types_by_group( sanitize_text_field( $_REQUEST['group_id'] ) );
+            $update['taxonomies'] = wpcf_admin_get_taxonomies_by_group( sanitize_text_field( $_REQUEST['group_id'] ) );
+            $update['templates'] = wpcf_admin_get_templates_by_group( sanitize_text_field( $_REQUEST['group_id'] ) );
+            $update['admin_styles'] = wpcf_admin_get_groups_admin_styles_by_group( sanitize_text_field( $_REQUEST['group_id'] ) );
         }
     }
 
@@ -893,7 +900,7 @@ var wpcfDefaultCss = ' . json_encode( $admin_styles_value ) . ';
  * @param type $form_data
  */
 function wpcf_fields_insert_ajax( $form_data = array() ) {
-    echo wpcf_fields_get_field_form( $_GET['field'] );
+    echo wpcf_fields_get_field_form( sanitize_text_field( $_GET['field'] ) );
 }
 
 /**
@@ -902,7 +909,7 @@ function wpcf_fields_insert_ajax( $form_data = array() ) {
  * @param type $form_data
  */
 function wpcf_fields_insert_existing_ajax() {
-    $field = wpcf_admin_fields_get_field( $_GET['field'], false, true );
+    $field = wpcf_admin_fields_get_field( sanitize_text_field( $_GET['field'] ), false, true );
     if ( !empty( $field ) ) {
         echo wpcf_fields_get_field_form( $field['type'], $field );
     } else {

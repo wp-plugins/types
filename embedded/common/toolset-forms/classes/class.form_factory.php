@@ -37,8 +37,12 @@ class FormFactory extends FormAbstract
 
         wp_register_script( 'wptoolset-forms',
             WPTOOLSET_FORMS_RELPATH . '/js/main.js',
-            array('jquery', 'underscore'), WPTOOLSET_FORMS_VERSION, false );
+            array('jquery', 'underscore', 'suggest'), WPTOOLSET_FORMS_VERSION, false );
         wp_enqueue_script( 'wptoolset-forms' );
+		$wptoolset_forms_localization = array(
+			'ajaxurl' => admin_url( 'admin-ajax.php', null )
+		);
+		wp_localize_script( 'wptoolset-forms', 'wptoolset_forms_local', $wptoolset_forms_localization );
 
         if ( is_admin() ) {
             wp_register_style( 'wptoolset-forms-admin',
@@ -238,8 +242,10 @@ class FormFactory extends FormAbstract
                 if ( current_user_can('manage_options') ) {
                     $htmlArray[] = sprintf(
                         '<div id="message" class="error"><p>%s</p><p>%s</p></div>',
+                        //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/196628627/comments#310360880
+                        //changed render to rendering
                         sprintf(
-                            __('There is a problem with render <strong>%s (%s)</strong> field.', 'wpv-views'),
+                            __('There is a problem with rendering field <strong>%s (%s)</strong>.', 'wpv-views'),
                             $_cfg['title'],
                             $_cfg['type']
                         ),

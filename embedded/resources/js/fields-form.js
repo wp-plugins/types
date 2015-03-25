@@ -65,6 +65,16 @@ jQuery(document).ready(function($){
         });
         wpcf_checkbox_value_zero($(this));
     });
+
+    /**
+     * confitonal logic button close on group edit screen
+     */
+    $('#conditional-logic-button-ok').live('click', function(){
+        $(this).parent().slideUp('slow', function() {
+            $('#conditional-logic-button-open').fadeIn();
+        });
+        return false;
+    });
 });
 
 function wpcf_checkbox_value_zero(field) {

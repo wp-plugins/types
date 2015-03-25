@@ -146,7 +146,7 @@ function wpcf_admin_menu_user_fields_control_hook() {
             && wp_verify_nonce( $_REQUEST['_wpnonce'],
                     'user_fields_control_bulk' )
             && (isset( $_POST['action'] ) || isset( $_POST['action2'] )) && !empty( $_POST['fields'] ) ) {
-        $action = $_POST['action'] == '-1' ? $_POST['action2'] : $_POST['action'];
+        $action = ( $_POST['action'] == '-1' ) ? sanitize_text_field($_POST['action2']) : sanitize_text_field($_POST['action']);
         wpcf_admin_user_fields_control_bulk_actions( $action );
     }
 
@@ -224,7 +224,7 @@ function __wpcf_usermeta_test() {
     if ( $post ) {
         $post_type = get_post_type( $post );
     } else if ( !empty( $_GET['post'] ) ) {
-        $post_type = get_post_type( $_GET['post'] );
+        $post_type = get_post_type( sanitize_text_field( $_GET['post'] ) );
     }
     if ( ( $here[0] == ('index.php' || 'wp-admin')) && ( $here[1] != 'index.php') ) {
         if ( isset( $post_type )
@@ -237,7 +237,7 @@ function __wpcf_usermeta_test() {
 }
 
 if ( !isset( $_GET['post_type'] ) && isset( $_GET['post'] ) ) {
-    $post_type = get_post_type( $_GET['post'] );
+    $post_type = get_post_type( sanitize_text_field( $_GET['post'] ) );
 } else if (
     isset( $_GET['post_type'] )
     && in_array( $_GET['post_type'], get_post_types( array('show_ui' => true) ) ) 
@@ -543,7 +543,7 @@ function types_render_usermeta_field( $field_id, $params, $content = null,
         $code = '' ) {
 
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';
-    global $wpcf, $post;
+    global $wpcf, $post, $wpdb;
 
     // HTML var holds actual output
     $html = '';
@@ -992,8 +992,8 @@ add_action( 'wp_ajax_wpcf_types_suggest_user',
 /**
  * Suggest user AJAX.
  *
- * @global object $wpdb
- *
+ * @todo nonce
+ * @todo auth
  */
 function wpcf_access_wpcf_types_suggest_user_ajax()
 {
@@ -1034,9 +1034,9 @@ function wpcf_get_usermeta_form_addon_submit( $views_usermeta = false ){
         }
          else {
             if ( $_POST['display_username_for_suser_selector'] == 'specific_user_by_id' ) {
-                $add .= ' user_id="' . $_POST['display_username_for_suser_id_value'] . '"';
+                $add .= ' user_id="' . sanitize_text_field($_POST['display_username_for_suser_id_value']) . '"';
             } else {
-                $add .= ' user_name="' . $_POST['display_username_for_suser_username_value'] . '"';
+                $add .= ' user_name="' . sanitize_text_field($_POST['display_username_for_suser_username_value']) . '"';
             }
         }
     }

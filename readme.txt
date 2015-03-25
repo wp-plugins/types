@@ -166,6 +166,9 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 * Fixed problem with CPT labels.  https://wp-types.com/forums/topic/after-save-cpts-cutom-labels-always-revert-to-default-label/
 * Added a filters to the post title as option text in the select dropdown for post parents. wpcf_pr_belongs_items for array of options and wpcf_pr_belongs_item for one option. https://wp-types.com/forums/topic/help-to-distinguish-duplicate-titles-in-post-relationship/
 * Added ability to choose custom fields to display it on custom posts admin list.
+* Fixed problem with saving parent data into child data. On parent edit screen.
+* Added check group name for Custom Fields and User Fields.
+* Fixed missing "Edit" button on group edit screen when we close custom logic form.
 
 = 1.6.5.1 =
 

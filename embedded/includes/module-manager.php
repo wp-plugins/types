@@ -850,10 +850,13 @@ function wpcf_admin_import_data_from_xmlstring( $data = '', $_type = 'types',
                 'post_content' => !empty( $group['post_content'] ) ? $group['post_content'] : '',
             );
             if ( (isset( $group['add'] ) && $group['add'] ) ) {
-                $post_to_update = $wpdb->get_var( $wpdb->prepare(
-                                "SELECT ID FROM $wpdb->posts
-                    WHERE post_title = %s AND post_type = %s",
-                                $group['post_title'], 'wp-types-group' ) );
+                $post_to_update = $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT ID FROM $wpdb->posts WHERE post_title = %s AND post_type = %s",
+                        $group['post_title'],
+                        'wp-types-group'
+                    )
+                );
                 // Update (may be forced by bulk action)
                 if ( $group['update'] || (!empty( $post_to_update )) ) {
                     if ( !empty( $post_to_update ) ) {

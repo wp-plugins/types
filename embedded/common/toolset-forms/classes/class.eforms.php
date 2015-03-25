@@ -101,7 +101,6 @@ class Enlimbo_Forms {
             $cred_cred_settings = get_option('cred_cred_settings');
             if (is_array($cred_cred_settings)) {
                 $this->form_settings['use_bootstrap'] = array_key_exists('use_bootstrap', $cred_cred_settings) && $cred_cred_settings['use_bootstrap'];
-                ;
             }
         }
     }

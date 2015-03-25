@@ -18,6 +18,27 @@
 
         otgs_wp_installer.scroll_to_repository();
 
+        if( pagenow == 'plugins'){
+
+            jQuery(document).ajaxSuccess(function(event, xhr, settings) {
+                var data = otgs_wp_installer.getQueryParameters(settings.data);
+                if(typeof data.action != 'undefined' && data.action == 'update-plugin'){
+                    response = xhr.responseJSON.data;
+                    console.log(typeof response.error);
+                    if(typeof response.error != 'undefined'){
+                        var default_error = jQuery('#' + response.slug + '-update .update-message').html();
+                        jQuery('#' + response.slug + '-update .update-message').html(default_error + ' &raquo;<span class="installer-red-text"> ' + response.error + '</span>');
+                    }
+                }
+                return false;
+            });
+
+        }
+
+    },
+
+    getQueryParameters : function(str) {
+        return (str || document.location.search).replace(/(^\?)/,'').split("&").map(function(n){return n = n.split("="),this[n[0]] = n[1],this}.bind({}))[0];
     },
 
     reset_errors: function(){
@@ -341,5 +362,6 @@
 
     
 }
+
 
 jQuery(document).ready(otgs_wp_installer.init);

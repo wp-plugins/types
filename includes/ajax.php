@@ -26,10 +26,12 @@ function wpcf_ajax() {
         case 'delete_usermeta':
             require_once WPCF_INC_ABSPATH . '/fields.php';
             if (isset($_GET['field_id'])) {
-                wpcf_admin_fields_delete_field($_GET['field_id'],'wp-types-user-group','wpcf-usermeta');
+				$field_id = sanitize_text_field( $_GET['field_id'] );
+                wpcf_admin_fields_delete_field($field_id,'wp-types-user-group','wpcf-usermeta');
             }
             if (isset($_GET['field'])) {
-                wpcf_admin_fields_delete_field($_GET['field'],'wp-types-user-group','wpcf-usermeta');
+				$field = sanitize_text_field( $_GET['field'] );
+                wpcf_admin_fields_delete_field($field,'wp-types-user-group','wpcf-usermeta');
             }
             echo json_encode(array(
                 'output' => ''
@@ -136,8 +138,8 @@ function wpcf_ajax() {
         case 'remove_field_from_group':
             require_once WPCF_INC_ABSPATH . '/fields.php';
             if (isset($_GET['group_id']) && isset($_GET['field_id'])) {
-                wpcf_admin_fields_remove_field_from_group($_GET['group_id'],
-                        $_GET['field_id']);
+                wpcf_admin_fields_remove_field_from_group(intval($_GET['group_id']),
+                        sanitize_text_field($_GET['field_id']));
             }
             break;
 
@@ -210,11 +212,11 @@ function wpcf_ajax() {
                 echo json_encode(array(
                     'output' => __('Post type deactivated', 'wpcf'),
                     'execute' => 'jQuery("#wpcf-list-activate-'
-                    . $_GET['wpcf-post-type'] . '").replaceWith(\''
+                    . sanitize_text_field($_GET['wpcf-post-type']) . '").replaceWith(\''
                     . wpcf_admin_custom_types_get_ajax_activation_link(esc_attr(
                                     $_GET['wpcf-post-type']))
                     . '\');jQuery(".wpcf-table-column-active-'
-                    . $_GET['wpcf-post-type'] . '").html("' . __('No', 'wpcf') . '");',
+                    . sanitize_text_field($_GET['wpcf-post-type']) . '").html("' . __('No', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                 ));
             } else {
@@ -237,10 +239,10 @@ function wpcf_ajax() {
                 echo json_encode(array(
                     'output' => __('Post type activated', 'wpcf'),
                     'execute' => 'jQuery("#wpcf-list-activate-'
-                    . $_GET['wpcf-post-type'] . '").replaceWith(\''
-                    . wpcf_admin_custom_types_get_ajax_deactivation_link($_GET['wpcf-post-type'])
+                    . sanitize_text_field($_GET['wpcf-post-type']) . '").replaceWith(\''
+                    . wpcf_admin_custom_types_get_ajax_deactivation_link(sanitize_text_field($_GET['wpcf-post-type']))
                     . '\');jQuery(".wpcf-table-column-active-'
-                    . $_GET['wpcf-post-type'] . '").html("' . __('Yes', 'wpcf') . '");',
+                    . sanitize_text_field($_GET['wpcf-post-type']) . '").html("' . __('Yes', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                 ));
             } else {
@@ -310,7 +312,7 @@ function wpcf_ajax() {
             echo json_encode(array(
                 'output' => '',
                 'execute' => 'jQuery("#wpcf-list-activate-'
-                . $_GET['wpcf-post-type']
+                . sanitize_text_field($_GET['wpcf-post-type'])
                 . '").parents("tr").css("background-color", "#FF0000").fadeOut();',
                 'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
             ));
@@ -329,10 +331,10 @@ function wpcf_ajax() {
                 echo json_encode(array(
                     'output' => __('Taxonomy deactivated', 'wpcf'),
                     'execute' => 'jQuery("#wpcf-list-activate-'
-                    . $_GET['wpcf-tax'] . '").replaceWith(\''
-                    . wpcf_admin_custom_taxonomies_get_ajax_activation_link($_GET['wpcf-tax'])
+                    . sanitize_text_field($_GET['wpcf-tax']) . '").replaceWith(\''
+                    . wpcf_admin_custom_taxonomies_get_ajax_activation_link(sanitize_text_field($_GET['wpcf-tax']))
                     . '\');jQuery(".wpcf-table-column-active-'
-                    . $_GET['wpcf-tax'] . '").html("' . __('No', 'wpcf') . '");',
+                    . sanitize_text_field($_GET['wpcf-tax']) . '").html("' . __('No', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                 ));
             } else {
@@ -355,10 +357,10 @@ function wpcf_ajax() {
                 echo json_encode(array(
                     'output' => __('Taxonomy activated', 'wpcf'),
                     'execute' => 'jQuery("#wpcf-list-activate-'
-                    . $_GET['wpcf-tax'] . '").replaceWith(\''
-                    . wpcf_admin_custom_taxonomies_get_ajax_deactivation_link($_GET['wpcf-tax'])
+                    . sanitize_text_field($_GET['wpcf-tax']) . '").replaceWith(\''
+                    . wpcf_admin_custom_taxonomies_get_ajax_deactivation_link(sanitize_text_field($_GET['wpcf-tax']))
                     . '\');jQuery(".wpcf-table-column-active-'
-                    . $_GET['wpcf-tax'] . '").html("' . __('Yes', 'wpcf') . '");',
+                    . sanitize_text_field($_GET['wpcf-tax']) . '").html("' . __('Yes', 'wpcf') . '");',
                     'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
                 ));
             } else {
@@ -380,7 +382,7 @@ function wpcf_ajax() {
             echo json_encode(array(
                 'output' => '',
                 'execute' => 'jQuery("#wpcf-list-activate-'
-                . $_GET['wpcf-tax']
+                . sanitize_text_field($_GET['wpcf-tax'])
                 . '").parents("tr").css("background-color", "#FF0000").fadeOut();',
                 'wpcf_nonce_ajax_callback' => wp_create_nonce('execute'),
             ));
@@ -429,24 +431,25 @@ function wpcf_ajax() {
 
         case 'group_form_collapsed':
             require_once WPCF_INC_ABSPATH . '/fields-form.php';
-            $group_id = $_GET['group_id'];
-            $action = $_GET['toggle'];
-            $fieldset = $_GET['id'];
+            $group_id = sanitize_text_field($_GET['group_id']);
+            $action = sanitize_text_field($_GET['toggle']);
+            $fieldset = sanitize_text_field($_GET['id']);
             wpcf_admin_fields_form_save_open_fieldset($action, $fieldset,
                     $group_id);
             break;
 
         case 'form_fieldset_toggle':
-            $action = $_GET['toggle'];
-            $fieldset = $_GET['id'];
+            $action = sanitize_text_field($_GET['toggle']);
+            $fieldset = sanitize_text_field($_GET['id']);
             wpcf_admin_form_fieldset_save_toggle($action, $fieldset);
             break;
 
         case 'group_update_post_types':
             require_once WPCF_INC_ABSPATH . '/fields.php';
+			// @todo Sanitize this $post_types
             $post_types = empty($_GET['wpcf']['group']['supports']) ? array() : $_GET['wpcf']['group']['supports'];
             if (!empty($_GET['group_id'])) {
-                wpcf_admin_fields_save_group_post_types($_GET['group_id'],
+                wpcf_admin_fields_save_group_post_types(sanitize_text_field($_GET['group_id']),
                         $post_types);
                 $output = array();
                 foreach ($post_types as $post_type) {
@@ -477,7 +480,7 @@ function wpcf_ajax() {
                 }
             }
             if (!empty($_GET['group_id'])) {
-                wpcf_admin_fields_save_group_terms($_GET['group_id'], $terms);
+                wpcf_admin_fields_save_group_terms(sanitize_text_field($_GET['group_id']), $terms);
                 $output = array();
                 foreach ($taxonomies_post as $taxonomy => $terms) {
                     $taxonomy = get_taxonomy($taxonomy);
@@ -513,10 +516,10 @@ function wpcf_ajax() {
         case 'delete_field':
             require_once WPCF_INC_ABSPATH . '/fields.php';
             if (isset($_GET['field_id'])) {
-                wpcf_admin_fields_delete_field($_GET['field_id']);
+                wpcf_admin_fields_delete_field(sanitize_text_field($_GET['field_id']));
             }
             if (isset($_GET['field'])) {
-                wpcf_admin_fields_delete_field($_GET['field']);
+                wpcf_admin_fields_delete_field(sanitize_text_field($_GET['field']));
             }
             echo json_encode(array(
                 'output' => ''
@@ -548,7 +551,7 @@ function wpcf_ajax() {
                     ));
                 } else {
                     $data['id'] = str_replace('_conditional_display', '',
-                            $_GET['field']);
+                            sanitize_text_field($_GET['field']));
                     $output = wpcf_form_simple(wpcf_cd_admin_form_single_filter($data,
                                     array(), null, false));
                     if (!empty($data['id'])) {
@@ -572,7 +575,7 @@ function wpcf_ajax() {
             if (!empty($_GET['parent']) && !empty($_GET['child'])) {
                 require_once WPCF_INC_ABSPATH . '/fields.php';
                 require_once WPCF_INC_ABSPATH . '/post-relationship.php';
-                wpcf_pr_admin_edit_fields($_GET['parent'], $_GET['child']);
+                wpcf_pr_admin_edit_fields(sanitize_text_field($_GET['parent']), sanitize_text_field($_GET['child']));
             }
             break;
 
@@ -596,8 +599,8 @@ function wpcf_ajax() {
             if (isset($_GET['field']) && isset($_GET['subaction'])) {
                 require_once WPCF_INC_ABSPATH . '/fields.php';
                 $option = $_GET['meta_type'] == 'usermeta' ? 'wpcf-usermeta' : 'wpcf-fields';
-                $meta_type = $_GET['meta_type'];
-                $field = wpcf_admin_fields_get_field($_GET['field'], false, false,
+                $meta_type = sanitize_text_field($_GET['meta_type']);
+                $field = wpcf_admin_fields_get_field(sanitize_text_field($_GET['field']), false, false,
                         false, $option);
 
                 $_txt_updates = $meta_type == 'usermeta' ? __( '%d users require update',
@@ -620,7 +623,7 @@ function wpcf_ajax() {
                                     . sprintf($_txt_updates, count($posts)) . '&nbsp;'
                                     . '<a href="javascript:void(0);" class="button-primary" onclick="'
                                     . 'wpcfCbSaveEmptyMigrate(jQuery(this).parent().parent().parent(), \''
-                                    . $_GET['field'] . '\', '
+                                    . sanitize_text_field($_GET['field']) . '\', '
                                     . count($posts) . ', \''
                                     . wp_create_nonce('cb_save_empty_migrate') . '\', \'';
                             $output .= $_GET['subaction'] == 'save_check' ? 'save' : 'do_not_save';
@@ -648,7 +651,7 @@ function wpcf_ajax() {
                                 $output = '<script type="text/javascript">wpcfCbMigrateStep('
                                         . intval($_GET['total']) . ','
                                         . $posts['offset'] . ','
-                                        . '\'' . $_GET['field'] . '\','
+                                        . '\'' . sanitize_text_field($_GET['field']) . '\','
                                         . '\'' . wp_create_nonce('cb_save_empty_migrate')
                                         . '\', \'' . $meta_type . '\');</script>'
                                         . number_format($posts['offset'])

@@ -209,19 +209,13 @@ function initTaxonomies(values, taxonomy, url, fieldId)
 
     jQuery('input[name=' + taxonomy + ']').val(values);
     updateTaxonomies(taxonomy, form);
-    jQuery('input[name=tmp_' + taxonomy + ']').autocomplete(
-            url + '/external/autocompleter.php',
-            {
-                delay: 10,
-                minChars: 2,
-                matchSubset: 1,
-                matchContains: 1,
-                cacheLength: 10,
-                formatItem: formatItem,
-                onItemSelect: onSelectItem,
-                autoFill: true
-            }
-    );
+    jQuery('input[name=tmp_' + taxonomy + ']').suggest( 
+		wptoolset_forms_local.ajaxurl + '?action=wpt_suggest_taxonomy_term&taxonomy=' + taxonomy ,
+		{
+			resultsClass: 'wpt-suggest-taxonomy-term',
+			selectClass: 'wpt-suggest-taxonomy-term-select'
+		}
+	);
     //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/195723133/comments#308689055
     if (jQuery('input[name=tmp_' + taxonomy + ']').val() != "")
         jQuery("input[name='new_tax_button_" + taxonomy + "']").trigger("click");

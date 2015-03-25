@@ -112,7 +112,7 @@ function wpcf_fields_checkboxes_insert_form( $form_data, $parent_name = '' ) {
         . admin_url( 'admin-ajax.php?action=wpcf_ajax&amp;wpcf_action=add_checkboxes_option&amp;_wpnonce='
                 . wp_create_nonce( 'add_checkboxes_option' ) . '&amp;wpcf_ajax_update_add='
                 . $id . '-sortable&amp;parent_name=' . urlencode( $parent_name )
-                . '&amp;page='. $_GET['page']
+                . '&amp;page='. sanitize_text_field( $_GET['page'] )
                 . '&amp;count=' . $count)
         . '" onclick="wpcfFieldsFormCountOptions(jQuery(this));"'
         . ' class="button-secondary wpcf-ajax-link">'
@@ -136,8 +136,8 @@ function wpcf_fields_checkboxes_get_option( $parent_name = '',
         $form_data = array(), $field = array() ) {
     $id = isset( $form_data['key'] ) ? $form_data['key'] : 'wpcf-fields-checkboxes-option-' . wpcf_unique_id( serialize( $form_data ) . $parent_name );
     $form = array();
-    $count = isset( $_GET['count'] ) ? $_GET['count'] : 1;
-    $title = isset( $_GET['count'] ) ? __( 'Checkbox title', 'wpcf' ) . ' ' . $_GET['count'] : __( 'Checkbox title',
+    $count = isset( $_GET['count'] ) ? intval( $_GET['count'] ) : 1;
+    $title = isset( $_GET['count'] ) ? __( 'Checkbox title', 'wpcf' ) . ' ' . intval( $_GET['count'] ) : __( 'Checkbox title',
                     'wpcf' ) . ' 1';
     $title = isset( $form_data['title'] ) ? $form_data['title'] : $title;
     $form[$id . '-id'] = $id;
@@ -253,7 +253,7 @@ function wpcf_fields_checkboxes_get_option_alt_text( $id, $parent_name = '',
     $title = isset( $_GET['count'] ) ? __( 'Checkbox title', 'wpcf' ) . ' ' . $_GET['count'] : __( 'Checkbox title',
                     'wpcf' ) . ' 1';
     $title = isset( $form_data['title'] ) ? $form_data['title'] : $title;
-    $value = isset( $_GET['count'] ) ? $_GET['count'] : 1;
+    $value = isset( $_GET['count'] ) ? intval( $_GET['count'] ) : 1;
     $value = isset( $form_data['value'] ) ? $form_data['value'] : $value;
     $value = isset( $form_data['display_value'] ) ? $form_data['display_value'] : $value;
     $form = array(

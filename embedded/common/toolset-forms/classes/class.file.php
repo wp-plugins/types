@@ -41,7 +41,7 @@ class WPToolset_Field_File extends WPToolset_Field_Textfield
 //			add_thickbox();
 			global $post;
 			$for_post = (!empty( $post->ID ) ? 'post_id=' . $post->ID . '&' : '');
-			$js_data = array('title' => esc_js( __( 'Select file', 'wpv-views' ) ), 'for_post' => $for_post, 'adminurl' => admin_url());
+			$js_data = array('title' => esc_js( __( 'Select', 'wpv-views' ) )." File", 'for_post' => $for_post, 'adminurl' => admin_url());
 			wp_localize_script( 'wptoolset-field-file', 'wptFileData', $js_data );
 		}
 	}
@@ -65,7 +65,12 @@ class WPToolset_Field_File extends WPToolset_Field_Textfield
         // Get attachment by guid
         if ( !empty( $value ) ) {
             global $wpdb;
-            $attachment_id = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid=%s", $value ) );
+            $attachment_id = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid=%s",
+                    $value
+                )
+            );
         }
 
         // Set preview

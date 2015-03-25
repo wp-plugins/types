@@ -28,7 +28,7 @@
 
 .toolset-modal .icon-toolset-logo
 {
-    color: #f05a29;
+    color: #f05a28;
     position: absolute;
     top: 6px;
     left: 23px;
@@ -120,7 +120,7 @@
 .toolset-modal .button
 {
     padding: 10px 15px;
-    background-color: #f05a29;
+    background-color: #f05a28;
     color: #fff;
     text-decoration: none;
     margin-top: -10px;
@@ -132,7 +132,7 @@
 .toolset-modal .learn
 {
     font-size: 15px;
-    color: #f05a29;
+    color: #f05a28;
     display: inline-block;
     margin-left: 20px;
 }

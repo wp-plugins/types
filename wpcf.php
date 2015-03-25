@@ -176,8 +176,12 @@ function wpcf_is_reserved_name($name, $context, $check_pages = true)
      */
     if ( $check_pages && !empty( $name ) ) {
         global $wpdb;
-        $page = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_name = %s AND post_type='page'",
-                        sanitize_title( $name ) ) );
+        $page = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT ID FROM $wpdb->posts WHERE post_name = %s AND post_type='page'",
+                sanitize_title( $name )
+            )
+        );
         if ( !empty( $page ) ) {
             return new WP_Error( 'wpcf_reserved_name', __( 'You cannot use this slug because there is already a page by that name. Please choose a different slug.',
                                     'wpcf' ) );

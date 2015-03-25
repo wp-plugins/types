@@ -15,9 +15,10 @@
  * @global object $wpdb
  *
  */
-function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types')
+function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types', $args = array() )
 {
     global $wpdb;
+    $data_installer = false;
 
     libxml_use_internal_errors( true );
     $data = simplexml_load_string( $data );
@@ -38,6 +39,20 @@ function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types'
     $delete_fields = isset( $_POST['delete-fields'] );
     $delete_types = isset( $_POST['delete-types'] );
     $delete_tax = isset( $_POST['delete-tax'] );
+
+    if ('wpvdemo' == $context && !empty($args)) {
+        /**
+         * allow overwrite
+         */
+        $overwrite_groups = true;
+        $overwrite_fields = true;
+        $overwrite_types = true;
+        $overwrite_tax = true;
+
+        include_once dirname(__FILE__).'/classes/class.types.data.installer.php';
+        $data_installer = new Types_Data_Installer($data, $args);
+        $data = $data_installer->wpvdemo();
+    }
 
     /**
      * process settings
@@ -61,6 +76,7 @@ function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types'
             $group = wpcf_admin_import_export_simplexml2array( $group );
             $groups[$group['ID']] = $group;
         }
+
         // Set insert data from POST
         if ( !empty( $_POST['groups'] ) ) {
             foreach ( $_POST['groups'] as $group_id => $group ) {
@@ -156,6 +172,7 @@ function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types'
         }
         // Delete groups (forced, set in bulk actions)
     }
+
         if ( $delete_groups ) {
             $groups_to_delete = get_posts(
                 array(
@@ -295,7 +312,7 @@ function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types'
     // Process user groups
     //print_r($data->user_groups);exit;
         $groups_check = array();
-    if ( !empty( $data->user_groups ) ) {
+    if ( !empty( $data->user_groups ) && isset( $data->user_groups->group) ) {
         $groups = array();
         // Set insert data from XML
         foreach ( $data->user_groups->group as $group ) {
@@ -518,7 +535,7 @@ function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types'
 
         $types_existing = get_option( 'wpcf-custom-types', array() );
         $types_check = array();
-    if ( !empty( $data->types ) ) {
+    if ( !empty($data->types) && isset($data->types->type) ) {
         $types = array();
         // Set insert data from XML
         foreach ( $data->types->type as $type ) {
@@ -579,7 +596,7 @@ function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types'
 
         $taxonomies_existing = get_option( 'wpcf-custom-taxonomies', array() );
         $taxonomies_check = array();
-    if ( !empty( $data->taxonomies ) ) {
+    if ( !empty( $data->taxonomies ) && isset($data->taxonomies->taxonomy)) {
         $taxonomies = array();
         // Set insert data from XML
         foreach ( $data->taxonomies->taxonomy as $taxonomy ) {
@@ -615,21 +632,28 @@ function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types'
                                     'wpcf' ), $taxonomy_id ) );
         }
     }
+
+
+        /**
+         * reset TOOLSET_EDIT_LAST
+         */
+        if ( $data_installer ) {
+            $data_installer->reset_toolset_edit_last();
+        }
+
         // Delete taxonomies
         if ( $delete_tax ) {
             foreach ( $taxonomies_existing as $k => $v ) {
                 if ( !in_array( $k, $taxonomies_check ) ) {
                     unset( $taxonomies_existing[$k] );
-                    wpcf_admin_message_store( sprintf( __( 'Custom taxonomy "%s" deleted',
-                                            'wpcf' ), $k ) );
+                    wpcf_admin_message_store( sprintf( __( 'Custom taxonomy "%s" deleted', 'wpcf' ), $k ) );
                 }
             }
         } else {
             if ( !empty( $_POST['taxonomies-to-be-deleted'] ) ) {
                 foreach ( $_POST['taxonomies-to-be-deleted'] as
                             $taxonomy_to_delete ) {
-                    wpcf_admin_message_store( sprintf( __( 'Custom taxonomy "%s" deleted',
-                                            'wpcf' ),
+                    wpcf_admin_message_store( sprintf( __( 'Custom taxonomy "%s" deleted', 'wpcf' ),
                                     $taxonomies_existing[$taxonomy_to_delete]['labels']['name'] ) );
                     unset( $taxonomies_existing[$taxonomy_to_delete] );
                 }
@@ -719,3 +743,4 @@ function wpcf_admin_import_export_simplexml2array($element)
 
     return $element;
 }
+

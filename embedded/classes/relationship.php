@@ -201,8 +201,8 @@ class WPCF_Relationship
     /**
      * Bulk saving children.
      *
-     * @param type $parent_id
-     * @param type $children
+     * @param int $parent_id
+     * @param array $children Array $child_id => $fields. For details about $fields see save_child().
      */
     function save_children($parent_id, $children)
     {
@@ -214,9 +214,10 @@ class WPCF_Relationship
     /**
      * Unified save child function.
      *
-     * @param type $child_id
-     * @param type $parent_id
-     *
+     * @param int $parent_id
+     * @param int $child_id
+     * @param array $save_fields
+     * @return bool|WP_Error
      */
     function save_child( $parent_id, $child_id, $save_fields = array() )
     {
@@ -288,7 +289,18 @@ class WPCF_Relationship
         }
         unset($cf);
 
+        /**
+         * avoid filters for children
+         * /
+        global $wp_filter;
+        $save_post = $wp_filter['save_post'];
+        $wp_filter['save_post'] = array();
+         */
         $updated_id = wp_update_post( $post_data );
+        /*
+            $wp_filter['save_post'] = $save_post;
+         */
+        unset($save_post);
         if ( empty( $updated_id ) ) {
             return new WP_Error( 'relationship-update-post-failed', 'Updating post failed' );
         }
@@ -379,11 +391,9 @@ class WPCF_Relationship
     /**
      * Saves new child.
      *
-     * @global object $wpdb
-     *
-     * @param type $parent_id
-     * @param type $post_type
-     * @return type
+     * @param int $parent_id
+     * @param string $post_type
+     * @return int|WP_Error
      */
     function add_new_child($parent_id, $post_type)
     {

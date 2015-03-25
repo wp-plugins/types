@@ -25,9 +25,9 @@ function wpcf_admin_custom_types_form()
     $update = false;
 
     if ( isset( $_GET['wpcf-post-type'] ) ) {
-        $id = $_GET['wpcf-post-type'];
+        $id = sanitize_text_field( $_GET['wpcf-post-type'] );
     } elseif ( isset( $_POST['wpcf-post-type'] ) ) {
-        $id = $_POST['wpcf-post-type'];
+        $id = sanitize_text_field( $_POST['wpcf-post-type'] );
     }
 
     if ( $id ) {
@@ -165,7 +165,7 @@ function wpcf_admin_custom_types_form()
      */
     $attributes = array();
     if ( !empty( $_POST['ct']['slug'] ) ) {
-        $reserved = wpcf_is_reserved_name( $_POST['ct']['slug'], 'post_type' );
+        $reserved = wpcf_is_reserved_name( sanitize_text_field( $_POST['ct']['slug'] ), 'post_type' );
         if ( is_wp_error( $reserved ) ) {
             $attributes = array(
                 'class' => 'wpcf-form-error',

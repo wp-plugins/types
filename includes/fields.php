@@ -151,6 +151,7 @@ function wpcf_admin_fields_remove_field_from_group( $group_id, $field_id ) {
  */
 function wpcf_admin_fields_remove_field_from_group_bulk( $group_id, $fields ) {
     foreach ( $fields as $field_id ) {
+		$field_id = sanitize_text_field( $field_id );
         wpcf_admin_fields_remove_field_from_group( $group_id, $field_id );
     }
 }
@@ -576,7 +577,7 @@ function wpcf_admin_fields_save_group_fields( $group_id, $fields, $add = false,
                 $order[] = $field['id'];
             }
             foreach ( $fields as $field ) {
-                $order[] = $field;
+                $order[] = sanitize_text_field( $field );
             }
             $fields = $order;
         }
@@ -682,7 +683,7 @@ function wpcf_admin_fields_checkbox_migrate_empty_check( $field, $action ) {
         $filter = wpcf_admin_fields_get_filter_by_field( $field['id'] );
         if ( !empty( $filter ) ) {
             $posts = array();
-            $meta_key = wpcf_types_get_meta_prefix( $field ) . $field['id'];
+            $meta_key = esc_sql( wpcf_types_get_meta_prefix( $field ) . $field['id'] );
             $meta_query = '';
             if ( $action == 'do_not_save_check' ) {
                 $meta_query = "(m.meta_key = '$meta_key' AND m.meta_value = '0')";
@@ -868,21 +869,27 @@ function wpcf_admin_fields_get_filter_by_field( $field ) {
 /**
  * Gets posts by filter fetched with wpcf_admin_fields_get_filter_by_field().
  *
- * @global object $wpdb
- * @param type $filter
- * @return type
+ * @param array $filter
+ * @param string $meta_query This argument needs to be allways sanitized!
+ * @return array
  */
 function wpcf_admin_fields_get_posts_by_filter( $filter, $meta_query = '' ) {
     global $wpdb, $wpcf;
     $query = array();
     $join = array();
     if ( $filter['types'] != 'all' && !empty( $filter['types'] ) ) {
-        $query[] = 'p.post_type IN (\'' . implode( '\',\'', $filter['types'] ) . '\')';
+        $post_types = array();
+        foreach( $filter['types'] as $post_type ) {
+            $post_types[] = esc_sql( $post_type );
+        }
+        $query[] = 'p.post_type IN (\'' . implode( '\',\'', $post_types ) . '\')';
     } else {
         $post_types = get_post_types( array('show_ui' => true), 'names' );
         foreach ( $post_types as $post_type_slug => $post_type ) {
             if ( in_array( $post_type_slug, $wpcf->excluded_post_types ) ) {
                 unset( $post_types[$post_type_slug] );
+            } else {
+                $post_types[$post_type_slug] = esc_sql( $post_type );
             }
         }
         $query[] = 'p.post_type IN (\'' . implode( '\',\'', $post_types ) . '\')';
@@ -890,18 +897,26 @@ function wpcf_admin_fields_get_posts_by_filter( $filter, $meta_query = '' ) {
     if ( $filter['terms'] != 'all' && !empty( $filter['terms'] ) ) {
         $ttid = array();
         foreach ( $filter['terms'] as $term_id ) {
-            $term_taxonomy_id = $wpdb->get_var( $wpdb->prepare( "SELECT term_taxonomy_id FROM $wpdb->term_taxonomy WHERE term_id=%d",
-                            $term_id ) );
+            $term_taxonomy_id = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT term_taxonomy_id FROM $wpdb->term_taxonomy WHERE term_id=%d",
+                    $term_id
+                )
+            );
             if ( !empty( $term_taxonomy_id ) ) {
-                $ttid[] = $term_taxonomy_id;
+                $ttid[] = esc_sql( $term_taxonomy_id );
             }
         }
         $query[] = 't.term_taxonomy_id IN (\'' . implode( '\',\'', $ttid ) . '\')';
         $join[] = "LEFT JOIN $wpdb->term_relationships t ON p.ID = t.object_id ";
     }
     if ( $filter['templates'] != 'all' && !empty( $filter['templates'] ) ) {
+        $templates = array();
+        foreach( $filter['templates'] as $template ) {
+            $templates[] = esc_sql( $template );
+        }
         $query[] = '(m.meta_key = \'_wp_page_template\' AND m.meta_value IN (\'' . implode( '\',\'',
-                        $filter['templates'] ) . '\'))';
+                        $templates ) . '\'))';
     }
     if ( !empty( $meta_query )
             || ($filter['templates'] != 'all' && !empty( $filter['templates'] )) ) {
@@ -910,7 +925,8 @@ function wpcf_admin_fields_get_posts_by_filter( $filter, $meta_query = '' ) {
 
     $_query = "SELECT p.ID FROM $wpdb->posts p " . implode( '', $join );
     if ( !empty( $query ) ) {
-        $_query .= "WHERE " . implode( ' ' . $filter['association'] . ' ',
+        $association = ( strtoupper( trim( $filter['association'] ) ) == 'OR' ) ? 'OR' : 'AND';
+        $_query .= "WHERE " . implode( ' ' . $association . ' ',
                         $query ) . ' ';
         if ( !empty( $meta_query ) ) {
             $_query .= ' AND ' . $meta_query . ' ';
@@ -937,12 +953,18 @@ function wpcf_admin_fields_get_posts_by_filter_missing_meta( $filter,
     $query = array();
     $join = array();
     if ( $filter['types'] != 'all' && !empty( $filter['types'] ) ) {
-        $query[] = 'p.post_type IN (\'' . implode( '\',\'', $filter['types'] ) . '\')';
+        $post_types = array();
+        foreach( $filter['types'] as $post_type ) {
+            $post_types[] = esc_sql( $post_type );
+        }
+        $query[] = 'p.post_type IN (\'' . implode( '\',\'', $post_types ) . '\')';
     } else {
         $post_types = get_post_types( array('show_ui' => true), 'names' );
         foreach ( $post_types as $post_type_slug => $post_type ) {
             if ( in_array( $post_type_slug, $wpcf->excluded_post_types ) ) {
                 unset( $post_types[$post_type_slug] );
+            } else {
+                $post_types[$post_type_slug] = esc_sql( $post_type );
             }
         }
         $query[] = 'p.post_type IN (\'' . implode( '\',\'', $post_types ) . '\')';
@@ -950,24 +972,33 @@ function wpcf_admin_fields_get_posts_by_filter_missing_meta( $filter,
     if ( $filter['terms'] != 'all' && !empty( $filter['terms'] ) ) {
         $ttid = array();
         foreach ( $filter['terms'] as $term_id ) {
-            $term_taxonomy_id = $wpdb->get_var( $wpdb->prepare( "SELECT term_taxonomy_id FROM $wpdb->term_taxonomy WHERE term_id=%d",
-                            $term_id ) );
+            $term_taxonomy_id = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT term_taxonomy_id FROM $wpdb->term_taxonomy WHERE term_id=%d",
+                    $term_id
+                )
+            );
             if ( !empty( $term_taxonomy_id ) ) {
-                $ttid[] = $term_taxonomy_id;
+                $ttid[] = esc_sql( $term_taxonomy_id );
             }
         }
         $query[] = 't.term_taxonomy_id IN (\'' . implode( '\',\'', $ttid ) . '\')';
         $join[] = "LEFT JOIN $wpdb->term_relationships t ON p.ID = t.object_id ";
     }
     if ( $filter['templates'] != 'all' && !empty( $filter['templates'] ) ) {
+        $templates = array();
+        foreach( $filter['templates'] as $template ) {
+            $templates[] = esc_sql( $template );
+        }
         $query[] = '(m.meta_key = \'_wp_page_template\' AND m.meta_value IN (\'' . implode( '\',\'',
-                        $filter['templates'] ) . '\'))';
+                $templates ) . '\'))';
         $join[] = "LEFT JOIN $wpdb->postmeta m ON p.ID = m.post_id ";
     }
     $_query = "SELECT DISTINCT p.ID FROM $wpdb->posts p " . implode( '', $join );
-    $_query .= "WHERE NOT EXISTS (SELECT * FROM $wpdb->postmeta mm WHERE p.ID = mm.post_id AND mm.meta_key = '$meta_key')";
+    $_query .= "WHERE NOT EXISTS (SELECT * FROM $wpdb->postmeta mm WHERE p.ID = mm.post_id AND mm.meta_key = '" . esc_sql( $meta_key ) . "')";
     if ( !empty( $query ) ) {
-        $_query .= "AND (" . implode( ' ' . $filter['association'] . ' ', $query ) . ') ';
+        $association = ( strtoupper( trim( $filter['association'] ) ) == 'OR' ) ? 'OR' : 'AND';
+        $_query .= "AND (" . implode( ' ' . $association . ' ', $query ) . ') ';
     }
     $_query .= "GROUP BY p.ID";
     $posts = $wpdb->get_col( $_query );
@@ -992,8 +1023,7 @@ function wpcf_admin_fields_checkboxes_migrate_empty_check( $field, $action ) {
         if ( $action == 'do_not_save_check' ) {
             $query = array();
             foreach ( $field['data']['options'] as $option_id => $option_data ) {
-//                $query[] = '\"' . $option_id . '\";s:1:\"0\";';
-                $query[] = '\"' . $option_id . '\";i:0;';
+                $query[] = '\"' . esc_sql( $option_id ) . '\";i:0;';
             }
             $meta_query = "SELECT u.ID FROM {$wpdb->users} u
                 LEFT JOIN {$wpdb->usermeta} um ON u.ID = um.user_id
@@ -1002,9 +1032,8 @@ function wpcf_admin_fields_checkboxes_migrate_empty_check( $field, $action ) {
         } else if ( $action == 'save_check' ) {
             $query = array();
             foreach ( $field['data']['options'] as $option_id => $option_data ) {
-//                $query[] = '\"' . $option_id . '\";s:1:\"0\";';
                 // Check only if missing
-                $query[] = '\"' . $option_id . '\"';
+                $query[] = '\"' . esc_sql( $option_id ) . '\"';
             }
             $meta_query = "SELECT u.ID FROM {$wpdb->users} u
                 LEFT JOIN {$wpdb->usermeta} um ON u.ID = um.user_id
@@ -1021,13 +1050,13 @@ function wpcf_admin_fields_checkboxes_migrate_empty_check( $field, $action ) {
     $filter = wpcf_admin_fields_get_filter_by_field( $field['id'] );
     if ( !empty( $filter ) ) {
         $posts = array();
-        $meta_key = wpcf_types_get_meta_prefix( $field ) . $field['id'];
+        $meta_key = esc_sql( wpcf_types_get_meta_prefix( $field ) . $field['id'] );
         $meta_query = '';
         // "wpcf-fields-checkboxes-option-1873650245";s:1:"1";
         if ( $action == 'do_not_save_check' ) {
             $query = array();
             foreach ( $field['data']['options'] as $option_id => $option_data ) {
-                $query[] = '\"' . $option_id . '\";i:0;';
+                $query[] = '\"' . esc_sql( $option_id ) . '\";i:0;';
             }
             $meta_query = "(m.meta_key = '$meta_key' AND (m.meta_value LIKE '%%"
                     . implode( "%%' OR m.meta_value LIKE '%%", $query ) . "%%'))";
@@ -1036,7 +1065,7 @@ function wpcf_admin_fields_checkboxes_migrate_empty_check( $field, $action ) {
             $query = array();
             foreach ( $field['data']['options'] as $option_id => $option_data ) {
                 // Check only if missing
-                $query[] = '\"' . $option_id . '\"';
+                $query[] = '\"' . esc_sql( $option_id ) . '\"';
             }
             $meta_query = "(m.meta_key = '$meta_key' AND (m.meta_value NOT LIKE '%%"
                     . implode( "%%' OR m.meta_value NOT LIKE '%%", $query ) . "%%'))";

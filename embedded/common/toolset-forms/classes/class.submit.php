@@ -22,7 +22,7 @@ class WPToolset_Field_Submit extends WPToolset_Field_Textfield
             '#title' => $this->getTitle(),
             '#description' => $this->getDescription(),
             '#name' => $this->getName(),
-            '#value' => $this->getValue(),
+            '#value' => esc_attr(__($this->getValue(), 'wpv-views')),
             '#validate' => $this->getValidationData(),
             '#attributes' => array(
                 'class' => '',

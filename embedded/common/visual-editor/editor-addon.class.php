@@ -677,10 +677,9 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
 
             $view_templates_available = $wpdb->get_results(
                 $wpdb->prepare(
-                    sprintf(
-                        'SELECT ID, post_title, post_name FROM %s WHERE post_type = %%s AND post_status in (%%s)',
-                        $wpdb->posts
-                    ),
+                    "SELECT ID, post_title, post_name FROM {$wpdb->posts} 
+					WHERE post_type = %s 
+					AND post_status in (%s)",
                     $post_type,
                     'publish'
                 )

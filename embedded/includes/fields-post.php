@@ -1851,7 +1851,7 @@ function wpcf_admin_post_marketing_meta_box() {
         $output .= '<p><a href="' . admin_url( 'edit.php?post_type=view' ) . '">' . __( 'Create <strong>Views</strong> for content lists &raquo;',
                         'wpcf' ) . '</a></p>';
     } else {
-        $output .= '<p><strong>' . sprintf( __( "%sViews%s let's you build complete websites without coding.",
+        $output .= '<p><strong>' . sprintf( __( "%sViews%s lets you build complete websites without coding.",
                                 'wpcf' ),
                         '<a href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=typesplugin&utm_medium=postedit&utm_term=views&utm_content=promobox&utm_campaign=types" title="Views" target="_blank">',
                         '</a>' )

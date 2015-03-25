@@ -126,7 +126,7 @@ class WPToolset_Field_Date extends FieldFactory
             'class' => $def_class,
             'style' => 'display:inline;width:150px;position:relative;',
             'readonly' => 'readonly',
-            'title' => esc_attr(__('Select date', 'wpv-views'))
+            'title' => esc_attr(__('Select', 'wpv-views'))." Date"
         );
         $attr_hidden = array('class' => $def_class_aux, 'data-ts' => $timestamp, 'data-wpt-type' => 'date');
 
@@ -139,7 +139,7 @@ class WPToolset_Field_Date extends FieldFactory
             '#title' => $title,
             '#description' => $this->getDescription(),
             '#attributes' => $attr_visible,
-            '#name' => '',
+            '#name' => $this->getName() . '[display-only]',
             '#value' => $datepicker,
             '#inline' => true,
         );
@@ -194,7 +194,7 @@ class WPToolset_Field_Date extends FieldFactory
                 '#default_value' => $hour,
                 '#name' => $this->getName() . '[hour]',
                 '#inline' => true,
-                '#attributes' => array('title' => esc_attr(__('Select hour', 'wpv-views'))),
+                '#attributes' => array('title' => esc_attr(__('Select', 'wpv-views'))." Date"),
             );
             if (!empty($attributes_hour_minute)) {
                 $hour_element['#attributes'] = $attributes_hour_minute;
@@ -230,12 +230,14 @@ class WPToolset_Field_Date extends FieldFactory
             '#inline' => true,
             '#markup' => sprintf(
                 '<input type="button" class="button button-secondary js-wpt-date-clear wpt-date-clear" value="%s" %s/>',
-                esc_attr(__('Clear date', 'wpv-views')),
+                esc_attr(__('Clear', 'wpv-views'))." Date",
                 /**
                  * show button if array is empty or timestamp in array is
                  * empty
                  */
-                empty($time_value) || ( array_key_exists('timestamp', $time_value) && empty($time_value['timestamp']))? 'style="display:none" ':''
+                empty($time_value) || 
+                        (isset($time_value['timestamp']) && 
+                        empty($time_value['timestamp']))? 'style="display:none" ':''
             ),
         );
         return $form;
