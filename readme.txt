@@ -143,13 +143,15 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Screenshots ==
 
-1. Defining custom post types and taxonomy
-2. Defining custom fields (meta-groups)
-3. Editing custom fields
-4. Inserting custom fields to content
-5. Bulk editing child content using Field Tables
-6. Edit Custom Post Type
-7. Edit Taxonomy
+1. Custom post types list
+2. Defining custom taxonomy list
+3. Defining custom post type
+4. Defining custom fields (meta-groups)
+5. Editing custom fields
+6. Inserting custom fields to content
+7. Bulk editing child content using Field Tables
+8. Edit Custom Post Type
+9. Edit Taxonomy
 
 == Changelog ==
 
