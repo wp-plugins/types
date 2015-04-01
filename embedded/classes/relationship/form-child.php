@@ -106,6 +106,18 @@ class WPCF_Relationship_Child_Form
                 $this->__urlParams[$__param] = $_GET[$__param];
             }
         }
+        /**
+         * build-in types
+         */
+        if ( in_array($child_post_type, array('page', 'post', 'attachment', 'revision', 'nav_menu_item') ) ) {
+            foreach( array_keys($this->child_supports) as $key ) {
+                $this->child_supports[$key] = post_type_supports($child_post_type, $key);
+            }
+            return;
+        }
+        /**
+         * custom post types
+         */
         $post_types = get_option( 'wpcf-custom-types', array() );
         if (
             array_key_exists($child_post_type, $post_types )

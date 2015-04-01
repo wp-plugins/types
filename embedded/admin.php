@@ -155,14 +155,14 @@ function wpcf_admin_fields_postfields_styles(){
 //    $groups = wpcf_admin_fields_get_groups();
     $groups = wpcf_admin_post_get_post_groups_fields( wpcf_admin_get_edited_post() );
 
-    echo 'a<style type="text/css">';
     if ( !empty( $groups ) ) {
+		echo '<style type="text/css">';
         foreach ( $groups as $group ) {
             echo str_replace( "}", "}\n",
                     wpcf_admin_get_groups_admin_styles_by_group( $group['id'] ) );
         }
+		echo '</style>';
     }
-    echo '</style>';
 }
 
 /**
@@ -350,8 +350,20 @@ function wpcf_show_admin_messages() {
  * @param type $class
  * @return type 
  */
-function wpcf_admin_message_store( $message, $class = 'updated',
-        $keep_id = false ) {
+function wpcf_admin_message_store( $message, $class = 'updated', $keep_id = false )
+{
+    /**
+     * Allow to store or note
+     *
+     * Filter allow to turn off storing messages in Types
+     *
+     * @since 1.6.6
+     *
+     * @param boolean $var default value is true to show messages
+     */
+    if (!apply_filters('wpcf_admin_message_store', true) ) {
+        return;
+    }
     $messages = get_option( 'wpcf-messages', array() );
     $messages[get_current_user_id()][md5( $message )] = array(
         'message' => $message,

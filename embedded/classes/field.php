@@ -705,7 +705,7 @@ class WPCF_Field
         /**
          * check input
          */
-        if ( !is_string($html) || empty($html) ) {
+        if ( is_array($html) || is_object($html) ) {
             return '';
         }
         /**

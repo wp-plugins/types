@@ -612,7 +612,7 @@ function wpcf_sanitize_post_relationship_input_fields( $fields_raw ) {
     $fields = array();
     foreach( $fields_raw as $field_key_raw => $field_value_raw ) {
         $field_key = sanitize_text_field( $field_key_raw );
-        $child[ $field_key ] = $field_value_raw;
+        $fields[ $field_key ] = $field_value_raw;
     }
     return $fields;
 }

@@ -3,8 +3,6 @@ var Toolset_Promotion = Toolset_Promotion  || {};
 Toolset_Promotion = function($){
     var self = this;
 
-    _.extend({}, Toolset_Promotion.prototype);
-
     self.init = function(){
         self.toolset_open_promotional_message();
     };
@@ -25,7 +23,7 @@ Toolset_Promotion = function($){
                 closeButton: false,
                 fixed: true,
                 top: false,
-
+                width:'554px',
                 onComplete: function() {
 
                 },

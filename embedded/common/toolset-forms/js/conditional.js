@@ -736,6 +736,10 @@ var wptCond = (function ($) {
         }
 
         if (show) {
+            if ( $el.hasClass('wpt-date') && 'object' == typeof wptDate) {
+                $('.js-wpt-date', $el).removeAttr('disabled');
+                wptDate.init('body');
+            }
             $el.addClass('wpt-conditional-visible').removeClass('wpt-conditional-hidden js-wpt-remove-on-submit js-wpt-validation-ignore');
             switch (effectmode) {
                 case 'fade-slide':

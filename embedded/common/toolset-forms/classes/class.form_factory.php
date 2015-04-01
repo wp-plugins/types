@@ -245,7 +245,7 @@ class FormFactory extends FormAbstract
                         //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/196628627/comments#310360880
                         //changed render to rendering
                         sprintf(
-                            __('There is a problem with rendering field <strong>%s (%s)</strong>.', 'wpv-views'),
+                            __('There is a problem rendering field <strong>%s (%s)</strong>.', 'wpv-views'),
                             $_cfg['title'],
                             $_cfg['type']
                         ),

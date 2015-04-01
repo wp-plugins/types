@@ -404,11 +404,16 @@ function wpcf_admin_custom_taxonomies_form_submit( $form )
         $post_types = get_option( 'wpcf-custom-types', array() );
         foreach ( $post_types as $id => $type ) {
             if ( array_key_exists( $id, $data['supports'] ) ) {
+                if ( empty($post_types[$id]['taxonomies'][$data['slug']]) ) {
+                    $post_types[$id][TOOLSET_EDIT_LAST] = time();
+                }
                 $post_types[$id]['taxonomies'][$data['slug']] = 1;
             } else {
+                if ( !empty($post_types[$id]['taxonomies'][$data['slug']]) ) {
+                    $post_types[$id][TOOLSET_EDIT_LAST] = time();
+                }
                 unset( $post_types[$id]['taxonomies'][$data['slug']] );
             }
-            $post_types[$id][TOOLSET_EDIT_LAST] = time();
         }
         update_option( 'wpcf-custom-types', $post_types );
     }

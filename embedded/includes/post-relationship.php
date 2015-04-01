@@ -137,7 +137,6 @@ function wpcf_pr_admin_post_meta_box( $post, $args )
             _e( 'You will be able to manage child posts after saving this post.', 'wpcf' );
         } else {
             _e( 'You will be able to add parent posts after saving this post.', 'wpcf' );
-//            add_action( 'admin_footer', 'wpcf_admin_notice_post_locked_no_parent');
         }
     }
 }
@@ -265,6 +264,22 @@ function wpcf_pr_admin_delete_child_item( $post_id ) {
 }
 
 /**
+ *
+ * Belongs form helper to build correct SQL string to prepare.
+ *
+ * Belongs form helper to build correct SQL string to $wpdb->prepare - replace 
+ * any item by digital placeholder.
+ *
+ * @param any $item
+ * @return string
+ *
+ */
+function wpcf_pr_admin_post_meta_box_belongs_form_items_helper( $item )
+{
+    return '%d';
+}
+
+/**
  * Belongs form.
  *
  * @param type $post
@@ -320,10 +335,11 @@ function wpcf_pr_admin_post_meta_box_belongs_form( $post, $type, $belongs )
         $wpdb->get_results(
             $wpdb->prepare(
                 sprintf(
-                    'SELECT ID, post_title FROM %s WHERE ID IN (%%s)',
-                    $wpdb->posts
+                    'SELECT ID, post_title FROM %s WHERE ID IN (%s)',
+                    $wpdb->posts,
+                    implode(', ', array_map( 'wpcf_pr_admin_post_meta_box_belongs_form_items_helper', $items))
                 ),
-                implode(',', $items)
+                $items
             ),
             OBJECT_K
         ),

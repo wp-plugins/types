@@ -88,7 +88,6 @@ function wpcf_admin_custom_types_form()
                 continue;
             }
             unset($custom_taxonomies[$slug]['supports'][$id]);
-            $custom_taxonomies[$slug][TOOLSET_EDIT_LAST] = time();
         }
         update_option( 'wpcf-custom-taxonomies', $custom_taxonomies);
     }
@@ -703,7 +702,6 @@ function wpcf_admin_custom_types_form_submit($form)
             foreach( $wpcf_custom_taxonomies as $key => $value ) {
                 if ( array_key_exists( 'supports', $value ) && array_key_exists( $data['wpcf-post-type'], $value['supports'] ) ) {
                     unset( $wpcf_custom_taxonomies[$key]['supports'][$data['wpcf-post-type']] );
-                    $wpcf_custom_taxonomies[$key][TOOLSET_EDIT_LAST] = time();
                     $update_wpcf_custom_taxonomies = true;
                 }
             }
@@ -739,7 +737,6 @@ function wpcf_admin_custom_types_form_submit($form)
             } else {
                 unset( $taxes[$id]['supports'][$data['slug']] );
             }
-            $taxes[$id][TOOLSET_EDIT_LAST] = time();
         }
         update_option( 'wpcf-custom-taxonomies', $taxes );
     }
@@ -750,6 +747,11 @@ function wpcf_admin_custom_types_form_submit($form)
             unset( $protected_data_check[$key] );
         }
     }
+
+    /**
+     * set last edit time
+     */
+    $data[TOOLSET_EDIT_LAST] = time();
 
     // Merging protected data
     $custom_types[$post_type] = array_merge( $protected_data_check, $data );

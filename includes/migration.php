@@ -16,9 +16,8 @@
  *
  * @return array
  */
-function wpcf_admin_migration_form() {
-
-
+function wpcf_admin_migration_form()
+{
     global $wpdb;
     $wpcf_types = get_option('wpcf-custom-types', array());
     $wpcf_taxonomies = get_option('wpcf-custom-taxonomies', array());
@@ -37,7 +36,7 @@ function wpcf_admin_migration_form() {
     if (!empty($cfui_types)) {
         $form['types_title'] = array(
             '#type' => 'markup',
-            '#markup' => '<h3>' . __('Custom Types UI Post Types') . '</h3>',
+            '#markup' => '<h3>' . __('Custom Types UI Post Types', 'wpcf') . '</h3>',
         );
 
         foreach ($cfui_types as $key => $cfui_type) {
@@ -45,8 +44,6 @@ function wpcf_admin_migration_form() {
                     $wpcf_types);
             if ($exists) {
                 $attributes = array('readonly' => 'readonly', 'disabled' => 'disabled');
-//                wpcf_admin_message(sprintf(__("Custom Post Type %s will not be imported because post type with same name exist in Types",
-//                                        'wpcf'), $cfui_type['label']), 'error');
                 $add = __('(exists)', 'wpcf');
             } else {
                 $attributes = array();
@@ -78,8 +75,6 @@ function wpcf_admin_migration_form() {
                     $wpcf_taxonomies);
             if ($exists) {
                 $attributes = array('readonly' => 'readonly', 'disabled' => 'disabled');
-//                wpcf_admin_message(sprintf(__("Custom Taxonomy %s will not be imported because taxonomy with same name exist in Types",
-//                                        'wpcf'), $title), 'error');
                 $add = __('(exists)', 'wpcf');
             } else {
                 $attributes = array();
@@ -109,9 +104,6 @@ function wpcf_admin_migration_form() {
                     'wpcf'),
         );
     };
-
-
-
 
     // ACF
 
@@ -240,12 +232,6 @@ function wpcf_admin_migration_form() {
                         '#name' => 'acf_posts[' . $acf_post->ID . '][fields][' . $meta_name . '][slug]',
                         '#value' => esc_attr($data['name']),
                     );
-                    // @todo Not supported yet
-//                $form[$acf_post->ID . '_acf_field_' . $meta_name . '_details_order'] = array(
-//                    '#type' => 'hidden',
-//                    '#name' => 'acf_posts[' . $acf_post->ID . '][fields][' . $meta_name . '][order]',
-//                    '#value' => esc_attr($data['order']),
-//                );
                     // Add options for radios and select
                     if (in_array($data['type'], array('radio', 'select'))
                             && !empty($data['choices'])) {
@@ -284,9 +270,6 @@ function wpcf_admin_migration_form() {
                     if (($exists && !$outsider) || !$supported) {
                         $attributes = array('disabled' => 'disabled');
                         if ($exists) {
-//                            wpcf_admin_message(sprintf(__("Field %s will not be imported because field with same name exist in Types",
-//                                                    'wpcf'), $data['label']),
-//                                    'error');
                         }
                     } else {
                         $attributes = array();

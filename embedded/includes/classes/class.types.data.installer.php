@@ -16,6 +16,15 @@ if ( !class_exists('Types_Data_Installer') ) {
             $this->args = $args;
         }
 
+        /**
+         * Create data for import.
+         *
+         * Populate and check data for import from Importer
+         *
+         * @since 1.6.6
+         *
+         * @return object data for import
+         */
         public function wpvdemo()
         {
             $data = new stdClass;
@@ -35,6 +44,18 @@ if ( !class_exists('Types_Data_Installer') ) {
             return $data;
         }
 
+        /**
+         * Helper for group.
+         *
+         * Helper for importing group.
+         *
+         * @since 1.6.6
+         * @access private
+         *
+         * @param string $group_name Group name
+         *
+         * @return object data for import
+         */
         private function get_data_by_group_name($group_name)
         {
             $group = 'groups';
@@ -52,6 +73,19 @@ if ( !class_exists('Types_Data_Installer') ) {
             return;
         }
 
+        /**
+         * Build data for group.
+         *
+         * Build data to importing group.
+         *
+         * @since 1.6.6
+         * @access private
+         *
+         * @param string $group_name Group name
+         * @param object $group Group data
+         *
+         * @return object data for import
+         */
         private function get_data($group_name, $groups)
         {
             $this->reset_toolset_edit_last_list[$group_name] = array();
@@ -77,7 +111,7 @@ if ( !class_exists('Types_Data_Installer') ) {
                         $this->user_fields += explode(',', $group->meta->_wp_types_group_fields);
                         break;
                     }
-                    $this->reset_toolset_edit_last_list[$group_name][] = (int)$group->ID;
+                    $this->reset_toolset_edit_last_list[$group_name][] = $group->__types_id;
                     continue;
                 }
                 if (
@@ -87,13 +121,25 @@ if ( !class_exists('Types_Data_Installer') ) {
                     $one = $group;
                     $one->__types_id = wp_unique_post_slug( sanitize_title_with_dashes($group->post_title, null, 'save'), null, 'publish', 'wp-types-group', null);
                     $one->__types_title = $one->post_title = sprintf('%s %s', $group->post_title, $date);
-                    $new[] = $one;
+                    $new[$one->__types_id] = $one;
                     continue;
                 }
             }
             return $new;
         }
 
+        /**
+         * Helper for CPT & CT.
+         *
+         * Helper for importing custom post types and custom taxonomies.
+         *
+         * @since 1.6.6
+         * @access private
+         *
+         * @param string $group_name Group name
+         *
+         * @return object data for import
+         */
         private function get_data_by_field_type($type)
         {
             if (
@@ -114,6 +160,19 @@ if ( !class_exists('Types_Data_Installer') ) {
             return $new;
         }
 
+        /**
+         * Build data for CPT & CT
+         *
+         * Build data to importing custom post types and custom taxonomies.
+         *
+         * @since 1.6.6
+         * @access private
+         *
+         * @param string $group_name Group name
+         * @param object $group Group data
+         *
+         * @return object data for import
+         */
         private function get_data_by_type($group_name)
         {
             $group = 'types';
@@ -139,7 +198,7 @@ if ( !class_exists('Types_Data_Installer') ) {
 
             foreach ( $groups as $group) {
                 $slug = $group->slug->__toString();
-                if ( !isset($data[$slug]) || !isset($data[$slug][TOOLSET_EDIT_LAST]) ) {
+                if ( isset($data[$slug]) && !isset($data[$slug][TOOLSET_EDIT_LAST]) ) {
                     continue;
                 }
                 $this->reset_toolset_edit_last_list[$group_name][] = $slug;
@@ -153,6 +212,9 @@ if ( !class_exists('Types_Data_Installer') ) {
                     isset($this->args['force_import_post_name'][$group_name])
                     && in_array($group->__types_id, $this->args['force_import_post_name'][$group_name])
                 ) {
+                    $this->reset_toolset_edit_last_list[$group_name][] = (int)$group->ID;
+                    $group->addChild('add', false);
+                    $group->addChild('update', true);
                     $new[] = $group;
                     continue;
                 }
@@ -161,6 +223,15 @@ if ( !class_exists('Types_Data_Installer') ) {
             return $new;
         }
 
+        /**
+         * Reset TOOLSET_EDIT_LAST.
+         *
+         * Function to reset TOOLSET_EDIT_LAST - last edit timestamp in Types 
+         * definitions.
+         *
+         * @since 1.6.6
+         *
+         */
         public function reset_toolset_edit_last()
         {
             if (!empty($this->reset_toolset_edit_last_list)) {
@@ -168,8 +239,11 @@ if ( !class_exists('Types_Data_Installer') ) {
                     switch( $group ) {
                     case 'wp-types-group':
                     case 'wp-types-user-group':
-                        foreach( $data as $post_id) {
-                            delete_post_meta( $post_id, TOOLSET_EDIT_LAST);
+                        foreach( $data as $slug) {
+                            $post = get_page_by_path($slug, OBJECT, $group);
+                            if ( $post ) {
+                                delete_post_meta( $post->ID, TOOLSET_EDIT_LAST);
+                            }
                         }
                         break;
                     case 'wpcf-custom-types':
@@ -182,7 +256,7 @@ if ( !class_exists('Types_Data_Installer') ) {
                                     unset($one[TOOLSET_EDIT_LAST]);
                                 }
                             }
-                            $new[] = $one;
+                            $new[$one['slug']] = $one;
                         }
                         update_option($group, $new);
                         break;

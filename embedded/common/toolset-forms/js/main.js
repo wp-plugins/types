@@ -546,17 +546,23 @@ toolsetForms.cred_tax = new toolsetForms.CRED_taxonomy();
 //removed return key press
 jQuery(function () {
     var keyStop = {
-        8: ":not(input:text, textarea, input:file, input:password)", // stop backspace = back
+        8: ":not(input:text, textarea,  input:file, input:password)", // stop backspace = back
         13: "input:text, input:password", // stop enter = submit
 
         end: null
     };
     jQuery(document).bind("keydown", function (event) {
-        var selector = keyStop[event.which];
-
-        if (selector !== undefined && jQuery(event.target).is(selector)) {
-            event.preventDefault(); //stop event
-        }
+        var thiz_selector = keyStop[event.which],
+		thiz_target = jQuery(event.target);
+		
+		if ( 
+			thiz_target.closest( "form.cred-form" ).length 
+			&& thiz_selector !== undefined 
+			&& thiz_target.is(thiz_selector)
+		) {
+			event.preventDefault(); //stop event
+		}
+		
         return true;
     });
 });

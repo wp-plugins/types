@@ -37,7 +37,7 @@ var wptValidation = (function($) {
          * add skype to validator method
          */
         $.validator.addMethod("skype", function(value, element, param) {
-            return value=="" || /^([a-z0-9\.]+)$/i.test(value);
+            return value=="" || /^([a-z0-9\.\_\,\-\#]+)$/i.test(value);
         });
 
         /**

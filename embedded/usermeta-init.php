@@ -215,7 +215,8 @@ add_filter( 'editor_addon_menus_types', 'wpcf_admin_post_add_usermeta_to_editor_
 add_action( 'load-post.php', '__wpcf_usermeta_test', PHP_INT_MAX );
 add_action( 'load-post-new.php', '__wpcf_usermeta_test', PHP_INT_MAX );
 
-function __wpcf_usermeta_test() {
+function __wpcf_usermeta_test()
+{
     require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields-post.php';
     $field['id'] = md5( 'date' . time() );
     $here = array(basename( $_SERVER['REQUEST_URI'] ), basename( $_SERVER['SCRIPT_FILENAME'] ));
@@ -225,11 +226,14 @@ function __wpcf_usermeta_test() {
         $post_type = get_post_type( $post );
     } else if ( !empty( $_GET['post'] ) ) {
         $post_type = get_post_type( sanitize_text_field( $_GET['post'] ) );
+    } else if ( !empty( $_GET['post_type'] ) ) {
+        $post_type = esc_html( sanitize_text_field( $_GET['post_type'] ) );
     }
     if ( ( $here[0] == ('index.php' || 'wp-admin')) && ( $here[1] != 'index.php') ) {
-        if ( isset( $post_type )
-                && in_array( $post_type,
-                        array('view', 'view-template', 'cred-form') ) ) {
+        if (
+            isset( $post_type )
+            && in_array( $post_type, array('view', 'view-template', 'cred-form') )
+        ) {
             return;
         }
         wpcf_admin_post_add_to_editor( $field );
@@ -986,8 +990,7 @@ class Post_Fields_Access
 
 }
 
-add_action( 'wp_ajax_wpcf_types_suggest_user',
-        'wpcf_access_wpcf_types_suggest_user_ajax' );
+add_action( 'wp_ajax_wpcf_types_suggest_user', 'wpcf_access_wpcf_types_suggest_user_ajax' );
 
 /**
  * Suggest user AJAX.
@@ -999,7 +1002,7 @@ function wpcf_access_wpcf_types_suggest_user_ajax()
 {
     global $wpdb;
     $users = '';
-    $q = '%s'.wptoolset_esc_like(esc_sql( trim( $_GET['q'] ) )).'%s';
+    $q = '%'.wptoolset_esc_like(esc_sql( trim( $_GET['q'] ) )).'%';
     $found = $wpdb->get_results(
         $wpdb->prepare(
             "SELECT ID, display_name, user_login FROM $wpdb->users WHERE user_nicename LIKE %s OR user_login LIKE %s OR display_name LIKE %s OR user_email LIKE %s LIMIT %d",
