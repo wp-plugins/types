@@ -155,8 +155,14 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
+= 1.6.6.1 =
+
+* Release date: 2015-04-03
+* Fixed problem with archive page for custom post type.
+
 = 1.6.6 =
 
+* Release date: 2015-04-02
 * Fixed problem with shortcode "playlist" used in WYSIWYG field.  http://wp-types.com/forums/topic/media-play-list-not-outputting-from-custom-wysiwyg-field-js-error/
 * Fixed empty title problem for filter "wpt_field_options" on user edit/add screen https://wp-types.com/forums/topic/populate-select-field-in-wpcf-um-group/
 * Added ability to create CPT without title and editor. https://wp-types.com/forums/topic/inaccurate-warning-message-when-creatingediting-a-cpt/

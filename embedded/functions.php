@@ -104,6 +104,16 @@ function wpcf_init_custom_types_taxonomies()
 }
 
 /**
+ * bind build-in taxonomies
+ */
+
+function wpcf_init_build_in_taxonomies()
+{
+    require_once WPCF_EMBEDDED_INC_ABSPATH . '/custom-types.php';
+    wpcf_init_bind_build_in_taxonomies();
+}
+
+/**
  * Returns meta_key type for specific field type.
  *
  * @param type $type

@@ -330,3 +330,33 @@ function wpcf_dashboard_glance_items()
     }
 }
 
+/**
+ * Register build-in taxonomies for CPT
+ *
+ * Register build-in taxonomies for CPT in the proper time, after this 
+ * taxonomies are avaiable to register, becouse register_post_type is called 
+ * in Types before register_taxonomy is called for build-in taxonomies.
+ *
+ * @since 1.6.6.1
+ *
+ */
+function wpcf_init_bind_build_in_taxonomies()
+{
+    $custom_types = get_option( 'wpcf-custom-types', array() );
+    if ( empty($custom_types) ) {
+        return;
+    }
+    foreach( $custom_types as $custom_post_slug => $data ) {
+        if ( !isset($data['taxonomies']) || empty($data['taxonomies'])) {
+            continue;
+        }
+        $build_in_taxonomies = array_keys(get_taxonomies(array('_builtin'=>true)));
+        foreach(array_keys($data['taxonomies']) as $taxonomy_name) {
+            if ( !in_array($taxonomy_name, $build_in_taxonomies) ) {
+                continue;
+            }
+            register_taxonomy_for_object_type($taxonomy_name, $custom_post_slug);
+        }
+    }
+}
+
