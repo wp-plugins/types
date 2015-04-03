@@ -1,7 +1,7 @@
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/trunk/toolset-forms/js/file-wp35.js $
- * $LastChangedDate: 2015-02-18 12:50:24 +0100 (Wed, 18 Feb 2015) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/1.5/toolset-forms/js/file-wp35.js $
+ * $LastChangedDate: 2015-02-18 12:50:24 +0100 (śro, 18 lut 2015) $
  * $LastChangedRevision: 31718 $
  * $LastChangedBy: marcin $
  *
