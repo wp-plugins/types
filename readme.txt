@@ -155,6 +155,11 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
+= 1.6.6.2 =
+
+* Release date: 2015-04-10
+* Fixed problem with File Field which do not work when edited from the Parent Post Type. https://wp-types.com/forums/topic/1-6-6-seems-to-break-child-fields-when-parent-has-an-image-field/
+
 = 1.6.6.1 =
 
 * Release date: 2015-04-03
