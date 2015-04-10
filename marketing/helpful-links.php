@@ -1,9 +1,9 @@
 <?php
 /**
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.6.2/marketing/helpful-links.php $
- * $LastChangedDate: 2015-02-26 07:51:21 +0100 (czw, 26 lut 2015) $
- * $LastChangedRevision: 31922 $
- * $LastChangedBy: marcin $
+ * $HeadURL$
+ * $LastChangedDate$
+ * $LastChangedRevision$
+ * $LastChangedBy$
  *
  */
 ?><h3><?php _e('Need Help?', 'wpcf'); ?></h3>
