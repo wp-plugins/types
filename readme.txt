@@ -155,6 +155,12 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
+= 1.6.6.3 =
+
+* Release date: 2015-04-27
+* Fixed problem with Commercial tab on Install new Plugin Page.
+
+
 = 1.6.6.2 =
 
 * Release date: 2015-04-10

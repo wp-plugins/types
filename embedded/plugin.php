@@ -5,7 +5,7 @@
   Description: Define custom post types, custom taxonomy and custom fields.
   Author: OnTheGoSystems
   Author URI: http://www.onthegosystems.com
-  Version: 1.6.6.2
+  Version: 1.6.6.3
  */
 /**
  *
