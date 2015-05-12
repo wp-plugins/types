@@ -36,7 +36,7 @@ define( 'WPCF_RES_RELPATH', WPCF_RELPATH . '/resources' );
 $installer = dirname( __FILE__ ) . '/plus/installer/loader.php';
 if ( file_exists($installer) ) {
     include_once $installer;
-    if ( class_exists('WP_Installer_Setup') ) {
+    if ( function_exists('WP_Installer_Setup') ) {
         WP_Installer_Setup(
             $wp_installer_instance,
             array(

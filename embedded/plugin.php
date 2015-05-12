@@ -1,8 +1,8 @@
 <?php
 /*
-  Plugin Name: Types - Complete Solution for Custom Fields and Types Embedded
+  Plugin Name: Types Embedded
   Plugin URI: http://wordpress.org/extend/plugins/types/
-  Description: Define custom post types, custom taxonomy and custom fields.
+  Description: Define custom post types, custom taxonomies and custom fields.
   Author: OnTheGoSystems
   Author URI: http://www.onthegosystems.com
   Version: trunk

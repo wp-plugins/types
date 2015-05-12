@@ -368,10 +368,15 @@ if (!class_exists('Enlimbo_Forms_Wpcf')) {
             if ( isset( $element['#labelclass'] ) ) {
 				$labelclass = $element['#labelclass'] . ' ';
             }
+            $labelstyle = '';
+            if ( isset( $element['#labelstyle'] ) ) {
+				$labelstyle = ' style="' . $element['#labelstyle'] . '" ';
+            }
             $element['_render']['label'] = isset($element['#title']) ? '<label class="'
 					. $labelclass
                     . $this->css_class . '-label ' . $this->css_class . '-'
-                    . $element['#type'] . '-label" for="' . $element['#id'] . '">'
+                    . $element['#type'] . '-label" for="' . $element['#id'] . '"'.
+                    $labelstyle . '>'
                     . stripslashes($element['#title'])
                     . '</label>' . "\r\n" : '';
             $element['_render']['title'] = $this->_setElementTitle($element);

@@ -1,13 +1,16 @@
 var WPV_Toolset = WPV_Toolset  || {};
+
+WPV_Toolset.activeUrlEditor = null;
+
 if ( typeof WPV_Toolset.CodeMirror_instance === "undefined" ) {
 	WPV_Toolset.CodeMirror_instance = [];
 }
 
-if ( WPV_Toolset.add_qt_editor_buttons !== 'function' ) {
+if ( typeof WPV_Toolset.add_qt_editor_buttons !== 'function' ) {
     WPV_Toolset.add_qt_editor_buttons = function( qt_instance, editor_instance ) {
         QTags._buttonsInit();
 		WPV_Toolset.CodeMirror_instance[qt_instance.id] = editor_instance;
-		
+
         for ( var button_name in qt_instance.theButtons ) {
 			if ( qt_instance.theButtons.hasOwnProperty( button_name ) ) {
 				qt_instance.theButtons[button_name].old_callback = qt_instance.theButtons[button_name].callback;
@@ -26,52 +29,59 @@ if ( WPV_Toolset.add_qt_editor_buttons !== 'function' ) {
                     WPV_Toolset.CodeMirror_instance[id].focus();
                     }
                 } else if ( qt_instance.theButtons[button_name].id == 'close' ) {
-                    
+
                 } else if ( qt_instance.theButtons[button_name].id == 'link' ) {
 					var t = this;
-					qt_instance.theButtons[button_name].callback = 
+					qt_instance.theButtons[button_name].callback =
                         function ( b, c, d, e ) {
-							activeUrlEditor = c;var f,g=this;return"undefined"!=typeof wpLink?void wpLink.open(d.id):(e||(e="http://"),void(g.isOpen(d)===!1?(f=prompt(quicktagsL10n.enterURL,e),f&&(g.tagStart='<a href="'+f+'">',a.TagButton.prototype.callback.call(g,b,c,d))):a.TagButton.prototype.callback.call(g,b,c,d)))
-						} 
-					;
-					jQuery( '#wp-link-submit' ).off();
-					jQuery( '#wp-link-submit' ).on( 'click', function() {
-						var id = jQuery( activeUrlEditor ).attr('id'),
-						selection = WPV_Toolset.CodeMirror_instance[id].getSelection(),
-						target = '';
-						if ( jQuery( '#link-target-checkbox' ).prop('checked') ) {
-						  target = '_blank';
-						}
-						html = '<a href="' + jQuery('#url-field').val() + '"';
-						title = '';
-						if ( jQuery( '#link-title-field' ).val() ) {
-							title = jQuery( '#link-title-field' ).val().replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );
-							html += ' title="' + title + '"';
-						}
-						if ( target ) {
-							html += ' target="' + target + '"';
-						}
-						html += '>';
-						if ( selection === '' ) {
-							html += title;
-						} else {
-							html += selection;
-						}
-						html += '</a>';
-						t.tagStart = html;
-						selection = t.tagStart;
-						WPV_Toolset.CodeMirror_instance[id].replaceSelection( selection, 'end' );
-						WPV_Toolset.CodeMirror_instance[id].focus();
-						jQuery( '#wp-link-backdrop,#wp-link-wrap' ).hide();
-						jQuery( document.body ).removeClass( 'modal-open' );
-						return false;
-                    });
+                            WPV_Toolset.activeUrlEditor = c;var f,g=this;return"undefined"!=typeof wpLink?void wpLink.open(d.id):(e||(e="http://"),void(g.isOpen(d)===!1?(f=prompt(quicktagsL10n.enterURL,e),f&&(g.tagStart='<a href="'+f+'">',a.TagButton.prototype.callback.call(g,b,c,d))):a.TagButton.prototype.callback.call(g,b,c,d)))
+						};
+                    if( WPV_Toolset.activeUrlEditor ){
+                        jQuery( '#wp-link-submit' ).off();
+                        jQuery( '#wp-link-submit' ).on( 'click', function() {
+                            try{
+                                var id = jQuery( WPV_Toolset.activeUrlEditor ).attr('id'),
+                                    selection = WPV_Toolset.CodeMirror_instance[id].getSelection(),
+                                    target = '';
+                                if ( jQuery( '#link-target-checkbox' ).prop('checked') ) {
+                                    target = '_blank';
+                                }
+                                html = '<a href="' + jQuery('#url-field').val() + '"';
+                                title = '';
+                                if ( jQuery( '#link-title-field' ).val() ) {
+                                    title = jQuery( '#link-title-field' ).val().replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );
+                                    html += ' title="' + title + '"';
+                                }
+                                if ( target ) {
+                                    html += ' target="' + target + '"';
+                                }
+                                html += '>';
+                                if ( selection === '' ) {
+                                    html += title;
+                                } else {
+                                    html += selection;
+                                }
+                                html += '</a>';
+                                t.tagStart = html;
+                                selection = t.tagStart;
+                                WPV_Toolset.CodeMirror_instance[id].replaceSelection( selection, 'end' );
+                                WPV_Toolset.CodeMirror_instance[id].focus();
+                                jQuery( '#wp-link-backdrop,#wp-link-wrap' ).hide();
+                                jQuery( document.body ).removeClass( 'modal-open' );
+                                return false;
+                            } catch( e ){
+                                console.log( e.message, WPV_Toolset.activeUrlEditor );
+                            }
+
+                        });
+                    }
+
                 } else {
-                    qt_instance.theButtons[button_name].callback = function( element, canvas, ed ) {                    
+                    qt_instance.theButtons[button_name].callback = function( element, canvas, ed ) {
                         var id = jQuery( canvas ).attr( 'id' ),
                         t = this,
                         selection = WPV_Toolset.CodeMirror_instance[id].getSelection();
-						if ( selection.length > 0 ) { 
+						if ( selection.length > 0 ) {
 							if ( !t.tagEnd ) {
 								selection = selection + t.tagStart;
 							} else {
@@ -240,14 +250,14 @@ jQuery(document).ready(function(){
             icl_editor_popup(drop_down);
 
 			jQuery(drop_down).find('.search_field').focus();
-			
+
 			// Make sure the dialog fits on the screen when used in
 			// Layouts for the Post Content dialog
 			if (jQuery(drop_down).closest('#ddl-default-edit').length > 0) {
 				var dialog_bottom = jQuery(drop_down).offset().top + jQuery(drop_down).height();
 				dialog_bottom -= jQuery(window).scrollTop();
 				var window_height = jQuery(window).height();
-				
+
 				if (dialog_bottom > window_height) {
 					var new_top = window_height - jQuery(drop_down).height() - 80;
 					if (new_top < 0) {
@@ -620,7 +630,7 @@ function insert_b64_shortcode_to_editor(b64_shortcode, text_area) {
         shortcode += '[/types]';
     }
     window.wpcfActiveEditor = text_area;
-    
+
     icl_editor.insert(shortcode);
 }
 
@@ -801,7 +811,7 @@ var icl_editor = (function(window, $){
 	};
 
     function isCodeMirror($textarea)
-    {        
+    {
         if ( ! $textarea.is('textarea') ) {
 			return false;
 		}
@@ -812,7 +822,7 @@ var icl_editor = (function(window, $){
 		if ( textareaNext ) {
 			//Usual way before WordPress 4.1
 			if (
-				textareaNext.CodeMirror 
+				textareaNext.CodeMirror
 				&& $textarea[0] == textareaNext.CodeMirror.getTextArea()
 			) {
 				return textareaNext.CodeMirror;
@@ -845,7 +855,7 @@ var icl_editor = (function(window, $){
 		}
         return false;
     };
-	
+
 	function isCodeMirrorWithPanels( $textarea, candidateNode ) {
 		if ( ! $textarea.is('textarea') ) {
 			return false;
@@ -856,14 +866,14 @@ var icl_editor = (function(window, $){
 		if ( candidateNode ) {
 			var candidateNodeFirstChild = candidateNode.firstChild,
 			candidateNodeLastChiild = candidateNode.lastChild;
-			if ( 
-				candidateNodeFirstChild 
+			if (
+				candidateNodeFirstChild
 				&& candidateNodeFirstChild.CodeMirror
 				&& $textarea[0] == candidateNodeFirstChild.CodeMirror.getTextArea()
 			) {
 				return candidateNodeFirstChild.CodeMirror;
-			} else if ( 
-				candidateNodeLastChiild 
+			} else if (
+				candidateNodeLastChiild
 				&& candidateNodeLastChiild.CodeMirror
 				&& $textarea[0] == candidateNodeLastChiild.CodeMirror.getTextArea()
 			) {
@@ -1052,6 +1062,6 @@ var icl_editor = (function(window, $){
             return window.iclCodemirror[textarea];
         }
     };
-   
+
 
 })(window, jQuery, undefined);

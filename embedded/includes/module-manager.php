@@ -572,6 +572,18 @@ function wpcf_admin_export_selected_data ( array $items, $_type = 'all', $return
                 array() ), $_items );
         } else {
             $custom_types = get_option( 'wpcf-custom-types', array() );
+            /**
+             * fix custom field array for proper XML output
+             */
+            foreach ( $custom_types as $custom_type_key => $custom_type_data ) {
+                if ( !isset($custom_type_data['custom_fields']) || empty($custom_type_data['custom_fields']) ) {
+                    continue;
+                }
+                $custom_types[$custom_type_key]['custom_fields'] = array();
+                foreach( $custom_type_data['custom_fields'] as $custom_field_name ) {
+                    $custom_types[$custom_type_key]['custom_fields'][$custom_field_name] = 1;
+                }
+            }
         }
         // Get custom types
         if ( !empty( $custom_types ) ) {
