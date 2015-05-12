@@ -9,6 +9,26 @@ if( typeof WPV_Toolset.Utils == 'undefined' ) WPV_Toolset.Utils = {};
 
 WPV_Toolset.Utils.eventDispatcher = _.extend({}, Backbone.Events);
 
+WPV_Toolset.Utils.restoreEventPropagation = function( event ){
+    if( event.isImmediatePropagationStopped() === false && event.isPropagationStopped() === false ){
+        return event;
+    }
+
+    var refEvent = event.originalEvent;
+    refEvent.cancelBubble = false;
+    refEvent.defaultPrevented = false;
+    refEvent.returnValue = true;
+    refEvent.timeStamp = ( new Date() ).getTime();
+
+    if (event.target.dispatchEvent) {
+        event.target.dispatchEvent(refEvent);
+    } else if (event.target.fireEvent) {
+        event.target.fireEvent(refEvent);
+    }
+
+    return refEvent;
+};
+
 WPV_Toolset.Utils.do_ajax_post = function( params, callback_object )
 {
 	jQuery.post(ajaxurl, params, function (response) {
@@ -686,7 +706,7 @@ WPV_Toolset.Utils.editor_utf8_decode = function (utftext) {
     return string;
 };
 
-// convert unicode character to its corrsponding numeric entity
+// convert unicode character to its corresponding numeric entity
 WPV_Toolset.Utils.fixedCharCodeAt = function  (str, idx) {
     // ex. fixedCharCodeAt ('\uD800\uDC00', 0); // 65536
     // ex. fixedCharCodeAt ('\uD800\uDC00', 1); // 65536
@@ -766,9 +786,11 @@ String.prototype.regexEscape = function regexEscape() {
             var self = this;
             this.$element.on('mouseenter', function(event) {
                 self.show(event);
+                jQuery(event.target).trigger('tooltip_show', event);
             });
             this.$element.on('mouseleave', function(event) {
                 self.hide(event);
+                jQuery(event.target).trigger('tooltip_hide', event);
             });
         },
         show: function (event) {

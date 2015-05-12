@@ -1,8 +1,8 @@
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/1.5/toolset-forms/js/file-wp35.js $
- * $LastChangedDate: 2015-02-18 12:50:24 +0100 (Wed, 18 Feb 2015) $
- * $LastChangedRevision: 31718 $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/1.5.1/toolset-forms/js/file-wp35.js $
+ * $LastChangedDate: 2015-05-04 06:57:42 +0000 (Mon, 04 May 2015) $
+ * $LastChangedRevision: 33205 $
  * $LastChangedBy: marcin $
  *
  */
@@ -31,10 +31,18 @@ var wptFile = (function($, w) {
         */
         // Build the choose from library frame.
         $('.js-wpt-field').on('click', 'a.js-wpt-file-upload', function( event ) {
-            var $el = $(this);
+            wptFile.bindOpen($(this), event);
+        });
+    }
+
+    function bindOpen($el, event)
+    {
             var $type = $el.data('wpt-type');
             var $id = $el.parent().attr('id');
-            event.preventDefault();
+
+            if ( event ) {
+                event.preventDefault();
+            }
 
             // If the media frame already exists, reopen it.
             if ( frame[$id] ) {
@@ -87,10 +95,11 @@ var wptFile = (function($, w) {
             });
 
             frame[$id].open();
-        });
     }
+
     return {
         init: init,
+        bindOpen: bindOpen,
     };
 })(jQuery);
 

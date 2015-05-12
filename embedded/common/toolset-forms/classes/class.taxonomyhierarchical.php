@@ -303,7 +303,8 @@ class WPToolset_Field_Taxonomyhierarchical extends WPToolset_Field_Textfield {
                     '#before' => sprintf('<li class="%s">', implode(' ', $clases)),
                     '#after' => '</li>',
                     '#attributes' => array(
-                        'data-parent' => $parent
+                        'data-parent' => $parent,
+                        'data-value' => $names[$tid]
                     ),
                     '#pattern' => '<BEFORE><PREFIX><ELEMENT><LABEL><ERROR><SUFFIX><DESCRIPTION><AFTER>',
                 );
