@@ -1,6 +1,6 @@
 <?php
 /**
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.6.4/marketing/helpful-links.php $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.6.5/marketing/helpful-links.php $
  * $LastChangedDate: 2015-02-26 06:51:21 +0000 (Thu, 26 Feb 2015) $
  * $LastChangedRevision: 31922 $
  * $LastChangedBy: marcin $

@@ -1,11 +1,11 @@
 <?php
 /*
-  Plugin Name: Types - Complete Solution for Custom Fields and Types
+  Plugin Name: Types
   Plugin URI: http://wordpress.org/extend/plugins/types/
-  Description: Define custom post types, custom taxonomy and custom fields.
+  Description: Define custom post types, custom taxonomies and custom fields.
   Author: OnTheGoSystems
   Author URI: http://www.onthegosystems.com
-  Version: 1.6.6.4
+  Version: 1.6.6.5
  */
 /**
  *
@@ -20,7 +20,7 @@ if ( !defined( 'WPCF_VERSION' ) ) {
     /**
      * make sure that WPCF_VERSION in embedded/bootstrap.php is the same!
      */
-    define( 'WPCF_VERSION', '1.6.6.4' );
+    define( 'WPCF_VERSION', '1.6.6.5' );
 }
 
 define( 'WPCF_REPOSITORY', 'http://api.wp-types.com/' );
