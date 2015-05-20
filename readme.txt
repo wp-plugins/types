@@ -157,7 +157,7 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 = 1.6.6.5 =
 
-* Release date: 2015-05-12
+* Release date: 2015-05-20
 * Fixed problem with Uncaught ReferenceError: pagenow is not defined. http://wp-types.com/forums/topic/nextgen-gallery-broken-urgent/
 
 = 1.6.6.4 =
