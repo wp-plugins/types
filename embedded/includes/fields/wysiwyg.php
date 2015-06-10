@@ -146,8 +146,9 @@ function wpcf_fields_wysiwyg_view( $params ) {
          */
         remove_shortcode('playlist', 'wp_playlist_shortcode');
         $output .= apply_filters( 'the_content', htmlspecialchars_decode( stripslashes( $params['field_value'] ) ) );
-        if ( preg_match_all('/playlist[^\]]+/', $output, $matches ) ) {
+        if ( preg_match_all('/\[playlist[^\]]+\]/', $output, $matches ) ) {
             foreach( $matches[0] as $one ) {
+                $one = preg_replace('/[\[\]]+/', '', $one);
                 $re = '/'.$one.'/';
                 $one = preg_replace('/\&\#(8221|8243);/', '"', $one);
                 $output = preg_replace($re, $one, $output);

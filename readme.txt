@@ -5,7 +5,7 @@ Tags: CMS, custom field, custom fields, custom post type, custom post types, fie
 License: GPLv2
 Requires at least: 3.4
 Tested up to: 4.2.2
-Stable tag: 1.6.6.5
+Stable tag: 1.6.6.6
 
 The complete and reliable plugin for managing custom post types, custom taxonomies and custom fields.
 
@@ -154,6 +154,10 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 9. Edit Taxonomy
 
 == Changelog ==
+
+= 1.6.6.6 =
+* Release date: 2015-06-10
+* Fixed problem with "playlist" word.  https://wp-types.com/forums/topic/front-end-warning-from-wysiwyg-php/
 
 = 1.6.6.5 =
 
