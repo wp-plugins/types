@@ -2,10 +2,6 @@
 /*
  * Frontend functions.
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 

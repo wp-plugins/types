@@ -6,10 +6,6 @@ require_once 'class.textarea.php';
  *
  * @author Srdjan
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 class WPToolset_Field_Wysiwyg extends WPToolset_Field_Textarea

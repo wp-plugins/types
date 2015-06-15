@@ -1,10 +1,6 @@
 /** * * Use this file only for scripts needed in full version.
  * Before moving from embedded JS - make sure it's needed only here.
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 jQuery(document).ready(function($){
@@ -35,4 +31,31 @@ jQuery(document).ready(function($){
             $('.spinner', parent).hide().after(response);
         });
     });
+    /**
+     * allow to sort CF
+     */
+    $("#custom_fields ul").sortable();
+    /**
+     * colorbox for images
+     */
+    bind_colorbox_to_thumbnail_preview();
 });
+
+/**
+ * colorbox for images
+ */
+function bind_colorbox_to_thumbnail_preview() {
+    jQuery('.js-wpt-file-preview img').each(function(){
+        if ( jQuery(this).data('full-src')) {
+            jQuery(this).on('click', function() {
+                jQuery.colorbox({
+                    href: jQuery(this).data('full-src'),
+                    maxWidth: "75%",
+                    maxHeight: "75%",
+                    close: wpcf_js.close
+                });
+            });
+        }
+    });
+}
+

@@ -7,10 +7,6 @@ require_once 'class.audio.php';
  *
  * @author Srdjan
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 class WPToolset_Field_Credaudio extends WPToolset_Field_Credfile

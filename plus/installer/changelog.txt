@@ -1,3 +1,7 @@
+= 1.5.6 =
+* Updated the translations
+* Fix for WPML 3.2 conditional upgrade logic
+
 = 1.5.5 =
 * Fixed the logic for the high_priority parameter
 * Fixed js bug causing a conflict with NextGen

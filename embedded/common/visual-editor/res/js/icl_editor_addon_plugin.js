@@ -10,72 +10,151 @@ if ( typeof WPV_Toolset.add_qt_editor_buttons !== 'function' ) {
     WPV_Toolset.add_qt_editor_buttons = function( qt_instance, editor_instance ) {
         QTags._buttonsInit();
 		WPV_Toolset.CodeMirror_instance[qt_instance.id] = editor_instance;
-
+        
         for ( var button_name in qt_instance.theButtons ) {
 			if ( qt_instance.theButtons.hasOwnProperty( button_name ) ) {
 				qt_instance.theButtons[button_name].old_callback = qt_instance.theButtons[button_name].callback;
                 if ( qt_instance.theButtons[button_name].id == 'img' ){
                     qt_instance.theButtons[button_name].callback = function( element, canvas, ed ) {
-                    var t = this,
-                    id = jQuery( canvas ).attr( 'id' ),
-                    selection = WPV_Toolset.CodeMirror_instance[id].getSelection(),
-                    e = "http://",
-                    g = prompt( quicktagsL10n.enterImageURL, e ),
-                    f = prompt( quicktagsL10n.enterImageDescription, "" );
-                    t.tagStart = '<img src="'+g+'" alt="'+f+'" />';
-                    selection = t.tagStart;
-                    t.closeTag( element, ed );
-                    WPV_Toolset.CodeMirror_instance[id].replaceSelection( selection, 'end' );
-                    WPV_Toolset.CodeMirror_instance[id].focus();
+						var t = this,
+						id = jQuery( canvas ).attr( 'id' ),
+						selection = WPV_Toolset.CodeMirror_instance[id].getSelection(),
+						e = "http://",
+						g = prompt( quicktagsL10n.enterImageURL, e ),
+						f = prompt( quicktagsL10n.enterImageDescription, "" );
+						t.tagStart = '<img src="' + g + '" alt="' + f + '" />';
+						selection = t.tagStart;
+						t.closeTag( element, ed );
+						WPV_Toolset.CodeMirror_instance[id].replaceSelection( selection, 'end' );
+						WPV_Toolset.CodeMirror_instance[id].focus();
                     }
-                } else if ( qt_instance.theButtons[button_name].id == 'close' ) {
-
+                }
+                else if ( qt_instance.theButtons[button_name].id == 'wpv_conditional' ) {
+                    qt_instance.theButtons[button_name].callback = function ( e, c, ed ) {
+						if ( typeof WPViews === "undefined" ) {
+							return;
+						}
+						if ( typeof WPViews.shortcodes_gui === "undefined" ) {
+							return;
+						}
+                        WPV_Toolset.activeUrlEditor = ed;                        
+						var id = jQuery( c ).attr( 'id' ),
+                        t = this;
+                        window.wpcfActiveEditor = id;
+                        WPV_Toolset.CodeMirror_instance[id].focus();
+                        selection = WPV_Toolset.CodeMirror_instance[id].getSelection();
+						var current_editor_object = {};
+						if ( selection ) {
+						   //When texty selected
+						   current_editor_object = {'e' : e, 'c' : c, 'ed' : ed, 't' : t, 'post_id' : '', 'close_tag' : true, 'codemirror' : id};
+						   WPViews.shortcodes_gui.wpv_insert_popup_conditional('wpv-conditional', icl_editor_localization_texts.wpv_conditional_button, {}, icl_editor_localization_texts.wpv_conditional_callback_nonce, current_editor_object );
+						} else if ( ed.openTags ) {
+							// if we have an open tag, see if it's ours
+							var ret = false, i = 0, t = this;
+							while ( i < ed.openTags.length ) {
+								ret = ed.openTags[i] == t.id ? i : false;
+								i ++;
+							}
+							if ( ret === false ) {
+								t.tagStart = '';
+								t.tagEnd = false;                
+								if ( ! ed.openTags ) {
+									ed.openTags = [];
+								}
+								ed.openTags.push(t.id);
+								e.value = '/' + e.value;
+								current_editor_object = {'e' : e, 'c' : c, 'ed' : ed, 't' : t, 'post_id' : '', 'close_tag' : false, 'codemirror' : id};
+								WPViews.shortcodes_gui.wpv_insert_popup_conditional('wpv-conditional', icl_editor_localization_texts.wpv_conditional_button, {},icl_editor_localization_texts.wpv_conditional_callback_nonce, current_editor_object );
+							} else {
+								// close tag
+								ed.openTags.splice(ret, 1);
+								t.tagStart = '[/wpv-conditional]';
+								e.value = t.display;
+								window.icl_editor.insert( t.tagStart );
+							}
+						} else {
+							// last resort, no selection and no open tags
+							// so prompt for input and just open the tag           
+							t.tagStart = '';
+							t.tagEnd = false;
+							if ( ! ed.openTags ) {
+								ed.openTags = [];
+							}
+							ed.openTags.push(t.id);
+							e.value = '/' + e.value;
+							current_editor_object = {'e' : e, 'c' : c, 'ed' : ed, 't' : t, 'post_id' : '', 'close_tag' : false, 'codemirror' : id};
+							WPViews.shortcodes_gui.wpv_insert_popup_conditional('wpv-conditional', icl_editor_localization_texts.wpv_conditional_button, {}, icl_editor_localization_texts.wpv_conditional_callback_nonce, current_editor_object );
+						}
+					}
+                }
+                else if ( qt_instance.theButtons[button_name].id == 'close' ) {
+                    
                 } else if ( qt_instance.theButtons[button_name].id == 'link' ) {
 					var t = this;
-					qt_instance.theButtons[button_name].callback =
-                        function ( b, c, d, e ) {
-                            WPV_Toolset.activeUrlEditor = c;var f,g=this;return"undefined"!=typeof wpLink?void wpLink.open(d.id):(e||(e="http://"),void(g.isOpen(d)===!1?(f=prompt(quicktagsL10n.enterURL,e),f&&(g.tagStart='<a href="'+f+'">',a.TagButton.prototype.callback.call(g,b,c,d))):a.TagButton.prototype.callback.call(g,b,c,d)))
-						};
-                    if( WPV_Toolset.activeUrlEditor ){
-                        jQuery( '#wp-link-submit' ).off();
-                        jQuery( '#wp-link-submit' ).on( 'click', function() {
-                            try{
-                                var id = jQuery( WPV_Toolset.activeUrlEditor ).attr('id'),
-                                    selection = WPV_Toolset.CodeMirror_instance[id].getSelection(),
-                                    target = '';
-                                if ( jQuery( '#link-target-checkbox' ).prop('checked') ) {
-                                    target = '_blank';
-                                }
-                                html = '<a href="' + jQuery('#url-field').val() + '"';
-                                title = '';
-                                if ( jQuery( '#link-title-field' ).val() ) {
-                                    title = jQuery( '#link-title-field' ).val().replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );
-                                    html += ' title="' + title + '"';
-                                }
-                                if ( target ) {
-                                    html += ' target="' + target + '"';
-                                }
-                                html += '>';
-                                if ( selection === '' ) {
-                                    html += title;
-                                } else {
-                                    html += selection;
-                                }
-                                html += '</a>';
-                                t.tagStart = html;
-                                selection = t.tagStart;
-                                WPV_Toolset.CodeMirror_instance[id].replaceSelection( selection, 'end' );
-                                WPV_Toolset.CodeMirror_instance[id].focus();
-                                jQuery( '#wp-link-backdrop,#wp-link-wrap' ).hide();
-                                jQuery( document.body ).removeClass( 'modal-open' );
-                                return false;
-                            } catch( e ){
-                                console.log( e.message, WPV_Toolset.activeUrlEditor );
-                            }
-
-                        });
-                    }
-
+					qt_instance.theButtons[button_name].callback = function ( b, c, d, e ) {
+						WPV_Toolset.activeUrlEditor = c;var f,g=this;return"undefined"!=typeof wpLink?void wpLink.open(d.id):(e||(e="http://"),void(g.isOpen(d)===!1?(f=prompt(quicktagsL10n.enterURL,e),f&&(g.tagStart='<a href="'+f+'">',a.TagButton.prototype.callback.call(g,b,c,d))):a.TagButton.prototype.callback.call(g,b,c,d)))
+					};
+					jQuery( '#wp-link-submit' ).off();
+					jQuery( '#wp-link-submit' ).on( 'click', function( event ) {
+						event.preventDefault();
+						if ( wpLink.isMCE() ) {
+							wpLink.mceUpdate();
+						} else {
+							var id = jQuery( WPV_Toolset.activeUrlEditor ).attr('id'),
+							selection = WPV_Toolset.CodeMirror_instance[id].getSelection(),
+							inputs = {},
+							attrs, text, title, html;
+							inputs.wrap = jQuery('#wp-link-wrap');
+							inputs.backdrop = jQuery( '#wp-link-backdrop' );
+							if ( jQuery( '#link-target-checkbox' ).length > 0 ) {
+								// Backwards compatibility - before WordPress 4.2
+								inputs.text = jQuery( '#link-title-field' );
+								attrs = wpLink.getAttrs();
+								text = inputs.text.val();
+								if ( ! attrs.href ) {
+									return;
+								}
+								// Build HTML
+								html = '<a href="' + attrs.href + '"';
+								if ( attrs.target ) {
+									html += ' target="' + attrs.target + '"';
+								}
+								if ( text ) {
+									title = text.replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );
+									html += ' title="' + title + '"';
+								}
+								html += '>';
+								html += text || selection;
+								html += '</a>';
+								t.tagStart = html;
+								selection = t.tagStart;
+							} else {
+								// WordPress 4.2+
+								inputs.text = jQuery( '#wp-link-text' );
+								attrs = wpLink.getAttrs();
+								text = inputs.text.val();
+								if ( ! attrs.href ) {
+									return;
+								}
+								// Build HTML
+								html = '<a href="' + attrs.href + '"';
+								if ( attrs.target ) {
+									html += ' target="' + attrs.target + '"';
+								}
+								html += '>';
+								html += text || selection;
+								html += '</a>';
+								selection = html;
+							}
+							jQuery( document.body ).removeClass( 'modal-open' );
+							inputs.backdrop.hide();
+							inputs.wrap.hide();
+							jQuery( document ).trigger( 'wplink-close', inputs.wrap );
+							WPV_Toolset.CodeMirror_instance[id].replaceSelection( selection, 'end' );
+							WPV_Toolset.CodeMirror_instance[id].focus();
+							return false;
+						}
+					});
                 } else {
                     qt_instance.theButtons[button_name].callback = function( element, canvas, ed ) {
                         var id = jQuery( canvas ).attr( 'id' ),
@@ -122,9 +201,9 @@ jQuery(document).ready(function(){
      * Views Layout Meta HTML, CRED form.
      */
     window.wpcfActiveEditor = 'content';
-    jQuery('.wp-media-buttons a, .wpcf-wysiwyg .editor_addon_dropdown .item, .wpt-wysiwyg .editor_addon_dropdown .item, #postdivrich .editor_addon_dropdown .item, #wpv_filter_meta_html_admin_edit .item, #wpv_layout_meta_html_admin_edit .item').on('click', function(){
-        window.wpcfActiveEditor = jQuery(this).parents('.wpt-wysiwyg, .wpcf-wysiwyg, #postdivrich, #wpv_layout_meta_html_admin, #wpv_filter_meta_html_admin')
-        .find('textarea#content, textarea.wpcf-wysiwyg, textarea.wpt-wysiwyg, textarea#wpv_layout_meta_html_content, textarea#wpv_filter_meta_html_content').attr('id');
+    jQuery('.wp-media-buttons a, .wpcf-wysiwyg .editor_addon_dropdown .item, .wpt-wysiwyg .editor_addon_dropdown .item, #postdivrich .editor_addon_dropdown .item, #js-visual-editor-codemirror .editor_addon_dropdown .item,#wpv_filter_meta_html_admin_edit .item, #wpv_layout_meta_html_admin_edit .item').on('click', function(){
+        window.wpcfActiveEditor = jQuery(this).parents('.wpt-wysiwyg, .wpcf-wysiwyg, #postdivrich, #wpv_layout_meta_html_admin, #wpv_filter_meta_html_admin, #js-visual-editor-codemirror')
+        .find('textarea#content, textarea.wpcf-wysiwyg, textarea.wpt-wysiwyg, textarea#wpv_layout_meta_html_content, textarea#wpv_filter_meta_html_content, textarea#visual-editor-html-editor').attr('id');
 
     /*
          *

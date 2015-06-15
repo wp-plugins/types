@@ -2,10 +2,6 @@
 
 /**
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 include_once 'class.textfield.php';

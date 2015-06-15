@@ -7,10 +7,6 @@ require_once 'class.image.php';
  *
  * @author Srdjan
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 class WPToolset_Field_Credimage extends WPToolset_Field_Credfile

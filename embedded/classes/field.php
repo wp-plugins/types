@@ -2,10 +2,6 @@
 /*
  * Field class.
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 

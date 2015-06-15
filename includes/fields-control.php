@@ -2,10 +2,6 @@
 /*
  * Custom Fields Control Screen
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 require_once ABSPATH . '/wp-admin/includes/class-wp-list-table.php';

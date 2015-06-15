@@ -7,10 +7,6 @@ require_once 'class.video.php';
  *
  * @author Srdjan
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 class WPToolset_Field_Credvideo extends WPToolset_Field_Credfile

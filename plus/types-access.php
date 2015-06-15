@@ -2,10 +2,6 @@
 /*
  * Types Access teaser.
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 

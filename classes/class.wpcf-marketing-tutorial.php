@@ -3,10 +3,6 @@
  *
  * Types Tutorial Class
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 

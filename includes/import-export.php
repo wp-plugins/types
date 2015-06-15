@@ -2,10 +2,6 @@
 /*
  * Import/export data.
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/import-export.php';
@@ -593,7 +589,7 @@ function wpcf_admin_import_export_settings($data)
             '#markup' => '<h2>' . __( 'Custom post types to be added/updated',
                     'wpcf' ) . '</h2>',
         );
-        $types_existing = get_option( 'wpcf-custom-types', array() );
+        $types_existing = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
         $types_check = array();
         $types_to_be_deleted = array();
         foreach ( $data->types->type as $type ) {
@@ -636,7 +632,7 @@ function wpcf_admin_import_export_settings($data)
             '#markup' => '<h2>' . __( 'Custom taxonomies to be added/updated',
                     'wpcf' ) . '</h2>',
         );
-        $taxonomies_existing = get_option( 'wpcf-custom-taxonomies', array() );
+        $taxonomies_existing = get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
         $taxonomies_check = array();
         $taxonomies_to_be_deleted = array();
         foreach ( $data->taxonomies->taxonomy as $taxonomy ) {

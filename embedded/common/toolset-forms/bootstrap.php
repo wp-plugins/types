@@ -2,10 +2,6 @@
 
 /**
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 require_once 'api.php';
@@ -289,8 +285,10 @@ class WPToolset_Forms_Bootstrap {
             $current_types = $query->get('post_type');
             if (empty($current_types)) {
                 $cpt_to_add[] = 'post';
-            } else {
+            } elseif (is_array($current_types)) {
                 $cpt_to_add = array_merge($current_types, $cpt_to_add);
+            } elseif (is_string($current_types)) {
+                $cpt_to_add[] = $current_types;
             }
             $query->set('post_type', $cpt_to_add);
         }

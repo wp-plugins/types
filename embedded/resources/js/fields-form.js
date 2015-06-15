@@ -9,10 +9,6 @@
  * @since Types 1.1.5
  * @autor srdjan
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 

@@ -2,10 +2,6 @@
 /**
  * Types fields specific
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 
@@ -20,10 +16,10 @@ class WPToolset_Types
     /**
      * Filters Types field to match data structure needed for shared code.
      *
-     * @global type $pagenow
      * @staticvar array $cache
-     * @param type $field array|string $field settings array (as stored in DB) or field ID
-     * @param type $post_id Post or user ID used for conditional
+     *
+     * @param array|string $field settings array (as stored in DB) or field ID
+     * @param int $post_id Post or user ID used for conditional
      * @return array
      */
     static function filterField($field, $post_id = null, $_post_wpcf = array())
@@ -497,9 +493,9 @@ class WPToolset_Types
     /**
      * Translates various strings connected to Types using WPML icl_t().
      *
-     * @param type $name
-     * @param type $string
-     * @param type $context
+     * @param string $name
+     * @param string $string
+     * @param string $context
      * @return string
      */
     public static function translate($name, $string, $context = 'plugin Types')

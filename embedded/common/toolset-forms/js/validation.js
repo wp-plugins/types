@@ -7,10 +7,6 @@
  *
  * @see class WPToolset_Validation
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 //var wptValidationData = {};

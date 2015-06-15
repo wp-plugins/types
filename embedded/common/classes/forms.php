@@ -2,10 +2,6 @@
 /**
  * Returns HTML formatted output for elements and handles form submission.
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  * @version 1.0
  */

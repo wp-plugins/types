@@ -15,6 +15,9 @@ final class WP_Installer{
 
     private $admin_messages = array();
 
+    private $_using_icl     = false;
+    private $_wpml_version  = false;
+
     public static function instance() {
         
         if ( is_null( self::$_instance ) ) {
@@ -82,6 +85,9 @@ final class WP_Installer{
             $this->_pre_1_0_clean_up();
         }
 
+        $this->_using_icl     = function_exists('wpml_site_uses_icl') && wpml_site_uses_icl();
+        $this->_wpml_version  = defined('ICL_SITEPRESS_VERSION') ? ICL_SITEPRESS_VERSION : '';
+
         wp_enqueue_script('installer-admin', $this->res_url() . '/res/js/admin.js', array('jquery'), $this->version());
         wp_enqueue_style('installer-admin', $this->res_url() . '/res/css/admin.css', array(), $this->version());
         
@@ -125,7 +131,7 @@ final class WP_Installer{
 
 
 
-        }
+    }
 
     public function register_admin_message($text, $type = 'updated'){
         $this->admin_messages[] = array('text' => $text, 'type' => $type);
@@ -745,6 +751,10 @@ final class WP_Installer{
             $url = add_query_arg(array('aid' => $affiliate_id, 'affiliate_key' => $affiliate_key), $url);
         }
 
+        if($repository_id == 'wpml'){
+            $url = add_query_arg(array('using_icl' => $this->_using_icl, 'wpml_version' => $this->_wpml_version), $url);
+        }
+
         $url = apply_filters('wp_installer_buy_url', $url);
 
         $url = esc_url($url);
@@ -893,12 +903,18 @@ final class WP_Installer{
     public function fetch_subscription_data($repository_id, $site_key){
         
         $subscription_data = false;
-        
+
         $args['body'] = array(
-                'action'    => 'site_key_validation',
-                'site_key'  => $site_key,
-                'site_url'  => $this->get_installer_site_url($repository_id),
+            'action'    => 'site_key_validation',
+            'site_key'  => $site_key,
+            'site_url'  => $this->get_installer_site_url($repository_id)
         );
+
+        if($repository_id == 'wpml'){
+            $args['body']['using_icl']      = $this->_using_icl;
+            $args['body']['wpml_version']   = $this->_wpml_version;
+        }
+
         $args['timeout'] = 45;
 
         $response = wp_remote_post($this->repositories[$repository_id]['api-url'], $args);
@@ -1256,7 +1272,11 @@ final class WP_Installer{
     public function append_site_key_to_download_url($url, $key, $repository_id){
         
         $url = add_query_arg(array('site_key' => $key, 'site_url' => $this->get_installer_site_url($repository_id) ), $url);
-        
+
+        if($repository_id == 'wpml'){
+            $url = add_query_arg(array('using_icl' => $this->_using_icl, 'wpml_version' => $this->_wpml_version), $url);
+        }
+
         return $url;
             
     }
@@ -1624,6 +1644,9 @@ final class WP_Installer{
     public function plugins_upgrade_check($update_plugins){
 
         if(!empty($this->settings['repositories'])){
+
+			$this->filter_downloads_by_icl(); //downloads for ICL users
+
             $plugins = get_plugins();
             
             foreach($plugins as $plugin_id => $plugin){

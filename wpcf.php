@@ -5,14 +5,10 @@
   Description: Define custom post types, custom taxonomies and custom fields.
   Author: OnTheGoSystems
   Author URI: http://www.onthegosystems.com
-  Version: 1.6.6.6
+  Version: 1.7
  */
 /**
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 // Added check because of activation hook and theme embedded code
@@ -20,7 +16,7 @@ if ( !defined( 'WPCF_VERSION' ) ) {
     /**
      * make sure that WPCF_VERSION in embedded/bootstrap.php is the same!
      */
-    define( 'WPCF_VERSION', '1.6.6.6' );
+    define( 'WPCF_VERSION', '1.7' );
 }
 
 define( 'WPCF_REPOSITORY', 'http://api.wp-types.com/' );
@@ -189,7 +185,7 @@ function wpcf_is_reserved_name($name, $context, $check_pages = true)
     }
 
     // Add custom types
-    $custom_types = (array) get_option( 'wpcf-custom-types', array() );
+    $custom_types = get_option(WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
     $post_types = get_post_types();
     if ( !empty( $custom_types ) ) {
         $custom_types = array_keys( $custom_types );
@@ -202,7 +198,7 @@ function wpcf_is_reserved_name($name, $context, $check_pages = true)
     }
 
     // Add taxonomies
-    $custom_taxonomies = (array) get_option( 'wpcf-custom-taxonomies', array() );
+    $custom_taxonomies = (array) get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
     $taxonomies = get_taxonomies();
     if ( !empty( $custom_taxonomies ) ) {
         $custom_taxonomies = array_keys( $custom_taxonomies );
@@ -255,6 +251,7 @@ function wpcf_reserved_names()
         'm',
         'minute',
         'monthnum',
+        'mode',
         'more',
         'name',
         'nav_menu',

@@ -10,10 +10,6 @@ define( "CLASS_NAME_PREFIX", "WPToolset_Field_" );
  * Creation Form Class
  * @author onTheGo System
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  *
  */

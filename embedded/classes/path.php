@@ -2,10 +2,6 @@
 /**
  * WPCF_Path
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 final class WPCF_Path

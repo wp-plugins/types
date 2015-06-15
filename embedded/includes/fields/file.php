@@ -1,10 +1,6 @@
 <?php
 /*
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 /**
@@ -204,8 +200,8 @@ function wpcf_fields_file_editor_callback( $field, $data, $meta_type, $post ) {
         'supports' => array('styling', 'style'),
         'tabs' => array(
             'display' => array(
-                'menu_title' => __( 'Display', 'wpcf' ),
-                'title' => __( 'Display', 'wpcf' ),
+                'menu_title' => __( 'Display options', 'wpcf' ),
+                'title' => __( 'Display options for this field:', 'wpcf' ),
                 'content' => WPCF_Loader::template( 'editor-modal-file', $data ),
             )
         ),

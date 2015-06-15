@@ -1,9 +1,5 @@
 <?php
 /**
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 ?><h3><?php _e('Need Help?', 'wpcf'); ?></h3>

@@ -3,10 +3,6 @@
  *
  * Loader class
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 

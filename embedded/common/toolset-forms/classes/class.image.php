@@ -6,10 +6,6 @@ require_once 'class.file.php';
  *
  * @author Srdjan
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 class WPToolset_Field_Image extends WPToolset_Field_File

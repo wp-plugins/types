@@ -1,9 +1,5 @@
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/1.5.1/toolset-forms/js/file-wp35.js $
- * $LastChangedDate: 2015-05-04 08:57:42 +0200 (Mon, 04 May 2015) $
- * $LastChangedRevision: 33205 $
- * $LastChangedBy: marcin $
  *
  */
 var wptFile = (function($, w) {
@@ -85,6 +81,10 @@ var wptFile = (function($, w) {
                             $('.wpt-file-preview img', $parent.parent()).attr('src', attachment.attributes.sizes.thumbnail.url);
                         } else {
                             $('.wpt-file-preview img', $parent.parent()).attr('src', attachment.attributes.sizes.full.url);
+                        }
+                        $('.wpt-file-preview img', $parent.parent()).data('full-src', attachment.attributes.sizes.full.url);
+                        if ( 'function' == typeof bind_colorbox_to_thumbnail_preview) {
+                            bind_colorbox_to_thumbnail_preview();
                         }
                         break;
                     default:

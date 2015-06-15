@@ -2,10 +2,6 @@
 /*
  * Migration functions
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 
@@ -19,8 +15,8 @@
 function wpcf_admin_migration_form()
 {
     global $wpdb;
-    $wpcf_types = get_option('wpcf-custom-types', array());
-    $wpcf_taxonomies = get_option('wpcf-custom-taxonomies', array());
+    $wpcf_types = get_option(WPCF_OPTION_NAME_CUSTOM_TYPES, array());
+    $wpcf_taxonomies = get_option(WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array());
     $wpcf_types_defaults = wpcf_custom_types_default();
     $wpcf_taxonomies_defaults = wpcf_custom_taxonomies_default();
 
@@ -311,8 +307,8 @@ function wpcf_admin_migration_form()
 function wpcf_admin_migration_form_submit() {
     $cfui_types = get_option('cpt_custom_post_types', array());
     $cfui_taxonomies = get_option('cpt_custom_tax_types', array());
-    $wpcf_types = get_option('wpcf-custom-types', array());
-    $wpcf_taxonomies = get_option('wpcf-custom-taxonomies', array());
+    $wpcf_types = get_option(WPCF_OPTION_NAME_CUSTOM_TYPES, array());
+    $wpcf_taxonomies = get_option(WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array());
     $redirect_page = 'wpcf-ctt';
 
     if (!empty($_POST['cfui']['types'])) {
@@ -367,9 +363,9 @@ function wpcf_admin_migration_form_submit() {
             }
         }
         $wpcf_taxonomies = array_merge($wpcf_taxonomies, $data);
-        update_option('wpcf-custom-taxonomies', $wpcf_taxonomies);
+        update_option(WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, $wpcf_taxonomies);
     }
-    update_option('wpcf-custom-types', $wpcf_types);
+    update_option(WPCF_OPTION_NAME_CUSTOM_TYPES, $wpcf_types);
 
     // ACF
 

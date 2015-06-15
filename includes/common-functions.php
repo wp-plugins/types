@@ -3,10 +3,6 @@
  *
  * Custom types form - common functions
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 

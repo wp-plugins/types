@@ -134,12 +134,21 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             // add search box
             $searchbar = $this->get_search_bar();
 
+
             // generate output content
             $out = '' .
             $addon_button . '
             <div class="editor_addon_dropdown '. $dropdown_class .'" id="editor_addon_dropdown_' . rand() . '">
-                <h3 class="title">' . $this->button_text . '</h3>
-                <div class="close">&nbsp;</div>
+            <h3 class="title">' . $this->button_text . '</h3>';
+            /**
+             * Add text after popup header.
+             *
+             * @since 1.6.7
+             *
+             * @param string $context content
+             */
+            $out .= apply_filters('editor_addon_dropdown_after_title', '');
+            $out .= '<div class="close">&nbsp;</div>
                 <div class="editor_addon_dropdown_content">
                         ' . apply_filters( 'editor_addon_dropdown_top_message_' . $this->name,
                                         '' ) . '
@@ -360,8 +369,9 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             $out = '' .
             $addon_button . '
             <div class="editor_addon_dropdown '. $dropdown_class .'" id="editor_addon_dropdown_' . rand() . '">
-                <h3 class="title">' . $this->button_text . '</h3>
-                <div class="close">&nbsp;</div>
+            <h3 class="title">' . $this->button_text . '</h3>';
+            $out .= apply_filters('editor_addon_dropdown_after_title', '');
+            $out .= '<div class="close">&nbsp;</div>
                 <div class="editor_addon_dropdown_content">
                         ' . apply_filters( 'editor_addon_dropdown_top_message_' . $this->name,
                                         '' ) . '
@@ -569,18 +579,23 @@ if ( file_exists( dirname(__FILE__) . '/editor-addon-generic.class.php') && !cla
             return '<li class="item" onclick="on_add_field_wpv(\'' . $param1 . '\', \'' . esc_js( $slug ) . '\', \'' . base64_encode( $menu_item[0] ) . '\')">' . $link_text . "</li>\n";
         }
 
-        // add parent items for Views and View Templates
+        // add parent items for Views and Content Templates
         function wpv_add_parent_items( $items ) {
             global $post, $pagenow;
 
+            // ct-editor-deprecate
             if ( $pagenow == 'post-new.php' && isset( $_GET['post_type'] ) && $_GET['post_type'] == 'view-template' ) {
                 $this->add_view_template_parent_groups( $items );
             }
+
+            // @todo this should be also deprecated, no?
             if ( $pagenow == 'post-new.php' && isset( $_GET['post_type'] ) && $_GET['post_type'] == 'view' ) {
 
             } else if ( $pagenow == 'post.php' && isset( $_GET['action'] ) && $_GET['action'] == 'edit' ) {
                 $post_type = $post->post_type;
 
+                // todo deprecate?
+                // ct-editor-deprecate
                 if ( $post_type == 'view' ) {
                     $items = $this->add_view_parent_groups( $items );
                 } else if ( $post_type == 'view-template' ) {

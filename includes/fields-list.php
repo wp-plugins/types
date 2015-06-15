@@ -2,10 +2,6 @@
 /*
  * Fields and groups list functions
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 
@@ -24,7 +20,7 @@ function wpcf_admin_fields_list()
         <form id="cf-filter" method="post">
             <!-- For plugins, we also need to ensure that the form posts back to our current page -->
             <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>" />
-            <?php $listTable->search_box(__('Search custom fields', 'wcpf'), 'search_id'); ?>
+            <?php $listTable->search_box(__('Search custom fields', 'wpcf'), 'search_id'); ?>
             <!-- Now we can render the completed list table -->
             <?php $listTable->display() ?>
         </form>

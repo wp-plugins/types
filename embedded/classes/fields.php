@@ -2,10 +2,6 @@
 /**
  * Fields class.
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 require_once WPCF_EMBEDDED_INC_ABSPATH . '/fields.php';

@@ -2,10 +2,6 @@
 /*
  * Repetitive controller
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  * If field is repetitive
  * - queues repetitive CSS and JS

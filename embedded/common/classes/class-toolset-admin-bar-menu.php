@@ -12,6 +12,9 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
          * @var type bool
          */
         private $done;
+        
+        /** @const */
+        public static $default_wordpress_archives = array( 'home-blog', 'search', 'author', 'year', 'month', 'day' );
 
         private function __construct() {
             $this->done = false;
@@ -19,7 +22,11 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
             add_action( 'admin_bar_menu', array( $this, 'admin_bar_menu' ), 99 );
             
             if ( is_admin() ) {
+                
+                /*
                 add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
+                */
+                
             } else {
                 add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
             }
@@ -83,7 +90,7 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                 
                 $args = array(
                     'id' => 'toolset_admin_bar_menu',
-                    'title' => __( 'Design with Toolset', 'toolset' ),
+                    'title' => __( 'Design with Toolset', 'wpv-views' ),
                     'href' => $href,
                     'meta' => array( 'class' => 'toolset-edit-link' )
                 );
@@ -125,8 +132,9 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
             if ( ! $context ) { return false; }
             list( $type, $class ) = explode( '|', $context );
             
-            if ( is_admin() ) {
+            if ( is_admin() ) {                
                 
+                /*
                 global $post_type;
                 $screen = get_current_screen();
                 if( preg_match( '/^(edit|edit-tags|post)$/', $screen->base ) && empty($screen->action) ) {
@@ -165,6 +173,7 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                     }
 
                 }
+                 */
                 
             } else {
                 
@@ -177,11 +186,11 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
 
                     $post_type_object = get_post_type_object( $type );
                     $is_cpt = $post_type_object != null;
-                    if( ! $is_cpt || ! $post_type_object->publicly_queryable ) {
+                    if( ! $is_cpt /* || ! $post_type_object->publicly_queryable */ ) {
                         return false;
                     }
 
-                } else if ( 'archive' === $class && preg_match( '/^(home-blog|search|author|year|month|day)$/', $type ) ) {
+                } else if ( 'archive' === $class && in_array( $type, self::$default_wordpress_archives ) ) {
                     // DO NOTHING
                 } else if ( 'archive' === $class && 'page' === $type ) {
                     return false;
@@ -270,6 +279,7 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                 
                 if( is_admin() ) {
                     
+                    /*                    
                     // Only individual pages, post type pages, post type archives 
                     // and taxonomy archives are editable from backend
                     //
@@ -316,6 +326,7 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                         }
                         
                     }
+                    */
                     
                 } else if ( (int) $wpddlayout->get_rendered_layout_id() > 0 ) {
                     
@@ -335,6 +346,7 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                 
                 if( is_admin() ) {
                     
+                    /*
                     // Same as Layouts
                     $screen = get_current_screen();
                     if( preg_match( '/^(edit|edit-tags|post)$/', $screen->base ) ) {
@@ -377,14 +389,14 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                     if ( ( int ) $wpa_id > 0 || ( int ) $ct_id > 0 ) {
                         $is_new = false;
                     }
-                    
+                    */
                 } else {
                     
                     if ( 'archive' === $class && 'page' != $type ) {
                         /* WordPress Archive */
                         
                         // WordPress Loop Archives
-                        if( preg_match( '/^(home-blog|search|author|year|month|day)$/', $type ) 
+                        if( in_array( $type, self::$default_wordpress_archives ) 
                                 && isset( $WPV_settings['view_'.$type.'-page'] )
                                 && (int) $WPV_settings['view_'.$type.'-page'] > 0
                                 ) {
@@ -427,9 +439,16 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                         // Multiple
                         if( (int) $ct_id == 0 ) {
                             
+                            // This doesn't satisfies expectations.
+                            // You cannot edit content templates you're not seeing, even if they're assigned to the current post type.
+                            // FIXME: Define the right behavior.
+                            // My proposal: if there is a CT assigned to post type, suggest "bind this and edit template" or similar approach
+                            
+                            /*
                             if( isset( $WPV_settings['views_template_for_'.$type] ) && $WPV_settings['views_template_for_'.$type] > 0 ) {
                                 $ct_id = $WPV_settings['views_template_for_'.$type];
                             }
+                            */
                         }
 
                         if ( (int) $ct_id > 0 ) {
@@ -448,10 +467,12 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
             if ( $is_new ) {
                 if( is_admin() ) {
                     
+                    /*
                     $screen = get_current_screen();
                     if( $screen->id == 'post' ) {
                         $post_id = (int) $_GET['post'];
                     }
+                    */
                     
                 } else {
                     $post_id = get_the_ID();
@@ -483,6 +504,7 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
 
             if ( is_admin() ) {
                 
+                /*
                 // There are less places inside the admin to define Layouts/Templates
                 
                 global $post_type;
@@ -499,11 +521,11 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                     // taxonomy page => always an archive ( WordPress Archive )
                     return "{$screen->taxonomy}|archive";
                 }
-                
+                */
                 
             } else {
                 
-                global $post;
+                global $post, $wp_query;
 
                 if ( is_home() ) {
                     // Blog posts index
@@ -523,10 +545,19 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                 } else if ( is_tag() ) {
                     $context = 'post_tag|archive';
                 } else if ( is_tax() ) {
-                    $taxonomy = get_taxonomy();
-                    $context = $taxonomy->name . '|archive';
+					$term = $wp_query->get_queried_object();
+					if (
+						$term 
+						&& isset( $term->taxonomy )
+					) {
+						$context = $term->taxonomy . '|archive';
+					}                    
                 } else if ( is_post_type_archive() ) {
-                    $context = get_post_type() . '|archive';
+					$post_type = $wp_query->get('post_type');
+					if ( is_array( $post_type ) ) {
+						$post_type = reset( $post_type );
+					}
+                    $context = $post_type . '|archive';
                 } else if ( is_404() ) {
                     // Special WordPress Error 404 Page
                     $context = '404|page';
@@ -556,7 +587,7 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                 // "Create a new 'Content Template for Restaurants'"
                 // "Create a new 'WordPress Archive for Restaurant archives'"
 
-                $create_a_new = __( 'Create a new', 'toolset' );
+                $create_a_new = __( 'Create a new', 'wpv-views' );
                 $object = $this->get_name_auto( $plugin, $type, $class, $post_id );
                 
                 return trim( sprintf( '%s %s', $create_a_new, $object ) );
@@ -567,11 +598,11 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                 // "Edit 'Layout for Restaurants' Layout" => "Edit 'Layout for Restaurants'"
                 // "Edit 'Layout for Restaurant archives' Layout" => "Edit 'Layout for Restaurant' archives"
 
-                $edit = __( 'Edit', 'toolset' );
+                $edit = __( 'Edit', 'wpv-views' );
 
                 // Layout or Content Template or WordPress Archive
-                $layouts = __( 'Layout', 'toolset' );
-                $views = 'archive' === $class ? __( 'WordPress Archive', 'toolset' ) : __( 'Content Template', 'toolset' );
+                $layouts = __( 'Layout', 'wpv-views' );
+                $views = 'archive' === $class ? __( 'Archive', 'wpv-views' ) : __( 'Template', 'wpv-views' );
                 $artifact = 'layouts' === $plugin ? $layouts : $views;
 
                 // avoid "'Layout for Restaurant archives' Layout"
@@ -584,12 +615,18 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
             }
 
         }
-        
+
         /**
          * Get a valid and self-defining title for a Layout, Content Template or WordPress Archive
+         *
          * @param string $plugin layouts or views
          * @param string $type post_type, taxonomy or wp slug
          * @param string $class page or archive
+         * @param int|null $post_id
+         *
+         * @return string
+         *
+         * @since unknown
          */
         public function get_name_auto( $plugin, $type, $class, $post_id = null ) {
             // Examples:
@@ -599,28 +636,30 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
             // WordPress Archive for Restaurants 
 
             /* Layout or Content Template or WordPress Archive */
-            $layouts = __( 'Layout', 'toolset' );
-            $views = 'archive' === $class ? __( 'WordPress Archive', 'toolset' ) : __( 'Content Template', 'toolset' );
+            $layouts = __( 'Layout', 'wpv-views' );
+            $views = 'archive' === $class ? __( 'Archive', 'wpv-views' ) : __( 'Template', 'wpv-views' );
             $artifact = 'layouts' === $plugin ? $layouts : $views;
-
+            
             /* for */
-            $for = __( 'for', 'toolset' );
+            $for = __( 'for', 'wpv-views' );
 
             /* selection */
             $selection = '';
             
             if ( 'page' === $class && '404' === $type && 'layouts' === $plugin ) {
-                $selection = __( 'Error 404 page', 'toolset' );
+                $selection = __( 'Error 404 page', 'wpv-views' );
             } else if ( 'page' === $type ) {
                 $selection = get_the_title( $post_id );
             } else if ( 'page' === $class ) {
                 $post_type = get_post_type_object( $type );
                 $selection = ucfirst( $post_type->label );
-            } else if ( 'archive' === $class && preg_match( '/^(home-blog|search|author|year|month|day)$/', $type ) ) {
-                $selection = sprintf( '%s %s', ucfirst( $type ), __( 'archives', 'toolset' ) );
+            } else if ( 'archive' === $class && in_array( $type, self::$default_wordpress_archives ) ) {
+                $selection = sprintf( '%s %s', ucfirst( $type ), __( 'Archives', 'wpv-views' ) );
+            /*
             } else if ( 'archive' === $class && preg_match( '/^(category|post_tag)$/', $type ) ) {
                 $taxonomy = get_taxonomy( $type );
-                $selection = 'layouts' === $plugin ? sprintf( '%s %s', ucfirst( $taxonomy->labels->singular_name ), __( 'archives', 'toolset' ) ) : ucfirst( $taxonomy->labels->name );
+                $selection = 'layouts' === $plugin ? sprintf( '%s %s', ucfirst( $taxonomy->labels->singular_name ), __( 'Archives', 'wpv-views' ) ) : ucfirst( $taxonomy->labels->name );
+            */
             } else if ( 'archive' === $class ) {
                 $post_type = get_post_type_object( $type );
                 $is_cpt = $post_type != null;
@@ -629,15 +668,15 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
                 $is_tax = $taxonomy !== false;
                 
                 if ( $is_cpt ) {
-                    $selection = 'layouts' === $plugin ? sprintf( '%s %s', ucfirst( $post_type->labels->singular_name ), __( 'archives', 'toolset' ) ) : ucfirst( $post_type->labels->name );
+                    $selection = 'layouts' === $plugin ? sprintf( '%s %s', ucfirst( $post_type->labels->singular_name ), __( 'Archives', 'wpv-views' ) ) : ucfirst( $post_type->labels->name );
                 } else if ( $is_tax ) {
-                    $selection = 'layouts' === $plugin ? sprintf( '%s %s', ucfirst( $taxonomy->labels->singular_name ), __( 'archives', 'toolset' ) ) : ucfirst( $taxonomy->labels->name );
+                    $selection = 'layouts' === $plugin ? sprintf( '%s %s', ucfirst( $taxonomy->labels->singular_name ), __( 'Archives', 'wpv-views' ) ) : ucfirst( $taxonomy->labels->name );
                 } else {
-                    $selection = __( 'Unsupported post type archives', 'toolset' );
+                    $selection = __( 'Unsupported post type archives', 'wpv-views' );
                 }
                 
             } else {
-                $selection = __( 'Unsupported page', 'toolset' );
+                $selection = __( 'Unsupported page', 'wpv-views' );
             }
 
             return trim( sprintf( '%s %s %s', $artifact, $for, $selection ) );
@@ -658,15 +697,21 @@ if ( ! class_exists( 'Toolset_Admin_Bar_Menu' ) ) {
             } else if ( 'views' === $plugin && '404' != $type /* No support for Error 404 page */ ) {
                     
                 if ( $is_new ) {
-                    $edit_link = wp_nonce_url( admin_url( sprintf( 'admin.php?page=views_template_auto&type=%s&class=%s&post=%s', $type, $class, $post_id ) ), 'create_auto' );
+                    $edit_link = wp_nonce_url( admin_url( sprintf( 'admin.php?page=views_create_auto&type=%s&class=%s&post=%s', $type, $class, $post_id ) ), 'create_auto' );
                 } else if( $post_id > 0 ) {
                     
                     if( 'archive' === $class ) {
                         // Views' WordPress Archive editor
                         $edit_link = admin_url( sprintf( 'admin.php?page=view-archives-editor&view_id=%s', $post_id ) );
                     } else if( 'page' === $class ) {
-                        // WordPress default editor
-                        $edit_link = admin_url( sprintf( 'post.php?action=edit&post=%s', $post_id ) );
+                        // Views' Content Temaplate editor
+                        //$edit_link = admin_url( sprintf( 'post.php?action=edit&post=%s', $post_id ) );
+                        $edit_link = esc_url_raw(
+							add_query_arg(
+								array( 'page' => WPV_CT_EDITOR_PAGE_NAME, 'ct_id' => esc_attr( $post_id ), 'action' => 'edit' ),
+								admin_url( 'admin.php' )
+							)
+						);
                     }
 
                 }

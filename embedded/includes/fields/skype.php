@@ -1,10 +1,6 @@
 <?php
 /**
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 
@@ -129,8 +125,8 @@ function wpcf_fields_skype_editor_callback( $field, $settings, $meta_type, $post
         'supports' => array('styling'),
         'tabs' => array(
             'display' => array(
-                'title' => __( 'Display', 'wpcf' ),
-                'menu_title' => __( 'Display', 'wpcf' ),
+                'title' => __( 'Display options for this field:', 'wpcf' ),
+                'menu_title' => __( 'Display options', 'wpcf' ),
                 'content' => WPCF_Loader::template( 'skype-select-button',
                         $settings ),
             ),

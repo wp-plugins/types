@@ -1,10 +1,6 @@
 <?php
 /**
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 require_once(WPCF_EMBEDDED_ABSPATH . '/common/visual-editor/editor-addon.class.php');
@@ -296,7 +292,7 @@ function wpcf_admin_validation_messages( $method = false, $sprintf = '' ) {
         'rewriteslug' => __( 'Letters, numbers, slashes, underscores and dashes only please', 'wpcf' ),
         'negativeTimestamp' => __( 'Please enter a date after 1 January 1970.', 'wpcf' ),
         'maxlength' => sprintf( __( 'Maximum of %s characters exceeded.', 'wpcf' ), strval( $sprintf ) ),
-        'minlength' => sprintf( __( 'Minimum of %s characters exceeded.', 'wpcf' ), strval( $sprintf ) ),
+        'minlength' => sprintf( __( 'Minimum of %s characters has not been reached.', 'wpcf' ), strval( $sprintf ) ),
         /**
          * see 
          * https://support.skype.com/en/faq/FA10858/what-is-a-skype-name-and-how-do-i-find-mine

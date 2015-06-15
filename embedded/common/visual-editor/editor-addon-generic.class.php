@@ -19,6 +19,37 @@ if( !class_exists( 'Editor_addon_generic' ) )
     if ( !defined( 'EDITOR_ADDON_RELPATH' ) ) {
         define( 'EDITOR_ADDON_RELPATH', icl_get_file_relpath( __FILE__ ) );
     }
+	
+	add_action( 'init', 'icl_editor_addon_register_assets' );
+	
+	if ( ! function_exists( 'icl_editor_addon_register_assets' ) ) {
+		
+		/**
+		* icl_editor_addon_register_assets
+		*
+		* Register the Editor Addon assets so they are available for everyone to use
+		*
+		* @since 1.6
+		*/
+		
+		function icl_editor_addon_register_assets() {
+			// Styles
+			wp_register_style( 'editor_addon_menu', EDITOR_ADDON_RELPATH . '/res/css/pro_dropdown_2.css' );
+            wp_register_style( 'editor_addon_menu_scroll', EDITOR_ADDON_RELPATH . '/res/css/scroll.css' );
+			// Scripts
+			wp_register_script( 'icl_editor-script', EDITOR_ADDON_RELPATH . '/res/js/icl_editor_addon_plugin.js', array( 'jquery', 'quicktags', 'wplink' ) );
+			$editor_script_translations = array(
+				'wpv_conditional_button' => __( 'conditional output', 'wpv-views' ),
+                'wpv_conditional_callback_nonce' => wp_create_nonce( 'wpv_editor_callback' )
+			);
+			wp_localize_script( 'icl_editor-script', 'icl_editor_localization_texts', $editor_script_translations );
+            wp_register_script( 'icl_media-manager-js', EDITOR_ADDON_RELPATH . '/res/js/icl_media_manager.js', array( 'jquery', 'icl_editor-script' ) );
+			$media_manager_translations = array(
+				'only_img_allowed_here' => __( "You can only use an image file here", 'wpv-views' )
+			);
+			wp_localize_script( 'icl_media-manager-js', 'icl_media_manager', $media_manager_translations );
+		}
+	}
 
     add_action( 'admin_enqueue_scripts', 'icl_editor_admin_enqueue_styles' );
 	
@@ -26,24 +57,27 @@ if( !class_exists( 'Editor_addon_generic' ) )
 
 
         /**
-         * Register and optionally enqueue styles for icl_editor (in backend only).
-         *
-         * Styles:
-         *
-         * - editor_addon_menu
-         * - editor_addon_menu_scroll
+         * Enqueue styles for icl_editor (in backend only).
          *
          * @since unknown
          */
 		function icl_editor_admin_enqueue_styles() {
 
-            wp_register_style( 'editor_addon_menu', EDITOR_ADDON_RELPATH . '/res/css/pro_dropdown_2.css' );
-            wp_register_style( 'editor_addon_menu_scroll', EDITOR_ADDON_RELPATH . '/res/css/scroll.css' );
-
 	        global $pagenow;
-	        if ( 
+			
+			/**
+			* toolset_filter_force_include_editor_addon_assets
+			*
+			* Force include the Editor Addon assets
+			*/
+			
+			$force_include_editor_addon_assets = apply_filters( 'toolset_filter_force_include_editor_addon_assets', false );
+			
+	        if (
+                // ct-editor-deprecate: is there any reason to enqueue this than old CT edit page?
 				$pagenow == 'post.php'
 				|| $pagenow == 'post-new.php'
+				|| $force_include_editor_addon_assets
 				|| (
 					$pagenow == 'admin.php'
 					&& isset( $_GET['page'] )
@@ -66,27 +100,27 @@ if( !class_exists( 'Editor_addon_generic' ) )
 	if ( ! function_exists( 'icl_editor_admin_enqueue_scripts' ) ) {
 
         /**
-         * Register and optionally enqueue scripts for icl_editor (in backend only).
-         *
-         * Scripts:
-         *
-         * - icl_editor-script
-         * - icl_media-manager-js
-         *
-         * When icl_media-manager-js is enqueued, it also gets localized here.
+         * Enqueue scripts for icl_editor (in backend only).
          *
          * @since unknown
          */
         function icl_editor_admin_enqueue_scripts() {
 
-            wp_register_script( 'icl_editor-script', EDITOR_ADDON_RELPATH . '/res/js/icl_editor_addon_plugin.js', array( 'jquery', 'quicktags', 'wplink' ) );
-
-            wp_register_script( 'icl_media-manager-js', EDITOR_ADDON_RELPATH . '/res/js/icl_media_manager.js', array( 'jquery', 'icl_editor-script' ) );
-
             global $pagenow;
-			if ( 
+			
+			/**
+			* toolset_filter_force_include_editor_addon_assets
+			*
+			* Force include the Editor Addon assets
+			*/
+			
+			$force_include_editor_addon_assets = apply_filters( 'toolset_filter_force_include_editor_addon_assets', false );
+			
+			if (
+                // ct-editor-deprecate: is there any reason to enqueue this than old CT edit page? YES - it is used in Types and Fields and Views dialogs on native edit pages
 				$pagenow == 'post.php'
 				|| $pagenow == 'post-new.php'
+				|| $force_include_editor_addon_assets
 				|| ( 
 					$pagenow == 'admin.php' 
 					&& isset( $_GET['page'] )
@@ -108,14 +142,10 @@ if( !class_exists( 'Editor_addon_generic' ) )
 					|| $_GET['page'] == 'view-archives-editor'
 					|| $_GET['page'] == 'dd_layouts_edit' 
 				)
-				&& !wp_script_is( 'views-redesign-media-manager-js', 'enqueued' )
+				&& ! wp_script_is( 'views-redesign-media-manager-js', 'enqueued' )
 			) {
-				$media_manager_translations = array(
-					'only_img_allowed_here' => __( "You can only use an image file here", 'wpv-views' )
-				);
 				wp_enqueue_media();
 				wp_enqueue_script( 'icl_media-manager-js' );
-				wp_localize_script( 'icl_media-manager-js', 'icl_media_manager', $media_manager_translations );
 			}
         }
     }

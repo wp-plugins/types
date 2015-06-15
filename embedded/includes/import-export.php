@@ -2,10 +2,6 @@
 /*
  * Import/export data.
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 
@@ -533,7 +529,7 @@ function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types'
 
     // Process types
 
-        $types_existing = get_option( 'wpcf-custom-types', array() );
+        $types_existing = get_option( WPCF_OPTION_NAME_CUSTOM_TYPES, array() );
         $types_check = array();
     if ( !empty($data->types) && isset($data->types->type) ) {
         $types = array();
@@ -590,11 +586,11 @@ function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types'
                 }
             }
         }
-        update_option( 'wpcf-custom-types', $types_existing );
+        update_option( WPCF_OPTION_NAME_CUSTOM_TYPES, $types_existing );
 
     // Process taxonomies
 
-        $taxonomies_existing = get_option( 'wpcf-custom-taxonomies', array() );
+        $taxonomies_existing = get_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, array() );
         $taxonomies_check = array();
     if ( !empty( $data->taxonomies ) && isset($data->taxonomies->taxonomy)) {
         $taxonomies = array();
@@ -659,7 +655,7 @@ function wpcf_admin_import_data($data = '', $redirect = true, $context = 'types'
                 }
             }
         }
-        update_option( 'wpcf-custom-taxonomies', $taxonomies_existing );
+        update_option( WPCF_OPTION_NAME_CUSTOM_TAXONOMIES, $taxonomies_existing );
 
     // Add relationships
     if ( !empty( $data->post_relationships ) && !empty( $_POST['post_relationship'] ) ) {

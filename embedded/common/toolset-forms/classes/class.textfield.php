@@ -1,10 +1,6 @@
 <?php
 /**
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 require_once "class.field_factory.php";

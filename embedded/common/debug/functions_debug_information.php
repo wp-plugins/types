@@ -2,10 +2,6 @@
 /**
   * produce debug information
   *
-  * $HeadURL$
-  * $LastChangedDate$
-  * $LastChangedRevision$
-  * $LastChangedBy$
   *
   */
 

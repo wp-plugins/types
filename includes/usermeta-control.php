@@ -2,10 +2,6 @@
 /*
  * Custom Fields Control Screen
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 /**

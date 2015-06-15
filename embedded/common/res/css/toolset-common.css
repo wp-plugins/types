@@ -64,10 +64,11 @@ Generic CSS to be applied anywhere
 /* ----------------------------------------------------------------------------
 Design with Toolset icon
 ---------------------------------------------------------------------------- */
-#wpadminbar ul#wp-admin-bar-root-default> li.toolset-edit-link> a{position:relative;}
-#wpadminbar ul#wp-admin-bar-root-default> li.toolset-edit-link> a:before{
-  font-family: "onthegosystems-icons"!important;
-  content: "\f11a";
-  top:2px;
-}
+#wpadminbar ul#wp-admin-bar-root-default> li.toolset-edit-link { white-space: nowrap; }
 
+#wpadminbar ul#wp-admin-bar-root-default> li.toolset-edit-link> a { position:relative; }
+#wpadminbar ul#wp-admin-bar-root-default> li.toolset-edit-link> a:before {
+    font-family: "onthegosystems-icons"!important;
+    content: "\f11a";
+    top:2px;
+}

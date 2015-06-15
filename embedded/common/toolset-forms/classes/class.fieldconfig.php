@@ -2,10 +2,6 @@
 
 /**
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 if (!class_exists("FieldConfig")) {

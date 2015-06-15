@@ -2,10 +2,6 @@
 /*
  * Messages.
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 

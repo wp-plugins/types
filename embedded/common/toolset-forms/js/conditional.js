@@ -1,10 +1,6 @@
 /**
  * @see WPToolset_Forms_Conditional (classes/conditional.php)
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$ 
- * $LastChangedBy$ Riccardo
  *
  */
 var wptCondTriggers = {}

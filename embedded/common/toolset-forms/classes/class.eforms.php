@@ -28,10 +28,6 @@
  * @link http://enlimbo.net/forms
  * @author srdjan <srdjan@enlimbo.net>
  *
- * $HeadURL$
- * $LastChangedDate$
- * $LastChangedRevision$
- * $LastChangedBy$
  *
  */
 /*
