@@ -127,7 +127,7 @@ class FormFactory extends FormAbstract
      * (non-PHPdoc)
      * @see classes/FormAbstract::createForm()
      */
-    public function createForm( $nameForm = 'default' ) {
+    public function createForm( $nameForm /*= 'default'*/ ) {
         if ( $this->formNameExists( $nameForm ) ) return;
         $this->theForm->autoHandle( $nameForm, $this->form );
 
@@ -144,7 +144,7 @@ class FormFactory extends FormAbstract
      * (non-PHPdoc)
      * @see classes/FormAbstract::displayForm()
      */
-    public function displayForm( $nameForm = 'default' ) {
+    public function displayForm( $nameForm /*= 'default'*/ ) {
         if ( $this->formNameExists( $nameForm ) ) return;
         $myform = $this->theForm;
         $this->theForm->autoHandle( $nameForm, $this->form );
@@ -338,10 +338,13 @@ class FormFactory extends FormAbstract
                     $field->getType()=='skype' )               
                 ) 
             {   
-                $field_value = isset($_POST[$field->getName()])?$_POST[$field->getName()]:"";
+                //https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188604193/comments
+                //added sanitize_text_field for sucuri warning php.backdoor.eval_POST.010
+                $field_value = isset($_POST[$field->getName()])?sanitize_text_field($_POST[$field->getName()]):"";
                 if ($field->getType()=='skype') {
-                    $field_value = @$_POST[$field->getName()]['skypename'];
+                    $field_value = isset($_POST[$field->getName()]['skypename'])?sanitize_text_field($_POST[$field->getName()]['skypename']):"";
                 }
+                //##########################################################################################
                 
                 $_tmp = $field->getValidationData();
                 if (isset($_tmp['required']) &&

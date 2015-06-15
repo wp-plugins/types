@@ -96,7 +96,7 @@ if (!class_exists("FieldConfig")) {
                 case 'checkboxes':
                     foreach ($attrs['actual_titles'] as $refvalue=>$title) {
                         $value = $attrs['actual_values'][$refvalue];
-                        $arr[$refvalue] = array('value'=>$refvalue,'title'=>$title,'name'=>$name);
+                        $arr[$refvalue] = array('value'=>$refvalue,'title'=>$title,'name'=>$name,'data-value'=>$value);
                         if ( in_array($refvalue, $attrs['default']) ) {
                             $arr[$refvalue]['checked'] = true;
                         }

@@ -2,8 +2,8 @@
 /*
  * Repetitive controller
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.repetitive.php $
- * $LastChangedDate: 2014-07-03 15:27:50 +0800 (Thu, 03 Jul 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.repetitive.php $
+ * $LastChangedDate: 2014-07-03 09:27:50 +0200 (Thu, 03 Jul 2014) $
  * $LastChangedRevision: 24580 $
  * $LastChangedBy: juan $
  *

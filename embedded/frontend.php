@@ -2,10 +2,10 @@
 /*
  * Frontend functions.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/frontend.php $
- * $LastChangedDate: 2014-07-16 17:38:37 +0800 (Wed, 16 Jul 2014) $
- * $LastChangedRevision: 24999 $
- * $LastChangedBy: emerson $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.2/embedded/frontend.php $
+ * $LastChangedDate: 2014-08-28 10:48:41 +0200 (Thu, 28 Aug 2014) $
+ * $LastChangedRevision: 26511 $
+ * $LastChangedBy: bruce $
  *
  */
 
@@ -246,7 +246,7 @@ function types_render_field_single( $field, $params, $content = null, $code = ''
         $params['field_value'], $params, $post->ID, $field['id'], $meta_id );
     // To make sure
     if ( is_string( $params['field_value'] ) ) {
-        $params['field_value'] = esc_attr($params['field_value'] );
+        $params['field_value'] = addslashes( stripslashes( strval( $params['field_value'] ) ) );
     }
 
     // Set values
@@ -287,7 +287,13 @@ function types_render_field_single( $field, $params, $content = null, $code = ''
             if ( $field['type'] == 'skype' && isset( $params['field_value']['skypename'] ) ) {
                 $output = $params['field_value']['skypename'];
             } else if ($field['type'] == 'checkboxes' && is_array( $params['field_value'] ) ) {
-                $output = implode( ', ', $params['field_value'] );
+                $output = '';
+                foreach ($params['field_value'] as $value) {
+                    if ($output != '') {
+                        $output .= ', ';
+                    }
+                    $output .= $value[0];
+                }
             } else {
                 $output = $params['field_value'];
             }
@@ -320,6 +326,7 @@ function types_render_field_single( $field, $params, $content = null, $code = ''
                     }
             }
         }
+
     // Apply filters
     $output = strval( apply_filters( 'types_view', $output,
         $params['field_value'], $field['type'], $field['slug'],

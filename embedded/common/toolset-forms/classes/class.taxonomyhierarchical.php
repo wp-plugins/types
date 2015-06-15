@@ -34,6 +34,8 @@ class WPToolset_Field_Taxonomyhierarchical extends WPToolset_Field_Textfield
         
         $all = $this->buildTerms(get_terms($this->getName(),array('hide_empty'=>0,'fields'=>'all')));
 
+        
+        
         $childs=array();
         $names=array();
         foreach ($all as $term) {
@@ -43,6 +45,8 @@ class WPToolset_Field_Taxonomyhierarchical extends WPToolset_Field_Textfield
             $childs[$term['parent']][]=$term['term_id'];
         }
 
+//        ksort($childs);
+                
         $this->childs = $childs;
         $this->names = $names;
     }
@@ -274,10 +278,9 @@ class WPToolset_Field_Taxonomyhierarchical extends WPToolset_Field_Textfield
 
     private function buildCheckboxes( $index, &$childs, &$names, &$metaform, $level = 0, $parent = -1 )
     {
-
         if (isset($childs[$index])) {
             $level_count = count( $childs[$index] );
-			foreach ( $childs[$index] as $tkey => $tid ) {
+            foreach ( $childs[$index] as $tkey => $tid ) {
                 $name = $names[$tid];
                 /**
                  * check for "checked"
@@ -304,28 +307,34 @@ class WPToolset_Field_Taxonomyhierarchical extends WPToolset_Field_Textfield
 							'#pattern' => '<BEFORE><PREFIX><ELEMENT><LABEL><ERROR><SUFFIX><DESCRIPTION><AFTER>'
                         );
 						
-				if ( $tkey == 0 ) {
-					if ($level > 0) {
-						$item['#before'] = '<li><ul class="wpt-form-set-children wpt-form-set-children-level-' . $level . '" data-level="' . $level . '"><li>';
-					} else  {
-						$item['#before'] = '<ul class="wpt-form-set wpt-form-set-checkboxes wpt-form-set-checkboxes-' . $this->getName() . '" data-level="0"><li>';
-					}
-				} else if ( $tkey == ( $level_count - 1 ) ) {
-					if ($level > 0) {
-						$item['#after'] = '</li></ul></li>';
-					} else {
-						$item['#after'] = '</li></ul>';
-					}
-				}
-
+                if ( $tkey == 0 ) {
+                    if ($level > 0) {
+                        $item['#before'] = '<li><ul class="wpt-form-set-children wpt-form-set-children-level-' . $level . '" data-level="' . $level . '"><li>';
+                    } else  {
+                        $item['#before'] = '<ul class="wpt-form-set wpt-form-set-checkboxes wpt-form-set-checkboxes-' . $this->getName() . '" data-level="0"><li>';
+                    }
+                }
+                if ( $tkey == ( $level_count - 1 ) ) {
+                    $item['#after'] = '</li>';
+                }
+                
                 $metaform[] = $item;
 
-                if ( isset( $childs[$tid] ) ) {
+                if ( isset( $childs[$tid] ) ) {      
                     $metaform = $this->buildCheckboxes( $tid, $childs, $names, $metaform, $level + 1, $tid );
                 }
-
+                
             }
         }
+        
+        if (count($metaform)) {
+            if ($level == 0) {
+                $metaform[count($metaform) - 1]['#after'] .= '</ul>';
+            } else  {
+                $metaform[count($metaform) - 1]['#after'] .= '</ul></li>';
+            }
+        }
+        
         return $metaform;
     }
 }

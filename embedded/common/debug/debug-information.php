@@ -3,8 +3,8 @@
 /**
  * produce debug information
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/debug/debug-information.php $
- * $LastChangedDate: 2014-08-13 09:38:06 +0800 (Wed, 13 Aug 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/debug/debug-information.php $
+ * $LastChangedDate: 2014-08-13 03:38:06 +0200 (Wed, 13 Aug 2014) $
  * $LastChangedRevision: 25892 $
  * $LastChangedBy: bruce $
  *

@@ -160,7 +160,7 @@ function wpcf_translate( $name, $string, $context = 'plugin Types' ) {
     if ( !function_exists( 'icl_t' ) || !is_string($string) || empty($string) ) {
         return $string;
     }
-    return icl_t( $context, $name, esc_attr( $string ) );
+    return icl_t( $context, $name, stripslashes( $string ) );
 }
 
 /**

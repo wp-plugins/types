@@ -9,8 +9,8 @@
  * @since Types 1.1.5
  * @autor srdjan
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/resources/js/fields-form.js $
- * $LastChangedDate: 2014-07-11 12:20:46 +0800 (Fri, 11 Jul 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.2/embedded/resources/js/fields-form.js $
+ * $LastChangedDate: 2014-07-11 06:20:46 +0200 (Fri, 11 Jul 2014) $
  * $LastChangedRevision: 24859 $
  * $LastChangedBy: bruce $
  *

@@ -101,7 +101,7 @@ function wpcf_fields_checkbox_editor_submit( $data, $field, $context ) {
         $types_attr = 'usermeta';
     }
 
-    if ( $data['display'] == 'value' ) {
+    if ( isset($data['display']) && $data['display'] == 'value' ) {
 
         $checked_add = $add . ' state="checked"';
         $unchecked_add = $add . ' state="unchecked"';

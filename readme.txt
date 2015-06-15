@@ -5,7 +5,7 @@ Tags: CMS, custom field, custom fields, custom post type, custom post types, pos
 License: GPLv2
 Requires at least: 3.4
 Tested up to: 4.0
-Stable tag: 1.6
+Stable tag: 1.6.2
 
 The complete and reliable plugin for managing custom post types, custom taxonomy and custom fields.
 
@@ -150,6 +150,18 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 5. Bulk editing child content using Field Tables
 
 == Changelog ==
+
+= 1.6.2 =
+* Fix addslashes warning
+* Fix display problems with Types shortcodes
+* Fix PHP error for checkboxes
+
+= 1.6.1 =
+
+* Fix Formfactory::createForm and Formfactory::displayForm errors on some systems
+* Fix anonymous function problem with wysiwyg field
+* Fix datepicker.css so it only styles the datepicker popup
+* Fix escaping problems with the Types shortcode
 
 = 1.6 =
 

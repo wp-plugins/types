@@ -2,8 +2,8 @@
 /*
  * Import/export data.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/includes/import-export.php $
- * $LastChangedDate: 2014-08-01 12:46:07 +0800 (Fri, 01 Aug 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.2/includes/import-export.php $
+ * $LastChangedDate: 2014-08-01 06:46:07 +0200 (Fri, 01 Aug 2014) $
  * $LastChangedRevision: 25533 $
  * $LastChangedBy: bruce $
  *

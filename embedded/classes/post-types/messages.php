@@ -2,8 +2,8 @@
 /*
  * Messages.
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/classes/post-types/messages.php $
- * $LastChangedDate: 2014-05-13 18:49:25 +0800 (Tue, 13 May 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.2/embedded/classes/post-types/messages.php $
+ * $LastChangedDate: 2014-05-13 12:49:25 +0200 (Tue, 13 May 2014) $
  * $LastChangedRevision: 22267 $
  * $LastChangedBy: marcin $
  *

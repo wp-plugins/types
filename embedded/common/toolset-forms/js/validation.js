@@ -7,9 +7,9 @@
  *
  * @see class WPToolset_Validation
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/js/validation.js $
- * $LastChangedDate: 2014-08-14 19:14:45 +0800 (Thu, 14 Aug 2014) $
- * $LastChangedRevision: 25974 $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/js/validation.js $
+ * $LastChangedDate: 2014-08-26 14:34:10 +0200 (Tue, 26 Aug 2014) $
+ * $LastChangedRevision: 26451 $
  * $LastChangedBy: francesco $
  *
  */
@@ -114,7 +114,7 @@ var wptValidation = (function($) {
                     var _rule = {messages: {}};
                     _rule[rule] = value.args;
                     if (value.message !== 'undefined') {
-                        _rule.messages[rule] = value.message;
+                        _rule.messages[rule] = value.message;                        
                     }
                     element.rules('add', _rule);
                     element.addClass('js-wpt-validate');

@@ -1,8 +1,8 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/embedded/includes/fields/image.php $
- * $LastChangedDate: 2014-07-15 22:18:54 +0800 (Tue, 15 Jul 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.2/embedded/includes/fields/image.php $
+ * $LastChangedDate: 2014-07-15 16:18:54 +0200 (Tue, 15 Jul 2014) $
  * $LastChangedRevision: 24974 $
  * $LastChangedBy: marcin $
  *

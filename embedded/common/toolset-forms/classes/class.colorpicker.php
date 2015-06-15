@@ -1,8 +1,8 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.colorpicker.php $
- * $LastChangedDate: 2014-07-12 16:38:18 +0800 (Sat, 12 Jul 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.colorpicker.php $
+ * $LastChangedDate: 2014-07-12 10:38:18 +0200 (Sat, 12 Jul 2014) $
  * $LastChangedRevision: 24908 $
  * $LastChangedBy: gen $
  *

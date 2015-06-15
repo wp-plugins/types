@@ -39,15 +39,11 @@ class WPToolset_Field_Wysiwyg extends WPToolset_Field_Textarea
     }
 
     protected function _editor(&$attributes)
-    {        
-        if (isset($attributes['readonly'])&&$attributes['readonly']=='readonly') {
-            add_filter( 'tiny_mce_before_init', function( $args ) {
-                // do you existing check for published here
-                if ( 1 == 1 )
-                     $args['readonly'] = 1;
+    {
 
-                return $args;
-            } );
+
+        if (isset($attributes['readonly'])&&$attributes['readonly']=='readonly') {
+            add_filter( 'tiny_mce_before_init',  array(&$this, 'tiny_mce_before_init_callback'));
         }
 
     	//EMERSON: Rewritten to set do_concat to TRUE so WordPress won't echo styles directly to the browser  
@@ -76,5 +72,14 @@ class WPToolset_Field_Wysiwyg extends WPToolset_Field_Textarea
         return ob_get_clean() . "\n\n";
         $wp_styles->do_concat=FALSE;
    }
+
+    /*RICCARDO: removed anonymous function for retrocompatibility */
+    public function tiny_mce_before_init_callback( $args ) {
+        // do you existing check for published here
+        if ( 1 == 1 )
+            $args['readonly'] = 1;
+
+        return $args;
+    }
 
 }

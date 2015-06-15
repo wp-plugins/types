@@ -272,7 +272,6 @@ class WPToolset_Forms_Conditional
      * @return boolean
      */
     public static function evaluateCustom( $evaluate, $values ) {
-
         $evaluate = trim( stripslashes( $evaluate ) );
         // Check dates
         $evaluate = wpv_filter_parse_date( $evaluate );

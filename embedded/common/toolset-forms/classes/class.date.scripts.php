@@ -53,12 +53,6 @@ class WPToolset_Field_Date_Scripts
             array(),
             WPTOOLSET_FORMS_VERSION
         );
-        wp_register_style(
-            'wptoolset-field-date',
-            WPTOOLSET_FORMS_RELPATH . '/css/wpt-jquery-ui/jquery-ui-1.9.2.custom.min.css',
-            array('wptoolset-field-datepicker'),
-            WPTOOLSET_FORMS_VERSION
-        );
         /**
          * scripts
          */
@@ -105,7 +99,7 @@ class WPToolset_Field_Date_Scripts
         /**
          * styles
          */
-        wp_enqueue_style( 'wptoolset-field-date' );
+        wp_enqueue_style( 'wptoolset-field-datepicker' );
         /**
          * scripts
          */

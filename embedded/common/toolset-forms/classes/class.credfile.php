@@ -1,8 +1,8 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.credfile.php $
- * $LastChangedDate: 2014-08-09 05:11:46 +0800 (Sat, 09 Aug 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.credfile.php $
+ * $LastChangedDate: 2014-08-08 23:11:46 +0200 (Fri, 08 Aug 2014) $
  * $LastChangedRevision: 25806 $
  * $LastChangedBy: francesco $
  *

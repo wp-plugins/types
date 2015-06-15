@@ -1,8 +1,8 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.skype.php $
- * $LastChangedDate: 2014-08-06 00:18:16 +0800 (Wed, 06 Aug 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.skype.php $
+ * $LastChangedDate: 2014-08-05 18:18:16 +0200 (Tue, 05 Aug 2014) $
  * $LastChangedRevision: 25657 $
  * $LastChangedBy: juan $
  *

@@ -1,8 +1,8 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.textfield.php $
- * $LastChangedDate: 2014-07-09 16:26:51 +0800 (Wed, 09 Jul 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.textfield.php $
+ * $LastChangedDate: 2014-07-09 10:26:51 +0200 (Wed, 09 Jul 2014) $
  * $LastChangedRevision: 24777 $
  * $LastChangedBy: juan $
  *

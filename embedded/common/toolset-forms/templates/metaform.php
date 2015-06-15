@@ -1,8 +1,8 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/templates/metaform.php $
- * $LastChangedDate: 2014-08-18 23:18:52 +0800 (Mon, 18 Aug 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/templates/metaform.php $
+ * $LastChangedDate: 2014-08-18 17:18:52 +0200 (Mon, 18 Aug 2014) $
  * $LastChangedRevision: 26059 $
  * $LastChangedBy: riccardo $
  *

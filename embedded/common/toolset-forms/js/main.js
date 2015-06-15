@@ -99,9 +99,10 @@ function showHideMostPopularTaxonomy(el)
 
 jQuery(document).on('click', '.js-wpt-taxonomy-popular-add', function() {
 	var thiz = jQuery(this),
-	taxonomy = thiz.data( 'taxonomy' ),
+	taxonomy = thiz.data( 'taxonomy' );
 	slug = thiz.data( 'slug' );
-	addTaxonomy(slug, taxonomy, this);
+        _name = thiz.data( 'name' );
+	addTaxonomy(_name, taxonomy, this);
 	return false;
 });
 
@@ -269,14 +270,16 @@ toolsetForms.CRED_taxonomy = function () {
     self._initialize_taxonomy_buttons = function () {
         // replace the taxonomy button placeholders with the actual buttons.
         jQuery('.js-taxonomy-button-placeholder').each(function () {
-            var placeholder = jQuery(this);
-            var taxonomy = jQuery(this).data('taxonomy');
-            var buttons = jQuery('[name="sh_' + taxonomy + '"],[name="btn_' + taxonomy + '"]');
+            var placeholder = jQuery(this),
+                taxonomy = jQuery(this).data('taxonomy'),
+                buttons = jQuery('[name="sh_' + taxonomy + '"],[name="btn_' + taxonomy + '"]'),
+                selectors = [];
 
             if (buttons.length) {
                 
                 buttons.each(function () {
                     var button = jQuery(this);
+
                     button.detach();
                     placeholder.replaceWith(button);
 
@@ -288,15 +291,17 @@ toolsetForms.CRED_taxonomy = function () {
                         button.show();
                     }
                     
-                    // move anything else that should be moved with the button
-                    var selector = button.data('after-selector');
+                    // move anything else that should be moved with the button                    
+                    //Responsible of the issue https://icanlocalize.basecamphq.com/projects/7393061-toolset/todo_items/188673095/comments
+                    //changed selector
+                    //var selector = button.data('after-selector');
+                    selectors.push( button.data('after-selector') )
                     if (typeof selector !== 'undefined' && selector.length) {
                         var position = button;
-                        jQuery('.' + selector).each( function () {
-                            jQuery(this).detach();
-                            jQuery(this).insertAfter(button);
-                            position = jQuery(this);
-                        });
+                            jQuery('.' + selectors[0]).detach();
+                            jQuery('.' + selectors[0]).insertAfter(button);
+                            position = jQuery('.' + selectors[0]);
+                            selectors.pop();
                     }
                 })
             }

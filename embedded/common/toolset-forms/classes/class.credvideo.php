@@ -1,14 +1,15 @@
 <?php
 require_once 'class.credfile.php';
+require_once 'class.video.php';
 
 /**
  * Description of class
  *
  * @author Srdjan
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.credvideo.php $
- * $LastChangedDate: 2014-08-14 21:05:33 +0800 (Thu, 14 Aug 2014) $
- * $LastChangedRevision: 25980 $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.credvideo.php $
+ * $LastChangedDate: 2014-08-22 12:23:29 +0200 (Fri, 22 Aug 2014) $
+ * $LastChangedRevision: 26350 $
  * $LastChangedBy: francesco $
  *
  */
@@ -20,13 +21,7 @@ class WPToolset_Field_Credvideo extends WPToolset_Field_Credfile
     {
         //TODO: check if this getValidationData does not break PHP Validation _cakePHP required file.
         $validation = $this->getValidationData();
-        $validation['extension'] = array(
-                'args' => array(
-                    'extension',
-                    '3gp|aaf|asf|avchd|avi|cam|dat|dsh|fla|flr|flv|m1v|m2v|m4v|mng|mp4|mxf|nsv|ogg|rm|roq|smi|sol|svi|swf|wmv|wrap|mkv|mov|mpe|mpeg|mpg',
-                ),
-                'message' => __( 'You can add only video.', 'wpv-views' ),
-            );
+        $validation = WPToolset_Field_Video::addTypeValidation($validation);
         $this->setValidationData($validation);
         return parent::metaform();        
     }

@@ -3,8 +3,8 @@
  *
  * Admin functions
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6/admin.php $
- * $LastChangedDate: 2014-08-12 10:19:36 +0800 (Tue, 12 Aug 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/cck/tags/1.6.2/admin.php $
+ * $LastChangedDate: 2014-08-12 04:19:36 +0200 (Tue, 12 Aug 2014) $
  * $LastChangedRevision: 25849 $
  * $LastChangedBy: bruce $
  *

@@ -1,8 +1,8 @@
 <?php
 /**
  *
- * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/august-release/toolset-forms/classes/class.select.php $
- * $LastChangedDate: 2014-07-29 22:50:22 +0800 (Tue, 29 Jul 2014) $
+ * $HeadURL: https://www.onthegosystems.com/misc_svn/common/tags/Types-1.6.2/toolset-forms/classes/class.select.php $
+ * $LastChangedDate: 2014-07-29 16:50:22 +0200 (Tue, 29 Jul 2014) $
  * $LastChangedRevision: 25428 $
  * $LastChangedBy: marcin $
  *
