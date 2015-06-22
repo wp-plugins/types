@@ -149,7 +149,10 @@ function wpcf_admin_save_fields_groups_submit( $form )
             }
             // WPML
             /** @var string $field_id */
-            if ( version_compare ( ICL_SITEPRESS_VERSION, '3.2', '<' ) ) {
+            if (
+                defined('ICL_SITEPRESS_VERSION')
+                && version_compare ( ICL_SITEPRESS_VERSION, '3.2', '<' )
+            ) {
                 if ( function_exists( 'wpml_cf_translation_preferences_store' ) ) {
                     $real_custom_field_name = wpcf_types_get_meta_prefix( wpcf_admin_fields_get_field( $field_id ) ) . $field_id;
                     wpml_cf_translation_preferences_store( $key, $real_custom_field_name );
