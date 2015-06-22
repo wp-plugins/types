@@ -425,6 +425,7 @@ function wpcf_admin_custom_types_form()
     global $sitepress;
     if (
         $update && isset( $sitepress )
+        && defined('ICL_SITEPRESS_VERSION')
         && version_compare( ICL_SITEPRESS_VERSION, '2.6.2', '>=' )
         && function_exists( 'wpml_custom_post_translation_options' )
     ) {
