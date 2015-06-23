@@ -42,7 +42,7 @@ class WPToolset_Field_File extends WPToolset_Field_Textfield
                 wp_enqueue_media();
             }
 
-            if (isset($screen->post_type) && !empty($screen->parent_base)) {
+            if (isset($screen->post_type) && isset($screen->base) && 'post' == $screen->base) {
                 global $post;
                 if ( is_object($post) ) {
                     wp_enqueue_media(array('post' => $post->ID));
