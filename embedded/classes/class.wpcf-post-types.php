@@ -327,6 +327,8 @@ class WPCF_Post_Types
             'object_id' => $_nav_menu_placeholder,
             'post_title' => $post_type['args']->labels->all_items,
             'post_type' => 'nav_menu_item',
+            'post_excerpt' => '',
+            'post_content' => '',
             'type' => 'post_type_archive',
             'object' => $post_type['args']->slug,
         ) );
