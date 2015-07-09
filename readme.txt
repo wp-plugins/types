@@ -176,6 +176,7 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 * Release date: 2015-06-22
 * Fixed a problem with constant ICL_SITEPRESS_VERSION https://wordpress.org/support/topic/types-17-notice-undefined-constant-icl_sitepress_version
 * Field a problem with "file type" field on user profile screen. https://wordpress.org/support/topic/image-field-not-working-1
+* Types and Access integration - You can define roles and control who can add, edit or change Custom Post Types, Custom Taxonomies, Custom Field Groups and User Meta Groups.
 
 = 1.7 =
 
