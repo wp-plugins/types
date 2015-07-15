@@ -5,7 +5,7 @@ Tags: CMS, custom field, custom fields, custom post type, custom post types, fie
 License: GPLv2
 Requires at least: 3.4
 Tested up to: 4.2.2
-Stable tag: 1.7.4
+Stable tag: 1.7.5
 
 The complete and reliable plugin for managing custom post types, custom taxonomies and custom fields.
 
@@ -155,6 +155,10 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 
 == Changelog ==
 
+= 1.7.5 =
+
+* Release date: 2015-07-15
+* Fixed a problem with Custom Fields Group edit screen to allow (again) underscore in Custom Fields names. https://wp-types.com/forums/topic/underscores-in-custom-field-names-possible-bug/
 
 = 1.7.4 =
 
@@ -176,7 +180,6 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 * Release date: 2015-06-22
 * Fixed a problem with constant ICL_SITEPRESS_VERSION https://wordpress.org/support/topic/types-17-notice-undefined-constant-icl_sitepress_version
 * Field a problem with "file type" field on user profile screen. https://wordpress.org/support/topic/image-field-not-working-1
-* Types and Access integration - You can define roles and control who can add, edit or change Custom Post Types, Custom Taxonomies, Custom Field Groups and User Meta Groups.
 
 = 1.7 =
 
