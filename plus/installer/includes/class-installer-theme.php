@@ -322,7 +322,7 @@ class Installer_Theme_Class {
 								return $res;
 							} else {
 								//Registered
-								$themes=$this->installer_theme_get_themes();
+								$themes=$this->installer_theme_get_themes('',$browse);
 								$res =$this->installer_theme_format_response($themes,$action);								
 							}
 						}						
@@ -339,7 +339,7 @@ class Installer_Theme_Class {
 				if ($validate_check) {
 					//Belongs to us
 					if (($res) && ('theme_information' == $action)) {
-						$themes=$this->installer_theme_get_themes();
+						$themes=$this->installer_theme_get_themes('',$this->installer_theme_active_tab);
 						$res =$this->installer_theme_format_response($themes,$action,$args->slug);
 					}
 				}			
@@ -358,7 +358,7 @@ class Installer_Theme_Class {
 		}	
 	}
 	/** Get Themes */
-	private function installer_theme_get_themes($product_url='') {		
+	private function installer_theme_get_themes($product_url='',$repo_source='') {		
 		
 		//Query API
 		if (empty($product_url)) {
@@ -370,35 +370,51 @@ class Installer_Theme_Class {
 		} else {
 			$query_remote_url=$product_url;
 		}
-		
-		$response = wp_remote_get($query_remote_url);
+
+		//Let's retrieved current installer settings so we won't be querying all the time		
+		$current_installer_settings= WP_Installer()->get_settings();
 		
 		//Set $themes to FALSE by default
-		
 		$themes=false;
 		
-		if (is_wp_error($response)){
-			//Error detected: http fallback
-			$query_remote_url = preg_replace("@^https://@", 'http://', $query_remote_url);
-			$response = wp_remote_get($query_remote_url);
-		}
-			
-		if (!(is_wp_error($response))) {
-			//Not WP error
-			//Evaluate response
-			if($response && isset($response['response']['code']) && $response['response']['code'] == 200){
-				//In this case, response is set and defined, proceed...
-				$body = wp_remote_retrieve_body($response);
-				if($body){
-					$products = json_decode($body, true);
-					if (isset($products['downloads']['themes'])) {
-						$themes=$products['downloads']['themes'];
-					}
+		if ((is_array($current_installer_settings)) && (!(empty($current_installer_settings)))) {		
+				
+			//Set and already defined, retrieved $products
+			if (isset($current_installer_settings['repositories'][$repo_source]['data'])) {
+				$products=$current_installer_settings['repositories'][$repo_source]['data'];
+				if (isset($products['downloads']['themes'])) {
+					$themes=$products['downloads']['themes'];
 				}
+			}
+
+		} else {
 			
+			//Call API
+			$response = wp_remote_get($query_remote_url);
+			
+			if (is_wp_error($response)){
+				//Error detected: http fallback
+				$query_remote_url = preg_replace("@^https://@", 'http://', $query_remote_url);
+				$response = wp_remote_get($query_remote_url);
+			}
+				
+			if (!(is_wp_error($response))) {
+				//Not WP error
+				//Evaluate response
+				if($response && isset($response['response']['code']) && $response['response']['code'] == 200){
+					//In this case, response is set and defined, proceed...
+					$body = wp_remote_retrieve_body($response);
+					if($body){
+						$products = json_decode($body, true);
+						if (isset($products['downloads']['themes'])) {
+							$themes=$products['downloads']['themes'];
+						}
+					}
+						
+				}
 			}			
 		}
-		
+
 		//Return themes, can be filtered by user subscription type
 		return apply_filters('installer_theme_get_themes',$themes,$this->installer_theme_active_tab);
 	}
@@ -579,7 +595,7 @@ class Installer_Theme_Class {
 				foreach ($repositories as $k=>$v) {
 					if (isset($v['products'])) {
 						$products_url=$v['products'];
-						$themes= $this->installer_theme_get_themes($products_url);
+						$themes= $this->installer_theme_get_themes($products_url,$k);
 						if ((is_array($themes)) && (!(empty($themes)))) {
 							//Repo has themes
 							$repositories_with_themes[]=$k;
@@ -749,7 +765,7 @@ class Installer_Theme_Class {
 			$products_url = $this->repository_theme_products [$repo_slug];
 			
 			// Step3-> we get all available themes in our repository via API based on this URL
-			$available_themes = $this->installer_theme_get_themes ( $products_url );
+			$available_themes = $this->installer_theme_get_themes ( $products_url,$repo_slug );
 			
 			if (! ($available_themes)) {
 				

@@ -247,6 +247,8 @@ final class WP_Installer{
         $plugins = get_plugins();
               
         foreach($this->settings['repositories'] as $repository_id => $repository){
+
+        	$r_plugins = array();
             
             foreach($repository['data']['packages'] as $package){
                 
