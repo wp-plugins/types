@@ -153,6 +153,16 @@ function wpcf_add_meta_boxes( $post_type, $post ) {
 
     // Get groups
     $groups = wpcf_admin_post_get_post_groups_fields( $post );
+	
+	if ( current_user_can( 'unfiltered_html' ) ) {
+		add_meta_box( "wpcf-group-postmeta-fields-can-unfiltered-html",
+            wpcf_translate( 'group postmeta-fields-can-unfiltered-html name', 'Types fields - unfiltered HTML' ),
+			'wpcf_admin_postmeta_fields_can_unfiltered_html_meta_box',
+            $post_type,
+			'normal',
+			'low'
+		);
+	}
 
     foreach ( $groups as $group ) {
 
@@ -216,6 +226,31 @@ function wpcf_add_meta_boxes( $post_type, $post ) {
             }
         }
     }
+}
+
+function wpcf_admin_postmeta_fields_can_unfiltered_html_meta_box( $post ) {
+	$can_unfiltered_html = wpcf_get_post_meta( $post->ID, '_wpcf_postmeta_fields_unfiltered_html', true );
+	$can_unfiltered_html = empty( $can_unfiltered_html ) ? 'on' : $can_unfiltered_html;
+	$disabled = '';
+	if ( wpcf_get_settings('postmeta_unfiltered_html') == 'off' ) {
+		$can_unfiltered_html = 'off';
+		$disabled = ' disabled="disabled"';
+	}
+	?>
+	<input type="radio" id="wpcf_postmeta_fields_can_unfiltered_html_on" name="_wpcf_postmeta_fields_unfiltered_html" value="on" <?php checked( $can_unfiltered_html, 'on' ); echo $disabled; ?> />
+	<label for="wpcf_postmeta_fields_can_unfiltered_html_on">
+		<?php _e( 'Enable unfiltered HTML in Types custom fields on this post', 'wpcf' ); ?>
+	</label>
+	<br />
+	<input type="radio" id="wpcf_postmeta_fields_can_unfiltered_html_off" name="_wpcf_postmeta_fields_unfiltered_html" value="off" <?php checked( $can_unfiltered_html, 'off' ); echo $disabled; ?> />
+	<label for="wpcf_postmeta_fields_can_unfiltered_html_off">
+		<?php _e( 'Disable unfiltered HTML in Types custom fields on this post', 'wpcf' ); ?>
+	</label>
+	<!--
+	<hr />
+	Documentation link
+	-->
+	<?php
 }
 
 /**
@@ -569,6 +604,17 @@ function wpcf_admin_post_meta_box( $post, $group, $echo = '', $open_style_editor
 function wpcf_admin_post_save_post_hook( $post_ID, $post )
 {
 
+	if ( current_user_can( 'unfiltered_html' ) ) {
+		if ( 
+			isset( $_POST['_wpcf_postmeta_fields_unfiltered_html'] ) 
+			&& in_array( $_POST['_wpcf_postmeta_fields_unfiltered_html'], array( 'on', 'off' ) )
+		) {
+			$unfiltered_html = $_POST['_wpcf_postmeta_fields_unfiltered_html'];
+			update_post_meta( $post_ID, '_wpcf_postmeta_fields_unfiltered_html', $unfiltered_html );
+		}
+	} else {
+        update_post_meta( $post_ID, '_wpcf_postmeta_fields_unfiltered_html', 'off' );
+    }
 
     if ( defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
 

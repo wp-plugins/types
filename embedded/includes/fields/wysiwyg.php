@@ -128,35 +128,80 @@ function wpcf_fields_wysiwyg_view( $params ) {
         $output .= '>';
     }
 
-    if ( isset( $params['suppress_filters'] ) && $params['suppress_filters'] == 'true' ) {
-        $the_content_filters = array(
-            'wptexturize', 'convert_smilies', 'convert_chars', 'wpautop',
-            'shortcode_unautop', 'prepend_attachment', 'capital_P_dangit', 'do_shortcode');
-        $content = htmlspecialchars_decode( stripslashes( $params['field_value'] ) );
-        foreach ($the_content_filters as $func) {
-            if (  function_exists( $func ) ) {
-                $content = call_user_func($func, $content);
-            }
+    // We'll only run a limited number of filters.
+    // We need to do this to avoid issues after the WP 4.2.3 shortcode API changes.
+    
+    $the_content_filters = array(
+        'wptexturize', 'convert_smilies', 'convert_chars', 'wpautop',
+        'shortcode_unautop', 'prepend_attachment', 'capital_P_dangit', 'do_shortcode');
+    
+    /**
+     * remove_shortcode playlist to avoid htmlspecialchars_decode on json 
+     * data
+     */
+    remove_shortcode('playlist', 'wp_playlist_shortcode');
+    
+	if ( 
+		isset( $params['unfiltered_html'] )
+		&& $params['unfiltered_html'] === false
+	) {
+		$content = stripslashes( $params['field_value'] );
+	} else {
+		$content = htmlspecialchars_decode( stripslashes( $params['field_value'] ) );
+	}
+	
+    foreach ($the_content_filters as $func) {
+        if (  function_exists( $func ) ) {
+            $content = call_user_func($func, $content);
         }
-        $output .= $content;
-    } else {
-        /**
-         * remove_shortcode playlist to avoid htmlspecialchars_decode on json 
-         * data
-         */
-        remove_shortcode('playlist', 'wp_playlist_shortcode');
-        $output .= apply_filters( 'the_content', htmlspecialchars_decode( stripslashes( $params['field_value'] ) ) );
-        if ( preg_match_all('/playlist[^\]]+/', $output, $matches ) ) {
-            foreach( $matches[0] as $one ) {
-                $re = '/'.$one.'/';
-                $one = preg_replace('/\&\#(8221|8243);/', '"', $one);
-                $output = preg_replace($re, $one, $output);
-            }
-        }
-        add_shortcode( 'playlist', 'wp_playlist_shortcode' );
     }
+    if ( preg_match_all('/playlist[^\]]+/', $output, $matches ) ) {
+        foreach( $matches[0] as $one ) {
+            $re = '/'.$one.'/';
+            $one = preg_replace('/\&\#(8221|8243);/', '"', $one);
+            $output = preg_replace($re, $one, $output);
+        }
+    }
+    add_shortcode( 'playlist', 'wp_playlist_shortcode' );
+
+    $output .= $content;
     if ( !empty( $params['style'] ) || !empty( $params['class'] ) ) {
         $output .= '</div>';
     }
     return $output;
+}
+
+/**
+ * Records the WP filter state.
+ *
+ * @since 1.9.1
+ */
+
+class WPCF_WP_filter_state {
+
+    private $current_index;
+    private $tag;
+    
+    public function __construct( $tag ) {
+        global $wp_filter;
+
+        $this->tag = $tag;
+        
+        if ( isset( $wp_filter[$tag] ) ) {
+            $this->current_index = current($wp_filter[$tag]);
+        }
+    }
+    
+    public function restore( ) {
+        global $wp_filter;
+
+        if ( isset( $wp_filter[$this->tag] ) && $this->current_index ) {
+            reset($wp_filter[$this->tag]);
+            while ( $this->current_index && current($wp_filter[$this->tag]) && $this->current_index != current($wp_filter[$this->tag]) ) {
+                next( $wp_filter[$this->tag] );
+            }
+        }
+        
+    }
+
 }
