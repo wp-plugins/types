@@ -25,7 +25,39 @@ function wpcf_admin_userprofile_init($user_id){
 	$wpcf_active = false;
 	$profile_only_preview = '';
 
-
+	if ( current_user_can( 'unfiltered_html' ) ) {
+		$can_unfiltered_html = get_user_meta( $user_id->ID, '_wpcf_usermeta_fields_unfiltered_html', true );
+		$can_unfiltered_html = empty( $can_unfiltered_html ) ? 'on' : $can_unfiltered_html;
+		$disabled = '';
+		if ( wpcf_get_settings('usermeta_unfiltered_html') == 'off' ) {
+			$can_unfiltered_html = 'off';
+			$disabled = ' disabled="disabled"';
+		}
+		?>
+		<h3><?php _e( 'Types usermeta fields - unfiltered HTML', 'wpcf' ) ?></h3>
+		<table class="form-table">
+			<tbody>
+				<tr>
+					<th>
+						<?php _e( 'Unfiltered HTML', 'wpcf' ) ?>
+					</th>
+					<td>
+						<input id="wpcf_postmeta_fields_can_unfiltered_html_on" type="radio" name="_wpcf_usermeta_fields_unfiltered_html" value="on" <?php checked( $can_unfiltered_html, 'on' ); echo $disabled; ?> />
+						<label for="wpcf_postmeta_fields_can_unfiltered_html_on">
+							<?php _e( 'Enable unfiltered HTML in Types usermeta fields for this user', 'wpcf' ); ?>
+						</label>
+						<br />
+						<input id="wpcf_postmeta_fields_can_unfiltered_html_off" type="radio" name="_wpcf_usermeta_fields_unfiltered_html" value="off" <?php checked( $can_unfiltered_html, 'off' ); echo $disabled; ?> />
+						<label for="wpcf_postmeta_fields_can_unfiltered_html_off">
+							<?php _e( 'Disable unfiltered HTML in Types usermeta fields for this user', 'wpcf' ); ?>
+						</label>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<?php
+	}
+	
     foreach ( $groups as $group ) {
         if ( !empty( $group['fields'] ) ) {
             $wpcf_active = true;
@@ -326,6 +358,18 @@ function wpcf_admin_profile_js_validation(){
 */
 function wpcf_admin_userprofilesave_init($user_id){
 
+	if ( current_user_can( 'unfiltered_html' ) ) {
+		if ( 
+			isset( $_POST['_wpcf_usermeta_fields_unfiltered_html'] ) 
+			&& in_array( $_POST['_wpcf_usermeta_fields_unfiltered_html'], array( 'on', 'off' ) )
+		) {
+			$unfiltered_html = $_POST['_wpcf_usermeta_fields_unfiltered_html'];
+			update_user_meta( $user_id, '_wpcf_usermeta_fields_unfiltered_html', $unfiltered_html );
+		}
+	} else {
+		update_user_meta( $user_id, '_wpcf_usermeta_fields_unfiltered_html', 'off' );
+	}
+	
     if ( defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
 
         global $wpcf;

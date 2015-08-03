@@ -715,8 +715,16 @@ class WPCF_Field
         } else {
             $html = htmlspecialchars( $html );
         }
+		if ( 
+			isset( $params['unfiltered_html'] )
+			&& $params['unfiltered_html'] === false
+		) {
+			$html = stripslashes( $html );
+		} else {
+			$html = htmlspecialchars_decode( stripslashes( $html ) );
+		}
         // Process shortcodes too
-        $html = do_shortcode( htmlspecialchars_decode( stripslashes( $html ) ) );
+        $html = do_shortcode( $html );
         return $html;
     }
 
