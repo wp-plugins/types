@@ -421,6 +421,8 @@ function types_render_usermeta( $field_id, $params, $content = null, $code = '' 
     // Get field
     $field = wpcf_fields_get_field_by_slug( $field_id, 'wpcf-usermeta' );
 
+	$params['unfiltered_html'] = wpcf_usermeta_fields_can_unfiltered_html( $user_id );
+	
 
     // If field not found return empty string
     if ( empty( $field ) ) {
@@ -597,6 +599,8 @@ function types_render_usermeta_field( $field_id, $params, $content = null,
 
     // Set field
     $wpcf->usermeta_field->set( $user_id, $field );
+	
+	$params['unfiltered_html'] = wpcf_usermeta_fields_can_unfiltered_html( $user_id );
 
 
     // See if repetitive
@@ -679,6 +683,22 @@ function types_render_usermeta_field( $field_id, $params, $content = null,
     // API filter
 //    $wpcf->usermeta_field->set( $user_id, $field );
     return $wpcf->usermeta_field->html( $html, $params );
+}
+
+function wpcf_usermeta_fields_can_unfiltered_html( $user_id ) {
+	$return = true;
+	if ( empty( $user_id ) ) {
+		return $return;
+	}
+	$can_unfiltered_html = get_user_meta( $user_id, '_wpcf_usermeta_fields_unfiltered_html', true );
+	if (
+		$can_unfiltered_html == 'off'
+		|| wpcf_get_settings('usermeta_unfiltered_html') == 'off'
+		|| ! apply_filters( 'wpcf_filter_wpcf_usermeta_fields_unfiltered_html', true, $user_id )
+	) {
+		$return = false;
+	}
+	return $return;
 }
 
 /**
