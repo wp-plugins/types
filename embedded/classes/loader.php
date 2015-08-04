@@ -46,11 +46,7 @@ class WPCF_Loader
 			// Recursion
 			$value = array_map( array( 'WPCF_Loader', 'wpcf_sanitize_values_on_save' ), $value );
 		} else {
-			if ( current_user_can( 'unfiltered_html' ) ) {
-				$value = wp_filter_post_kses( $value );
-			} else {
-				$value = wp_filter_kses( $value );
-			}
+			$value = wp_filter_post_kses( $value );
 		}
 		return $value;
 	}
