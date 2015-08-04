@@ -125,6 +125,8 @@ function types_render_field( $field_id = null, $params = array(), $content = nul
 
     // Get field
     $field = types_get_field( $field_id );
+	
+	$params['unfiltered_html'] = wpcf_postmeta_fields_can_unfiltered_html( $post_id );
 
     // If field not found return empty string
     if ( empty( $field ) ) {
@@ -327,7 +329,15 @@ function types_render_field_single( $field, $params, $content = null, $code = ''
     $output = strval( apply_filters( 'types_view', $output,
         $params['field_value'], $field['type'], $field['slug'],
         $field['name'], $params ) );
-    return htmlspecialchars_decode( stripslashes( strval( $output ) ) );
+	
+	if ( 
+		isset( $params['unfiltered_html'] )
+		&& $params['unfiltered_html'] === false
+	) {
+		return stripslashes( strval( $output ) );
+	} else {
+		return htmlspecialchars_decode( stripslashes( strval( $output ) ) );
+	}
 }
 
 function wpcf_frontend_compat_html_output( $output, $field, $content, $params ) {
@@ -496,6 +506,22 @@ function wpcf_frontend_wrap_field_value( $field, $content, $params = array() ) {
     }
 }
 
+function wpcf_postmeta_fields_can_unfiltered_html( $post_id = '' ) {
+	$return = true;
+	if ( empty( $post_id ) ) {
+		return $return;
+	}
+	$can_unfiltered_html = wpcf_get_post_meta( $post_id, '_wpcf_postmeta_fields_unfiltered_html', true );
+	if (
+		$can_unfiltered_html == 'off'
+		|| wpcf_get_settings('postmeta_unfiltered_html') == 'off'
+		|| ! apply_filters( 'wpcf_filter_wpcf_postmeta_fields_unfiltered_html', true, $post_id )
+	) {
+		$return = false;
+	}
+	return $return;
+}
+
 // Add a filter to handle Views queries with checkboxes.
 
 add_filter( 'wpv_filter_query', 'wpcf_views_query', 12, 2 ); // after custom fields.
@@ -657,3 +683,93 @@ function wpcf_views_get_meta_sql( $clause, $queries, $type, $primary_table,
 
     return $clause;
 }
+
+
+/** Fix shortcode rendering for WP 4.2.3 security fixes.
+ *  We now pre-process before the main do_shortcode fitler so that we
+ *  can still use shortcodes in html attributes
+ *  like <img src="[types field="image-field"][/types]">
+ *  adding filter with priority before do_shortcode and other WP standard filters
+ */
+
+add_filter('the_content', 'wpcf_preprocess_shortcodes_for_4_2_3', 5);
+
+function wpcf_preprocess_shortcodes_for_4_2_3($content) {
+	
+	$shortcode = "/\\[types.*?\\](.*?)\\[\\/types\\]/is";
+	
+	// Normalize entities in unfiltered HTML before adding placeholders.
+	$trans = array( '&#91;' => '&#091;', '&#93;' => '&#093;' );
+	$content = strtr( $content, $trans );
+	$trans = array( '[' => '&#91;', ']' => '&#93;' );
+	
+	$comment_regex =
+		  '!'           // Start of comment, after the <.
+		. '(?:'         // Unroll the loop: Consume everything until --> is found.
+		.     '-(?!->)' // Dash not followed by end of comment.
+		.     '[^\-]*+' // Consume non-dashes.
+		. ')*+'         // Loop possessively.
+		. '(?:-->)?';   // End of comment. If not found, match all input.
+
+	$regex =
+		  '/('                   // Capture the entire match.
+		.     '<'                // Find start of element.
+		.     '(?(?=!--)'        // Is this a comment?
+		.         $comment_regex // Find end of comment.
+		.     '|'
+		.         '[^>]*>?'      // Find end of element. If not found, match all input.
+		.     ')'
+		. ')/s';
+
+	$textarr = preg_split( $regex, $content, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
+
+	foreach ( $textarr as &$element ) {
+		if ( '<' !== $element[0] ) {
+			continue;
+		}
+
+		$noopen = false === strpos( $element, '[' );
+		$noclose = false === strpos( $element, ']' );
+		if ( $noopen || $noclose ) {
+			// This element does not contain shortcodes.
+			if ( $noopen xor $noclose ) {
+				// Need to encode stray [ or ] chars.
+				$element = strtr( $element, $trans );
+			}
+			continue;
+		}
+
+		if ( '<!--' === substr( $element, 0, 4 ) ) {
+			// Encode all [ and ] chars.
+			$element = strtr( $element, $trans );
+			continue;
+		}
+		
+		$counts = preg_match_all($shortcode, $element, $matches);
+		
+		if($counts > 0) {
+			foreach($matches[0] as $index => &$match) {
+				
+				$string_to_replace = $match;
+            
+				$inner_content = $matches[1][ $index ];
+				if ( $inner_content ) {
+					$new_inner_content = wpcf_preprocess_shortcodes_for_4_2_3( $inner_content );
+					$match = str_replace( $inner_content, $new_inner_content, $match );
+				}
+				
+				$replacement = do_shortcode($match);
+				$element = str_replace($string_to_replace, $replacement, $element);
+				
+			}
+		}
+	
+		// Now encode any remaining [ or ] chars.
+		$element = strtr( $element, $trans );
+	}
+	
+	$content = implode( '', $textarr );
+		
+	return $content;
+}
+
