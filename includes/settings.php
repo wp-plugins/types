@@ -91,7 +91,7 @@ function wpcf_admin_general_settings_form() {
             '#type' => 'checkbox',
             '#title' => __("When importing, add texts to WPML's String Translation table",
                     'wpcf'),
-            '#inline' => true,
+            '#inline' => false,
             '#default_value' => !empty($settings['register_translations_on_import']),
             '#after' => '<br />',
         );
@@ -132,6 +132,43 @@ function wpcf_admin_general_settings_form() {
         ),
         '#inline' => false,
         '#default_value' => $settings['help_box'],
+    );
+	$form['postmeta-unfiltered-html'] = array(
+        '#id' => 'postmeta_unfiltered_html',
+        '#name' => 'wpcf_settings[postmeta_unfiltered_html]',
+        '#type' => 'radios',
+        '#title' => __('Custom fields - unfiltered HTML', 'wpcf'),
+        '#options' => array(
+            'on' => array(
+                '#value'		=> 'on',
+                '#title'		=> __("Enable saving unfiltered HTML in Types custom fields for users with higher roles", 'wpcf'),
+            ),
+            'off' => array(
+                '#value'		=> 'off',
+                '#title'		=> __("Disable saving unfiltered HTML in Types custom fields for all users", 'wpcf'),
+				//'#description'	=> __('.', 'wpcf'),
+            ),
+        ),
+        '#inline' => false,
+        '#default_value' => $settings['postmeta_unfiltered_html'],
+    );
+	$form['usermeta-unfiltered-html'] = array(
+        '#id' => 'usermeta_unfiltered_html',
+        '#name' => 'wpcf_settings[usermeta_unfiltered_html]',
+        '#type' => 'radios',
+        '#title' => __('Usermeta fields - unfiltered HTML', 'wpcf'),
+        '#options' => array(
+            'on' => array(
+                '#value' => 'on',
+                '#title' => __("Enable saving unfiltered HTML in Types usermeta fields for users with higher roles", 'wpcf'),
+            ),
+            'off' => array(
+                '#value' => 'off',
+                '#title' => __("Disable saving unfiltered HTML in Types usermeta fields for all users", 'wpcf')
+            ),
+        ),
+        '#inline' => false,
+        '#default_value' => $settings['usermeta_unfiltered_html'],
     );
     $form['submit'] = array(
         '#type' => 'submit',
@@ -200,7 +237,7 @@ function wpcf_admin_general_settings_form_submit($form) {
 
     $settings = wpcf_get_settings();
     $data = $_POST['wpcf_settings'];
-    foreach (array('register_translations_on_import','help_box') as $setting) {
+    foreach (array('register_translations_on_import','help_box','postmeta_unfiltered_html','usermeta_unfiltered_html') as $setting) {
         if (!isset($data[$setting])) {
             $settings[$setting] = 0;
         } else {

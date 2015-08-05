@@ -421,7 +421,6 @@ function types_render_usermeta( $field_id, $params, $content = null, $code = '' 
     // Get field
     $field = wpcf_fields_get_field_by_slug( $field_id, 'wpcf-usermeta' );
 
-
     // If field not found return empty string
     if ( empty( $field ) ) {
 
@@ -597,7 +596,6 @@ function types_render_usermeta_field( $field_id, $params, $content = null,
 
     // Set field
     $wpcf->usermeta_field->set( $user_id, $field );
-
 
     // See if repetitive
     if ( wpcf_admin_is_repetitive( $field ) ) {

@@ -24,8 +24,7 @@ function wpcf_admin_userprofile_init($user_id){
 	$groups = wpcf_admin_usermeta_get_groups_fields();
 	$wpcf_active = false;
 	$profile_only_preview = '';
-
-
+	
     foreach ( $groups as $group ) {
         if ( !empty( $group['fields'] ) ) {
             $wpcf_active = true;

@@ -342,6 +342,8 @@ function wpcf_get_settings($specific = false)
         'images_remote' => 0,
         'images_remote_cache_time' => '36',
         'help_box' => 'by_types',
+		'postmeta_unfiltered_html' => 'on',
+		'usermeta_unfiltered_html' => 'on',
     );
     $settings = wp_parse_args( get_option( 'wpcf_settings', array() ), $defaults );
     $settings = apply_filters( 'types_settings', $settings );

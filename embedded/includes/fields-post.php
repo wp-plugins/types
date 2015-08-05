@@ -153,7 +153,7 @@ function wpcf_add_meta_boxes( $post_type, $post ) {
 
     // Get groups
     $groups = wpcf_admin_post_get_post_groups_fields( $post );
-
+	
     foreach ( $groups as $group ) {
 
         $only_preview = '';
@@ -568,7 +568,6 @@ function wpcf_admin_post_meta_box( $post, $group, $echo = '', $open_style_editor
  */
 function wpcf_admin_post_save_post_hook( $post_ID, $post )
 {
-
 
     if ( defined( 'WPTOOLSET_FORMS_VERSION' ) ) {
 

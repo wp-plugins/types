@@ -4,8 +4,8 @@ Donate link: http://wp-types.com
 Tags: CMS, custom field, custom fields, custom post type, custom post types, field, fields post, post type, post types, taxonomies, taxonomy
 License: GPLv2
 Requires at least: 3.4
-Tested up to: 4.2.2
-Stable tag: 1.7.7
+Tested up to: 4.2.4
+Stable tag: 1.7.11
 
 The complete and reliable plugin for managing custom post types, custom taxonomies and custom fields.
 
@@ -154,6 +154,27 @@ Additionally, Types is the only plugin that lets you define parent/child relatio
 9. Edit Taxonomy
 
 == Changelog ==
+
+= 1.7.11 =
+
+* Release date: 2015-08-05
+* Fixed a problem when saving HTML in meta fields.
+
+= 1.7.10 =
+
+* Release date: 2015-08-04
+* Fixed a problem when saving HTML in meta fields.
+
+= 1.7.9 =
+
+* Release date: 2015-08-04
+* Fixed a problem when saving HTML in meta fields.
+
+= 1.7.8 =
+
+* Release date: 2015-08-03
+* Fixed WYSIWYG field for WP 4.2.3 security release.
+* Added HTML frontend rendering settings.
 
 = 1.7.7 =
 
