@@ -126,8 +126,6 @@ function types_render_field( $field_id = null, $params = array(), $content = nul
     // Get field
     $field = types_get_field( $field_id );
 	
-	$params['unfiltered_html'] = wpcf_postmeta_fields_can_unfiltered_html( $post_id );
-
     // If field not found return empty string
     if ( empty( $field ) ) {
 
@@ -330,14 +328,8 @@ function types_render_field_single( $field, $params, $content = null, $code = ''
         $params['field_value'], $field['type'], $field['slug'],
         $field['name'], $params ) );
 	
-	if ( 
-		isset( $params['unfiltered_html'] )
-		&& $params['unfiltered_html'] === false
-	) {
-		return stripslashes( strval( $output ) );
-	} else {
-		return htmlspecialchars_decode( stripslashes( strval( $output ) ) );
-	}
+	return stripslashes( strval( $output ) );
+	
 }
 
 function wpcf_frontend_compat_html_output( $output, $field, $content, $params ) {
@@ -504,22 +496,6 @@ function wpcf_frontend_wrap_field_value( $field, $content, $params = array() ) {
     } else {
         return stripslashes( strval( $content ) );
     }
-}
-
-function wpcf_postmeta_fields_can_unfiltered_html( $post_id = '' ) {
-	$return = true;
-	if ( empty( $post_id ) ) {
-		return $return;
-	}
-	$can_unfiltered_html = wpcf_get_post_meta( $post_id, '_wpcf_postmeta_fields_unfiltered_html', true );
-	if (
-		$can_unfiltered_html == 'off'
-		|| wpcf_get_settings('postmeta_unfiltered_html') == 'off'
-		|| ! apply_filters( 'wpcf_filter_wpcf_postmeta_fields_unfiltered_html', true, $post_id )
-	) {
-		$return = false;
-	}
-	return $return;
 }
 
 // Add a filter to handle Views queries with checkboxes.

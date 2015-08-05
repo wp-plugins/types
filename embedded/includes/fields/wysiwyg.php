@@ -128,33 +128,26 @@ function wpcf_fields_wysiwyg_view( $params ) {
         $output .= '>';
     }
 
-    // We'll only run a limited number of filters.
-    // We need to do this to avoid issues after the WP 4.2.3 shortcode API changes.
-    
-    $the_content_filters = array(
-        'wptexturize', 'convert_smilies', 'convert_chars', 'wpautop',
-        'shortcode_unautop', 'prepend_attachment', 'capital_P_dangit', 'do_shortcode');
-    
-    /**
-     * remove_shortcode playlist to avoid htmlspecialchars_decode on json 
-     * data
-     */
     remove_shortcode('playlist', 'wp_playlist_shortcode');
     
-	if ( 
-		isset( $params['unfiltered_html'] )
-		&& $params['unfiltered_html'] === false
-	) {
-		$content = stripslashes( $params['field_value'] );
-	} else {
-		$content = htmlspecialchars_decode( stripslashes( $params['field_value'] ) );
-	}
+	$content = stripslashes( $params['field_value'] );
 	
-    foreach ($the_content_filters as $func) {
-        if (  function_exists( $func ) ) {
-            $content = call_user_func($func, $content);
+	if ( isset( $params['suppress_filters'] ) && $params['suppress_filters'] == 'true' ) {
+        $the_content_filters = array(
+            'wptexturize', 'convert_smilies', 'convert_chars', 'wpautop',
+            'shortcode_unautop', 'prepend_attachment', 'capital_P_dangit', 'do_shortcode');
+        foreach ($the_content_filters as $func) {
+            if (  function_exists( $func ) ) {
+                $content = call_user_func($func, $content);
+            }
         }
+        $output .= $content;
+    } else {
+		$filter_state = new WPCF_WP_filter_state( 'the_content' );
+        $output .= apply_filters( 'the_content', $content );
+		$filter_state->restore( );
     }
+	
     if ( preg_match_all('/playlist[^\]]+/', $output, $matches ) ) {
         foreach( $matches[0] as $one ) {
             $re = '/'.$one.'/';
@@ -164,7 +157,6 @@ function wpcf_fields_wysiwyg_view( $params ) {
     }
     add_shortcode( 'playlist', 'wp_playlist_shortcode' );
 
-    $output .= $content;
     if ( !empty( $params['style'] ) || !empty( $params['class'] ) ) {
         $output .= '</div>';
     }

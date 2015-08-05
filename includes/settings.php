@@ -141,8 +141,7 @@ function wpcf_admin_general_settings_form() {
         '#options' => array(
             'on' => array(
                 '#value'		=> 'on',
-                '#title'		=> __("Enable saving unfiltered HTML in Types custom fields for users with higher roles - can be disabled on each post", 'wpcf'),
-				'#description'	=> __('Note that when a user with a low level role saves a post, he will disable unfiltered HTML.', 'wpcf'),
+                '#title'		=> __("Enable saving unfiltered HTML in Types custom fields for users with higher roles", 'wpcf'),
             ),
             'off' => array(
                 '#value'		=> 'off',
@@ -161,8 +160,7 @@ function wpcf_admin_general_settings_form() {
         '#options' => array(
             'on' => array(
                 '#value' => 'on',
-                '#title' => __("Enable saving unfiltered HTML in Types usermeta fields for users with higher roles - can be disabled on each user", 'wpcf'),
-				'#description'	=> __('Note that when a user with a low level role edits his own profile, he will disable unfiltered HTML.', 'wpcf'),
+                '#title' => __("Enable saving unfiltered HTML in Types usermeta fields for users with higher roles", 'wpcf'),
             ),
             'off' => array(
                 '#value' => 'off',
